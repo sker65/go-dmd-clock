@@ -1,6 +1,5 @@
 package com.rinke.solutions.pinball;
 
-import java.awt.image.SampleModel;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
