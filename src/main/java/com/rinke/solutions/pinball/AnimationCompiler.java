@@ -143,8 +143,9 @@ public class AnimationCompiler {
 				for(int i = 0; i<count;i++) {
 					os.writeShort(dmd.getFrameSizeInByte());
 					FrameSet frameSet = a.render(dmd);
-					os.write(frameSet.frame1);
-					os.write(frameSet.frame2);
+					// transform in target format
+					os.write(dmd.transformFrame(frameSet.frame1));
+					os.write(dmd.transformFrame(frameSet.frame2));
 				}
 			}
 			LOG.info("done");
