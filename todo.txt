@@ -1,0 +1,8 @@
+- run dmd kann noch:
+
+- clock hat ne maske (ein pixel rand)
+- clock gibts auch in klein
+- clock kann im hintergrund der ani laufen
+-  optional erst ab einem frame x
+-  clock im hintergrund kann auch klein sein
+-  pos der kleinen clock änderbar

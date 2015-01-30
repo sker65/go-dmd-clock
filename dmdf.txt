@@ -1,0 +1,19 @@
+DMDF Format:
+ints sind little endian (low byte first)
+Header:
+8 Byte magic: FPDMDFNT
+2 Byte: xres
+2 Byte: yres
+2 Byte: Anzahl Frames
+
+dann per Frame:
+2 Byte: xres
+for 0<y<height
+  for 0<x<width
+    1 Byte per Pixel: werte 0,1,2,4 je nach helligkeit
+
+d.h. bei 128*32 Frames 4096 Byte
+
+Gesamtgrösse in Byte bei 95 Frames: 389324
+
+
