@@ -159,7 +159,7 @@ public class DMD {
 			(byte) 0b00000001,
 			};
 
-	private byte[] transformFrame(byte[] in) {
+	public byte[] transformFrame(byte[] in) {
 		int l = in.length;
 		byte[] t = new byte[l];
 		//for(int i=0; i<t.length;i++) t[i] = (byte) 255;
@@ -167,10 +167,10 @@ public class DMD {
 		for( int y=0; y<height; y++ ) {
 			for( int x=0; x<width; x++ ) {
 				boolean on = (frame1[y*bytesPerRow + x/8] & m2[x % 8]) != 0;
-				System.out.print(on?"*":".");
+//				System.out.print(on?"*":".");
 				setPixel(t, x, y, on );
 			}
-			System.out.println("");
+//			System.out.println("");
 		}
 		return t;
 	}
