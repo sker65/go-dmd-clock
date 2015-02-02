@@ -36,7 +36,7 @@ public class Animation {
 	int holdCount = 0;
 
 	public int getFrameSetCount() {
-		return (end-start)/skip;
+		return (end+1-start)/skip;
 	}
 	
 	public int getCycles() {
