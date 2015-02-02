@@ -131,7 +131,7 @@ public class DMD {
 
 	};
 
-	void setPixel(byte[] buffer, int x, int y, boolean on) {
+	public boolean getPixel(byte[] buffer, int x, int y) {
 		int bitpos = 0;
 		int yoffset = y * (width/4);
 		if( y >= height/2) {
@@ -139,7 +139,17 @@ public class DMD {
 			yoffset = (y - height/2 ) * (width/4);
 		}
 		int index = yoffset + x/4;
-		//System.out.println("y: "+y+", offset: "+yoffset);
+		return (buffer[index] & mask[(x&3)+bitpos])!=0 ;
+	}
+	
+	public void setPixel(byte[] buffer, int x, int y, boolean on) {
+		int bitpos = 0;
+		int yoffset = y * (width/4);
+		if( y >= height/2) {
+			bitpos = 4;
+			yoffset = (y - height/2 ) * (width/4);
+		}
+		int index = yoffset + x/4;
 
 		if( on ) {
 			buffer[index] &=  mask[(x&3)+bitpos];
@@ -166,7 +176,7 @@ public class DMD {
 		
 		for( int y=0; y<height; y++ ) {
 			for( int x=0; x<width; x++ ) {
-				boolean on = (frame1[y*bytesPerRow + x/8] & m2[x % 8]) != 0;
+				boolean on = (in[y*bytesPerRow + x/8] & m2[x % 8]) != 0;
 //				System.out.print(on?"*":".");
 				setPixel(t, x, y, on );
 			}
