@@ -117,7 +117,7 @@ public class AnimationFactory {
 		List<Animation> anis = new ArrayList<Animation>();
         anis.addAll(AnimationFactory.createAnimationsFromProperties("animations"));
 
-        //addAllDDMF(anis,"/home/sr/Downloads/Pinball/DMDpaint");
+        addAllDDMF(anis,"/home/sr/Downloads/Pinball/DMDpaint");
         
 //        anis.add( new Animation(AnimationType.GIF, "DMDpaint/ezgif-645182047.gif",
 //        		0, 42, 1, 1, 6));
@@ -125,7 +125,7 @@ public class AnimationFactory {
 //        		0, 110, 1, 1, 6));
         
         
-        if( false ) {
+        if( true ) {
 	        anis.add( new Animation(AnimationType.PNG_SEQ,GETAWAY,0x5a,0x70, 2, 1, 0 ));
 	        anis.add( new Animation(AnimationType.PNG_SEQ,GETAWAY,0x05,0x11, 2, 1, 6) );
 	        anis.add( new Animation(AnimationType.PNG_SEQ,GETAWAY,0x36, 0x52, 2, 1, 3));
