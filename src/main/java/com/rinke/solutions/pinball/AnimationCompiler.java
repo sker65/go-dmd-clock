@@ -45,17 +45,44 @@ public class AnimationCompiler {
 //			is.skip(len-8);
 //			offset += len;
 //		}
-		for(int i = 0; i<500; i++) {
+		for(int i = 0; i<1500; i++) {
 			byte[] f1 = new byte[512];
-			is.seek(0x40dfd0+i);
+			is.seek(0x1000+i);
 			is.readFully(f1);
-			a.addFrames(f1, f1);
+			// revers transform
+			DMD dmd = new DMD(128, 32);
+			byte[] f = transform(f1,dmd);
+			a.addFrames(f, f);
 		}
 		anis.add(a);
 		is.close();
 		return anis;
 	}
 	
+	static byte[] m2 = { 
+			(byte) 0b10000000,
+			(byte) 0b01000000,
+			(byte) 0b00100000,
+			(byte) 0b00010000,
+			(byte) 0b00001000,
+			(byte) 0b00000100,
+			(byte) 0b00000010,
+			(byte) 0b00000001,
+			};
+
+	
+	private static byte[] transform(byte[] f1, DMD dmd) {
+		byte[] r = new byte[dmd.getFrameSizeInByte()];
+		for(int y=0; y<dmd.getHeight();y++) {
+			for(int x = 0; x <dmd.getWidth();x++) {
+				if( dmd.getPixel(f1, x, y)) {
+					r[y*dmd.getBytesPerRow() + x/8] |= m2[x % 8];
+				}
+			}
+		}
+		return r;
+	}
+
 	public static List<Animation> readFromCompiledFile(String filename) {
 		List<Animation> anis = AnimationFactory.buildAnimations();
 		LOG.info("reading animations from {}",filename);
@@ -116,7 +143,6 @@ public class AnimationCompiler {
 		String filename = "foo.ani";
 
 		DataOutputStream os = null;
-		DMD dmd = new DMD(128, 32);
 		try {
 			LOG.info("writing animations to {}",filename);
 			os = new DataOutputStream(new FileOutputStream(filename));
@@ -126,7 +152,7 @@ public class AnimationCompiler {
 			LOG.info("writing {} animations", anis.size());
 			for (Animation a : anis) {
 				// write meta data
-				os.writeUTF(a.getName());
+				//os.writeUTF(a.getName());
 				os.writeShort(a.getCycles());
 				os.writeShort(a.getHoldCycles());
 				// clock while animating
@@ -136,11 +162,13 @@ public class AnimationCompiler {
 				os.writeShort(a.getClockYOffset());
 				
 				os.writeShort(a.getRefreshDelay());
-				os.writeUTF(a.getType().name());
+				os.writeByte(a.getType().ordinal());
 				int count = a.getFrameSetCount();
 				os.writeShort(count);
 				// write frames
+				LOG.info("writing {} frames", count);
 				for(int i = 0; i<count;i++) {
+					DMD dmd = new DMD(128, 32);
 					os.writeShort(dmd.getFrameSizeInByte());
 					FrameSet frameSet = a.render(dmd);
 					// transform in target format
