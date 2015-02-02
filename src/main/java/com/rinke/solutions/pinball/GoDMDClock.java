@@ -43,9 +43,9 @@ public class GoDMDClock {
         List<Animation> anis = null;
 		try {
 			anis = 
-					AnimationFactory.buildAnimations();
-			//AnimationCompiler.readFromCompiledFile("foo.ani");
-			//AnimationCompiler.readFromRunDMDFile("/home/sr/Downloads/Pinball/RunDMD_B106_AO.imgc");
+			   AnimationFactory.buildAnimations();
+			// AnimationCompiler.readFromCompiledFile("foo.ani");
+			// AnimationCompiler.readFromRunDMDFile("/home/sr/Downloads/Pinball/RunDMD_B106_AO.imgc");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
