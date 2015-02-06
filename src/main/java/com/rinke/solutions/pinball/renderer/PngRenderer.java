@@ -12,6 +12,14 @@ public class PngRenderer extends Renderer {
 	
 	private String pattern = "Image-0x%04X";
 	
+	public boolean isAutoMerge() {
+		return autoMerge;
+	}
+
+	public void setPattern(String pattern) {
+		this.pattern = pattern;
+	}
+
 	private boolean autoMerge = false;
 
 	public void setAutoMerge(boolean autoMerge) {
