@@ -1,5 +1,12 @@
 package com.rinke.solutions.pinball;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,28 +39,89 @@ public class DMDClock {
 		super();
 		this.showSeconds = showSeconds;
 		String alpha = "0123456789:";
-		String base = "/home/sr/Downloads/Pinball/";
-		int i = 0;
-		// 352 - 35c fuer klein 6x9 
-		for (int j = 0x352; j <= 0x035C; j++) {
-			DMD dmd = new DMD(8, 9);
-			FrameSet frameSet = renderer.convert(base + "clock", dmd,j);
-			dmd.writeOr(frameSet);
-			charMapSmall.put(alpha.charAt(i), dmd);
-			i++;
-		}
-		i = 0;
-		for (int j = 0x329; j <= 0x0333; j++) {
-			DMD dmd = new DMD(16, 32);
-			FrameSet frameSet = renderer.convert(base + "clock", dmd,j);
-			dmd.writeOr(frameSet);
-			charMapBig.put(alpha.charAt(i), dmd);
-			i++;
+		// check for compiled font first
+		if( true /*&& !loadFontData("font.dat")*/ ) {
+
+			String base = "/home/sr/Downloads/Pinball/";
+			int i = 0;
+			// 352 - 35c fuer klein 6x9 
+			// alter big font 0x352; j <= 0x035C
+			for (int j = 0x352; j <= 0x035C; j++) {
+				DMD dmd = new DMD(8, 9);
+				FrameSet frameSet = renderer.convert(base + "clock", dmd,j);
+				dmd.writeOr(frameSet);
+				charMapSmall.put(alpha.charAt(i), dmd);
+				i++;
+			}
+			i = 0;
+			for (int j = 0x16A; j <= 0x0174; j++) {
+				DMD dmd = new DMD(16, 32);
+				//((PngRenderer) renderer).setPattern("Image-0x%04X-mask");
+				FrameSet frameSet = renderer.convert(base + "big", dmd,j);
+				dmd.writeOr(frameSet);
+				charMapBig.put(alpha.charAt(i), dmd);
+				i++;
+			}
+			writeFontData("font.dat");
 		}
 	}
 	
+	private boolean loadFontData(String filename) {
+		File file = new File(filename);
+		if( !file.exists() ) return false;
+		DataInputStream is = null;
+		try{
+			is = new DataInputStream(new FileInputStream(file));
+			readMap(charMapBig,is);
+			readMap(charMapSmall,is);
+		} catch(IOException e) {
+			e.printStackTrace();
+			return false;
+		} finally {
+			try {
+				if( is != null ) is.close();
+			} catch (IOException e) {
+			}
+		}
+		return true;
+	}
+
+	private void readMap(Map<Character, DMD> charMap, DataInputStream is) throws IOException {
+		int size = is.readShort();
+		charMap.clear();
+		while(size-- > 0) {
+			char c = is.readChar();
+			DMD dmd = DMD.read(is);
+			charMap.put(c, dmd);
+		}
+	}
+
+	private void writeFontData(String filename) {
+		DataOutputStream os = null;
+		try {
+			os = new DataOutputStream(new FileOutputStream(filename));
+			writeMap(charMapBig,os);
+			writeMap(charMapSmall,os);
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if(os != null ) os.close();
+			} catch (IOException e) {
+			}
+		}
+	}
+
+	private void writeMap(Map<Character, DMD> charMap, DataOutputStream os) throws IOException {
+		os.writeShort(charMap.size());
+		for(Entry<Character, DMD> v : charMap.entrySet()) {
+			os.writeChar(v.getKey());
+			v.getValue().writeTo(os);
+		}
+	}
+
 	public void renderTime(DMD dmd) {
-		renderTime(dmd,false,showSeconds?0:24,3);
+		renderTime(dmd,false,showSeconds?0:24,0);
 	}
 	
 	public void renderTime(DMD dmd, boolean small, int x, int y) {
