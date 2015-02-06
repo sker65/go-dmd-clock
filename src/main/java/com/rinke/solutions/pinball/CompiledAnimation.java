@@ -11,6 +11,8 @@ public class CompiledAnimation extends Animation {
 	List<byte[]> frames1 = new ArrayList<>();
 	List<byte[]> frames2 = new ArrayList<>();
 	
+	FrameSet last = null;
+	
 	public CompiledAnimation(AnimationType type, String name, int start,
 			int end, int skip, int cycles, int holdCycles) {
 		super(type, name, start, end, skip, cycles, holdCycles);
@@ -18,7 +20,10 @@ public class CompiledAnimation extends Animation {
 
 	@Override
 	protected FrameSet renderFrameSet(String name, DMD dmd, int act) {
-		return new FrameSet(dmd.getWidth(), dmd.getHeight(), frames1.get(act), frames2.get(act));
+		if( act < frames1.size()) {
+			last = new FrameSet(dmd.getWidth(), dmd.getHeight(), frames1.get(act), frames2.get(act));
+		}
+		return last;
 	}
 
 	public void addFrames( byte[] f1, byte[] f2) {
