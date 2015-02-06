@@ -19,29 +19,25 @@ public class AnimationFactory {
 	
     private static final String GETAWAY = "Getaway";
 
-	/*
-    format der Properties datei
-	hat1.path=tom_01
-	# start bild nummer
-	hat1.start=1
-	#end bild nummer
-	hat1.end=33
-	# muster nach dem die Filenames auf gebaut sind
-	hat1.pattern=hat%d
-	# schrittweite bei den bildern 1=jedes bild, 2=jedes zweite bild
-	hat1.step=2
-	# wie oft wird die Animation abgespielt
-	hat1.cycles=1
-	# wieviele display refresh cycles bleibt das endbild stehn
-	hat1.hold=0
-	# milli seconds pro cycle
-	hat1.millisPerCycle=500
-	 */
 	public static List<Animation> createAnimationsFromProperties(String filename) {
+
+//		Config conf = ConfigFactory.parseFileAnySyntax(new File(filename));
 		Config conf = ConfigFactory.parseResourcesAnySyntax(filename);
 		List<Animation> result = new ArrayList<>();
+		
+		// load compiled file if any
+		if( conf.hasPath("compiled")) {
+			String file = conf.getString("compiled");
+			result.addAll(AnimationCompiler.readFromCompiledFile(file));
+		}
+		
+		if( conf.hasPath("base")) {
+			Animation.basePath = conf.getString("base");
+		}
+
 		for(String animationName : conf.root().keySet() ) {
 			AnimationType type = AnimationType.PNG_SEQ;
+			if( animationName.equals("compiled") || animationName.equals("base")) continue;
 			
 			if( conf.hasPath(animationName+".type") ) {
 				type = typeFor(conf.getString(animationName+".type"));
@@ -59,6 +55,8 @@ public class AnimationFactory {
 					cycles,
 					conf.getInt(animationName+".hold"));
 			
+			animation.setDesc(animationName);
+			
 			if( conf.hasPath(animationName+".millisPerCycle")) {
 				animation.setRefreshDelay(conf.getInt(animationName+".millisPerCycle"));
 			}
@@ -67,10 +65,15 @@ public class AnimationFactory {
 			}
 
 			if( conf.hasPath(animationName+".clockFrom")) {
-				animation.setClockFrom(conf.getInt(animationName+".clockFrom"));
+				animation.setClockFrom(getInt(conf,animationName+".clockFrom"));
 			}
 			if( conf.hasPath(animationName+".clockSmall")) {
 				animation.setClockSmall(conf.getBoolean(animationName+".clockSmall"));
+			}
+			if( conf.hasPath(animationName+".clockInFront")) {
+				animation.setClockInFront(conf.getBoolean(animationName+".clockInFront"));
+			} else {
+				if(animation.getClockFrom()<10000) animation.setClockInFront(true); // in front is default
 			}
 			if( conf.hasPath(animationName+".clockXOffset")) {
 				animation.setClockXOffset(conf.getInt(animationName+".clockXOffset"));
@@ -113,11 +116,13 @@ public class AnimationFactory {
 		
 	}
 	
-	public static List<Animation> buildAnimations() {
+	public static List<Animation> buildAnimations(String filename) {
 		List<Animation> anis = new ArrayList<Animation>();
-        anis.addAll(AnimationFactory.createAnimationsFromProperties("animations"));
+        if( filename != null ) {
+        	anis.addAll(AnimationFactory.createAnimationsFromProperties(filename));
+        }
 
-        addAllDDMF(anis,"/home/sr/Downloads/Pinball/DMDpaint");
+//        addAllDDMF(anis,"/home/sr/Downloads/Pinball/DMDpaint");
         
 //        anis.add( new Animation(AnimationType.GIF, "DMDpaint/ezgif-645182047.gif",
 //        		0, 42, 1, 1, 6));
@@ -125,7 +130,7 @@ public class AnimationFactory {
 //        		0, 110, 1, 1, 6));
         
         
-        if( true ) {
+        if( false ) {
 	        anis.add( new Animation(AnimationType.PNG_SEQ,GETAWAY,0x5a,0x70, 2, 1, 0 ));
 	        anis.add( new Animation(AnimationType.PNG_SEQ,GETAWAY,0x05,0x11, 2, 1, 6) );
 	        anis.add( new Animation(AnimationType.PNG_SEQ,GETAWAY,0x36, 0x52, 2, 1, 3));
