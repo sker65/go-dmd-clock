@@ -84,7 +84,7 @@ public class AnimationCompiler {
 	}
 
 	public static List<Animation> readFromCompiledFile(String filename) {
-		List<Animation> anis = AnimationFactory.buildAnimations();
+		List<Animation> anis = new ArrayList<>();
 		LOG.info("reading animations from {}",filename);
 		DataInputStream is = null;
 		try {
@@ -100,17 +100,19 @@ public class AnimationCompiler {
 				int holdCycles = is.readShort();
 				int clockFrom = is.readShort();
 				boolean clockSmall = is.readBoolean();
+				boolean front = is.readBoolean();
 				int clockXOffset = is.readShort();
 				int clockYOffset = is.readShort();
 				int refreshDelay = is.readShort();
-				AnimationType type = AnimationType.valueOf(is.readUTF());
+				AnimationType type = AnimationType.values()[is.readByte()];
 				// create complied animations
-				CompiledAnimation a = new CompiledAnimation(type, name, 0, 0, 1, cycles, holdCycles);
+				CompiledAnimation a = new CompiledAnimation(type, "foo", 0, 0, 1, cycles, holdCycles);
 				a.setRefreshDelay(refreshDelay);
 				a.setClockFrom(clockFrom);
 				a.setClockSmall(clockSmall);
 				a.setClockXOffset(clockXOffset);
 				a.setClockYOffset(clockYOffset);
+				a.setClockInFront(front);
 				int frameSets = is.readShort();
 				while(frameSets>0) {
 					int size = is.readShort();
@@ -118,13 +120,14 @@ public class AnimationCompiler {
 					byte[] f2 = new byte[size];
 					is.readFully(f1 );
 					is.readFully(f2);
-					a.addFrames(f1, f2);
+					a.addFrames(transform(f1,new DMD(128, 32)), transform(f2,new DMD(128, 32)));
 					frameSets--;
 				}
 				count--;
+				anis.add(a);
 			}
 		} catch (IOException e) {
-			LOG.error("problems when wrinting file {}", filename);
+			LOG.error("problems when reading file {}", filename,e);
 		} finally {
 			if( is != null ) {
 				try {
@@ -134,14 +137,17 @@ public class AnimationCompiler {
 				}
 			}
 		}
+		LOG.info("successful read {} anis", anis.size());
 		return anis;
 	}
 	
 	public static void main(String[] args)  {
-
-		List<Animation> anis = AnimationFactory.buildAnimations();
+		List<Animation> anis = AnimationFactory.buildAnimations("animations.properties");
 		String filename = "foo.ani";
+		compile(anis, filename);
+	}
 
+	public static void compile(List<Animation> anis, String filename) {
 		DataOutputStream os = null;
 		try {
 			LOG.info("writing animations to {}",filename);
@@ -152,12 +158,13 @@ public class AnimationCompiler {
 			LOG.info("writing {} animations", anis.size());
 			for (Animation a : anis) {
 				// write meta data
-				//os.writeUTF(a.getName());
+				os.writeUTF(a.getName());
 				os.writeShort(a.getCycles());
 				os.writeShort(a.getHoldCycles());
 				// clock while animating
-				os.writeShort(a.getClockFrom());
+				os.writeShort(a.getClockFrom()-a.getStart());
 				os.writeBoolean(a.isClockSmall());
+				os.writeBoolean(a.isClockInFront());
 				os.writeShort(a.getClockXOffset());
 				os.writeShort(a.getClockYOffset());
 				
@@ -170,7 +177,7 @@ public class AnimationCompiler {
 				for(int i = 0; i<count;i++) {
 					DMD dmd = new DMD(128, 32);
 					os.writeShort(dmd.getFrameSizeInByte());
-					FrameSet frameSet = a.render(dmd);
+					FrameSet frameSet = a.render(dmd,false);
 					// transform in target format
 					os.write(dmd.transformFrame(frameSet.frame1));
 					os.write(dmd.transformFrame(frameSet.frame2));
