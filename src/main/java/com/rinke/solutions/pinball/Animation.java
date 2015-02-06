@@ -9,6 +9,8 @@ import com.rinke.solutions.pinball.renderer.Renderer;
 
 public class Animation {
 
+	public static String basePath = "./";
+	
 	// teil der zum einlesen gebraucht wird
 	protected int start = 0;
 	protected int end = 0;
@@ -28,15 +30,34 @@ public class Animation {
 	private boolean clockSmall = false;
 	private int clockXOffset = 24;
 	private int clockYOffset = 3;
+	private boolean clockInFront = false;
+	
+	public boolean isClockInFront() {
+		return clockInFront;
+	}
+
+	public void setClockInFront(boolean clockInFront) {
+		this.clockInFront = clockInFront;
+	}
 
 	// runtime daten
 	int act;
 	boolean ended = false;
 	private int actCycle;
 	int holdCount = 0;
+	
+	private String desc;
+
+	public String getDesc() {
+		return desc;
+	}
+
+	public void setDesc(String desc) {
+		this.desc = desc;
+	}
 
 	public int getFrameSetCount() {
-		return (end+1-start)/skip;
+		return ((end-start)/skip)+1;
 	}
 	
 	public int getCycles() {
@@ -106,7 +127,6 @@ public class Animation {
 		this.clockFrom = 20000;
 	}
 
-	String basePath = "/home/sr/Downloads/Pinball/";
 	Renderer r = null;
 	FrameSet last;
 	
@@ -119,12 +139,12 @@ public class Animation {
 		return r;
 	}
 	
-	public FrameSet render(DMD dmd) {
+	public FrameSet render(DMD dmd, boolean stop) {
 		if( r == null ) init();
 		if (act <= end) {
 			ended = false;
 			last = renderFrameSet(basePath+name, dmd, act);
-			act += skip;
+			if( !stop) act += skip;
 			return last;
 		} else if (++actCycle < cycles) {
 			act = start;
@@ -192,6 +212,14 @@ public class Animation {
 
 	public int getClockYOffset() {
 		return clockYOffset;
+	}
+
+	public int getStart() {
+		return start;
+	}
+
+	public void setStart(int start) {
+		this.start = start;
 	}
 
 }
