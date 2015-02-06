@@ -1,7 +1,12 @@
 package com.rinke.solutions.pinball;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.widgets.Widget;
 
 import com.rinke.solutions.pinball.renderer.FrameSet;
 
@@ -139,7 +144,7 @@ public class DMD {
 			yoffset = (y - height/2 ) * (width/4);
 		}
 		int index = yoffset + x/4;
-		return (buffer[index] & mask[(x&3)+bitpos])!=0 ;
+		return (buffer[index] & ~mask[(x&3)+bitpos])==0 ;
 	}
 	
 	public void setPixel(byte[] buffer, int x, int y, boolean on) {
@@ -187,18 +192,37 @@ public class DMD {
 	
 	public String dumpAsCode() {
 		StringBuilder builder = new StringBuilder();
-		builder.append("byte f1 =  { ");
+		builder.append(" { ");
 		byte[] f = transformFrame(frame1);
 		for(int i = 0; i<f.length;i++) {
 			builder.append(String.format("0x%02X , ", f[i]));
 		}
-		builder.append(" }; \n");
+		builder.append(" }, \n");
 //		builder.append("byte[] f2 = new byte { \n");
 //		for(int i = 0; i<frame2.length;i++) {
 //			builder.append(String.format("0x%02X , ", frame2[i]));
 //		}
 //		builder.append("}; \n");
 		return builder.toString();
+	}
+
+	public void writeTo(DataOutputStream os) throws IOException {
+		os.writeShort(width);
+		os.writeShort(height);
+		os.writeShort(frameSizeInByte);
+		os.write(frame1);
+		os.write(frame2);
+	}
+
+	public static DMD read(DataInputStream is) throws IOException {
+		int w = is.readShort();
+		int h = is.readShort();
+		DMD dmd = new DMD(w, h);
+		int sizeInByte = is.readShort();
+		assert( sizeInByte == dmd.getFrameSizeInByte() );
+		is.read(dmd.frame1);
+		is.read(dmd.frame2);
+		return dmd;
 	}
 
 }
