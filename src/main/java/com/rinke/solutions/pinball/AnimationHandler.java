@@ -21,6 +21,7 @@ public class AnimationHandler implements Runnable {
 	private Canvas canvas;
 	private Shell shell;
 	private DMD dmd;
+	private volatile boolean stop = false;
 	
 	public AnimationHandler(List<Animation> anis, DMDClock clock, DMD dmd, Canvas canvas) {
 		this.anis = anis;
@@ -33,7 +34,7 @@ public class AnimationHandler implements Runnable {
 		if( clockActive ) {
 			if( clockCycles == 0 ) dmd.clear();
 			clock.renderTime(dmd);//,true,5,5);
-			if( clockCycles++ > 20 ) {
+			if( !stop && clockCycles++ > 20 ) {
 				clockActive = false;
 				clockCycles = 0;
 				clock.restart();
@@ -42,14 +43,14 @@ public class AnimationHandler implements Runnable {
 		} else {
 			Animation ani = anis.get(index); 
 			
-			shell.setText(ani.getName());
+			shell.setText(ani.getDesc());
 			
 			dmd.clear();
 			if( ani.addClock() ) {
 				clock.renderTime(dmd,ani.isClockSmall(), ani.getClockXOffset(),ani.getClockYOffset());
 			}
 			
-			FrameSet frameSet = ani.render(dmd);
+			FrameSet frameSet = ani.render(dmd,stop);
 			dmd.writeOr(frameSet);
 	
 			if( ani.hasEnded() ) {
@@ -75,6 +76,14 @@ public class AnimationHandler implements Runnable {
 	 */
 	public void setShell(Shell shell2) {
 		this.shell = shell2;
+	}
+	
+	public void start() {
+		stop = false;
+	}
+	
+	public void stop() {
+		stop = true;
 	}
 
 }
