@@ -27,7 +27,7 @@ public class AnimationCompiler {
 	
 	public static List<Animation> readFromRunDMDFile(String filename) throws IOException {
 		List<Animation> anis = new ArrayList<Animation>();
-		CompiledAnimation a = new CompiledAnimation(AnimationType.PNG_SEQ,
+		CompiledAnimation a = new CompiledAnimation(AnimationType.PNG,
 				"foo", 0, 0, 1, 1, 0);
 		a.setRefreshDelay(100);
 		//LittleEndianDataInputStream is = new LittleEndianDataInputStream(new FileInputStream(filename));
@@ -142,7 +142,7 @@ public class AnimationCompiler {
 	}
 	
 	public static void main(String[] args)  {
-		List<Animation> anis = AnimationFactory.buildAnimations("animations.properties");
+		List<Animation> anis = AnimationFactory.buildAnimations("animations3.properties");
 		String filename = "foo.ani";
 		compile(anis, filename);
 	}
@@ -152,13 +152,15 @@ public class AnimationCompiler {
 		try {
 			LOG.info("writing animations to {}",filename);
 			os = new DataOutputStream(new FileOutputStream(filename));
-			os.writeBytes("ANIM"); //
+			os.writeBytes("ANIM"); // magic header
+
 			os.writeShort(1); // version
+			
 			os.writeShort(anis.size());
 			LOG.info("writing {} animations", anis.size());
 			for (Animation a : anis) {
 				// write meta data
-				os.writeUTF(a.getName());
+				os.writeUTF(a.getDesc());
 				os.writeShort(a.getCycles());
 				os.writeShort(a.getHoldCycles());
 				// clock while animating
@@ -170,6 +172,9 @@ public class AnimationCompiler {
 				
 				os.writeShort(a.getRefreshDelay());
 				os.writeByte(a.getType().ordinal());
+				
+				os.writeByte(a.getFsk());
+
 				int count = a.getFrameSetCount();
 				os.writeShort(count);
 				// write frames
@@ -179,8 +184,10 @@ public class AnimationCompiler {
 					os.writeShort(dmd.getFrameSizeInByte());
 					FrameSet frameSet = a.render(dmd,false);
 					// transform in target format
-					os.write(dmd.transformFrame(frameSet.frame1));
-					os.write(dmd.transformFrame(frameSet.frame2));
+					os.write(dmd.transformFrame1(frameSet.frame1));
+					os.write(dmd.transformFrame1(frameSet.frame2));
+					//os.write(frameSet.frame1);
+					//os.write(frameSet.frame2);
 				}
 			}
 			LOG.info("done");
