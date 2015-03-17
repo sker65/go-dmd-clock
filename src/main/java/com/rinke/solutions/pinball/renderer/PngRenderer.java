@@ -5,8 +5,12 @@ import java.io.File;
 import com.rinke.solutions.pinball.DMD;
 
 import ar.com.hjg.pngj.IImageLine;
+import ar.com.hjg.pngj.ImageLineHelper;
 import ar.com.hjg.pngj.ImageLineInt;
 import ar.com.hjg.pngj.PngReader;
+import ar.com.hjg.pngj.chunks.ChunksList;
+import ar.com.hjg.pngj.chunks.PngChunkPLTE;
+import ar.com.hjg.pngj.chunks.PngChunkTRNS;
 
 public class PngRenderer extends Renderer {
 	
@@ -51,7 +55,15 @@ public class PngRenderer extends Renderer {
 		byte[] f2 = new byte[dmd.getFrameSizeInByte()];
 
 		for (int row = 0; row < pngr.imgInfo.rows; row++) { // also:
-			int[] scanline = ((ImageLineInt) pngr.readRow()).getScanline();
+			ImageLineInt imageLine = (ImageLineInt) pngr.readRow();
+			int[] scanline = imageLine.getScanline();
+			
+			// indexed
+//			ChunksList chunksList = pngr.getChunksList();
+//			PngChunkPLTE pal = (PngChunkPLTE) chunksList.getById("PLTE");
+//			PngChunkTRNS trns = (PngChunkTRNS) chunksList.getById("TRNS");
+//			ImageLineHelper.palette2rgba(imageLine, pal, trns, null);
+			
 			int[] scanlineMerge = null;
 			if( autoMerge ) {
 				scanlineMerge = ((ImageLineInt) pngrMerge.readRow()).getScanline();
@@ -73,12 +85,13 @@ public class PngRenderer extends Renderer {
 						}
 					}
 				} else {
-					if (scanline[j * channels + 3] > 0) { //
+					if( scanline[j * channels + 3] > 0) { //
 						// grau wert berechnen
 						// 0 85 170 255
 						float x = 0.299f * scanline[j * channels + 0] + 0.587f
 								* scanline[j * channels + 1] + 0.114f
 								* scanline[j * channels + 2];
+						
 						if (x > lowThreshold && x < midThreshold) {
 							// set f1
 							f1[rowOffset + j / 8] |= (128 >> (j % 8));
@@ -88,6 +101,7 @@ public class PngRenderer extends Renderer {
 							f1[rowOffset + j / 8] |= (128 >> (j % 8));
 							f2[rowOffset + j / 8] |= (128 >> (j % 8));
 						}
+						
 					}
 				}
 			}
