@@ -5,6 +5,7 @@ public class FrameSet {
 	public int height;
 	public byte[] frame1; // lower intensity
 	public byte[] frame2; // higher intensity
+	public int duration;
 	public FrameSet(int width, int height, byte[] frame1, byte[] frame2) {
 		super();
 		this.width = width;
