@@ -6,6 +6,8 @@ import java.io.IOException;
 
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Widget;
 
 import com.rinke.solutions.pinball.renderer.FrameSet;
@@ -65,7 +67,11 @@ public class DMD {
 	public void setPixel( int col, int row, int v ) {
 	}
 	
-	public void draw( PaintEvent e ) {
+	public void draw( PaintEvent ev ) {
+		
+		Image image = new Image(ev.display,ev.width,ev.height);
+		GC gcImage = new GC(image);
+		
 		int pitch = 7;
 		int offset = 20;
 		Color[] cols  = new Color[4];
@@ -73,11 +79,13 @@ public class DMD {
 		// 2/3 ca8a2e
 		// 1/3 7f561d
 		// schwarz: 191106
-		cols[0] = new Color(e.display,0x19,0x00,0x06);
-		cols[1] = new Color(e.display,0x6f,0x00,0x00);
-		cols[2] = new Color(e.display,0xca,0x00,0x00);
-		cols[3] = new Color(e.display,0xff,0x00,0x00);
-		
+		cols[0] = new Color(ev.display,0x19,0x00,0x06);
+		cols[1] = new Color(ev.display,0x6f,0x00,0x00);
+		cols[2] = new Color(ev.display,0xca,0x00,0x00);
+		cols[3] = new Color(ev.display,0xff,0x00,0x00);
+		Color bg = new Color(ev.display,10,10,10);
+		gcImage.setBackground(bg);
+		gcImage.fillRectangle(0, 0, ev.width,ev.height);
 		
 		for( int row = 0; row < height; row++) {
 			for( int col = 0; col<width; col++) {
@@ -89,12 +97,18 @@ public class DMD {
 				v +=  ( frame1[col/8 + row * bytesPerRow] & mask) != 0 ? 1:0;
 				v +=  ( frame2[col/8 + row * bytesPerRow] & mask) != 0 ? 2:0;
 				
-				e.gc.setBackground(cols[v]);
-				e.gc.fillOval(offset+col*pitch, offset+row*pitch, pitch, pitch);
+				gcImage.setBackground(cols[v]);
+				gcImage.fillOval(offset+col*pitch, offset+row*pitch, pitch, pitch);
 			}
 		}
+
+		ev.gc.drawImage(image, 0, 0);
 		cols[0].dispose();
 		cols[1].dispose();cols[2].dispose();cols[3].dispose();
+		bg.dispose();
+		
+		image.dispose();
+        gcImage.dispose();
 	}
 
 	public void setFrames(byte[] f1, byte[] f2) {
