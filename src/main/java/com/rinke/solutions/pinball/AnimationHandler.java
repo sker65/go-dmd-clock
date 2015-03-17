@@ -41,11 +41,13 @@ public class AnimationHandler implements Runnable {
 				clockCycles = 0;
 				clock.restart();
 			}
+			if( shell.isDisposed() ) return;
 			shell.setText("clock");
 		} else {
 			Animation ani = anis.get(index); 
 			
-			scale.setMaximum(ani.end-ani.start);
+			scale.setMinimum(ani.start);
+			scale.setMaximum(ani.end);
 			scale.setIncrement(ani.skip);
 			
 			shell.setText(ani.getDesc()+" : "+ani.act);
