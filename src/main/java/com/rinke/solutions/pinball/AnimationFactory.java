@@ -21,7 +21,7 @@ public class AnimationFactory {
 
 	public static List<Animation> createAnimationsFromProperties(String filename) {
 
-//		Config conf = ConfigFactory.parseFileAnySyntax(new File(filename));
+		//Config conf = ConfigFactory.parseFileAnySyntax(new File(filename));
 		Config conf = ConfigFactory.parseResourcesAnySyntax(filename);
 		List<Animation> result = new ArrayList<>();
 		
@@ -36,7 +36,7 @@ public class AnimationFactory {
 		}
 
 		for(String animationName : conf.root().keySet() ) {
-			AnimationType type = AnimationType.PNG_SEQ;
+			AnimationType type = AnimationType.PNG;
 			if( animationName.equals("compiled") || animationName.equals("base")) continue;
 			
 			if( conf.hasPath(animationName+".type") ) {
@@ -69,6 +69,9 @@ public class AnimationFactory {
 			}
 			if( conf.hasPath(animationName+".clockSmall")) {
 				animation.setClockSmall(conf.getBoolean(animationName+".clockSmall"));
+			}
+			if( conf.hasPath(animationName+".fsk")) {
+				animation.setFsk(getInt(conf,animationName+".fsk"));
 			}
 			if( conf.hasPath(animationName+".clockInFront")) {
 				animation.setClockInFront(conf.getBoolean(animationName+".clockInFront"));
@@ -131,27 +134,27 @@ public class AnimationFactory {
         
         
         if( false ) {
-	        anis.add( new Animation(AnimationType.PNG_SEQ,GETAWAY,0x5a,0x70, 2, 1, 0 ));
-	        anis.add( new Animation(AnimationType.PNG_SEQ,GETAWAY,0x05,0x11, 2, 1, 6) );
-	        anis.add( new Animation(AnimationType.PNG_SEQ,GETAWAY,0x36, 0x52, 2, 1, 3));
+	        anis.add( new Animation(AnimationType.PNG,GETAWAY,0x5a,0x70, 2, 1, 0 ));
+	        anis.add( new Animation(AnimationType.PNG,GETAWAY,0x05,0x11, 2, 1, 6) );
+	        anis.add( new Animation(AnimationType.PNG,GETAWAY,0x36, 0x52, 2, 1, 3));
 	        // multi
-	        anis.add( new Animation(AnimationType.PNG_SEQ,GETAWAY,0x73, 0x81, 2, 4, 0));
+	        anis.add( new Animation(AnimationType.PNG,GETAWAY,0x73, 0x81, 2, 4, 0));
 	        // schaltung
-	        anis.add( new Animation(AnimationType.PNG_SEQ,GETAWAY,0x104, 0x110, 2, 1, 0));
+	        anis.add( new Animation(AnimationType.PNG,GETAWAY,0x104, 0x110, 2, 1, 0));
 	        // kickback
-	        anis.add( new Animation(AnimationType.PNG_SEQ,GETAWAY,0x114, 0x157, 2, 1, 0));
+	        anis.add( new Animation(AnimationType.PNG,GETAWAY,0x114, 0x157, 2, 1, 0));
 	        
-	        anis.add( new Animation(AnimationType.PNG_SEQ,GETAWAY,0x158, 0x165, 1, 1, 5));
+	        anis.add( new Animation(AnimationType.PNG,GETAWAY,0x158, 0x165, 1, 1, 5));
 	        // free ride
-	        anis.add( new Animation(AnimationType.PNG_SEQ,GETAWAY,0x166, 0x181, 2, 1, 4));
+	        anis.add( new Animation(AnimationType.PNG,GETAWAY,0x166, 0x181, 2, 1, 4));
 	        
-	        anis.add( new Animation(AnimationType.PNG_SEQ,"DrWho",0x0Ed, 0x107, 2, 1, 0));
+	        anis.add( new Animation(AnimationType.PNG,"DrWho",0x0Ed, 0x107, 2, 1, 0));
 	
-	        anis.add( new Animation(AnimationType.PNG_SEQ,"DrWho",0x0DF, 0x0EC, 1, 1, 5));
+	        anis.add( new Animation(AnimationType.PNG,"DrWho",0x0DF, 0x0EC, 1, 1, 5));
 	
-	        anis.add( new Animation(AnimationType.PNG_SEQ,"DrWho",0x000, 0x040, 1, 1, 0));
+	        anis.add( new Animation(AnimationType.PNG,"DrWho",0x000, 0x040, 1, 1, 0));
 	
-	        anis.add( new Animation(AnimationType.PNG_SEQ,"T2",0x3DA, 0x3E3, 1, 1, 3));
+	        anis.add( new Animation(AnimationType.PNG,"T2",0x3DA, 0x3E3, 1, 1, 3));
         }
         return anis;
 	}
@@ -166,7 +169,7 @@ public class AnimationFactory {
 	}
 
 	private static AnimationType typeFor(String type) {
-		if(type==null) return AnimationType.PNG_SEQ;
+		if(type==null) return AnimationType.PNG;
 		return AnimationType.valueOf(type);
 	}
 
