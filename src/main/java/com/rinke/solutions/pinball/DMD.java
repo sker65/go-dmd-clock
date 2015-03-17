@@ -174,9 +174,16 @@ public class DMD {
 			(byte) 0b00000001,
 			};
 
+	public byte[] transformFrame1(byte[] in) {
+		byte[] t = new byte[in.length];
+		for(int i = 0; i<in.length;i++) {
+			t[i] =  (byte) ~ (in[i]);
+		}
+		return t;
+	}
+
 	public byte[] transformFrame(byte[] in) {
-		int l = in.length;
-		byte[] t = new byte[l];
+		byte[] t = new byte[in.length];
 		//for(int i=0; i<t.length;i++) t[i] = (byte) 255;
 		
 		for( int y=0; y<height; y++ ) {
@@ -224,5 +231,6 @@ public class DMD {
 		is.read(dmd.frame2);
 		return dmd;
 	}
+
 
 }
