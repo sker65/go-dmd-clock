@@ -5,6 +5,7 @@ import com.rinke.solutions.pinball.renderer.DMDFRenderer;
 import com.rinke.solutions.pinball.renderer.FrameSet;
 import com.rinke.solutions.pinball.renderer.PngRenderer;
 import com.rinke.solutions.pinball.renderer.Renderer;
+import com.rinke.solutions.pinball.renderer.VPinMameRenderer;
 
 
 public class Animation {
@@ -31,7 +32,16 @@ public class Animation {
 	private int clockXOffset = 24;
 	private int clockYOffset = 3;
 	private boolean clockInFront = false;
+	private int fsk = 16;
 	
+	public int getFsk() {
+		return fsk;
+	}
+
+	public void setFsk(int fsk) {
+		this.fsk = fsk;
+	}
+
 	public boolean isClockInFront() {
 		return clockInFront;
 	}
@@ -105,6 +115,7 @@ public class Animation {
 	}
 
 	public int getRefreshDelay() {
+		if( last != null && last.duration > 0 ) return last.duration;
 		return refreshDelay;
 	}
 
@@ -162,7 +173,7 @@ public class Animation {
 
 	private void init() {
 		switch (type) {
-		case PNG_SEQ:
+		case PNG:
 			r = new PngRenderer(pattern,autoMerge);
 			break;
 		case DMDF:
@@ -170,6 +181,10 @@ public class Animation {
 			break;
 		case GIF:
 			r = new AnimatedGIFRenderer();
+			break;
+		case MAME:
+			r = new VPinMameRenderer();
+			break;
 		default:
 			break;
 		}
@@ -220,6 +235,18 @@ public class Animation {
 
 	public void setStart(int start) {
 		this.start = start;
+	}
+
+	public void next() {
+		if (act <= end) {
+			act += skip;
+		}
+	}
+
+	public void prev() {
+		if (act >= start) {
+			act -= skip;
+		}
 	}
 
 }
