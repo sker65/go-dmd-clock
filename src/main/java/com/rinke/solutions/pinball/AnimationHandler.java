@@ -3,6 +3,7 @@ package com.rinke.solutions.pinball;
 import java.util.List;
 
 import org.eclipse.swt.widgets.Canvas;
+import org.eclipse.swt.widgets.Scale;
 import org.eclipse.swt.widgets.Shell;
 
 import com.rinke.solutions.pinball.renderer.FrameSet;
@@ -22,6 +23,7 @@ public class AnimationHandler implements Runnable {
 	private Shell shell;
 	private DMD dmd;
 	private volatile boolean stop = false;
+	private Scale scale;
 	
 	public AnimationHandler(List<Animation> anis, DMDClock clock, DMD dmd, Canvas canvas) {
 		this.anis = anis;
@@ -43,6 +45,9 @@ public class AnimationHandler implements Runnable {
 		} else {
 			Animation ani = anis.get(index); 
 			
+			scale.setMaximum(ani.end-ani.start);
+			scale.setIncrement(ani.skip);
+			
 			shell.setText(ani.getDesc()+" : "+ani.act);
 			
 			dmd.clear();
@@ -51,6 +56,7 @@ public class AnimationHandler implements Runnable {
 			}
 			
 			FrameSet frameSet = ani.render(dmd,stop);
+			scale.setSelection(ani.act);
 			dmd.writeOr(frameSet);
 	
 			if( ani.hasEnded() ) {
@@ -88,11 +94,23 @@ public class AnimationHandler implements Runnable {
 
 	public void prev() {
 		anis.get(index).prev();
+		run();
 		canvas.redraw();
 	}
 
 	public void next() {
 		anis.get(index).next();
+		run();
+		canvas.redraw();
+	}
+
+	public void setScale(Scale scale) {
+		this.scale = scale;
+	}
+
+	public void setPos(int pos) {
+		anis.get(index).setPos(pos);
+		run();
 		canvas.redraw();
 	}
 
