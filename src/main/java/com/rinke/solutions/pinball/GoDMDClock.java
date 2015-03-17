@@ -5,6 +5,8 @@ import java.util.List;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -14,6 +16,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Scale;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
@@ -30,11 +33,15 @@ public class GoDMDClock {
     
     List<Animation> anis = null;
     
-    public GoDMDClock(Display display) {
-
+    String filename;
+    
+    public GoDMDClock(Display display, String filename) {
+    	
+    	this.filename = filename;
+    	int cols = 9;
         shell = new Shell(display);
         GridLayout gridLayout = new GridLayout();
-        gridLayout.numColumns = 6;
+        gridLayout.numColumns = cols;
         shell.setLayout(gridLayout);
         shell.setText("DMD");
         shell.setSize(960, 380);
@@ -47,7 +54,7 @@ public class GoDMDClock {
         
         GridData gridData = new GridData();
         gridData.horizontalAlignment = GridData.FILL;
-        gridData.horizontalSpan = 6;
+        gridData.horizontalSpan = cols;
         gridData.verticalAlignment = GridData.FILL;
         gridData.grabExcessHorizontalSpace = true;
         gridData.grabExcessVerticalSpace = true;
@@ -56,7 +63,7 @@ public class GoDMDClock {
         
 		try {
 			anis = 
-			   AnimationFactory.buildAnimations("animations.properties");
+			   AnimationFactory.buildAnimations(filename);
 			// AnimationCompiler.readFromCompiledFile("foo.ani");
 			// AnimationCompiler.readFromRunDMDFile("/home/sr/Downloads/Pinball/RunDMD_B106_AO.imgc");
 		} catch (Exception e) {
@@ -99,6 +106,42 @@ public class GoDMDClock {
 				
 			}
 		});
+        Button prev = new Button(shell, SWT.PUSH);
+        prev.setText("-");
+        prev.addListener(SWT.Selection, new Listener() {
+			
+			@Override
+			public void handleEvent(Event event) {
+				animationHandler.prev();
+				
+			}
+		});
+        Button next = new Button(shell, SWT.PUSH);
+        next.setText("+");
+        next.addListener(SWT.Selection, new Listener() {
+			
+			@Override
+			public void handleEvent(Event event) {
+				animationHandler.next();
+				
+			}
+		});
+        Scale scale = new Scale(shell, SWT.HORIZONTAL);
+        scale.setBounds(0, 0, 220, 32);
+        scale.addSelectionListener(new SelectionListener() {
+			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
         //shell.pack();
         shell.open();
 
@@ -126,7 +169,9 @@ public class GoDMDClock {
     
     public static void main(String[] args) {
         Display display = new Display();
-        new GoDMDClock(display);
+        String filename = "animations.properties";
+        if( args.length>0 ) filename = args[0];
+        new GoDMDClock(display, filename);
         display.dispose();
     }
 }
