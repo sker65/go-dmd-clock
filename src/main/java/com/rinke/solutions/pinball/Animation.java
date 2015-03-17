@@ -156,7 +156,7 @@ public class Animation {
 			ended = false;
 			last = renderFrameSet(basePath+name, dmd, act);
 			if( !stop) act += skip;
-			if( r.getMaxFrame() > 0 ) end = r.getMaxFrame()-1;
+			if( r.getMaxFrame() > 0 && end == 0) end = r.getMaxFrame()-1;
 			return last;
 		} else if (++actCycle < cycles) {
 			act = start;
@@ -251,8 +251,8 @@ public class Animation {
 	}
 
 	public void setPos(int pos) {
-		if( pos >= 0 && pos <= end-start ) {
-			act = pos+start;
+		if( pos >= start && pos <= end ) {
+			act = pos;
 		}
 	}
 
