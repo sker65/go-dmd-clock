@@ -175,7 +175,7 @@ public class GoDMDClock {
     
     public static void main(String[] args) {
         Display display = new Display();
-        String filename = "animations.properties";
+        String filename = "animations3.properties";
         if( args.length>0 ) filename = args[0];
         new GoDMDClock(display, filename);
         display.dispose();
