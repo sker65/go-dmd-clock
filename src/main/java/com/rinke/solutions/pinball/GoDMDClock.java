@@ -38,7 +38,7 @@ public class GoDMDClock {
     public GoDMDClock(Display display, String filename) {
     	
     	this.filename = filename;
-    	int cols = 9;
+    	int cols = 10;
         shell = new Shell(display);
         GridLayout gridLayout = new GridLayout();
         gridLayout.numColumns = cols;
@@ -126,14 +126,20 @@ public class GoDMDClock {
 				
 			}
 		});
-        Scale scale = new Scale(shell, SWT.HORIZONTAL);
-        scale.setBounds(0, 0, 220, 32);
+        GridData gd = new GridData();
+        gd.horizontalAlignment = GridData.FILL;
+        gd.horizontalSpan = 2;
+        final Scale scale = new Scale(shell, SWT.HORIZONTAL);
+        scale.setLayoutData(gd);
+        scale.setMinimum(0);
+        scale.setMaximum(100);
+        scale.setIncrement(1);
+        animationHandler.setScale(scale);
         scale.addSelectionListener(new SelectionListener() {
 			
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				// TODO Auto-generated method stub
-				
+				animationHandler.setPos(scale.getSelection());
 			}
 			
 			@Override
