@@ -86,7 +86,7 @@ public class VPinMameRenderer extends Renderer {
 					e.printStackTrace();
 				}
 		}
-
+		this.maxFrame = frameNo;
 	}
 
 	public static void main(String[] args) {

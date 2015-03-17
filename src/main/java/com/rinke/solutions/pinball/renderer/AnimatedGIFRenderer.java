@@ -56,7 +56,8 @@ public class AnimatedGIFRenderer extends Renderer {
 
 			int noi = reader.getNumImages(true);
 			System.out.println("found " + noi + " images");
-
+			this.maxFrame = noi;
+			
 			Map<Integer, Integer> grayCounts = new HashMap<>();
 			int frameNo = 0;
 			while (frameNo < noi) {
