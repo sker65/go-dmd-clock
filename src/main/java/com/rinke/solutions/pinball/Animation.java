@@ -15,7 +15,7 @@ public class Animation {
 	// teil der zum einlesen gebraucht wird
 	protected int start = 0;
 	protected int end = 0;
-	private int skip = 2;
+	public  int skip = 2;
 	private String pattern = "Image-0x%04X";
 	private boolean autoMerge;
 
@@ -156,6 +156,7 @@ public class Animation {
 			ended = false;
 			last = renderFrameSet(basePath+name, dmd, act);
 			if( !stop) act += skip;
+			if( r.getMaxFrame() > 0 ) end = r.getMaxFrame()-1;
 			return last;
 		} else if (++actCycle < cycles) {
 			act = start;
@@ -246,6 +247,12 @@ public class Animation {
 	public void prev() {
 		if (act >= start) {
 			act -= skip;
+		}
+	}
+
+	public void setPos(int pos) {
+		if( pos >= 0 && pos <= end-start ) {
+			act = pos+start;
 		}
 	}
 
