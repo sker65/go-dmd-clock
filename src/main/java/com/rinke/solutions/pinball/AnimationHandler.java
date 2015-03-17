@@ -43,7 +43,7 @@ public class AnimationHandler implements Runnable {
 		} else {
 			Animation ani = anis.get(index); 
 			
-			shell.setText(ani.getDesc());
+			shell.setText(ani.getDesc()+" : "+ani.act);
 			
 			dmd.clear();
 			if( ani.addClock() ) {
@@ -84,6 +84,16 @@ public class AnimationHandler implements Runnable {
 	
 	public void stop() {
 		stop = true;
+	}
+
+	public void prev() {
+		anis.get(index).prev();
+		canvas.redraw();
+	}
+
+	public void next() {
+		anis.get(index).next();
+		canvas.redraw();
 	}
 
 }
