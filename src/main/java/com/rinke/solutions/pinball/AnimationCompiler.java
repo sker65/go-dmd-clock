@@ -142,7 +142,7 @@ public class AnimationCompiler {
 	}
 	
 	public static void main(String[] args)  {
-		List<Animation> anis = AnimationFactory.buildAnimations("animations3.properties");
+		List<Animation> anis = AnimationFactory.buildAnimations("animations.properties");
 		String filename = "foo.ani";
 		compile(anis, filename);
 	}
@@ -183,6 +183,8 @@ public class AnimationCompiler {
 					DMD dmd = new DMD(128, 32);
 					os.writeShort(dmd.getFrameSizeInByte());
 					FrameSet frameSet = a.render(dmd,false);
+					//
+					os.writeShort(frameSet.duration);
 					// transform in target format
 					os.write(dmd.transformFrame1(frameSet.frame1));
 					os.write(dmd.transformFrame1(frameSet.frame2));
