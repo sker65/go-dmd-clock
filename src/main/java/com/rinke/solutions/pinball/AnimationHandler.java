@@ -57,7 +57,8 @@ public class AnimationHandler implements Runnable {
 				clock.renderTime(dmd,ani.isClockSmall(), ani.getClockXOffset(),ani.getClockYOffset());
 			}
 			
-			FrameSet frameSet = ani.render(dmd,stop);
+			List<FrameSet> res = ani.render(dmd,stop);
+			FrameSet frameSet = res.get(0);
 			scale.setSelection(ani.act);
 			dmd.writeOr(frameSet);
 	
