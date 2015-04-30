@@ -1,5 +1,9 @@
 package com.rinke.solutions.pinball;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 import com.rinke.solutions.pinball.renderer.AnimatedGIFRenderer;
 import com.rinke.solutions.pinball.renderer.DMDFRenderer;
 import com.rinke.solutions.pinball.renderer.FrameSet;
@@ -33,6 +37,10 @@ public class Animation {
 	private int clockYOffset = 3;
 	private boolean clockInFront = false;
 	private int fsk = 16;
+	
+	private int transitionFrom = 0;
+	private String transitionName = null;
+	private int transitionCount = 1;
 	
 	public int getFsk() {
 		return fsk;
@@ -140,8 +148,9 @@ public class Animation {
 
 	Renderer r = null;
 	FrameSet last;
+	Renderer transitionRenderer = null;
 	
-	protected FrameSet renderFrameSet(String name,DMD dmd, int act) {
+	protected FrameSet renderFrameSet(String name, DMD dmd, int act) {
 		return r.convert(name, dmd, act);
 	}
 	
@@ -150,14 +159,14 @@ public class Animation {
 		return r;
 	}
 	
-	public FrameSet render(DMD dmd, boolean stop) {
+	public List<FrameSet> render(DMD dmd, boolean stop) {
+		List<FrameSet> res = new ArrayList<>();
 		if( r == null ) init();
 		if (act <= end) {
 			ended = false;
 			last = renderFrameSet(basePath+name, dmd, act);
 			if( !stop) act += skip;
 			if( r.getMaxFrame() > 0 && end == 0) end = r.getMaxFrame()-1;
-			return last;
 		} else if (++actCycle < cycles) {
 			act = start;
 		} else {
@@ -165,7 +174,18 @@ public class Animation {
 				ended = true;
 			actCycle = 0;
 		}
-		return last;
+		FrameSet transitionframeSet = null;
+		if( transitionFrom != 0 && act > transitionFrom ) {
+			try {
+				transitionframeSet = transitionRenderer.convert(basePath+"transitions", dmd, transitionCount++);
+				ended = false;
+			} catch( RuntimeException e) {
+				ended = true;
+			}
+		}
+		res.add( last );
+		if( transitionframeSet != null ) res.add( transitionframeSet );
+		return res;
 	}
 	
 	public boolean addClock() {
@@ -254,6 +274,23 @@ public class Animation {
 		if( pos >= start && pos <= end ) {
 			act = pos;
 		}
+	}
+
+	public int getTransitionFrom() {
+		return transitionFrom;
+	}
+
+	public void setTransitionFrom(int transitionFrom) {
+		this.transitionFrom = transitionFrom;
+	}
+
+	public String getTransitionName() {
+		return transitionName;
+	}
+
+	public void setTransitionName(String transitionName) {
+		this.transitionName = transitionName;
+		this.transitionRenderer = new PngRenderer(transitionName+"%d",false);
 	}
 
 }
