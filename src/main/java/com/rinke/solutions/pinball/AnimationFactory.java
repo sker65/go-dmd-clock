@@ -97,6 +97,14 @@ public class AnimationFactory {
 				r.setHighThreshold(thresholds.get(2));
 			}
 			
+			if( conf.hasPath(animationName+".transitionFrom") ) {
+				animation.setTransitionFrom(getInt(conf,animationName+".transitionFrom"));
+			}
+			
+			if( conf.hasPath(animationName+".transitionName") ) {
+				animation.setTransitionName(conf.getString(animationName+".transitionName"));
+			}
+			
 			result.add(animation);
 		}
 		return result;
