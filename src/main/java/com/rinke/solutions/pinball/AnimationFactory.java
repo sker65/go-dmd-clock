@@ -100,6 +100,9 @@ public class AnimationFactory {
 			if( conf.hasPath(animationName+".transitionFrom") ) {
 				animation.setTransitionFrom(getInt(conf,animationName+".transitionFrom"));
 			}
+			if( conf.hasPath(animationName+".transitionDelay") ) {
+				animation.setTransitionDelay(getInt(conf,animationName+".transitionDelay"));
+			}
 			
 			if( conf.hasPath(animationName+".transitionName") ) {
 				animation.setTransitionName(conf.getString(animationName+".transitionName"));
