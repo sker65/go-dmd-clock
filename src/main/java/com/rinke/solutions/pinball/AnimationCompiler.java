@@ -105,7 +105,7 @@ public class AnimationCompiler {
 				int clockYOffset = is.readShort();
 				int refreshDelay = is.readShort();
 				AnimationType type = AnimationType.values()[is.readByte()];
-				// create complied animations
+				// read complied animations
 				CompiledAnimation a = new CompiledAnimation(type, "foo", 0, 0, 1, cycles, holdCycles);
 				a.setRefreshDelay(refreshDelay);
 				a.setClockFrom(clockFrom);
@@ -142,7 +142,7 @@ public class AnimationCompiler {
 	}
 	
 	public static void main(String[] args)  {
-		List<Animation> anis = AnimationFactory.buildAnimations("animations.properties");
+		List<Animation> anis = AnimationFactory.buildAnimations("animations4.properties");
 		String filename = "foo.ani";
 		compile(anis, filename);
 	}
@@ -175,21 +175,41 @@ public class AnimationCompiler {
 				
 				os.writeByte(a.getFsk());
 
-				int count = a.getFrameSetCount();
+				DMD dmd = new DMD(128, 32);
+				
+				int count = a.getFrameSetCount(dmd);
 				os.writeShort(count);
 				// write frames
 				LOG.info("writing {} frames", count);
 				for(int i = 0; i<count;i++) {
-					DMD dmd = new DMD(128, 32);
+					dmd = new DMD(128, 32);
 					os.writeShort(dmd.getFrameSizeInByte());
-					FrameSet frameSet = a.render(dmd,false);
-					//
-					os.writeShort(frameSet.duration);
+					List<FrameSet> r =  a.render(dmd,false);
+					FrameSet frameSet = r.get(0);
+					
+					// number of planes (normally 2, and mask optionally)
+					if( r.size()==2) {
+						os.writeShort(a.getTransitionDelay());
+						os.writeByte(3);
+						os.writeByte(0x6d); // mask marker
+						os.write(r.get(1).frame1);
+					} else {
+						// delay is set per frame, equal delay is just one possibility
+						os.writeShort(frameSet.duration);
+						os.writeByte(2);
+					}
+					
+					// if mask, use plane type 0x6d
+					
 					// transform in target format
-					os.write(dmd.transformFrame1(frameSet.frame1));
-					os.write(dmd.transformFrame1(frameSet.frame2));
-					//os.write(frameSet.frame1);
-					//os.write(frameSet.frame2);
+					//os.write(dmd.transformFrame1(frameSet.frame1));
+					//os.write(dmd.transformFrame1(frameSet.frame2));
+					// plane type (normal bit depth)
+					os.writeByte(0);
+					os.write(frameSet.frame1);
+					// plane type (normal bit depth)
+					os.writeByte(1);
+					os.write(frameSet.frame2);
 				}
 			}
 			LOG.info("done");
