@@ -41,6 +41,7 @@ public class Animation {
 	private int transitionFrom = 0;
 	private String transitionName = null;
 	private int transitionCount = 1;
+	private int transitionDelay = 50;
 	
 	public int getFsk() {
 		return fsk;
@@ -74,8 +75,15 @@ public class Animation {
 		this.desc = desc;
 	}
 
-	public int getFrameSetCount() {
-		return ((end-start)/skip)+1;
+	public int getFrameSetCount(DMD dmd) {
+		int r =  ((end-start)/skip)+1;
+		// make use of transition length
+		if( transitionFrom>0) {
+			initTransition(dmd);
+			r += transitions.size()-1;
+			r -= (end-transitionFrom)/skip;
+		}
+		return r;
 	}
 	
 	public int getCycles() {
@@ -149,6 +157,7 @@ public class Animation {
 	Renderer r = null;
 	FrameSet last;
 	Renderer transitionRenderer = null;
+	List<FrameSet> transitions = new ArrayList<>();
 	
 	protected FrameSet renderFrameSet(String name, DMD dmd, int act) {
 		return r.convert(name, dmd, act);
@@ -160,6 +169,11 @@ public class Animation {
 	}
 	
 	public List<FrameSet> render(DMD dmd, boolean stop) {
+		
+		if( transitionName != null && transitions.isEmpty() ) {
+			initTransition(dmd);
+		}
+		
 		List<FrameSet> res = new ArrayList<>();
 		if( r == null ) init();
 		if (act <= end) {
@@ -170,24 +184,31 @@ public class Animation {
 		} else if (++actCycle < cycles) {
 			act = start;
 		} else {
-			if (holdCount++ >= holdCycles)
+			if (holdCount++ >= holdCycles && transitionCount>=transitions.size())
 				ended = true;
 			actCycle = 0;
 		}
-		FrameSet transitionframeSet = null;
-		if( transitionFrom != 0 && act > transitionFrom ) {
-			try {
-				transitionframeSet = transitionRenderer.convert(basePath+"transitions", dmd, transitionCount++);
-				ended = false;
-			} catch( RuntimeException e) {
-				ended = true;
-			}
-		}
 		res.add( last );
-		if( transitionframeSet != null ) res.add( transitionframeSet );
+		if( transitionFrom != 0 && act > transitionFrom &&
+				transitionCount<transitions.size()) {
+			res.add(transitions.get(transitionCount++));
+		}
 		return res;
 	}
 	
+	private void initTransition(DMD dmd) {
+		while(true) {
+			FrameSet f;
+			try {
+				f = transitionRenderer.convert(basePath+"transitions", dmd, transitionCount++);
+				transitions.add(f);
+			} catch( RuntimeException e) {
+				break;
+			}
+		}
+		transitionCount=0;
+	}
+
 	public boolean addClock() {
 		return act>clockFrom;
 	}
@@ -291,6 +312,14 @@ public class Animation {
 	public void setTransitionName(String transitionName) {
 		this.transitionName = transitionName;
 		this.transitionRenderer = new PngRenderer(transitionName+"%d",false);
+	}
+
+	public int getTransitionDelay() {
+		return transitionDelay;
+	}
+
+	public void setTransitionDelay(int transitionDelay) {
+		this.transitionDelay = transitionDelay;
 	}
 
 }
