@@ -45,7 +45,7 @@ public class DMDClock {
 		this.showSeconds = showSeconds;
 		
 		// check for compiled font first
-		if( true ){//&& !loadFontData("font.dat") ) {
+		if( true /*!loadFontData("font.dat") */) {
 
 			String base = "/home/sr/Downloads/Pinball/";
 			int i = 0;
@@ -118,7 +118,14 @@ public class DMDClock {
 		charMap.clear();
 		while(size-- > 0) {
 			char c = (char) is.readByte();
-			DMD dmd = DMD.read(is);
+			int w = is.readByte();
+			int h = is.readByte();
+			is.readShort();
+			DMD dmd = new DMD(w, h);
+			is.read(dmd.frame1);
+			for( int i = 0; i < dmd.frame1.length; i++) {
+				dmd.frame1[i] ^= 0x00;
+			}
 			charMap.put(c, dmd);
 		}
 	}
@@ -151,8 +158,8 @@ public class DMDClock {
 			os.writeByte(dmd.getWidth());
 			os.writeByte(dmd.getHeight());
 			os.writeShort(dmd.getFrameSizeInByte());
-			os.write(dmd.transformFrame1(dmd.frame1));
-			//os.write(dmd.frame1);
+			//os.write(dmd.transformFrame1(dmd.frame1));
+			os.write(dmd.frame1);
 		}
 	}
 
