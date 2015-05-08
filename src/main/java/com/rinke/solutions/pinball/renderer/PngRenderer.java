@@ -25,6 +25,7 @@ public class PngRenderer extends Renderer {
 	}
 
 	private boolean autoMerge = false;
+	private boolean override;
 
 	public void setAutoMerge(boolean autoMerge) {
 		this.autoMerge = autoMerge;
@@ -46,7 +47,11 @@ public class PngRenderer extends Renderer {
 		PngReader pngr = new PngReader(new File(filename));
 		PngReader pngrMerge = null;
 		if( autoMerge ) pngrMerge = new PngReader(new File(getFilename(name, frameNo+1)));
-
+		
+		if( override ) {
+			dmd = new DMD(pngr.imgInfo.cols, pngr.imgInfo.rows);
+		}
+		
 		int channels = pngr.imgInfo.channels;
 		if (channels < 3 || pngr.imgInfo.bitDepth != 8)
 			throw new RuntimeException("This method is for RGB8/RGBA8 images");
@@ -132,6 +137,10 @@ public class PngRenderer extends Renderer {
 				System.out.println("0b0"+n.substring(n.length() - 8, n.length()));
 			}
 		}
+	}
+
+	public void setOverrideDMD(boolean override) {
+		this.override = override;
 	}
 
 }

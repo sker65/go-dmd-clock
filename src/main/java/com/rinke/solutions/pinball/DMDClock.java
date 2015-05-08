@@ -12,6 +12,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Properties;
 
 import com.rinke.solutions.pinball.renderer.FrameSet;
 import com.rinke.solutions.pinball.renderer.PngRenderer;
@@ -19,7 +20,7 @@ import com.rinke.solutions.pinball.renderer.Renderer;
 
 public class DMDClock {
 	
-	Renderer renderer = new PngRenderer();
+	PngRenderer renderer = new PngRenderer();
 
 	Map<Character,DMD> charMapBig = new HashMap<Character, DMD>();
 	Map<Character,DMD> charMapSmall = new HashMap<Character, DMD>();
@@ -37,6 +38,53 @@ public class DMDClock {
 	public void restart() {
 		renderCycles = 0;
 	}
+
+	public void compileFontData(String filename, String fontname) {
+		
+		String base = "/home/sr/Downloads/Pinball/";
+		int i = 0;
+		// 352 - 35c fuer klein 6x9 
+		// alter big font 0x352; j <= 0x035C
+		for (int j = 0x013; j <= 0x021; j++) {
+			DMD dmd = new DMD(8, 9);
+			FrameSet frameSet = renderer.convert(base + "fonts/small", dmd,j);
+			dmd.writeOr(frameSet);
+			charMapSmall.put(alpha.charAt(i), dmd);
+			i++;
+		}
+		i = 0;
+		for (int j = 0x013; j <= 0x021; j++) {
+			DMD dmd = new DMD(8, 9);
+			renderer.setPattern("Image-0x%04X-mask");
+			FrameSet frameSet = renderer.convert(base + "fonts/small", dmd,j);
+			dmd.writeOr(frameSet);
+			charMapSmallMask.put(alpha.charAt(i), dmd);
+			i++;
+		}
+		i = 0;
+		for (int j = 0x16A; j <= 0x0178; j++) {
+			DMD dmd = new DMD(16, 32);
+			renderer.setOverrideDMD(true);
+			renderer.setPattern("Image-0x%04X");
+			FrameSet frameSet = renderer.convert(base + "fonts/"+fontname, dmd,j);
+			dmd = new DMD(frameSet.width, frameSet.height);
+			dmd.writeOr(frameSet);
+			charMapBig.put(alpha.charAt(i), dmd);
+			i++;
+		}
+		i = 0;
+		for (int j = 0x16A; j <= 0x0178; j++) {
+			DMD dmd = new DMD(16, 32);
+			renderer.setPattern("Image-0x%04X-mask");
+			FrameSet frameSet = renderer.convert(base + "fonts/"+fontname, dmd,j);
+			dmd = new DMD(frameSet.width, frameSet.height);
+			dmd.writeOr(frameSet);
+			charMapBigMask.put(alpha.charAt(i), dmd);
+			i++;
+		}
+
+		writeFontData(filename);
+	}
 	
 	String alpha = "0123456789: .C*";
 	
@@ -45,48 +93,10 @@ public class DMDClock {
 		this.showSeconds = showSeconds;
 		
 		// check for compiled font first
-		if( true /*!loadFontData("font.dat") */) {
+		if( !loadFontData("font.dat") ) {
 
-			String base = "/home/sr/Downloads/Pinball/";
-			int i = 0;
-			// 352 - 35c fuer klein 6x9 
-			// alter big font 0x352; j <= 0x035C
-			for (int j = 0x013; j <= 0x021; j++) {
-				DMD dmd = new DMD(8, 9);
-				FrameSet frameSet = renderer.convert(base + "small", dmd,j);
-				dmd.writeOr(frameSet);
-				charMapSmall.put(alpha.charAt(i), dmd);
-				i++;
-			}
-			i = 0;
-			for (int j = 0x013; j <= 0x021; j++) {
-				DMD dmd = new DMD(8, 9);
-				((PngRenderer) renderer).setPattern("Image-0x%04X-mask");
-				FrameSet frameSet = renderer.convert(base + "small", dmd,j);
-				dmd.writeOr(frameSet);
-				charMapSmallMask.put(alpha.charAt(i), dmd);
-				i++;
-			}
-			i = 0;
-			for (int j = 0x16A; j <= 0x0178; j++) {
-				DMD dmd = new DMD(j>=0x174&&j<=0x176?8:16, 32);
-				((PngRenderer) renderer).setPattern("Image-0x%04X");
-				FrameSet frameSet = renderer.convert(base + "big", dmd,j);
-				dmd.writeOr(frameSet);
-				charMapBig.put(alpha.charAt(i), dmd);
-				i++;
-			}
-			i = 0;
-			for (int j = 0x16A; j <= 0x0178; j++) {
-				DMD dmd = new DMD(j>=0x174&&j<=0x176?8:16, 32);
-				((PngRenderer) renderer).setPattern("Image-0x%04X-mask");
-				FrameSet frameSet = renderer.convert(base + "big", dmd,j);
-				dmd.writeOr(frameSet);
-				charMapBigMask.put(alpha.charAt(i), dmd);
-				i++;
-			}
-
-			writeFontData("font.dat");
+			//compileFontData("font.dat");
+			
 		}
 	}
 	
@@ -227,7 +237,20 @@ public class DMDClock {
 	
 	public static void main( String[] args ) {
 		DMDClock clock = new DMDClock(false);
-		System.out.println(clock.dumpAsCode());
+		//System.out.println(clock.dumpAsCode());
+		Properties p = new Properties();
+		try {
+			p.load(new FileInputStream("font.properties"));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		int i = 0;
+		while(p.containsKey("font"+i)) {
+			String fontname = p.getProperty("font"+i);
+			System.out.println("compiling font"+i+" = "+fontname);
+			clock.compileFontData("font"+i+".dat", fontname);
+			i++;
+		}
 	}
 
 }

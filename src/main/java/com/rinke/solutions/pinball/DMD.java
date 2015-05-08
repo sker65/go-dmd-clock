@@ -52,6 +52,7 @@ public class DMD {
 		this.width = w;
 		this.height = h;
 		bytesPerRow = width / 8;
+		if(width%8 >0) bytesPerRow++;
 		frameSizeInByte = bytesPerRow * height;
 		frame1 = new byte[frameSizeInByte];
 		frame2 = new byte[frameSizeInByte];

@@ -6,3 +6,24 @@
 -  optional erst ab einem frame x
 -  clock im hintergrund kann auch klein sein
 -  pos der kleinen clock änderbar
+
+- shiften der Clock
+
+- ausmaskieren der Clock im Hintergrund:
+	Clock erscheint direkt hinter einem vorbei fahrenden Auto.
+	-> dazu muss eine Animation eine 1 Bit Maske in JEDEM Frame haben
+	Lösung: 
+	bei Frames werden die 1,2 oder 3 Planes gespeichert plus optional
+	eine Plane Maske. Dazu gibts vor jeder Plane ein Tag, welches die
+	Plane Qualifiziert.
+	Reihenfolge ist immer M,0,1,2
+	
+- Ausmaskieren der Uhrenziffern in allen Animationsplanes
+
+* Kleine Uhr nicht mit Sekunden
+
+- hold>0 resultiert in einem grösserem Delay
+
+- bits in den Planes nicht negiert -> soll der frame refresh machen
+
+
