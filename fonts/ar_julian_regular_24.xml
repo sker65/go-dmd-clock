@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Font size="24" family="AR JULIAN" height="36" style="Regular">
+ <Char width="15" offset="0 26" rect="1 22 0 3" code=" "/>
+ <Char width="6" offset="1 22" rect="2 18 4 7" code="."/>
+ <Char width="19" offset="1 5" rect="7 1 17 24" code="0"/>
+ <Char width="11" offset="0 6" rect="25 2 10 23" code="1"/>
+ <Char width="17" offset="0 5" rect="36 1 16 24" code="2"/>
+ <Char width="18" offset="0 5" rect="53 1 17 24" code="3"/>
+ <Char width="20" offset="0 5" rect="71 1 19 24" code="4"/>
+ <Char width="17" offset="-1 5" rect="91 1 17 24" code="5"/>
+ <Char width="19" offset="1 5" rect="109 1 17 24" code="6"/>
+ <Char width="17" offset="0 7" rect="127 3 17 22" code="7"/>
+ <Char width="19" offset="1 5" rect="145 1 17 24" code="8"/>
+ <Char width="19" offset="1 5" rect="163 1 17 24" code="9"/>
+ <Char width="6" offset="1 12" rect="181 8 4 17" code=":"/>
+ <Char width="19" offset="1 5" rect="186 1 18 24" code="C"/>
+ <Char width="11" offset="1 5" rect="205 1 9 11" code="°"/>
+</Font>
