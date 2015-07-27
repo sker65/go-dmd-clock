@@ -13,16 +13,21 @@ import javax.imageio.ImageReader;
 import javax.imageio.metadata.IIOMetadata;
 import javax.imageio.stream.ImageInputStream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.rinke.solutions.pinball.DMD;
+import com.rinke.solutions.pinball.Editor;
 
 // als parameter in der Steuerdatei sollten
 // die helligkeits schwellen angebbar sein
 
 public class AnimatedGIFRenderer extends Renderer {
+    
+    private static Logger LOG = LoggerFactory.getLogger(AnimatedGIFRenderer.class); 
 	
 	List<FrameSet> frameSets = new ArrayList<>();
 
@@ -55,7 +60,7 @@ public class AnimatedGIFRenderer extends Renderer {
 			BufferedImage master = null;
 
 			int noi = reader.getNumImages(true);
-			System.out.println("found " + noi + " images");
+			LOG.debug("found " + noi + " images");
 			this.maxFrame = noi;
 			
 			Map<Integer, Integer> grayCounts = new HashMap<>();
@@ -130,9 +135,9 @@ public class AnimatedGIFRenderer extends Renderer {
 						grayCounts.put(gray, grayCounts.get(gray) + 1);
 					}
 				}
-				System.out.println("----");
+				LOG.debug("----");
 				for (int v : grayCounts.keySet()) {
-					System.out.println("Grauwert " + v + " = "
+					LOG.debug("Grauwert " + v + " = "
 							+ grayCounts.get(v));
 				}
 				frameSets.add(res);

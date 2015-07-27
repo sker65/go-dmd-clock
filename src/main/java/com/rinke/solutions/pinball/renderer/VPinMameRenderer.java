@@ -9,12 +9,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.rinke.solutions.pinball.DMD;
+import com.rinke.solutions.pinball.Editor;
 
 // als parameter in der Steuerdatei sollten
 // die helligkeits schwellen angebbar sein
 
 public class VPinMameRenderer extends Renderer {
+    
+    private static Logger LOG = LoggerFactory.getLogger(VPinMameRenderer.class); 
 
 	List<FrameSet> frameSets = new ArrayList<>();
 
@@ -53,7 +59,7 @@ public class VPinMameRenderer extends Renderer {
 					frameNo++;
 					res = new FrameSet(dmd.getWidth(), dmd.getHeight(), 
 							new byte[dmd.getFrameSizeInByte()], new byte[dmd.getFrameSizeInByte()]);
-					System.out.println("reading frame: "+frameNo);
+					LOG.debug("reading frame: "+frameNo);
 					j = 0;
 					line = stream.readLine();
 					continue;

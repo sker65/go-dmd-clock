@@ -14,12 +14,17 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.rinke.solutions.pinball.renderer.FrameSet;
 import com.rinke.solutions.pinball.renderer.PngRenderer;
 import com.rinke.solutions.pinball.renderer.Renderer;
 
 public class DMDClock {
 	
+    private static Logger LOG = LoggerFactory.getLogger(DMDClock.class); 
+    
 	PngRenderer renderer = new PngRenderer();
 
 	Map<Character,DMD> charMapBig = new HashMap<Character, DMD>();
@@ -250,7 +255,7 @@ public class DMDClock {
 		String base = p.getProperty("base", ".");
 		while(p.containsKey("font"+i)) {
 			String fontname = p.getProperty("font"+i);
-			System.out.println("compiling font"+i+" = "+fontname);
+			LOG.debug("compiling font"+i+" = "+fontname);
 			clock.compileFontData("font"+i+".dat", fontname, small, base);
 			i++;
 		}

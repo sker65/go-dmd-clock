@@ -2,7 +2,11 @@ package com.rinke.solutions.pinball.renderer;
 
 import java.io.File;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.rinke.solutions.pinball.DMD;
+import com.rinke.solutions.pinball.Editor;
 
 import ar.com.hjg.pngj.IImageLine;
 import ar.com.hjg.pngj.ImageLineHelper;
@@ -13,6 +17,8 @@ import ar.com.hjg.pngj.chunks.PngChunkPLTE;
 import ar.com.hjg.pngj.chunks.PngChunkTRNS;
 
 public class PngRenderer extends Renderer {
+    
+    private static Logger LOG = LoggerFactory.getLogger(PngRenderer.class); 
 	
 	private String pattern = "Image-0x%04X";
 	
@@ -134,7 +140,7 @@ public class PngRenderer extends Renderer {
 			for (int i = 0; i < 30; i++) {
 				int b = dmd.frame1[0 + i * dmd.getBytesPerRow()];
 				String n = "00000000000" + Integer.toBinaryString(b);
-				System.out.println("0b0"+n.substring(n.length() - 8, n.length()));
+				LOG.debug("0b0"+n.substring(n.length() - 8, n.length()));
 			}
 		}
 	}

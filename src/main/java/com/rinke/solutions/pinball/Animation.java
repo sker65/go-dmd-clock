@@ -3,6 +3,9 @@ package com.rinke.solutions.pinball;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.rinke.solutions.pinball.renderer.AnimatedGIFRenderer;
 import com.rinke.solutions.pinball.renderer.DMDFRenderer;
 import com.rinke.solutions.pinball.renderer.FrameSet;
@@ -12,6 +15,8 @@ import com.rinke.solutions.pinball.renderer.VPinMameRenderer;
 
 
 public class Animation {
+    
+    private static Logger LOG = LoggerFactory.getLogger(Animation.class); 
 
 	protected String basePath = "./";
 	protected String transitionsPath = "./";
@@ -197,7 +202,7 @@ public class Animation {
 	}
 	
 	public void initTransition(DMD dmd) {
-	    System.out.println("init transition: "+transitionName);
+	    LOG.debug("init transition: "+transitionName);
 	    transitions.clear();
 	    transitionCount=1;
 		while(true) {
@@ -206,7 +211,7 @@ public class Animation {
 				f = transitionRenderer.convert(transitionsPath+"transitions", dmd, transitionCount++);
 				transitions.add(f);
 			} catch( RuntimeException e) {
-			    System.out.println(e.getMessage());
+			    LOG.info(e.getMessage());
 				break;
 			}
 		}

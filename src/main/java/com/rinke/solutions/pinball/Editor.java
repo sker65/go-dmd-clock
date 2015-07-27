@@ -35,8 +35,12 @@ import org.eclipse.swt.widgets.Scale;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Text;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Editor implements Runnable {
+    
+    private static Logger LOG = LoggerFactory.getLogger(Editor.class); 
 
     private static final String NO_TRANS = " - ";
     String[] args;
@@ -46,43 +50,13 @@ public class Editor implements Runnable {
         this.args = args;
     }
     
-    private void loadSwtJar() {
-        String swtFileName = "undifined";
-        try {
-            String osName = System.getProperty("os.name").toLowerCase();
-            String osArch = System.getProperty("os.arch").toLowerCase();
-            URLClassLoader classLoader = (URLClassLoader) getClass().getClassLoader();
-            Method addUrlMethod = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
-            addUrlMethod.setAccessible(true);
-
-            String swtFileNameOsPart = 
-                osName.contains("win") ? "win32" :
-                osName.contains("mac") ? "macosx" :
-                osName.contains("linux") || osName.contains("nix") ? "linux_gtk" :
-                ""; // throw new RuntimeException("Unknown OS name: "+osName)
-
-            String swtFileNameArchPart = osArch.contains("64") ? "x64" : "x86";
-            swtFileName = "swt_"+swtFileNameOsPart+"_"+swtFileNameArchPart+".jar";
-            //System.out.println("ClassLoaderName: " + classLoader.getClass().getName());
-            URL swtFileUrl = new URL("rsrc:"+swtFileName); // I am using Jar-in-Jar class loader which understands this URL; adjust accordingly if you don't
-            if( "java.net.URLClassLoader".equals(classLoader.getClass().getName())) {
-                addUrlMethod.invoke(classLoader, swtFileUrl);
-            }
-            
-        }
-        catch(Exception e) {
-            System.out.println("Unable to add the swt jar to the class path: "+swtFileName);
-            e.printStackTrace();
-        }
-    }
-
     /**
      * Launch the application.
      * 
      * @param args
      */
     public static void main(String[] args) {
-        
+        System.setProperty("org.slf4j.simpleLogger.logFile", "go-dmd-editor.log");
         // Display display = Display.getDefault();
         Editor editor = new Editor(args);
         try {
@@ -158,7 +132,6 @@ public class Editor implements Runnable {
      * @wbp.parser.entryPoint
      */
     public void run() {
-        loadSwtJar();
         
         display = Display.getDefault();
         shell = new Shell();
@@ -267,7 +240,7 @@ public class Editor implements Runnable {
             bindToWidget();
         });
 
-        Canvas canvas = new Canvas(shell, SWT.BORDER);
+        Canvas canvas = new Canvas(shell, SWT.BORDER|SWT.DOUBLE_BUFFERED);
         GridData gd_canvas = new GridData(SWT.LEFT, SWT.TOP, true, false, 1, 1);
         gd_canvas.heightHint = 250;
         gd_canvas.widthHint = 960;
@@ -451,7 +424,7 @@ public class Editor implements Runnable {
                 if (matcher.matches()) {
                     // System.out.println(matcher.group(1));
                     if (!matcher.group(1).isEmpty())
-                        System.out.println("name: "+name+" '"+matcher.group(1)+"'");
+                        LOG.debug("name: "+name+" '"+matcher.group(1)+"'");
                         trans.add(matcher.group(1));
                 }
             }
