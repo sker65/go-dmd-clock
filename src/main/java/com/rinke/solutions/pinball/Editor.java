@@ -306,7 +306,9 @@ public class Editor implements Runnable {
 
         comboTransition = new Combo(grpDetails_1, SWT.READ_ONLY);
         comboTransition.setBounds(478, 30, 106, 27);
-        buildTransitions(comboTransition);
+        
+        String basePath = "/home/sr/Downloads/Pinball/transitions";
+        buildTransitions(basePath, comboTransition);
 
         Label lblDelay = new Label(grpDetails_1, SWT.NONE);
         lblDelay.setText("Delay");
@@ -386,9 +388,7 @@ public class Editor implements Runnable {
     int markStart = 0;
     int markEnd = 0;
 
-    private void buildTransitions(Combo transitions) {
-        String basePath = "/home/sr/Downloads/Pinball/transitions";
-
+    private void buildTransitions(String basePath, Combo transitions) {
         Pattern pattern = Pattern.compile("^([a-z_\\.\\-A-Z]*)([0-9]*)\\.png$");
         String[] list = new File(basePath).list();
         HashMap<String, String> trans = new HashMap<>();
@@ -401,9 +401,7 @@ public class Editor implements Runnable {
                         trans.put(matcher.group(1), matcher.group(1));
                 }
             }
-        for (String key : trans.keySet()) {
-            transitions.add(key);
-        }
+        trans.keySet().forEach(key -> transitions.add(key));
         transitions.add(" - ");
     }
 
@@ -455,8 +453,7 @@ public class Editor implements Runnable {
         lastPath = fileChooser.getFilterPath();
         if (filename == null)
             return;
-        // showFileType(filename);
-        // System.out.println(filename);
+
         java.util.List<Animation> loadedList = new ArrayList<>();
         if (filename.endsWith(".ani")) {
             loadedList.addAll(AnimationCompiler.readFromCompiledFile(filename));
@@ -481,9 +478,6 @@ public class Editor implements Runnable {
 
     private void populateList(List list, java.util.List<Animation> anis) {
         list.removeAll();
-        for (Animation animation : anis) {
-            list.add(animation.getDesc());
-        }
-        // list.
+        anis.forEach(animation -> list.add(animation.getDesc()) );
     }
 }
