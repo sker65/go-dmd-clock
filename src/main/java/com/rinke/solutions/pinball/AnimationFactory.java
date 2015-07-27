@@ -24,6 +24,7 @@ public class AnimationFactory {
 		//Config conf = ConfigFactory.parseFileAnySyntax(new File(filename));
 		Config conf = ConfigFactory.parseResourcesAnySyntax(filename);
 		List<Animation> result = new ArrayList<>();
+		String basePath = "./";
 		
 		// load compiled file if any
 		if( conf.hasPath("compiled")) {
@@ -32,7 +33,7 @@ public class AnimationFactory {
 		}
 		
 		if( conf.hasPath("base")) {
-			Animation.basePath = conf.getString("base");
+			basePath = conf.getString("base");
 		}
 
 		for(String animationName : conf.root().keySet() ) {
@@ -56,6 +57,7 @@ public class AnimationFactory {
 					conf.getInt(animationName+".hold"));
 			
 			animation.setDesc(animationName);
+			animation.setBasePath(basePath);
 			
 			if( conf.hasPath(animationName+".millisPerCycle")) {
 				animation.setRefreshDelay(conf.getInt(animationName+".millisPerCycle"));

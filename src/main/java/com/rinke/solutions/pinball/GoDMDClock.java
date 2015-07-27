@@ -5,6 +5,7 @@ import java.util.List;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
+import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
@@ -19,6 +20,8 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Scale;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+
+import com.rinke.solutions.pinball.AniEvent.Type;
 
 
 public class GoDMDClock {
@@ -35,7 +38,7 @@ public class GoDMDClock {
     
     String filename;
     
-    public GoDMDClock(Display display, String filename) {
+    public GoDMDClock(Display display, String filename, boolean export) {
     	
     	this.filename = filename;
     	int cols = 10;
@@ -70,8 +73,13 @@ public class GoDMDClock {
 			e.printStackTrace();
 		}
         
-        animationHandler = new AnimationHandler(anis,clock,dmd,canvas);       
-        animationHandler.setShell(shell);
+        animationHandler = new AnimationHandler(anis,clock,dmd,canvas,export);       
+        animationHandler.setLabelHandler(new EventHandler() {
+			@Override
+			public void notifyAni(AniEvent evt) {
+				shell.setText(evt.evtType==Type.CLOCK?"clock":evt.actAnimation.getDesc()+": "+evt.actFrame);				
+			}
+		});
 
         new Label(shell, SWT.SINGLE ).setText("Properties File: ");;
         Text propfile = new Text(shell, SWT.SINGLE | SWT.BORDER );
@@ -109,17 +117,14 @@ public class GoDMDClock {
         Button prev = new Button(shell, SWT.PUSH);
         prev.setText("-");
         prev.addListener(SWT.Selection, new Listener() {
-			
 			@Override
 			public void handleEvent(Event event) {
 				animationHandler.prev();
-				
 			}
 		});
         Button next = new Button(shell, SWT.PUSH);
         next.setText("+");
         next.addListener(SWT.Selection, new Listener() {
-			
 			@Override
 			public void handleEvent(Event event) {
 				animationHandler.next();
@@ -135,17 +140,10 @@ public class GoDMDClock {
         scale.setMaximum(100);
         scale.setIncrement(1);
         animationHandler.setScale(scale);
-        scale.addSelectionListener(new SelectionListener() {
-			
+        scale.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				animationHandler.setPos(scale.getSelection());
-			}
-			
-			@Override
-			public void widgetDefaultSelected(SelectionEvent e) {
-				// TODO Auto-generated method stub
-				
 			}
 		});
         //shell.pack();
@@ -175,9 +173,9 @@ public class GoDMDClock {
     
     public static void main(String[] args) {
         Display display = new Display();
-        String filename = "animations4.properties";
+        String filename = "animations3.properties";
         if( args.length>0 ) filename = args[0];
-        new GoDMDClock(display, filename);
+        new GoDMDClock(display, filename, false);
         display.dispose();
     }
 }

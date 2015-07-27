@@ -15,6 +15,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.io.LittleEndianDataInputStream;
+import com.rinke.solutions.pinball.CompiledAnimation.Frame;
+import com.rinke.solutions.pinball.CompiledAnimation.Plane;
 import com.rinke.solutions.pinball.renderer.FrameSet;
 
 /**
@@ -52,7 +54,7 @@ public class AnimationCompiler {
 			// revers transform
 			DMD dmd = new DMD(128, 32);
 			byte[] f = transform(f1,dmd);
-			a.addFrames(f, f);
+			//a.addFrames(f, f);
 		}
 		anis.add(a);
 		is.close();
@@ -95,7 +97,7 @@ public class AnimationCompiler {
 			int count = is.readShort();
 			LOG.info("reading {} animations from {}",count, filename);
 			while(count>0) {
-				String name = is.readUTF();
+				String desc = is.readUTF();
 				int cycles = is.readShort();
 				int holdCycles = is.readShort();
 				int clockFrom = is.readShort();
@@ -105,6 +107,8 @@ public class AnimationCompiler {
 				int clockYOffset = is.readShort();
 				int refreshDelay = is.readShort();
 				AnimationType type = AnimationType.values()[is.readByte()];
+				int fsk = is.readByte();
+				
 				// read complied animations
 				CompiledAnimation a = new CompiledAnimation(type, "foo", 0, 0, 1, cycles, holdCycles);
 				a.setRefreshDelay(refreshDelay);
@@ -113,14 +117,24 @@ public class AnimationCompiler {
 				a.setClockXOffset(clockXOffset);
 				a.setClockYOffset(clockYOffset);
 				a.setClockInFront(front);
+				a.setFsk(fsk);
+				a.setDesc(desc);
+				a.setBasePath(filename);
 				int frameSets = is.readShort();
+				int i = 0;
 				while(frameSets>0) {
-					int size = is.readShort();
-					byte[] f1 = new byte[size];
-					byte[] f2 = new byte[size];
-					is.readFully(f1 );
-					is.readFully(f2);
-					a.addFrames(transform(f1,new DMD(128, 32)), transform(f2,new DMD(128, 32)));
+					int size = is.readShort(); // framesize in byte
+					int delay = is.readShort();
+					int numberOfPlanes = is.readByte();
+					a.addFrame(new Frame(delay));
+					while( numberOfPlanes>0) {
+						byte[] f1 = new byte[size];
+						byte marker = is.readByte(); // type of plane
+						is.readFully(f1);
+						a.addPlane(i, new Plane(marker, f1));
+						numberOfPlanes--;
+					}
+					i++;
 					frameSets--;
 				}
 				count--;
@@ -142,7 +156,9 @@ public class AnimationCompiler {
 	}
 	
 	public static void main(String[] args)  {
-		List<Animation> anis = AnimationFactory.buildAnimations("animations4.properties");
+//		List<Animation> anis = AnimationFactory.buildAnimations("logo.properties");
+//		String filename = "logo.ani";
+		List<Animation> anis = AnimationFactory.buildAnimations("animations.properties");
 		String filename = "foo.ani";
 		compile(anis, filename);
 	}

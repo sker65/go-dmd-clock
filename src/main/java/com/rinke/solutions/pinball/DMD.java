@@ -1,5 +1,8 @@
 package com.rinke.solutions.pinball;
 
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -68,6 +71,44 @@ public class DMD {
 	public void setPixel( int col, int row, int v ) {
 	}
 	
+	public BufferedImage draw() {
+		BufferedImage img = new BufferedImage(width*8, height*8, BufferedImage.TYPE_INT_ARGB);
+		Graphics2D g = (Graphics2D) img.getGraphics();
+		g.setPaint(new java.awt.Color(10,10,10));
+		g.fillRect(0, 0, width*8, height*8);
+		
+		int pitch = 7;
+		int offset = 20;
+		
+		java.awt.Color[] cols  = new java.awt.Color[4];
+		// hell ffae3a
+		// 2/3 ca8a2e
+		// 1/3 7f561d
+		// schwarz: 191106
+		cols[0] = new java.awt.Color(0x19,0x00,0x06);
+		cols[1] = new java.awt.Color(0x6f,0x00,0x00);
+		cols[2] = new java.awt.Color(0xca,0x00,0x00);
+		cols[3] = new java.awt.Color(0xff,0x00,0x00);
+		
+		for( int row = 0; row < height; row++) {
+			for( int col = 0; col<width; col++) {
+				// lsb first 
+				//byte mask = (byte) (1 << (col % 8));
+				// hsb first
+				byte mask = (byte) (128 >> (col % 8));
+				int v  = 0;
+				v +=  ( frame1[col/8 + row * bytesPerRow] & mask) != 0 ? 1:0;
+				v +=  ( frame2[col/8 + row * bytesPerRow] & mask) != 0 ? 2:0;
+				
+				g.setPaint(cols[v]);
+				g.fillOval(offset+col*pitch, offset+row*pitch, pitch, pitch);
+			}
+		}
+
+		g.dispose();
+		return img;
+	}
+	
 	public void draw( PaintEvent ev ) {
 		
 		Image image = new Image(ev.display,ev.width,ev.height);
@@ -103,7 +144,8 @@ public class DMD {
 			}
 		}
 
-		ev.gc.drawImage(image, 0, 0);
+		ev.gc.drawImage(image, 0, 0);		
+		
 		cols[0].dispose();
 		cols[1].dispose();cols[2].dispose();cols[3].dispose();
 		bg.dispose();

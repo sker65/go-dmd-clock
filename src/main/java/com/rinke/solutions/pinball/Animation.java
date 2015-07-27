@@ -1,6 +1,5 @@
 package com.rinke.solutions.pinball;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,7 +13,7 @@ import com.rinke.solutions.pinball.renderer.VPinMameRenderer;
 
 public class Animation {
 
-	public static String basePath = "./";
+	protected String basePath = "./";
 	
 	// teil der zum einlesen gebraucht wird
 	protected int start = 0;
@@ -60,7 +59,7 @@ public class Animation {
 	}
 
 	// runtime daten
-	int act;
+	int actFrame;
 	boolean ended = false;
 	private int actCycle;
 	int holdCount = 0;
@@ -143,7 +142,7 @@ public class Animation {
 			int cycles, int holdCycles) {
 		super();
 		this.start = start;
-		this.act = start;
+		this.actFrame = start;
 		this.end = end;
 		this.skip = skip;
 		this.cycles = cycles;
@@ -176,20 +175,20 @@ public class Animation {
 		
 		List<FrameSet> res = new ArrayList<>();
 		if( r == null ) init();
-		if (act <= end) {
+		if (actFrame <= end) {
 			ended = false;
-			last = renderFrameSet(basePath+name, dmd, act);
-			if( !stop) act += skip;
+			last = renderFrameSet(basePath+name, dmd, actFrame);
+			if( !stop) actFrame += skip;
 			if( r.getMaxFrame() > 0 && end == 0) end = r.getMaxFrame()-1;
 		} else if (++actCycle < cycles) {
-			act = start;
+			actFrame = start;
 		} else {
 			if (holdCount++ >= holdCycles && transitionCount>=transitions.size())
 				ended = true;
 			actCycle = 0;
 		}
 		res.add( last );
-		if( transitionFrom != 0 && act > transitionFrom &&
+		if( transitionFrom != 0 && actFrame > transitionFrom &&
 				transitionCount<transitions.size()) {
 			res.add(transitions.get(transitionCount++));
 		}
@@ -210,7 +209,7 @@ public class Animation {
 	}
 
 	public boolean addClock() {
-		return act>clockFrom;
+		return actFrame>clockFrom;
 	}
 
 	private void init() {
@@ -239,7 +238,7 @@ public class Animation {
 	public void restart() {
 		ended = false;
 		actCycle = 0;
-		act = start;
+		actFrame = start;
 		holdCount = 0;
 	}
 
@@ -280,20 +279,20 @@ public class Animation {
 	}
 
 	public void next() {
-		if (act <= end) {
-			act += skip;
+		if (actFrame <= end) {
+			actFrame += skip;
 		}
 	}
 
 	public void prev() {
-		if (act >= start) {
-			act -= skip;
+		if (actFrame >= start) {
+			actFrame -= skip;
 		}
 	}
 
 	public void setPos(int pos) {
 		if( pos >= start && pos <= end ) {
-			act = pos;
+			actFrame = pos;
 		}
 	}
 
@@ -320,6 +319,22 @@ public class Animation {
 
 	public void setTransitionDelay(int transitionDelay) {
 		this.transitionDelay = transitionDelay;
+	}
+
+	public String getBasePath() {
+		return basePath;
+	}
+
+	public void setBasePath(String basePath) {
+		this.basePath = basePath;
+	}
+
+	public int getActFrame() {
+		return actFrame;
+	}
+
+	public void setActFrame(int actFrame) {
+		this.actFrame = actFrame;
 	}
 
 }

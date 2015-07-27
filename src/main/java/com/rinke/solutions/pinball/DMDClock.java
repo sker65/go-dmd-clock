@@ -39,24 +39,24 @@ public class DMDClock {
 		renderCycles = 0;
 	}
 
-	public void compileFontData(String filename, String fontname) {
+	public void compileFontData(String filename, String fontname, String small, String base) {
 		
-		String base = "/home/sr/Downloads/Pinball/";
+		if( !base.endsWith("/") ) base += "/";
 		int i = 0;
 		// 352 - 35c fuer klein 6x9 
 		// alter big font 0x352; j <= 0x035C
 		for (int j = 0x013; j <= 0x021; j++) {
-			DMD dmd = new DMD(8, 9);
-			FrameSet frameSet = renderer.convert(base + "fonts/small", dmd,j);
+			DMD dmd = new DMD(10, 13);
+			FrameSet frameSet = renderer.convert(base + "fonts/"+small, dmd,j);
 			dmd.writeOr(frameSet);
 			charMapSmall.put(alpha.charAt(i), dmd);
 			i++;
 		}
 		i = 0;
 		for (int j = 0x013; j <= 0x021; j++) {
-			DMD dmd = new DMD(8, 9);
+			DMD dmd = new DMD(10, 13);
 			renderer.setPattern("Image-0x%04X-mask");
-			FrameSet frameSet = renderer.convert(base + "fonts/small", dmd,j);
+			FrameSet frameSet = renderer.convert(base + "fonts/"+small, dmd,j);
 			dmd.writeOr(frameSet);
 			charMapSmallMask.put(alpha.charAt(i), dmd);
 			i++;
@@ -93,7 +93,7 @@ public class DMDClock {
 		this.showSeconds = showSeconds;
 		
 		// check for compiled font first
-		if( !loadFontData("font.dat") ) {
+		if( !loadFontData("font0.dat") ) {
 
 			//compileFontData("font.dat");
 			
@@ -133,9 +133,9 @@ public class DMDClock {
 			is.readShort();
 			DMD dmd = new DMD(w, h);
 			is.read(dmd.frame1);
-			for( int i = 0; i < dmd.frame1.length; i++) {
-				dmd.frame1[i] ^= 0x00;
-			}
+//			for( int i = 0; i < dmd.frame1.length; i++) {
+//				dmd.frame1[i] ^= 0x00;
+//			}
 			charMap.put(c, dmd);
 		}
 	}
@@ -177,6 +177,7 @@ public class DMDClock {
 		renderTime(dmd,false,showSeconds?0:24,0);
 	}
 	
+	// upgrade to support arbitrary pos
 	public void renderTime(DMD dmd, boolean small, int x, int y) {
 		int xoffset = x/8; // only byte aligned
 		
@@ -204,14 +205,14 @@ public class DMDClock {
 	// TODO methode in DMD selbst
 	private void copy(DMD target, int yoffset, int xoffset, DMD src, boolean low, boolean small) {
 		if( small ){
-			for( int row = 0; row <9; row++) {
+			for( int row = 0; row <src.getHeight(); row++) {
 				target.frame1[(row+yoffset)*target.getBytesPerRow()+xoffset] = src.frame1[src.getBytesPerRow()*row];
 				if(!low) {
 					target.frame2[(row+yoffset)*target.getBytesPerRow()+xoffset] = src.frame1[src.getBytesPerRow()*row];
 				}
 			}
 		} else {
-			for( int row = 0; row <=27; row++) {
+			for( int row = 0; row <src.getHeight(); row++) {
 				target.frame1[(row+yoffset)*target.getBytesPerRow()+xoffset] = src.frame1[src.getBytesPerRow()*row];
 				if( src.getWidth()==16) target.frame1[(row+yoffset)*target.getBytesPerRow()+xoffset+1] = src.frame1[src.getBytesPerRow()*row+1];
 				if(!low) {
@@ -245,10 +246,12 @@ public class DMDClock {
 			e.printStackTrace();
 		}
 		int i = 0;
+		String small = p.getProperty("small", "small");
+		String base = p.getProperty("base", ".");
 		while(p.containsKey("font"+i)) {
 			String fontname = p.getProperty("font"+i);
 			System.out.println("compiling font"+i+" = "+fontname);
-			clock.compileFontData("font"+i+".dat", fontname);
+			clock.compileFontData("font"+i+".dat", fontname, small, base);
 			i++;
 		}
 	}
