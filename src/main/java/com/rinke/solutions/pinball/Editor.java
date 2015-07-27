@@ -1,9 +1,13 @@
 package com.rinke.solutions.pinball;
 
 import java.io.File;
+import java.lang.reflect.Method;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -34,11 +38,42 @@ import org.eclipse.swt.widgets.Text;
 
 public class Editor implements Runnable {
 
+    private static final String NO_TRANS = " - ";
     String[] args;
     private String lastPath;
 
     public Editor(String[] args) {
         this.args = args;
+    }
+    
+    private void loadSwtJar() {
+        String swtFileName = "undifined";
+        try {
+            String osName = System.getProperty("os.name").toLowerCase();
+            String osArch = System.getProperty("os.arch").toLowerCase();
+            URLClassLoader classLoader = (URLClassLoader) getClass().getClassLoader();
+            Method addUrlMethod = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
+            addUrlMethod.setAccessible(true);
+
+            String swtFileNameOsPart = 
+                osName.contains("win") ? "win32" :
+                osName.contains("mac") ? "macosx" :
+                osName.contains("linux") || osName.contains("nix") ? "linux_gtk" :
+                ""; // throw new RuntimeException("Unknown OS name: "+osName)
+
+            String swtFileNameArchPart = osArch.contains("64") ? "x64" : "x86";
+            swtFileName = "swt_"+swtFileNameOsPart+"_"+swtFileNameArchPart+".jar";
+            //System.out.println("ClassLoaderName: " + classLoader.getClass().getName());
+            URL swtFileUrl = new URL("rsrc:"+swtFileName); // I am using Jar-in-Jar class loader which understands this URL; adjust accordingly if you don't
+            if( "java.net.URLClassLoader".equals(classLoader.getClass().getName())) {
+                addUrlMethod.invoke(classLoader, swtFileUrl);
+            }
+            
+        }
+        catch(Exception e) {
+            System.out.println("Unable to add the swt jar to the class path: "+swtFileName);
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -47,6 +82,7 @@ public class Editor implements Runnable {
      * @param args
      */
     public static void main(String[] args) {
+        
         // Display display = Display.getDefault();
         Editor editor = new Editor(args);
         try {
@@ -59,7 +95,8 @@ public class Editor implements Runnable {
     private DMDClock clock = new DMDClock(false);
     Shell shell;
 
-    Animation actAnimation;
+    Animation selectedAnimation;
+    int selectedAnimationIndex;
 
     java.util.List<Animation> sourceAnis = new ArrayList<>();
     java.util.List<Animation> targetAnis = new ArrayList<>();
@@ -76,83 +113,61 @@ public class Editor implements Runnable {
     Button btnCut;
     Button btnDelete;
 
-    /*private Menu createMenu() {
+    Display display;
+    
+    String[] fsks = new String[] { "18", "16", "12", "6" };
+    private java.util.List<String> transitions;
 
-        Menu menuBar = new Menu(shell, SWT.BAR);
-
-        MenuItem item = new MenuItem(menuBar, SWT.CASCADE);
-        item.setText("File");
-        Menu fileMenu = new Menu(shell, SWT.DROP_DOWN);
-        item.setMenu(fileMenu);
-
-        MenuItem mntmLoad = new MenuItem(fileMenu, SWT.NONE);
-        mntmLoad.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-                load(false);
-            }
-        });
-        mntmLoad.setText("Load");
-
-        MenuItem mntmAdd = new MenuItem(fileMenu, SWT.NONE);
-        mntmAdd.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-                load(true);
-            }
-        });
-        mntmAdd.setText("Add");
-
-        MenuItem mntmSave = new MenuItem(fileMenu, SWT.NONE);
-        mntmSave.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-                save();
-            }
-        });
-        mntmSave.setText("Save");
-
-        MenuItem menuItem = new MenuItem(fileMenu, SWT.SEPARATOR);
-        menuItem.setText("sep1");
-
-        MenuItem mntmQuit = new MenuItem(fileMenu, SWT.NONE);
-        mntmQuit.setText("Quit");
-        return menuBar;
-
-    }*/
+    /*
+     * private Menu createMenu() {
+     * 
+     * Menu menuBar = new Menu(shell, SWT.BAR);
+     * 
+     * MenuItem item = new MenuItem(menuBar, SWT.CASCADE); item.setText("File");
+     * Menu fileMenu = new Menu(shell, SWT.DROP_DOWN); item.setMenu(fileMenu);
+     * 
+     * MenuItem mntmLoad = new MenuItem(fileMenu, SWT.NONE);
+     * mntmLoad.addSelectionListener(new SelectionAdapter() {
+     * 
+     * @Override public void widgetSelected(SelectionEvent e) { load(false); }
+     * }); mntmLoad.setText("Load");
+     * 
+     * MenuItem mntmAdd = new MenuItem(fileMenu, SWT.NONE);
+     * mntmAdd.addSelectionListener(new SelectionAdapter() {
+     * 
+     * @Override public void widgetSelected(SelectionEvent e) { load(true); }
+     * }); mntmAdd.setText("Add");
+     * 
+     * MenuItem mntmSave = new MenuItem(fileMenu, SWT.NONE);
+     * mntmSave.addSelectionListener(new SelectionAdapter() {
+     * 
+     * @Override public void widgetSelected(SelectionEvent e) { save(); } });
+     * mntmSave.setText("Save");
+     * 
+     * MenuItem menuItem = new MenuItem(fileMenu, SWT.SEPARATOR);
+     * menuItem.setText("sep1");
+     * 
+     * MenuItem mntmQuit = new MenuItem(fileMenu, SWT.NONE);
+     * mntmQuit.setText("Quit"); return menuBar;
+     * 
+     * }
+     */
+    
 
     /**
      * @wbp.parser.entryPoint
      */
     public void run() {
-
-        Display display = Display.getDefault();
+        loadSwtJar();
+        
+        display = Display.getDefault();
         shell = new Shell();
         shell.setSize(1260, 600);
         shell.setText("Animation Editor");
         shell.setLayout(new GridLayout(2, false));
 
-        //shell.setMenuBar(createMenu());
-
-        Group grpSource = new Group(shell, SWT.NONE);
-        grpSource.setText("Source");
-        grpSource.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2));
-        grpSource.setLayout(new GridLayout(1, false));
-
-        sourceList = new List(grpSource, SWT.BORDER | SWT.V_SCROLL);
-        GridData gd_aniList = new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 2);
-        gd_aniList.widthHint = 221;
-        gd_aniList.heightHint = 275;
-        sourceList.setLayoutData(gd_aniList);
-
-        sourceList.addListener(SWT.Selection, e -> {
-            actAnimation = sourceAnis.get(sourceList.getSelectionIndex());
-            playingAnis.clear();
-            playingAnis.add(actAnimation);
-            animationHandler.setAnimations(playingAnis);
-            btnDelete.setEnabled(sourceList.getSelectionCount() > 0);
-            bindToWidget();
-        });
+        Label lblAnimations = new Label(shell, SWT.NONE);
+        lblAnimations.setText("Animations");
 
         Group grpDetails = new Group(shell, SWT.NONE);
         GridData gd_grpDetails = new GridData(SWT.LEFT, SWT.TOP, true, false, 1, 1);
@@ -198,7 +213,7 @@ public class Editor implements Runnable {
         btnMarkStart.setBounds(336, 10, 91, 29);
         btnMarkStart.setText("Mark Start");
         btnMarkStart.addListener(SWT.Selection, e -> {
-            markStart = actAnimation.actFrame;
+            markStart = selectedAnimation.actFrame;
             btnCut.setEnabled(markEnd > 0 && markEnd > markStart);
         });
 
@@ -206,7 +221,7 @@ public class Editor implements Runnable {
         btnMarkEnd.setBounds(426, 10, 91, 29);
         btnMarkEnd.setText("Mark End");
         btnMarkEnd.addListener(SWT.Selection, e -> {
-            markEnd = actAnimation.actFrame;
+            markEnd = selectedAnimation.actFrame;
             btnCut.setEnabled(markEnd > 0 && markEnd > markStart);
         });
 
@@ -223,6 +238,35 @@ public class Editor implements Runnable {
         btnShowClock.setText("Show Clock");
         btnShowClock.setSelection(true);
 
+        // shell.setMenuBar(createMenu());
+
+        // Group grpSource = new Group(shell, SWT.NONE);
+        // grpSource.setText("Source");
+        // grpSource.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true,
+        // 1, 2));
+        // grpSource.setLayout(new GridLayout(1, false));
+
+        sourceList = new List(shell, SWT.BORDER | SWT.V_SCROLL | SWT.MULTI);
+        GridData gd_aniList = new GridData(SWT.LEFT, SWT.TOP, true, false, 1, 3);
+        gd_aniList.verticalSpan = 1;
+        gd_aniList.widthHint = 221;
+        gd_aniList.heightHint = 280;
+        sourceList.setLayoutData(gd_aniList);
+
+        sourceList.addListener(SWT.Selection, e -> {
+            if( selectedAnimation != null ) {
+                pullFromWidget(selectedAnimation);
+                sourceList.setItem(selectedAnimationIndex, selectedAnimation.getDesc());
+            }
+            selectedAnimationIndex = sourceList.getSelectionIndex();
+            selectedAnimation = sourceAnis.get(selectedAnimationIndex);
+            playingAnis.clear();
+            playingAnis.add(selectedAnimation);
+            animationHandler.setAnimations(playingAnis);
+            btnDelete.setEnabled(sourceList.getSelectionCount() > 0);
+            bindToWidget();
+        });
+
         Canvas canvas = new Canvas(shell, SWT.BORDER);
         GridData gd_canvas = new GridData(SWT.LEFT, SWT.TOP, true, false, 1, 1);
         gd_canvas.heightHint = 250;
@@ -232,7 +276,7 @@ public class Editor implements Runnable {
         canvas.addPaintListener(new DmdPaintListener());
         canvas.setBackground(new Color(display, 10, 10, 10));
 
-        animationHandler = new AnimationHandler(sourceAnis, clock, dmd, canvas, false);
+        animationHandler = new AnimationHandler(playingAnis, clock, dmd, canvas, false);
         new Label(shell, SWT.NONE);
 
         final Scale scale = new Scale(shell, SWT.NONE);
@@ -240,11 +284,11 @@ public class Editor implements Runnable {
         gd_scale.widthHint = 967;
         scale.setLayoutData(gd_scale);
         animationHandler.setScale(scale);
-        scale.addListener(SWT.Selection, e -> animationHandler.setPos(scale.getSelection()  ));
+        scale.addListener(SWT.Selection, e -> animationHandler.setPos(scale.getSelection()));
 
         Group grpActions = new Group(shell, SWT.NONE);
-        GridData gd_grpActions = new GridData(SWT.LEFT, SWT.FILL, false, false, 1, 1);
-        gd_grpActions.heightHint = 101;
+        GridData gd_grpActions = new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1);
+        gd_grpActions.heightHint = 131;
         gd_grpActions.widthHint = 242;
         grpActions.setLayoutData(gd_grpActions);
         grpActions.setText("Actions");
@@ -252,6 +296,7 @@ public class Editor implements Runnable {
         Button btnSave = new Button(grpActions, SWT.NONE);
         btnSave.setBounds(106, 61, 91, 29);
         btnSave.setText("Save");
+        btnSave.addListener(SWT.Selection, e -> save());
 
         btnDelete = new Button(grpActions, SWT.NONE);
         btnDelete.setText("Delete");
@@ -270,9 +315,14 @@ public class Editor implements Runnable {
         btnAdd.setText("Add");
         btnAdd.setBounds(106, 26, 91, 29);
 
+        Button btnSelectAll = new Button(grpActions, SWT.NONE);
+        btnSelectAll.setText("Select All");
+        btnSelectAll.setBounds(9, 98, 91, 29);
+        btnSelectAll.addListener(SWT.Selection, e -> sourceList.selectAll());
+
         Group grpDetails_1 = new Group(shell, SWT.NONE);
-        GridData gd_grpDetails_1 = new GridData(SWT.LEFT, SWT.FILL, false, false, 1, 1);
-        gd_grpDetails_1.heightHint = 118;
+        GridData gd_grpDetails_1 = new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1);
+        gd_grpDetails_1.heightHint = 134;
         gd_grpDetails_1.widthHint = 861;
         grpDetails_1.setLayoutData(gd_grpDetails_1);
         grpDetails_1.setText("Details");
@@ -302,13 +352,12 @@ public class Editor implements Runnable {
 
         comboFsk = new Combo(grpDetails_1, SWT.READ_ONLY);
         comboFsk.setBounds(56, 30, 75, 17);
-        comboFsk.setItems(new String[] { "18", "16", "12", "6" });
+        comboFsk.setItems(fsks);
 
         comboTransition = new Combo(grpDetails_1, SWT.READ_ONLY);
         comboTransition.setBounds(478, 30, 106, 27);
-        
-        String basePath = "/home/sr/Downloads/Pinball/transitions";
-        buildTransitions(basePath, comboTransition);
+
+        transitions = buildTransitions(transitionsPath, comboTransition);
 
         Label lblDelay = new Label(grpDetails_1, SWT.NONE);
         lblDelay.setText("Delay");
@@ -323,7 +372,7 @@ public class Editor implements Runnable {
         lblName.setBounds(10, 64, 50, 17);
 
         nameText = new Text(grpDetails_1, SWT.BORDER);
-        nameText.setBounds(56, 61, 106, 27);
+        nameText.setBounds(56, 61, 149, 27);
         animationHandler.setLabelHandler(new EventHandler() {
 
             @Override
@@ -355,6 +404,8 @@ public class Editor implements Runnable {
         }
     }
 
+
+
     /**
      * deletes from the underlying list
      * 
@@ -373,13 +424,15 @@ public class Editor implements Runnable {
                 }
             }
         }
+        populateList(sourceList, anis);
     }
 
     protected void cutOutNewClip(int start, int end) {
-        Animation ani = buildMameAnimation(actAnimation.getBasePath() + actAnimation.getName());
+        // only works if current is MAME
+        Animation ani = buildMameAnimation(selectedAnimation.getBasePath() + selectedAnimation.getName());
         ani.start = start;
         ani.end = end;
-        ani.setDesc(actAnimation.getDesc() + (cutNameNumber++));
+        ani.setDesc(selectedAnimation.getDesc() + (cutNameNumber++));
         sourceAnis.add(ani);
         populateList(sourceList, sourceAnis);
     }
@@ -388,26 +441,29 @@ public class Editor implements Runnable {
     int markStart = 0;
     int markEnd = 0;
 
-    private void buildTransitions(String basePath, Combo transitions) {
+    private java.util.List<String> buildTransitions(String basePath, Combo transitions) {
         Pattern pattern = Pattern.compile("^([a-z_\\.\\-A-Z]*)([0-9]*)\\.png$");
-        String[] list = new File(basePath).list();
-        HashMap<String, String> trans = new HashMap<>();
+        String[] list = new File(basePath+"transitions/").list();
+        LinkedHashSet<String> trans = new LinkedHashSet<String>();
         if (list != null)
             for (String name : list) {
                 Matcher matcher = pattern.matcher(name);
                 if (matcher.matches()) {
                     // System.out.println(matcher.group(1));
                     if (!matcher.group(1).isEmpty())
-                        trans.put(matcher.group(1), matcher.group(1));
+                        System.out.println("name: "+name+" '"+matcher.group(1)+"'");
+                        trans.add(matcher.group(1));
                 }
             }
-        trans.keySet().forEach(key -> transitions.add(key));
-        transitions.add(" - ");
+        trans.add(NO_TRANS);
+        trans.forEach(key -> transitions.add(key));
+        return new ArrayList<>(trans);
     }
 
     private DMD dmd = new DMD();
 
     private AnimationHandler animationHandler;
+    private String transitionsPath = "./";//home/sr/Downloads/Pinball/";
 
     private class DmdPaintListener implements PaintListener {
 
@@ -421,10 +477,11 @@ public class Editor implements Runnable {
 
     protected void save() {
         FileDialog fileChooser = new FileDialog(shell, SWT.SAVE);
+        fileChooser.setOverwrite(true);
         if (lastPath != null)
             fileChooser.setFilterPath(lastPath);
         fileChooser.setFilterExtensions(new String[] { "*.ani" });
-        fileChooser.setFilterNames(new String[] { "Animationen", "txt.gz" });
+        fileChooser.setFilterNames(new String[] { "Animationen", "ani" });
         String filename = fileChooser.open();
         lastPath = fileChooser.getFilterPath();
         if (filename == null)
@@ -433,22 +490,41 @@ public class Editor implements Runnable {
     }
 
     private void bindToWidget() {
-        if (actAnimation != null) {
-            comboFsk.select(comboFsk.indexOf(String.valueOf(actAnimation.getFsk())));
-            spinnerCycle.setSelection(actAnimation.getCycles());
-            spinnerHold.setSelection(actAnimation.getHoldCycles());
-            txtTdelay.setText(String.valueOf(actAnimation.getTransitionDelay()));
-            nameText.setText(actAnimation.getDesc());
-
+        if (selectedAnimation != null) {
+            comboFsk.select(comboFsk.indexOf(String.valueOf(selectedAnimation.getFsk())));
+            spinnerCycle.setSelection(selectedAnimation.getCycles());
+            spinnerHold.setSelection(selectedAnimation.getHoldCycles());
+            txtTdelay.setText(String.valueOf(selectedAnimation.getTransitionDelay()));
+            nameText.setText(selectedAnimation.getDesc());
+            if( selectedAnimation.getTransitionName()==null || selectedAnimation.getTransitionName().isEmpty()) {
+                comboTransition.deselectAll();
+            } else {
+                comboTransition.select(transitions.indexOf(selectedAnimation.getTransitionName()));
+            }
         }
     }
+    
+    private void pullFromWidget(Animation ani) {
+        ani.setFsk(Integer.valueOf(fsks[comboFsk.getSelectionIndex()]));
+        ani.setCycles(spinnerCycle.getSelection());
+        ani.setHoldCycles(spinnerHold.getSelection());
+        ani.setDesc(nameText.getText());
+        int index = comboTransition.getSelectionIndex();
+        if( index != -1 && !transitions.get(index).equals(NO_TRANS)) {
+            ani.setTransitionDelay(Integer.valueOf(txtTdelay.getText()));
+            ani.setTransitionName(transitions.get(index));
+            ani.setTransitionFrom(ani.end);
+            ani.setTransitionsPath(transitionsPath);
+        }
+    }
+
 
     protected void load(boolean append) {
         FileDialog fileChooser = new FileDialog(shell, SWT.OPEN);
         if (lastPath != null)
             fileChooser.setFilterPath(lastPath);
-        fileChooser.setFilterExtensions(new String[] { "*.ani;*.txt.gz" });
-        fileChooser.setFilterNames(new String[] { "Animationen", "txt.gz, ani" });
+        fileChooser.setFilterExtensions(new String[] { "*.properties;*.ani;*.txt.gz" });
+        fileChooser.setFilterNames(new String[] { "Animationen", "properties, txt.gz, ani" });
         String filename = fileChooser.open();
         lastPath = fileChooser.getFilterPath();
         if (filename == null)
@@ -459,10 +535,16 @@ public class Editor implements Runnable {
             loadedList.addAll(AnimationCompiler.readFromCompiledFile(filename));
         } else if (filename.endsWith(".txt.gz")) {
             loadedList.add(buildMameAnimation(filename));
+        } else if (filename.endsWith(".properties")) {
+            loadedList.addAll(AnimationFactory.createAnimationsFromProperties(filename));
         }
         // animationHandler.setAnimations(sourceAnis);
-        if (!append)
+        if (!append) {
             sourceAnis.clear();
+            selectedAnimation = null;
+            selectedAnimationIndex = 0;
+            playingAnis.clear();
+        }
         sourceAnis.addAll(loadedList);
         populateList(sourceList, sourceAnis);
     }
@@ -478,6 +560,6 @@ public class Editor implements Runnable {
 
     private void populateList(List list, java.util.List<Animation> anis) {
         list.removeAll();
-        anis.forEach(animation -> list.add(animation.getDesc()) );
+        anis.forEach(animation -> list.add(animation.getDesc()));
     }
 }

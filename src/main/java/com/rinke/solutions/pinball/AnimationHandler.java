@@ -164,6 +164,9 @@ public class AnimationHandler implements Runnable {
 		this.anis = anis2;
 		clockActive=false;
 		index = 0;
+		if( !anis.isEmpty() ) {
+		    anis.get(index).restart();
+		}
 	}
 
 	public boolean isShowClock() {

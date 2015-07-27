@@ -20,11 +20,12 @@ public class AnimationFactory {
     private static final String GETAWAY = "Getaway";
 
 	public static List<Animation> createAnimationsFromProperties(String filename) {
-
-		//Config conf = ConfigFactory.parseFileAnySyntax(new File(filename));
-		Config conf = ConfigFactory.parseResourcesAnySyntax(filename);
+	    File ifile = new File(filename);
+	    Config conf = ConfigFactory.parseFileAnySyntax(ifile);
+		//Config conf = ConfigFactory.parseResourcesAnySyntax(filename);
 		List<Animation> result = new ArrayList<>();
-		String basePath = "./";
+		String basePath = ifile.getParent();
+		if( !basePath.endsWith("/")) basePath += "/";
 		
 		// load compiled file if any
 		if( conf.hasPath("compiled")) {

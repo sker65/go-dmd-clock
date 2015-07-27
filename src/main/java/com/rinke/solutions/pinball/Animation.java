@@ -14,6 +14,7 @@ import com.rinke.solutions.pinball.renderer.VPinMameRenderer;
 public class Animation {
 
 	protected String basePath = "./";
+	protected String transitionsPath = "./";
 	
 	// teil der zum einlesen gebraucht wird
 	protected int start = 0;
@@ -195,13 +196,17 @@ public class Animation {
 		return res;
 	}
 	
-	private void initTransition(DMD dmd) {
+	public void initTransition(DMD dmd) {
+	    System.out.println("init transition: "+transitionName);
+	    transitions.clear();
+	    transitionCount=1;
 		while(true) {
 			FrameSet f;
 			try {
-				f = transitionRenderer.convert(basePath+"transitions", dmd, transitionCount++);
+				f = transitionRenderer.convert(transitionsPath+"transitions", dmd, transitionCount++);
 				transitions.add(f);
 			} catch( RuntimeException e) {
+			    System.out.println(e.getMessage());
 				break;
 			}
 		}
@@ -336,5 +341,13 @@ public class Animation {
 	public void setActFrame(int actFrame) {
 		this.actFrame = actFrame;
 	}
+
+    public String getTransitionsPath() {
+        return transitionsPath;
+    }
+
+    public void setTransitionsPath(String transitionsPath) {
+        this.transitionsPath = transitionsPath;
+    }
 
 }
