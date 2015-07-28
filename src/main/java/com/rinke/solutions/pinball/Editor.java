@@ -329,6 +329,7 @@ public class Editor implements Runnable {
 
         comboTransition = new Combo(grpDetails_1, SWT.READ_ONLY);
         comboTransition.setBounds(478, 30, 106, 27);
+        comboTransition.addListener(SWT.Selection, e -> pullTransition(selectedAnimation));
 
         transitions = buildTransitions(transitionsPath, comboTransition);
 
@@ -482,6 +483,10 @@ public class Editor implements Runnable {
         ani.setCycles(spinnerCycle.getSelection());
         ani.setHoldCycles(spinnerHold.getSelection());
         ani.setDesc(nameText.getText());
+        pullTransition(ani);
+    }
+
+    private void pullTransition(Animation ani) {
         int index = comboTransition.getSelectionIndex();
         if( index != -1 && !transitions.get(index).equals(NO_TRANS)) {
             ani.setTransitionDelay(Integer.valueOf(txtTdelay.getText()));
