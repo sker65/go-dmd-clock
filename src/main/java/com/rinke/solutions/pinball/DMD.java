@@ -183,6 +183,20 @@ public class DMD {
             copyAnd(frame2, frameSet.frame2);
         }
     }
+    
+    public void writeNotAnd(FrameSet frameSet) {
+        if (frameSet != null) {
+            copyNotAnd(frame1, frameSet.frame1);
+            copyNotAnd(frame2, frameSet.frame2);
+        }
+    }
+
+
+    private void copyNotAnd(byte[] target, byte[] src) {
+        for (int i = 0; i < src.length; i++) {
+            target[i] = (byte) (target[i] & ~src[i]);
+        }
+    }
 
     private void copyAnd(byte[] target, byte[] src) {
         for (int i = 0; i < src.length; i++) {
@@ -289,6 +303,15 @@ public class DMD {
         is.read(dmd.frame1);
         is.read(dmd.frame2);
         return dmd;
+    }
+
+    public FrameSet getFrameSet() {
+        return new FrameSet(width, height, frame1, frame2);
+    }
+
+    @Override
+    public String toString() {
+        return "DMD [width=" + width + ", height=" + height + "]";
     }
 
 }
