@@ -189,14 +189,16 @@ public class Animation {
 		} else if (++actCycle < cycles) {
 			actFrame = start;
 		} else {
-			if (holdCount++ >= holdCycles && transitionCount>=transitions.size())
-				ended = true;
+			if (holdCount++ >= holdCycles && transitionCount>=transitions.size()) {
+			    ended = true;
+			}
 			actCycle = 0;
 		}
 		res.add( last );
 		if( transitionFrom != 0 && actFrame > transitionFrom &&
-				transitionCount<transitions.size()) {
-			res.add(transitions.get(transitionCount++));
+				transitionCount<=transitions.size()) {
+			res.add(transitions.get(transitionCount<transitions.size()?transitionCount:transitions.size()-1));
+			transitionCount++;
 		}
 		return res;
 	}
@@ -219,7 +221,7 @@ public class Animation {
 	}
 
 	public boolean addClock() {
-		return actFrame>clockFrom;
+		return actFrame>clockFrom | (transitionFrom>0 && actFrame>=transitionFrom);
 	}
 
 	private void init() {
@@ -250,6 +252,7 @@ public class Animation {
 		actCycle = 0;
 		actFrame = start;
 		holdCount = 0;
+		transitionCount=0;
 	}
 
 	public void setAutoMerge(boolean b) {
@@ -321,6 +324,7 @@ public class Animation {
 	public void setTransitionName(String transitionName) {
 		this.transitionName = transitionName;
 		this.transitionRenderer = new PngRenderer(transitionName+"%d",false);
+		transitions.clear();
 	}
 
 	public int getTransitionDelay() {
