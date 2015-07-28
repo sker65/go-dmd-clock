@@ -36,6 +36,7 @@ public class AnimationHandler implements Runnable {
 	private boolean export;
 	private GifSequenceWriter gifWriter;
 	private boolean showClock = true;
+	private int transitionFrame= 0;
 	
 	public AnimationHandler(List<Animation> anis, DMDClock clock, DMD dmd, Canvas canvas, boolean export) {
 		this.anis = anis;
@@ -62,8 +63,9 @@ public class AnimationHandler implements Runnable {
 				clockActive = false;
 				clockCycles = 0;
 				clock.restart();
+				transitionFrame=0;
 			}
-			//if( shell.isDisposed() ) return;
+			if( scale.isDisposed() ) return;
 			eventHandler.notifyAni(new AniEvent(Type.CLOCK, 0, null));
 		} else {
 			if( anis.isEmpty() ) {
@@ -80,13 +82,23 @@ public class AnimationHandler implements Runnable {
 				
 				dmd.clear();
 				if( ani.addClock() ) {
-					clock.renderTime(dmd,ani.isClockSmall(), ani.getClockXOffset(),ani.getClockYOffset());
+				    if( ani.isClockSmall())
+				        clock.renderTime(dmd,ani.isClockSmall(), ani.getClockXOffset(),ani.getClockYOffset());
+				    else
+				        clock.renderTime(dmd);
 				}
-				
 				List<FrameSet> res = ani.render(dmd,stop);
-				FrameSet frameSet = res.get(0);
-				scale.setSelection(ani.actFrame);
-				dmd.writeOr(frameSet);
+                scale.setSelection(ani.actFrame);
+
+                if( res.size()>1 ) { // there is a mask
+                    dmd.writeNotAnd(res.get(1));
+                    DMD tmp = new DMD(dmd.getWidth(), dmd.getHeight());
+                    tmp.writeOr(res.get(0));
+                    tmp.writeAnd(res.get(1));
+                    dmd.writeOr(tmp.getFrameSet());
+                } else {
+                    dmd.writeOr(res.get(0)); // die Animation wird drüber geodert
+                }
 		
 				if( ani.hasEnded() ) {
 					ani.restart();
