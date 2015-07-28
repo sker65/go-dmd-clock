@@ -53,7 +53,8 @@ public class CompiledAnimation extends Animation {
 
 	@Override
 	public int getRefreshDelay() {
-		return frames.get(actFrame<frames.size()?actFrame:frames.size()-1).delay;
+		int r = frames.get(actFrame<frames.size()?actFrame:frames.size()-1).delay;
+		return r==0?super.getRefreshDelay():r;
 	}
 
 }
