@@ -178,55 +178,57 @@ public class DMDClock {
 		}
 	}
 
-	public void renderTime(DMD dmd) {
-		renderTime(dmd,false,showSeconds?0:24,0);
+	public void renderTime(DMD dmd,boolean mask) {
+		renderTime(dmd,false,showSeconds?0:24,0,mask);
 	}
 	
 	// upgrade to support arbitrary pos
-	public void renderTime(DMD dmd, boolean small, int x, int y) {
+	public void renderTime(DMD dmd, boolean small, int x, int y, boolean mask) {
 		int xoffset = x/8; // only byte aligned
 		
 		String time = String.format("%tT", Calendar.getInstance());
 		if( !showSeconds ) {
 			time = time.substring(0,5);
 		}
-		Map<Character,DMD> map = small?charMapSmall:charMapBig;
+		Map<Character,DMD> map = mask ? (small?charMapSmallMask:charMapBigMask):(small?charMapSmall:charMapBig);
 		
 		for(int i = 0; i<time.length(); i++) {
 			DMD src = map.get(time.charAt(i));
 			if( ':' == time.charAt(i) && (System.currentTimeMillis() % 1000) < 500 ) {
-				src = small?emptySmall:emptyBig;
+				src = map.get(' ');
 			}
 			if( src != null ) {
 				boolean low = renderCycles < 1;
-				copy(dmd, y, xoffset, small?emptySmall:emptyBig, low, small);
-				copy(dmd, y, xoffset, src, low, small);
+				//copy(dmd, y, xoffset, small?emptySmall:emptyBig, low, small);
+				copy(dmd, y, xoffset, src, low, mask);
 				xoffset += src.getWidth()/8;
 			}
 		}
 		renderCycles++;
 	}
 
-	// TODO methode in DMD selbst
-	private void copy(DMD target, int yoffset, int xoffset, DMD src, boolean low, boolean small) {
-		if( small ){
-			for( int row = 0; row <src.getHeight(); row++) {
-				target.frame1[(row+yoffset)*target.getBytesPerRow()+xoffset] = src.frame1[src.getBytesPerRow()*row];
-				if(!low) {
-					target.frame2[(row+yoffset)*target.getBytesPerRow()+xoffset] = src.frame1[src.getBytesPerRow()*row];
-				}
-			}
-		} else {
-			for( int row = 0; row <src.getHeight(); row++) {
-				target.frame1[(row+yoffset)*target.getBytesPerRow()+xoffset] = src.frame1[src.getBytesPerRow()*row];
-				if( src.getWidth()==16) target.frame1[(row+yoffset)*target.getBytesPerRow()+xoffset+1] = src.frame1[src.getBytesPerRow()*row+1];
-				if(!low) {
-					target.frame2[(row+yoffset)*target.getBytesPerRow()+xoffset] = src.frame1[src.getBytesPerRow()*row];
-					if( src.getWidth()==16) target.frame2[(row+yoffset)*target.getBytesPerRow()+xoffset+1] = src.frame1[src.getBytesPerRow()*row+1];
-				}
-			}
-		}
-	}
+    // TODO methode in DMD selbst
+    private void copy(DMD target, int yoffset, int xoffset, DMD src, boolean low, boolean mask) {
+        for (int row = 0; row < src.getHeight(); row++) {
+            for (int col = 0; col < src.getWidth() / 8; col++) {
+                if(mask) 
+                    target.frame1[(row + yoffset) * target.getBytesPerRow() + xoffset + col] &= 
+                        ~src.frame1[src.getBytesPerRow() * row + col];
+                else
+                    target.frame1[(row + yoffset) * target.getBytesPerRow() + xoffset + col] = 
+                        src.frame1[src.getBytesPerRow() * row + col];
+                if (!low) {
+                    if( mask )
+                        target.frame2[(row + yoffset) * target.getBytesPerRow() + xoffset + col] &= 
+                            ~src.frame1[src.getBytesPerRow() * row + col];
+                    else
+                        target.frame2[(row + yoffset) * target.getBytesPerRow() + xoffset + col] = 
+                            src.frame1[src.getBytesPerRow() * row + col];
+
+                }
+            }
+        }
+    }
 	
 	private String dumpAsCode() {
 		StringBuilder sb = new StringBuilder();
