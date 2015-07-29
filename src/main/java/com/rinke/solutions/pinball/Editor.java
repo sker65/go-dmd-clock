@@ -493,6 +493,9 @@ public class Editor implements Runnable {
             ani.setTransitionName(transitions.get(index));
             ani.setTransitionFrom(ani.end);
             ani.setTransitionsPath(transitionsPath);
+        } else {
+            ani.setTransitionName(null);
+            ani.setTransitionFrom(0);
         }
     }
 
