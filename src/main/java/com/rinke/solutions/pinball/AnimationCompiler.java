@@ -120,6 +120,7 @@ public class AnimationCompiler {
 				a.setFsk(fsk);
 				a.setDesc(desc);
 				a.setBasePath(filename);
+				LOG.info("reading {}",a);
 				int frameSets = is.readShort();
 				int i = 0;
 				while(frameSets>0) {
@@ -175,6 +176,7 @@ public class AnimationCompiler {
 			os.writeShort(anis.size());
 			LOG.info("writing {} animations", anis.size());
 			for (Animation a : anis) {
+			    LOG.info("writing {}",a);
 				// write meta data
 				os.writeUTF(a.getDesc());
 				os.writeShort(a.getCycles());
@@ -195,6 +197,7 @@ public class AnimationCompiler {
 				
 				int count = a.getFrameSetCount(dmd);
 				os.writeShort(count);
+				a.restart();
 				// write frames
 				LOG.info("writing {} frames", count);
 				for(int i = 0; i<count;i++) {
