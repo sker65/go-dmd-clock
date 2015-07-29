@@ -359,4 +359,13 @@ public class Animation {
         this.transitionsPath = transitionsPath;
     }
 
+    @Override
+    public String toString() {
+        return "Animation [start=" + start + ", end=" + end + ", skip=" + skip + ", cycles=" + cycles + ", name=" + name
+                + ", holdCycles=" + holdCycles + ", type=" + type + ", refreshDelay=" + refreshDelay + ", clockFrom="
+                + clockFrom + ", clockSmall=" + clockSmall + ", clockXOffset=" + clockXOffset + ", clockYOffset="
+                + clockYOffset + ", clockInFront=" + clockInFront + ", fsk=" + fsk + ", transitionFrom=" + transitionFrom
+                + ", transitionName=" + transitionName + ", transitionDelay=" + transitionDelay + ", desc=" + desc + "]";
+    }
+
 }
