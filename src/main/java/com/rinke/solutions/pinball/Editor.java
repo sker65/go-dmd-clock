@@ -1,6 +1,10 @@
 package com.rinke.solutions.pinball;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -133,10 +137,21 @@ public class Editor implements Runnable {
      */
     public void run() {
         
+        InputStream stream;
+        String version = "";
+        try{ 
+            stream = this.getClass().getClassLoader().getResourceAsStream("version");
+            BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
+            version = reader.readLine();
+            reader.close();
+        } catch(Exception e) {
+            
+        }
+        
         display = Display.getDefault();
         shell = new Shell();
         shell.setSize(1260, 600);
-        shell.setText("Animation Editor");
+        shell.setText("Animation Editor - "+version);
         shell.setLayout(new GridLayout(2, false));
 
         Label lblAnimations = new Label(shell, SWT.NONE);
