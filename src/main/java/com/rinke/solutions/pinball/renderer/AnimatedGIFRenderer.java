@@ -21,6 +21,7 @@ import org.w3c.dom.NodeList;
 
 import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.Editor;
+import com.rinke.solutions.pinball.Frame;
 
 // als parameter in der Steuerdatei sollten
 // die helligkeits schwellen angebbar sein
@@ -29,13 +30,13 @@ public class AnimatedGIFRenderer extends Renderer {
     
     private static Logger LOG = LoggerFactory.getLogger(AnimatedGIFRenderer.class); 
 	
-	List<FrameSet> frameSets = new ArrayList<>();
+	List<Frame> frames = new ArrayList<>();
 
 	@Override
-	public FrameSet convert(String filename, DMD dmd, int frameNo) {
+	public Frame convert(String filename, DMD dmd, int frameNo) {
 
-		if( frameSets.isEmpty() ) readImage(filename, dmd);
-		return frameSets.get(frameNo);
+		if( frames.isEmpty() ) readImage(filename, dmd);
+		return frames.get(frameNo);
 	}
 	
 	private void readImage(String filename, DMD dmd) {
@@ -70,7 +71,7 @@ public class AnimatedGIFRenderer extends Renderer {
 				byte[] f1 = new byte[dmd.getFrameSizeInByte()];
 				byte[] f2 = new byte[dmd.getFrameSizeInByte()];
 
-				FrameSet res = new FrameSet(dmd.getWidth(), dmd.getHeight(), f1, f2);
+				Frame res = new Frame(dmd.getWidth(), dmd.getHeight(), f1, f2);
 
 				BufferedImage image = reader.read(frameNo);
 	            IIOMetadata metadata = reader.getImageMetadata(frameNo);
@@ -140,7 +141,7 @@ public class AnimatedGIFRenderer extends Renderer {
 					LOG.debug("Grauwert " + v + " = "
 							+ grayCounts.get(v));
 				}
-				frameSets.add(res);
+				frames.add(res);
 				frameNo++;
 			}
 

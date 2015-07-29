@@ -3,31 +3,10 @@ package com.rinke.solutions.pinball;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.rinke.solutions.pinball.renderer.FrameSet;
-
 public class CompiledAnimation extends Animation {
 
 	List<Frame> frames = new ArrayList<>();
-	
-	FrameSet last = null;
-	
-	public static class Frame {
-		public Frame(int delay) {
-			this.delay = delay;
-		}
-		int delay;
-		List<Plane> planes = new ArrayList<>();
-	}
-	
-	public static class Plane {
-		byte marker;
-		byte[] plane;
-		public Plane(byte marker, byte[] plane) {
-			super();
-			this.marker = marker;
-			this.plane = plane;
-		}
-	}
+	Frame last = null;
 	
 	public CompiledAnimation(AnimationType type, String name, int start,
 			int end, int skip, int cycles, int holdCycles) {
@@ -35,9 +14,9 @@ public class CompiledAnimation extends Animation {
 	}
 
 	@Override
-	protected FrameSet renderFrameSet(String name, DMD dmd, int act) {
+	protected Frame renderFrame(String name, DMD dmd, int act) {
 		if( act < frames.size()) {
-			last = new FrameSet(dmd.getWidth(), dmd.getHeight(), frames.get(act).planes.get(0).plane, frames.get(act).planes.get(1).plane);
+			last = frames.get(act);//new Frame(dmd.getWidth(), dmd.getHeight(), frames.get(act).planes.get(0).plane, frames.get(act).planes.get(1).plane);
 		}
 		return last;
 	}
@@ -56,5 +35,11 @@ public class CompiledAnimation extends Animation {
 		int r = frames.get(actFrame<frames.size()?actFrame:frames.size()-1).delay;
 		return r==0?super.getRefreshDelay():r;
 	}
+
+
+    @Override
+    public int getFrameCount(DMD dmd) {
+        return frames.size();
+    }
 
 }

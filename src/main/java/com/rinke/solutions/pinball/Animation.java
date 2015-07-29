@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 
 import com.rinke.solutions.pinball.renderer.AnimatedGIFRenderer;
 import com.rinke.solutions.pinball.renderer.DMDFRenderer;
-import com.rinke.solutions.pinball.renderer.FrameSet;
 import com.rinke.solutions.pinball.renderer.PngRenderer;
 import com.rinke.solutions.pinball.renderer.Renderer;
 import com.rinke.solutions.pinball.renderer.VPinMameRenderer;
@@ -80,7 +79,7 @@ public class Animation {
 		this.desc = desc;
 	}
 
-	public int getFrameSetCount(DMD dmd) {
+	public int getFrameCount(DMD dmd) {
 		int r =  ((end-start)/skip)+1;
 		// make use of transition length
 		if( transitionFrom>0) {
@@ -136,7 +135,7 @@ public class Animation {
 	}
 
 	public int getRefreshDelay() {
-		if( last != null && last.duration > 0 ) return last.duration;
+		if( last != null && last.delay > 0 ) return last.delay;
 		return refreshDelay;
 	}
 
@@ -159,33 +158,33 @@ public class Animation {
 		this.clockFrom = 20000;
 	}
 
-	Renderer r = null;
-	FrameSet last;
+	Renderer renderer = null;
+	Frame last;
 	Renderer transitionRenderer = null;
-	List<FrameSet> transitions = new ArrayList<>();
+	List<Frame> transitions = new ArrayList<>();
 	
-	protected FrameSet renderFrameSet(String name, DMD dmd, int act) {
-		return r.convert(name, dmd, act);
+	protected Frame renderFrame(String name, DMD dmd, int act) {
+		return renderer.convert(name, dmd, act);
 	}
 	
 	public Renderer getRenderer() {
-		if( r == null ) init();
-		return r;
+		if( renderer == null ) init();
+		return renderer;
 	}
 	
-	public List<FrameSet> render(DMD dmd, boolean stop) {
+	public Frame render(DMD dmd, boolean stop) {
 		
 		if( transitionName != null && transitions.isEmpty() ) {
 			initTransition(dmd);
 		}
 		
-		List<FrameSet> res = new ArrayList<>();
-		if( r == null ) init();
+		Frame frame = null;
+		if( renderer == null ) init();
 		if (actFrame <= end) {
 			ended = false;
-			last = renderFrameSet(basePath+name, dmd, actFrame);
+			last = renderFrame(basePath+name, dmd, actFrame);
 			if( !stop) actFrame += skip;
-			if( r.getMaxFrame() > 0 && end == 0) end = r.getMaxFrame()-1;
+			if( renderer.getMaxFrame() > 0 && end == 0) end = renderer.getMaxFrame()-1;
 		} else if (++actCycle < cycles) {
 			actFrame = start;
 		} else {
@@ -194,13 +193,18 @@ public class Animation {
 			}
 			actCycle = 0;
 		}
-		res.add( last );
-		if( transitionFrom != 0 && actFrame > transitionFrom &&
-				transitionCount<=transitions.size()) {
-			res.add(transitions.get(transitionCount<transitions.size()?transitionCount:transitions.size()-1));
+		frame = last;
+		if( transitionFrom != 0 // it has a transition
+		    && actFrame > transitionFrom  // it has started
+			&& transitionCount<=transitions.size() // and not yet ended
+				) {
+		    if( frame.planes.size() < 3) { // and its not already rendered in (compiled)
+		        Frame tframe = transitions.get(transitionCount<transitions.size()?transitionCount:transitions.size()-1);
+		        frame.planes.add(tframe.planes.get(0));
+		    }
 			transitionCount++;
 		}
-		return res;
+		return frame;
 	}
 	
 	public void initTransition(DMD dmd) {
@@ -208,10 +212,10 @@ public class Animation {
 	    transitions.clear();
 	    transitionCount=1;
 		while(true) {
-			FrameSet f;
+			Frame frame;
 			try {
-				f = transitionRenderer.convert(transitionsPath+"transitions", dmd, transitionCount++);
-				transitions.add(f);
+				frame = transitionRenderer.convert(transitionsPath+"transitions", dmd, transitionCount++);
+				transitions.add(frame);
 			} catch( RuntimeException e) {
 			    LOG.info(e.getMessage());
 				break;
@@ -227,16 +231,16 @@ public class Animation {
 	private void init() {
 		switch (type) {
 		case PNG:
-			r = new PngRenderer(pattern,autoMerge);
+			renderer = new PngRenderer(pattern,autoMerge);
 			break;
 		case DMDF:
-			r = new DMDFRenderer();
+			renderer = new DMDFRenderer();
 			break;
 		case GIF:
-			r = new AnimatedGIFRenderer();
+			renderer = new AnimatedGIFRenderer();
 			break;
 		case MAME:
-			r = new VPinMameRenderer();
+			renderer = new VPinMameRenderer();
 			break;
 		default:
 			break;

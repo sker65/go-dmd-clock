@@ -2,9 +2,7 @@ package com.rinke.solutions.pinball;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,9 +15,7 @@ import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.rinke.solutions.pinball.renderer.FrameSet;
 import com.rinke.solutions.pinball.renderer.PngRenderer;
-import com.rinke.solutions.pinball.renderer.Renderer;
 
 public class DMDClock {
 	
@@ -52,8 +48,8 @@ public class DMDClock {
 		// alter big font 0x352; j <= 0x035C
 		for (int j = 0x013; j <= 0x021; j++) {
 			DMD dmd = new DMD(10, 13);
-			FrameSet frameSet = renderer.convert(base + "fonts/"+small, dmd,j);
-			dmd.writeOr(frameSet);
+			Frame frame = renderer.convert(base + "fonts/"+small, dmd,j);
+			dmd.writeOr(frame);
 			charMapSmall.put(alpha.charAt(i), dmd);
 			i++;
 		}
@@ -61,8 +57,8 @@ public class DMDClock {
 		for (int j = 0x013; j <= 0x021; j++) {
 			DMD dmd = new DMD(10, 13);
 			renderer.setPattern("Image-0x%04X-mask");
-			FrameSet frameSet = renderer.convert(base + "fonts/"+small, dmd,j);
-			dmd.writeOr(frameSet);
+			Frame frame = renderer.convert(base + "fonts/"+small, dmd,j);
+			dmd.writeOr(frame);
 			charMapSmallMask.put(alpha.charAt(i), dmd);
 			i++;
 		}
@@ -71,9 +67,9 @@ public class DMDClock {
 			DMD dmd = new DMD(16, 32);
 			renderer.setOverrideDMD(true);
 			renderer.setPattern("Image-0x%04X");
-			FrameSet frameSet = renderer.convert(base + "fonts/"+fontname, dmd,j);
-			dmd = new DMD(frameSet.width, frameSet.height);
-			dmd.writeOr(frameSet);
+			Frame frame = renderer.convert(base + "fonts/"+fontname, dmd,j);
+			dmd = new DMD(frame.width, frame.height);
+			dmd.writeOr(frame);
 			charMapBig.put(alpha.charAt(i), dmd);
 			i++;
 		}
@@ -81,9 +77,9 @@ public class DMDClock {
 		for (int j = 0x16A; j <= 0x0178; j++) {
 			DMD dmd = new DMD(16, 32);
 			renderer.setPattern("Image-0x%04X-mask");
-			FrameSet frameSet = renderer.convert(base + "fonts/"+fontname, dmd,j);
-			dmd = new DMD(frameSet.width, frameSet.height);
-			dmd.writeOr(frameSet);
+			Frame frame = renderer.convert(base + "fonts/"+fontname, dmd,j);
+			dmd = new DMD(frame.width, frame.height);
+			dmd.writeOr(frame);
 			charMapBigMask.put(alpha.charAt(i), dmd);
 			i++;
 		}

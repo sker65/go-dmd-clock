@@ -475,7 +475,7 @@ public class Editor implements Runnable {
         lastPath = fileChooser.getFilterPath();
         if (filename == null)
             return;
-        AnimationCompiler.compile(sourceAnis, filename);
+        AnimationCompiler.writeToCompiledFile(sourceAnis, filename);
     }
 
     private void bindToWidget() {

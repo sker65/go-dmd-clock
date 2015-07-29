@@ -5,16 +5,11 @@ import java.io.File;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.rinke.solutions.pinball.DMD;
-import com.rinke.solutions.pinball.Editor;
-
-import ar.com.hjg.pngj.IImageLine;
-import ar.com.hjg.pngj.ImageLineHelper;
 import ar.com.hjg.pngj.ImageLineInt;
 import ar.com.hjg.pngj.PngReader;
-import ar.com.hjg.pngj.chunks.ChunksList;
-import ar.com.hjg.pngj.chunks.PngChunkPLTE;
-import ar.com.hjg.pngj.chunks.PngChunkTRNS;
+
+import com.rinke.solutions.pinball.DMD;
+import com.rinke.solutions.pinball.Frame;
 
 public class PngRenderer extends Renderer {
     
@@ -46,7 +41,7 @@ public class PngRenderer extends Renderer {
 	public PngRenderer() {
 	}
 
-	public FrameSet convert(String name, DMD dmd, int frameNo) {
+	public Frame convert(String name, DMD dmd, int frameNo) {
 
 		String filename = getFilename(name, frameNo);
 
@@ -120,7 +115,7 @@ public class PngRenderer extends Renderer {
 		pngr.end(); // it's recommended to end the reader first, in case there
 					// are trailing chunks to read
 		if( autoMerge ) pngrMerge.end();
-		return new FrameSet(dmd.getWidth(), dmd.getHeight(), f1, f2);
+		return new Frame(dmd.getWidth(), dmd.getHeight(), f1, f2);
 	}
 
 	private String getFilename(String name, int frameNo) {

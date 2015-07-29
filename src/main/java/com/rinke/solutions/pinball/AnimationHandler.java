@@ -2,7 +2,6 @@ package com.rinke.solutions.pinball;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
 
@@ -11,10 +10,8 @@ import javax.imageio.stream.ImageOutputStream;
 
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Scale;
-import org.eclipse.swt.widgets.Shell;
 
 import com.rinke.solutions.pinball.AniEvent.Type;
-import com.rinke.solutions.pinball.renderer.FrameSet;
 import com.rinke.solutions.pinball.renderer.GifSequenceWriter;
 
 /**
@@ -87,26 +84,26 @@ public class AnimationHandler implements Runnable {
 				    else
 				        clock.renderTime(dmd,false);
 				}
-				List<FrameSet> res = ani.render(dmd,stop);
+				Frame res = ani.render(dmd,stop);
                 scale.setSelection(ani.actFrame);
                 
 
-                if( res.size()>1 ) { // there is a mask
+                if( res.planes.size()>2 ) { // there is a mask
                     if( ani.getClockFrom()>ani.getTransitionFrom())
-                        dmd.writeNotAnd(res.get(1)); // mask out clock
+                        dmd.writeNotAnd(res.planes.get(2).plane); // mask out clock
                     DMD tmp = new DMD(dmd.getWidth(), dmd.getHeight());
-                    tmp.writeOr(res.get(0));
-                    tmp.writeAnd(res.get(1));       // mask out ani
-                    dmd.writeOr(tmp.getFrameSet()); // merge
+                    tmp.writeOr(res);
+                    tmp.writeAnd(res.planes.get(2).plane);       // mask out ani
+                    dmd.writeOr(tmp.getFrame()); // merge
                 } else {
                     // now if clock was rendered, use font mask to mask out digits in animation
                     if( ani.addClock() ) {
                         DMD tmp = new DMD(dmd.getWidth(), dmd.getHeight());
-                        tmp.writeOr(res.get(0));
+                        tmp.writeOr(res);
                         clock.renderTime(tmp,true); // mask out time
-                        dmd.writeOr(tmp.getFrameSet());
+                        dmd.writeOr(tmp.getFrame());
                     } else {
-                        dmd.writeOr(res.get(0));
+                        dmd.writeOr(res);
                     }
                 }
 		

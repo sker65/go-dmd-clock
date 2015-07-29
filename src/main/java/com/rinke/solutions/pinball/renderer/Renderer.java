@@ -1,6 +1,9 @@
 package com.rinke.solutions.pinball.renderer;
 
+import java.util.List;
+
 import com.rinke.solutions.pinball.DMD;
+import com.rinke.solutions.pinball.Frame;
 
 public abstract class Renderer {
 
@@ -9,7 +12,7 @@ public abstract class Renderer {
 	protected int highThreshold = 200;
 	protected int maxFrame = 0;
 
-	public abstract FrameSet convert(String filename, DMD dmd, int frameNo);
+	public abstract Frame convert(String filename, DMD dmd, int frameNo);
 
 	public int getMaxFrame() {
 		return maxFrame;

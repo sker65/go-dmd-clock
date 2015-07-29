@@ -159,7 +159,7 @@ public class GoDMDClock {
     }
     
     private void compile() {
-    	AnimationCompiler.compile(anis, "foo.ani");
+    	AnimationCompiler.writeToCompiledFile(anis, "foo.ani");
     }
 
     private class ColorsPaintListener implements PaintListener {

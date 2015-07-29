@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.Editor;
+import com.rinke.solutions.pinball.Frame;
 
 // als parameter in der Steuerdatei sollten
 // die helligkeits schwellen angebbar sein
@@ -22,14 +23,14 @@ public class VPinMameRenderer extends Renderer {
     
     private static Logger LOG = LoggerFactory.getLogger(VPinMameRenderer.class); 
 
-	List<FrameSet> frameSets = new ArrayList<>();
+	List<Frame> frames = new ArrayList<>();
 
 	@Override
-	public FrameSet convert(String filename, DMD dmd, int frameNo) {
+	public Frame convert(String filename, DMD dmd, int frameNo) {
 
-		if (frameSets.isEmpty())
+		if (frames.isEmpty())
 			readImage(filename, dmd);
-		return frameSets.get(frameNo);
+		return frames.get(frameNo);
 	}
 
 	private void readImage(String filename, DMD dmd) {
@@ -40,7 +41,7 @@ public class VPinMameRenderer extends Renderer {
 			stream = new BufferedReader( new InputStreamReader(
 					new GZIPInputStream(new FileInputStream(new File(filename)))));
 			String line = stream.readLine();
-			FrameSet res = new FrameSet(dmd.getWidth(), dmd.getHeight(), 
+			Frame res = new Frame(dmd.getWidth(), dmd.getHeight(), 
 					new byte[dmd.getFrameSizeInByte()], new byte[dmd.getFrameSizeInByte()]);
 
 			int j=0;
@@ -48,16 +49,16 @@ public class VPinMameRenderer extends Renderer {
 				if( line.startsWith("0x")) {
 					long newTs = Long.parseLong(line.substring(2), 16);
 					if( frameNo>0 && lastTimeStamp >0) {
-						frameSets.get(frameNo-1).duration = (int) (newTs - lastTimeStamp);
+					    frames.get(frameNo-1).delay = (int) (newTs - lastTimeStamp);
 					}
 					lastTimeStamp = newTs;
 					line = stream.readLine();
 					continue;
 				}
 				if( line.length()==0 ) {
-					frameSets.add(res);
+					frames.add(res);
 					frameNo++;
-					res = new FrameSet(dmd.getWidth(), dmd.getHeight(), 
+					res = new Frame(dmd.getWidth(), dmd.getHeight(), 
 							new byte[dmd.getFrameSizeInByte()], new byte[dmd.getFrameSizeInByte()]);
 					LOG.debug("reading frame: "+frameNo);
 					j = 0;
@@ -70,12 +71,12 @@ public class VPinMameRenderer extends Renderer {
 					int b = i/8;
 					int mask = 128 >> bit;
 					if( c == '1') {
-						res.frame1[j+b] |= mask;
+						res.planes.get(0).plane[j+b] |= mask;
 					} else if( c == '2') {
-						res.frame2[j+b] |= mask; 
+						res.planes.get(1).plane[j+b] |= mask; 
 					} else if( c == '3') {
-						res.frame1[j+b] |= mask;
-						res.frame2[j+b] |= mask;
+						res.planes.get(0).plane[j+b] |= mask;
+						res.planes.get(1).plane[j+b] |= mask;
 						
 					}
 				}

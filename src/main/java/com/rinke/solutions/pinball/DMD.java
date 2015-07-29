@@ -1,6 +1,5 @@
 package com.rinke.solutions.pinball;
 
-import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.DataInputStream;
@@ -11,9 +10,6 @@ import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.widgets.Widget;
-
-import com.rinke.solutions.pinball.renderer.FrameSet;
 
 public class DMD {
 
@@ -170,24 +166,24 @@ public class DMD {
 
     }
 
-    public void writeOr(FrameSet frameSet) {
-        if (frameSet != null) {
-            copyOr(frame1, frameSet.frame1);
-            copyOr(frame2, frameSet.frame2);
+    public void writeOr(Frame frame) {
+        if (frame != null) {
+            copyOr(frame1, frame.planes.get(0).plane);
+            copyOr(frame2, frame.planes.get(1).plane);
         }
     }
 
-    public void writeAnd(FrameSet frameSet) {
-        if (frameSet != null) {
-            copyAnd(frame1, frameSet.frame1);
-            copyAnd(frame2, frameSet.frame2);
+    public void writeAnd(byte[] mask) {
+        if (mask != null) {
+            copyAnd(frame1, mask);
+            copyAnd(frame2, mask);
         }
     }
     
-    public void writeNotAnd(FrameSet frameSet) {
-        if (frameSet != null) {
-            copyNotAnd(frame1, frameSet.frame1);
-            copyNotAnd(frame2, frameSet.frame2);
+    public void writeNotAnd(byte[] mask) {
+        if (mask != null) {
+            copyNotAnd(frame1, mask);
+            copyNotAnd(frame2, mask);
         }
     }
 
@@ -305,8 +301,8 @@ public class DMD {
         return dmd;
     }
 
-    public FrameSet getFrameSet() {
-        return new FrameSet(width, height, frame1, frame2);
+    public Frame getFrame() {
+        return new Frame(width, height, frame1, frame2);
     }
 
     @Override
