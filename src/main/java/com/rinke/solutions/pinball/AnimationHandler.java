@@ -58,7 +58,7 @@ public class AnimationHandler implements Runnable {
 	public void run() {
 		if( clockActive ) {
 			if( clockCycles == 0 ) dmd.clear();
-			clock.renderTime(dmd);//,true,5,5);
+			clock.renderTime(dmd,false);//,true,5,5);
 			if( !stop && clockCycles++ > 20 && !anis.isEmpty() ) {
 				clockActive = false;
 				clockCycles = 0;
@@ -83,21 +83,31 @@ public class AnimationHandler implements Runnable {
 				dmd.clear();
 				if( ani.addClock() ) {
 				    if( ani.isClockSmall())
-				        clock.renderTime(dmd,ani.isClockSmall(), ani.getClockXOffset(),ani.getClockYOffset());
+				        clock.renderTime(dmd, ani.isClockSmall(), ani.getClockXOffset(),ani.getClockYOffset(),false);
 				    else
-				        clock.renderTime(dmd);
+				        clock.renderTime(dmd,false);
 				}
 				List<FrameSet> res = ani.render(dmd,stop);
                 scale.setSelection(ani.actFrame);
+                
 
                 if( res.size()>1 ) { // there is a mask
-                    dmd.writeNotAnd(res.get(1));
+                    if( ani.getClockFrom()>ani.getTransitionFrom())
+                        dmd.writeNotAnd(res.get(1)); // mask out clock
                     DMD tmp = new DMD(dmd.getWidth(), dmd.getHeight());
                     tmp.writeOr(res.get(0));
-                    tmp.writeAnd(res.get(1));
-                    dmd.writeOr(tmp.getFrameSet());
+                    tmp.writeAnd(res.get(1));       // mask out ani
+                    dmd.writeOr(tmp.getFrameSet()); // merge
                 } else {
-                    dmd.writeOr(res.get(0)); // die Animation wird drüber geodert
+                    // now if clock was rendered, use font mask to mask out digits in animation
+                    if( ani.addClock() ) {
+                        DMD tmp = new DMD(dmd.getWidth(), dmd.getHeight());
+                        tmp.writeOr(res.get(0));
+                        clock.renderTime(tmp,true); // mask out time
+                        dmd.writeOr(tmp.getFrameSet());
+                    } else {
+                        dmd.writeOr(res.get(0));
+                    }
                 }
 		
 				if( ani.hasEnded() ) {
