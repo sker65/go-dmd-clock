@@ -61,7 +61,7 @@ public class AnimationCompiler {
 					int size = is.readShort(); // framesize in byte
 					int delay = is.readShort();
 					int numberOfPlanes = is.readByte();
-					a.addFrame(new Frame(delay));
+					a.addFrame(new Frame(delay,128,32));
 					Plane mask = null;
 					while( numberOfPlanes>0) {
 						byte[] f1 = new byte[size];
