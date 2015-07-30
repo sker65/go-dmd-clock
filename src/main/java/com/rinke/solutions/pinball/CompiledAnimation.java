@@ -36,10 +36,16 @@ public class CompiledAnimation extends Animation {
 		return r==0?super.getRefreshDelay():r;
 	}
 
-
     @Override
     public int getFrameCount(DMD dmd) {
         return frames.size();
+    }
+
+    @Override
+    public void setPixel( int x, int y) {
+        if( last != null ) {
+            last.setPixel(x,y);
+        }
     }
 
 }
