@@ -302,7 +302,7 @@ public class Animation {
 	}
 
 	public void prev() {
-		if (actFrame >= start) {
+		if (actFrame > start) {
 			actFrame -= skip;
 		}
 	}
@@ -370,6 +370,9 @@ public class Animation {
                 + clockFrom + ", clockSmall=" + clockSmall + ", clockXOffset=" + clockXOffset + ", clockYOffset="
                 + clockYOffset + ", clockInFront=" + clockInFront + ", fsk=" + fsk + ", transitionFrom=" + transitionFrom
                 + ", transitionName=" + transitionName + ", transitionDelay=" + transitionDelay + ", desc=" + desc + "]";
+    }
+
+    public void draw(int button, int x, int y) {
     }
 
 }
