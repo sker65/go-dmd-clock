@@ -198,16 +198,21 @@ public class Animation {
 		    && actFrame > transitionFrom  // it has started
 			&& transitionCount<=transitions.size() // and not yet ended
 				) {
-		    if( frame.planes.size() < 3) { // and its not already rendered in (compiled)
-		        Frame tframe = transitions.get(transitionCount<transitions.size()?transitionCount:transitions.size()-1);
-		        frame.planes.add(tframe.planes.get(0));
-		    }
+		    frame = addTransitionFrame(frame);
 			transitionCount++;
 		}
 		return frame;
 	}
 	
-	public void initTransition(DMD dmd) {
+    protected Frame addTransitionFrame(Frame in) {
+        Frame tframe = transitions.get(transitionCount < transitions.size() ? transitionCount : transitions.size() - 1);
+        Frame r = new Frame(in.width, in.height, in.planes.get(0).plane, in.planes.get(1).plane);//
+        r.delay = in.delay;
+        r.planes.add(tframe.planes.get(0));
+        return r;
+    }
+
+    public void initTransition(DMD dmd) {
 	    LOG.debug("init transition: "+transitionName);
 	    transitions.clear();
 	    transitionCount=1;
@@ -215,6 +220,7 @@ public class Animation {
 			Frame frame;
 			try {
 				frame = transitionRenderer.convert(transitionsPath+"transitions", dmd, transitionCount++);
+				frame.planes.forEach( p -> p.marker = 0x6a);
 				transitions.add(frame);
 			} catch( RuntimeException e) {
 			    LOG.info(e.getMessage());

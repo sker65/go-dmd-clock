@@ -47,5 +47,9 @@ public class CompiledAnimation extends Animation {
             last.setPixel(x,y);
         }
     }
-
+    
+    @Override
+    protected Frame addTransitionFrame(Frame in) {
+        return in;
+    }
 }
