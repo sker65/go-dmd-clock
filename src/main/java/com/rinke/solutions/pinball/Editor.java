@@ -21,6 +21,7 @@ import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -90,6 +91,7 @@ public class Editor implements Runnable {
     Text nameText;
     Button btnCut;
     Button btnDelete;
+    Canvas previewCanvas;
 
     Display display;
     
@@ -255,16 +257,19 @@ public class Editor implements Runnable {
             bindToWidget();
         });
 
-        Canvas canvas = new Canvas(shell, SWT.BORDER|SWT.DOUBLE_BUFFERED);
+        previewCanvas = new Canvas(shell, SWT.BORDER|SWT.DOUBLE_BUFFERED);
         GridData gd_canvas = new GridData(SWT.LEFT, SWT.TOP, true, false, 1, 1);
         gd_canvas.heightHint = 250;
         gd_canvas.widthHint = 960;
-        canvas.setLayoutData(gd_canvas);
+        previewCanvas.setLayoutData(gd_canvas);
         // canvas.setSize(960, 320);
-        canvas.addPaintListener(new DmdPaintListener());
-        canvas.setBackground(new Color(display, 10, 10, 10));
+        previewCanvas.addPaintListener(new DmdPaintListener());
+        previewCanvas.setBackground(new Color(display, 10, 10, 10));
+        previewCanvas.addListener( SWT.MouseDown, e -> handleMouse(e));
+        previewCanvas.addListener( SWT.MouseUp, e -> handleMouse(e));
+        previewCanvas.addListener( SWT.MouseMove, e -> handleMouse(e));
 
-        animationHandler = new AnimationHandler(playingAnis, clock, dmd, canvas, false);
+        animationHandler = new AnimationHandler(playingAnis, clock, dmd, previewCanvas, false);
         new Label(shell, SWT.NONE);
 
         final Scale scale = new Scale(shell, SWT.NONE);
@@ -393,7 +398,40 @@ public class Editor implements Runnable {
         }
     }
 
+    
+    private void handleMouse(Event e)
+    {
+        switch (e.type) {
+        case SWT.MouseDown:
+            button = e.button;
+            draw(e);
+            break;
+        case SWT.MouseUp:
+            button = 0;
+            break;
+        case SWT.MouseMove:
+            if( button > 0 ) {
+                draw(e);
+            }
+            break;
 
+        default:
+            break;
+        }
+    }
+    int button = 0;
+    Point lastPoint = new Point(0, 0);
+    
+    private void draw(Event e) {
+        Point p = dmd.transformCoord(e.x, e.y);
+        if( !p.equals(lastPath)) {
+            lastPoint = p;
+            if (selectedAnimation != null && animationHandler.isStopped()) {
+                selectedAnimation.setPixel( p.x, p.y);
+                previewCanvas.update();
+            }
+        }
+    }
 
     /**
      * deletes from the underlying list
