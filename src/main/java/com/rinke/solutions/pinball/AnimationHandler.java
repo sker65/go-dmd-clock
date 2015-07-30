@@ -196,6 +196,10 @@ public class AnimationHandler implements Runnable {
 		this.showClock = showClock;
 	}
 
+    public boolean isStopped() {
+        return stop;
+    }
+
 }
 
 
