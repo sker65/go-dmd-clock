@@ -10,6 +10,7 @@ import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
 
 public class DMD {
 
@@ -67,15 +68,16 @@ public class DMD {
 
     public void setPixel(int col, int row, int v) {
     }
+    
+    int pitch = 7;
+    int offset = 20;
+
 
     public BufferedImage draw() {
         BufferedImage img = new BufferedImage(width * 8, height * 8, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = (Graphics2D) img.getGraphics();
         g.setPaint(new java.awt.Color(10, 10, 10));
         g.fillRect(0, 0, width * 8, height * 8);
-
-        int pitch = 7;
-        int offset = 20;
 
         java.awt.Color[] cols = new java.awt.Color[4];
         // hell ffae3a
@@ -104,6 +106,10 @@ public class DMD {
 
         g.dispose();
         return img;
+    }
+    
+    public Point transformCoord( int x, int y) {
+        return new Point((x-offset)/pitch,(y-offset)/pitch);   
     }
 
     public void draw(PaintEvent ev) {
