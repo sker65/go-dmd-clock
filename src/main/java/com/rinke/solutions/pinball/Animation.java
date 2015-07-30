@@ -372,7 +372,7 @@ public class Animation {
                 + ", transitionName=" + transitionName + ", transitionDelay=" + transitionDelay + ", desc=" + desc + "]";
     }
 
-    public void draw(int button, int x, int y) {
+    public void setPixel( int x, int y) {
     }
 
 }
