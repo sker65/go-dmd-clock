@@ -5,12 +5,15 @@ import java.awt.image.BufferedImage;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.RGB;
 
 public class DMD {
 
@@ -19,6 +22,8 @@ public class DMD {
 
     public byte[] frame1 = null;
     public byte[] frame2 = null;
+    
+    List<DeleteMask> deleteMasks = new ArrayList<>();
 
     private int frameSizeInByte;
 
@@ -48,6 +53,32 @@ public class DMD {
         return bytesPerRow;
     }
 
+    public RGB[] rgb = new RGB[16];
+    
+    public void resetColors() {
+        rgb[0] = new RGB(0x19, 0x00, 0x06);
+        rgb[1] = new RGB(0x6f, 0x00, 0x00);
+        rgb[2] = new RGB(0xca, 0x00, 0x00);
+        rgb[3] = new RGB(0xff, 0x00, 0x00);
+
+        rgb[4] = newRGB(0x008000);
+        rgb[5] = newRGB(0x808000);
+        rgb[6] = newRGB(0x000080);
+        rgb[7] = newRGB(0x800080);
+        rgb[8] = newRGB(0xC0C0C0);
+        rgb[9] = newRGB(0x808080);
+        rgb[10] = newRGB(0x00FF00);
+        rgb[11] = newRGB(0xFFFF00);
+        rgb[12] = newRGB(0x0000FF);
+        rgb[13] = newRGB(0xFF00FF);
+        rgb[14] = newRGB(0x00FFFF);
+        rgb[15] = newRGB(0xFFFFFF);
+    }
+    
+    private RGB newRGB(int rgb) {
+        return new RGB(rgb >> 16, (rgb >> 8) & 0xFF, rgb & 0xFF);
+    }
+
     public DMD(int w, int h) {
         this.width = w;
         this.height = h;
@@ -57,6 +88,7 @@ public class DMD {
         frameSizeInByte = bytesPerRow * height;
         frame1 = new byte[frameSizeInByte];
         frame2 = new byte[frameSizeInByte];
+        resetColors();
     }
 
     public DMD() {
@@ -111,7 +143,7 @@ public class DMD {
     public Point transformCoord( int x, int y) {
         return new Point((x-offset)/pitch,(y-offset)/pitch);   
     }
-
+    
     public void draw(PaintEvent ev) {
 
         Image image = new Image(ev.display, ev.width, ev.height);
@@ -119,15 +151,15 @@ public class DMD {
 
         int pitch = 7;
         int offset = 20;
-        Color[] cols = new Color[4];
         // hell ffae3a
         // 2/3 ca8a2e
         // 1/3 7f561d
         // schwarz: 191106
-        cols[0] = new Color(ev.display, 0x19, 0x00, 0x06);
-        cols[1] = new Color(ev.display, 0x6f, 0x00, 0x00);
-        cols[2] = new Color(ev.display, 0xca, 0x00, 0x00);
-        cols[3] = new Color(ev.display, 0xff, 0x00, 0x00);
+        Color cols[] = new Color[4];
+        cols[0] = new Color(ev.display, rgb[0]);
+        cols[1] = new Color(ev.display, rgb[1]);
+        cols[2] = new Color(ev.display, rgb[2]);
+        cols[3] = new Color(ev.display, rgb[3]);
         Color bg = new Color(ev.display, 10, 10, 10);
         gcImage.setBackground(bg);
         gcImage.fillRectangle(0, 0, ev.width, ev.height);
@@ -148,6 +180,9 @@ public class DMD {
         }
 
         ev.gc.drawImage(image, 0, 0);
+        
+        // now draw mask marks if any
+        deleteMasks.forEach(e -> e.drawMaskRects(ev));
 
         cols[0].dispose();
         cols[1].dispose();
@@ -314,6 +349,26 @@ public class DMD {
     @Override
     public String toString() {
         return "DMD [width=" + width + ", height=" + height + "]";
+    }
+
+    public void setMask(int x1, int y1, int x2, int y2) {
+        Point p1 = transformCoord(x1, y1);
+        Point p2 = transformCoord(x2, y2);
+        if( p2.x - p1.x > 0 && p2.y - p1.y > 0 ) {
+            deleteMasks.add(new DeleteMask(x1, y1, x2-x1, y2-y1));
+        }
+    }
+
+    public void removeAllMasks() {
+        deleteMasks.clear();
+    }
+
+    public void setColor(int i, RGB newColor) {
+        rgb[i] = newColor;
+    }
+
+    public RGB getColor(int j) {
+        return rgb[j];
     }
 
 }

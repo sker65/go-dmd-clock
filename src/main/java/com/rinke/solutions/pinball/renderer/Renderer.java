@@ -1,7 +1,5 @@
 package com.rinke.solutions.pinball.renderer;
 
-import java.util.List;
-
 import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.Frame;
 
@@ -17,6 +15,10 @@ public abstract class Renderer {
 	public int getMaxFrame() {
 		return maxFrame;
 	}
+	
+	public long getTimeCode(int actFrame) {
+        return 0L;
+    }
 	
 	public void setLowThreshold(int lowThreshold) {
 		this.lowThreshold = lowThreshold;

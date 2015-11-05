@@ -56,6 +56,8 @@ public class AnimationCompiler {
 				a.setBasePath(filename);
 				
 				int frames = is.readShort();
+				if( frames < 0 ) frames += 65536;
+				LOG.info("reading {} frames for {}",frames, desc);
 				int i = 0;
 				while(frames>0) {
 					int size = is.readShort(); // framesize in byte

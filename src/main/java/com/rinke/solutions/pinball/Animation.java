@@ -172,6 +172,10 @@ public class Animation {
 		return renderer;
 	}
 	
+	public long getTimeCode(int actFrame) {
+	    return renderer.getTimeCode(actFrame);
+	}
+	
 	public Frame render(DMD dmd, boolean stop) {
 		
 		if( transitionName != null && transitions.isEmpty() ) {

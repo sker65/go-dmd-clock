@@ -47,7 +47,7 @@ public class DMDClock {
 		// 352 - 35c fuer klein 6x9 
 		// alter big font 0x352; j <= 0x035C
 		for (int j = 0x013; j <= 0x021; j++) {
-			DMD dmd = new DMD(10, 13);
+			DMD dmd = (j == 0x1D || j == 0x1E ? new DMD(5, 13) : new DMD(10, 13));
 			Frame frame = renderer.convert(base + "fonts/"+small, dmd,j);
 			dmd.writeOr(frame);
 			charMapSmall.put(alpha.charAt(i), dmd);
@@ -55,7 +55,7 @@ public class DMDClock {
 		}
 		i = 0;
 		for (int j = 0x013; j <= 0x021; j++) {
-			DMD dmd = new DMD(10, 13);
+			DMD dmd = (j == 0x1D || j == 0x1E  ? new DMD(5, 13) : new DMD(10, 13));
 			renderer.setPattern("Image-0x%04X-mask");
 			Frame frame = renderer.convert(base + "fonts/"+small, dmd,j);
 			dmd.writeOr(frame);

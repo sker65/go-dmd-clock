@@ -32,10 +32,16 @@ public class VPinMameRenderer extends Renderer {
 			readImage(filename, dmd);
 		return frames.get(frameNo);
 	}
+	
+    @Override
+    public long getTimeCode(int actFrame) {
+        return actFrame< frames.size() ? frames.get(actFrame).timecode:0;
+    }
 
 	private void readImage(String filename, DMD dmd) {
 		BufferedReader stream = null;
 		int frameNo = 0;
+		long timecode = 0L;
 		long lastTimeStamp=0L;
 		try {
 			stream = new BufferedReader( new InputStreamReader(
@@ -50,6 +56,8 @@ public class VPinMameRenderer extends Renderer {
 					long newTs = Long.parseLong(line.substring(2), 16);
 					if( frameNo>0 && lastTimeStamp >0) {
 					    frames.get(frameNo-1).delay = (int) (newTs - lastTimeStamp);
+	                    timecode += (newTs - lastTimeStamp);
+					    res.timecode = timecode;
 					}
 					lastTimeStamp = newTs;
 					line = stream.readLine();
@@ -102,5 +110,7 @@ public class VPinMameRenderer extends Renderer {
 		DMD dmd = new DMD(128, 32);
 		renderer.convert(base + "ezgif-645182047.gif", dmd, 0);
 	}
+
+
 
 }

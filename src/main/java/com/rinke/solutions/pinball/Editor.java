@@ -1,15 +1,10 @@
 package com.rinke.solutions.pinball;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.reflect.Method;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.regex.Matcher;
@@ -18,14 +13,16 @@ import java.util.regex.Pattern;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Canvas;
+import org.eclipse.swt.widgets.ColorDialog;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
@@ -33,15 +30,16 @@ import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.List;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Scale;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.eclipse.wb.swt.SWTResourceManager;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 
 public class Editor implements Runnable {
     
@@ -98,42 +96,6 @@ public class Editor implements Runnable {
     String[] fsks = new String[] { "18", "16", "12", "6" };
     private java.util.List<String> transitions;
 
-    /*
-     * private Menu createMenu() {
-     * 
-     * Menu menuBar = new Menu(shell, SWT.BAR);
-     * 
-     * MenuItem item = new MenuItem(menuBar, SWT.CASCADE); item.setText("File");
-     * Menu fileMenu = new Menu(shell, SWT.DROP_DOWN); item.setMenu(fileMenu);
-     * 
-     * MenuItem mntmLoad = new MenuItem(fileMenu, SWT.NONE);
-     * mntmLoad.addSelectionListener(new SelectionAdapter() {
-     * 
-     * @Override public void widgetSelected(SelectionEvent e) { load(false); }
-     * }); mntmLoad.setText("Load");
-     * 
-     * MenuItem mntmAdd = new MenuItem(fileMenu, SWT.NONE);
-     * mntmAdd.addSelectionListener(new SelectionAdapter() {
-     * 
-     * @Override public void widgetSelected(SelectionEvent e) { load(true); }
-     * }); mntmAdd.setText("Add");
-     * 
-     * MenuItem mntmSave = new MenuItem(fileMenu, SWT.NONE);
-     * mntmSave.addSelectionListener(new SelectionAdapter() {
-     * 
-     * @Override public void widgetSelected(SelectionEvent e) { save(); } });
-     * mntmSave.setText("Save");
-     * 
-     * MenuItem menuItem = new MenuItem(fileMenu, SWT.SEPARATOR);
-     * menuItem.setText("sep1");
-     * 
-     * MenuItem mntmQuit = new MenuItem(fileMenu, SWT.NONE);
-     * mntmQuit.setText("Quit"); return menuBar;
-     * 
-     * }
-     */
-    
-
     /**
      * @wbp.parser.entryPoint
      */
@@ -152,6 +114,9 @@ public class Editor implements Runnable {
         
         display = Display.getDefault();
         shell = new Shell();
+        GlobalExceptionHandler.getInstance().setDisplay(display);
+        GlobalExceptionHandler.getInstance().setShell(shell);
+        
         shell.setSize(1260, 600);
         shell.setText("Animation Editor - "+version);
         shell.setLayout(new GridLayout(2, false));
@@ -160,7 +125,7 @@ public class Editor implements Runnable {
         lblAnimations.setText("Animations");
 
         Group grpDetails = new Group(shell, SWT.NONE);
-        GridData gd_grpDetails = new GridData(SWT.LEFT, SWT.TOP, true, false, 1, 1);
+        GridData gd_grpDetails = new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1);
         gd_grpDetails.widthHint = 812;
         grpDetails.setLayoutData(gd_grpDetails);
         grpDetails.setText("Details");
@@ -227,6 +192,10 @@ public class Editor implements Runnable {
         btnShowClock.setBounds(632, 13, 115, 24);
         btnShowClock.setText("Show Clock");
         btnShowClock.setSelection(true);
+        
+        Label lblTc = new Label(grpDetails, SWT.NONE);
+        lblTc.setBounds(749, 20, 120, 17);
+        lblTc.setText("TimeCode");
 
         // shell.setMenuBar(createMenu());
 
@@ -280,8 +249,8 @@ public class Editor implements Runnable {
         scale.addListener(SWT.Selection, e -> animationHandler.setPos(scale.getSelection()));
 
         Group grpActions = new Group(shell, SWT.NONE);
-        GridData gd_grpActions = new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1);
-        gd_grpActions.heightHint = 131;
+        GridData gd_grpActions = new GridData(SWT.LEFT, SWT.FILL, false, false, 1, 1);
+        gd_grpActions.heightHint = 192;
         gd_grpActions.widthHint = 242;
         grpActions.setLayoutData(gd_grpActions);
         grpActions.setText("Actions");
@@ -311,12 +280,20 @@ public class Editor implements Runnable {
         Button btnSelectAll = new Button(grpActions, SWT.NONE);
         btnSelectAll.setText("Select All");
         btnSelectAll.setBounds(9, 98, 91, 29);
+        
+        Button btnLoadPal = new Button(grpActions, SWT.NONE);
+        btnLoadPal.setBounds(9, 133, 91, 29);
+        btnLoadPal.setText("Load Pal");
+        
+        Button btnSavePal = new Button(grpActions, SWT.NONE);
+        btnSavePal.setBounds(106, 133, 91, 29);
+        btnSavePal.setText("Save Pal");
         btnSelectAll.addListener(SWT.Selection, e -> sourceList.selectAll());
 
         Group grpDetails_1 = new Group(shell, SWT.NONE);
-        GridData gd_grpDetails_1 = new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1);
+        GridData gd_grpDetails_1 = new GridData(SWT.LEFT, SWT.FILL, false, false, 1, 1);
         gd_grpDetails_1.heightHint = 134;
-        gd_grpDetails_1.widthHint = 861;
+        gd_grpDetails_1.widthHint = 980;
         grpDetails_1.setLayoutData(gd_grpDetails_1);
         grpDetails_1.setText("Details");
 
@@ -367,6 +344,55 @@ public class Editor implements Runnable {
 
         nameText = new Text(grpDetails_1, SWT.BORDER);
         nameText.setBounds(56, 61, 149, 27);
+        
+        Button btnRemoveMasks = new Button(grpDetails_1, SWT.NONE);
+        btnRemoveMasks.setBounds(590, 79, 119, 29);
+        btnRemoveMasks.setText("Remove Masks");
+        
+        Label hashLabel = new Label(grpDetails_1, SWT.NONE);
+        hashLabel.setBounds(48, 108, 404, 35);
+        hashLabel.setText("Hashes");
+        
+        final Button colBtn[] = new Button[16];
+        for(int i = 0; i < colBtn.length; i++) {
+            colBtn[i] = new Button(grpDetails_1, SWT.PUSH);
+            colBtn[i].setData(Integer.valueOf(i));
+            colBtn[i].setBounds(525+i*28, 113, 26, 26);
+            colBtn[i].setImage(getSquareImage(display, new Color(display,dmd.rgb[i])));
+            colBtn[i].addListener(SWT.Selection, e -> {
+                ColorDialog cd = new ColorDialog(shell);
+                cd.setText("ColorDialog Demo");
+                int j = (Integer) e.widget.getData();
+                cd.setRGB(dmd.getColor(j));
+                RGB newColor = cd.open();
+                if (newColor == null) {
+                    return;
+                }
+                ((Button)e.widget).setImage(getSquareImage(display, new Color(display,newColor)));
+                dmd.setColor(j, newColor);
+            });
+        }
+
+        Button useHash1 = new Button(grpDetails_1, SWT.CHECK);
+        useHash1.setBounds(16, 105, 26, 24);
+        
+        Button useHash2 = new Button(grpDetails_1, SWT.CHECK);
+        useHash2.setBounds(16, 123, 26, 24);
+        
+        Button btnReset = new Button(grpDetails_1, SWT.NONE);
+        btnReset.setBounds(715, 79, 106, 29);
+        btnReset.setText("Reset Pal");
+        btnReset.addListener(SWT.Selection, e -> { 
+            dmd.resetColors();
+            for (int i = 0; i < colBtn.length; i++) {
+                colBtn[i].setImage(getSquareImage(display, new Color(display,dmd.rgb[i])));
+            }
+            });
+        
+        btnRemoveMasks.addListener(SWT.Selection, e -> {
+            dmd.removeAllMasks();
+            previewCanvas.update();
+        });
         animationHandler.setLabelHandler(new EventHandler() {
 
             @Override
@@ -374,8 +400,8 @@ public class Editor implements Runnable {
                 switch (evt.evtType) {
                 case ANI:
                     lblDetails.setText("Frame: " + evt.actFrame);
-                    // sourceList.setSelection(new String[] { evt.actAnimation
-                    // .getDesc() });
+                    lblTc.setText("TC: "+evt.timecode);
+                    hashLabel.setText(evt.hashes.replaceAll("plane 1","\nplane 1"));
                     break;
                 case CLOCK:
                     lblDetails.setText("");
@@ -390,24 +416,37 @@ public class Editor implements Runnable {
         shell.layout();
 
         display.timerExec(animationHandler.getRefreshDelay(), animationHandler);
-
-        while (!shell.isDisposed()) {
-            if (!display.readAndDispatch()) {
-                display.sleep();
+        int retry = 0;
+        while (true ) {
+            try {
+                LOG.info("entering event loop");
+                while (!shell.isDisposed()) {
+                    if (!display.readAndDispatch()) {
+                        display.sleep();
+                    }
+                }
+                System.exit(0);
+            } catch( Exception e) {
+                LOG.error("unexpected error: {}",e);
+                if( retry++ > 10 ) System.exit(1);
             }
         }
-    }
 
+    }
+    int x1,y1,x2,y2;
     
     private void handleMouse(Event e)
     {
         switch (e.type) {
         case SWT.MouseDown:
+            x1=e.x; y1=e.y;
             button = e.button;
             draw(e);
             break;
         case SWT.MouseUp:
             button = 0;
+            x2=e.x; y2=e.y;
+            dmd.setMask(x1,y1,x2,y2);
             break;
         case SWT.MouseMove:
             if( button > 0 ) {
@@ -419,6 +458,7 @@ public class Editor implements Runnable {
             break;
         }
     }
+    
     int button = 0;
     Point lastPoint = new Point(0, 0);
     
@@ -432,6 +472,16 @@ public class Editor implements Runnable {
             }
         }
     }
+    
+    static Image getSquareImage(Display display, Color col) {
+        Image image = new Image(display, 10, 10);
+        GC gc = new GC(image);
+        gc.setBackground(col);
+        gc.fillRectangle(0, 0, 10, 10);
+        //gc.setForeground(col);
+        gc.dispose();
+        return image;
+      }
 
     /**
      * deletes from the underlying list

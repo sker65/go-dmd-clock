@@ -10,6 +10,8 @@ import javax.imageio.stream.ImageOutputStream;
 
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Scale;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.rinke.solutions.pinball.AniEvent.Type;
 import com.rinke.solutions.pinball.renderer.GifSequenceWriter;
@@ -19,6 +21,8 @@ import com.rinke.solutions.pinball.renderer.GifSequenceWriter;
  * @author sr
  */
 public class AnimationHandler implements Runnable {
+    
+    private static Logger LOG = LoggerFactory.getLogger(AnimationHandler.class); 
 
 	private List<Animation> anis;
 	private int index = 0; // index of the current animation
@@ -34,6 +38,7 @@ public class AnimationHandler implements Runnable {
 	private GifSequenceWriter gifWriter;
 	private boolean showClock = true;
 	private int transitionFrame= 0;
+	private int lastPrintedHash = 0;
 	
 	public AnimationHandler(List<Animation> anis, DMDClock clock, DMD dmd, Canvas canvas, boolean export) {
 		this.anis = anis;
@@ -53,6 +58,17 @@ public class AnimationHandler implements Runnable {
 	}
 
 	public void run() {
+	    try {
+	        runInner();
+	    } catch( Exception e) {
+	        GlobalExceptionHandler.getInstance().setException(e);
+	        anis.clear();
+	        canvas.update();
+	        LOG.error("unexpected exception caught: {}", e.getMessage(), e);
+	    }
+	}
+	
+	public void runInner() {
 		if( clockActive ) {
 			if( clockCycles == 0 ) dmd.clear();
 			clock.renderTime(dmd,false);//,true,5,5);
@@ -63,7 +79,7 @@ public class AnimationHandler implements Runnable {
 				transitionFrame=0;
 			}
 			if( scale.isDisposed() ) return;
-			eventHandler.notifyAni(new AniEvent(Type.CLOCK, 0, null));
+			eventHandler.notifyAni(new AniEvent(Type.CLOCK, 0, null, "",0));
 		} else {
 			if( anis.isEmpty() ) {
 				clockActive = true;
@@ -75,7 +91,6 @@ public class AnimationHandler implements Runnable {
 				scale.setMaximum(ani.end);
 				scale.setIncrement(ani.skip);
 				
-				eventHandler.notifyAni(new AniEvent(Type.ANI, ani.actFrame, ani));
 				
 				dmd.clear();
 				if( ani.addClock() ) {
@@ -86,8 +101,9 @@ public class AnimationHandler implements Runnable {
 				}
 				Frame res = ani.render(dmd,stop);
                 scale.setSelection(ani.actFrame);
+                eventHandler.notifyAni(
+                        new AniEvent(Type.ANI, ani.actFrame, ani, res.getHashes(), res.timecode));
                 
-
                 if( res.planes.size()>2 ) { // there is a mask
                     if( ani.getClockFrom()>ani.getTransitionFrom())
                         dmd.writeNotAnd(res.planes.get(2).plane); // mask out clock

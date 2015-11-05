@@ -1,10 +1,18 @@
 package com.rinke.solutions.pinball;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Frame {
     
+    public int width;
+    public int height;
+    public int delay;
+    public long timecode;
+    public List<Plane> planes = new ArrayList<>();
+
     public Frame(int delay,int w, int h) {
         this.delay = delay;
         width = w;
@@ -18,10 +26,6 @@ public class Frame {
         planes.add(new Plane((byte)1, plane2));
     }
     
-    public int width;
-    public int height;
-    public int delay;
-    public List<Plane> planes = new ArrayList<>();
     
     @Override
     public String toString() {
@@ -38,4 +42,60 @@ public class Frame {
         }
     }
     
+    String getHashes() {
+        try {
+            int j = 0;
+            
+            StringBuilder sb = new StringBuilder();
+            for (Plane plane : planes) {
+                MessageDigest md = MessageDigest.getInstance("MD5");
+                md.update(transform(plane.plane), 0, plane.plane.length);
+                byte[] digest = md.digest();
+                StringBuffer hexString = new StringBuffer();
+                for(int i = 0;i<digest.length;i++)
+                    hexString.append(String.format("%02X ", digest[i]));
+                sb.append("plane "+ (j++) + ": "+ hexString.toString());
+            }
+            return sb.toString();
+        } catch (NoSuchAlgorithmException e) {
+         
+        }
+        return "";
+    }
+
+    private byte[] transform(byte[] plane) {
+        byte[] res = new byte[plane.length];
+        for(int i = 0; i < plane.length; i++) {
+            byte x = plane[i];
+            byte b = 0;
+            for( int bit=0; bit<8; bit++){
+                b<<=1;
+                b|=( x &1);
+                x>>=1;
+            }
+            res[i]=b;
+            /*byte v = 0;
+            v |= (plane[i] & 1<<0) != 0 ? 1 << 7 : 0;
+            v |= (plane[i] & 1<<1) != 0 ? 1 << 6 : 0;
+            v |= (plane[i] & 1<<2) != 0 ? 1 << 5 : 0;
+            v |= (plane[i] & 1<<3) != 0 ? 1 << 4 : 0;
+            v |= (plane[i] & 1<<4) != 0 ? 1 << 3 : 0;
+            v |= (plane[i] & 1<<5) != 0 ? 1 << 2 : 0;
+            v |= (plane[i] & 1<<6) != 0 ? 1 << 1 : 0;
+            v |= (plane[i] & 1<<7) != 0 ? 1 << 0 : 0;
+            res[i] = v;*/
+        }
+        return res;
+    }
+    private byte[] transform1(byte[] plane) {
+        byte[] res = new byte[plane.length];
+        int bytesPerRow = plane.length / height;
+        for (int row = 0; row < height; row++) {
+            int offset = row*bytesPerRow;
+            for( int col = 0; col<bytesPerRow; col++) {
+                res[offset+col]=(byte) Integer.reverse(plane[offset+bytesPerRow-1-col]);
+            }
+        }
+        return res;
+    }
 }
