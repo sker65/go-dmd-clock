@@ -30,16 +30,12 @@ import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.List;
-import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Scale;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.eclipse.wb.swt.SWTResourceManager;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
 
 public class Editor implements Runnable {
     
@@ -357,7 +353,8 @@ public class Editor implements Runnable {
         for(int i = 0; i < colBtn.length; i++) {
             colBtn[i] = new Button(grpDetails_1, SWT.PUSH);
             colBtn[i].setData(Integer.valueOf(i));
-            colBtn[i].setBounds(525+i*28, 113, 26, 26);
+            // on mac use wider buttons e.g. 32 pix instead of 26
+            colBtn[i].setBounds(525+i*28, 113, 32, 26);
             colBtn[i].setImage(getSquareImage(display, new Color(display,dmd.rgb[i])));
             colBtn[i].addListener(SWT.Selection, e -> {
                 ColorDialog cd = new ColorDialog(shell);
