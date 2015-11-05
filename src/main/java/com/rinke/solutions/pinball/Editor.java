@@ -2,14 +2,21 @@ package com.rinke.solutions.pinball;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.eclipse.jface.viewers.ArrayContentProvider;
+import org.eclipse.jface.viewers.ComboViewer;
+import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
@@ -30,16 +37,16 @@ import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.List;
-import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Scale;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.eclipse.wb.swt.SWTResourceManager;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
+
+import com.rinke.solutions.pinball.model.Palette;
+import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 
 public class Editor implements Runnable {
     
@@ -48,11 +55,23 @@ public class Editor implements Runnable {
     private static final String NO_TRANS = " - ";
     String[] args;
     private String lastPath;
+    private XStream xstream;
+    private XStream jstream;
 
     public Editor(String[] args) {
         this.args = args;
+        setupXStream();
     }
     
+    private void setupXStream() {
+        xstream = new XStream();
+        jstream = new XStream(new JettisonMappedXmlDriver());
+        xstream.alias("rgb", RGB.class);
+        xstream.alias("palette", Palette.class);
+        jstream.alias("rgb", RGB.class);
+        jstream.alias("palette", Palette.class);
+    }
+
     /**
      * Launch the application.
      * 
@@ -96,6 +115,19 @@ public class Editor implements Runnable {
     String[] fsks = new String[] { "18", "16", "12", "6" };
     private java.util.List<String> transitions;
 
+    private DMD dmd = new DMD();
+    private AnimationHandler animationHandler;
+
+    int cutNameNumber = 1; // postfix for names
+    int markStart = 0;
+    int markEnd = 0;
+
+    int x1,y1,x2,y2;
+    
+    java.util.List<Palette> palettes = new ArrayList<>();
+
+    private int activePalette = 0;
+
     /**
      * @wbp.parser.entryPoint
      */
@@ -120,6 +152,8 @@ public class Editor implements Runnable {
         shell.setSize(1260, 600);
         shell.setText("Animation Editor - "+version);
         shell.setLayout(new GridLayout(2, false));
+        
+        palettes.add(new Palette(dmd.rgb, 0, "default"));
 
         Label lblAnimations = new Label(shell, SWT.NONE);
         lblAnimations.setText("Animations");
@@ -280,6 +314,7 @@ public class Editor implements Runnable {
         Button btnSelectAll = new Button(grpActions, SWT.NONE);
         btnSelectAll.setText("Select All");
         btnSelectAll.setBounds(9, 98, 91, 29);
+        btnSelectAll.addListener(SWT.Selection, e -> sourceList.selectAll());
         
         Button btnLoadPal = new Button(grpActions, SWT.NONE);
         btnLoadPal.setBounds(9, 133, 91, 29);
@@ -288,7 +323,27 @@ public class Editor implements Runnable {
         Button btnSavePal = new Button(grpActions, SWT.NONE);
         btnSavePal.setBounds(106, 133, 91, 29);
         btnSavePal.setText("Save Pal");
-        btnSelectAll.addListener(SWT.Selection, e -> sourceList.selectAll());
+        btnSavePal.addListener(SWT.Selection, e -> {
+            FileDialog fileChooser = new FileDialog(shell, SWT.SAVE);
+            fileChooser.setOverwrite(true);
+            
+            // TODO handle new Palettes (with new name)
+            
+            fileChooser.setFileName(palettes.get(activePalette).name);
+            if (lastPath != null)
+                fileChooser.setFilterPath(lastPath);
+            fileChooser.setFilterExtensions(new String[] { "*.xml", "*.json" });
+            fileChooser.setFilterNames(new String[] { "Paletten XML", "Paletten JSON" });
+            String filename = fileChooser.open();
+            lastPath = fileChooser.getFilterPath();
+            if (filename == null)
+                return;
+            try( Writer out = new FileWriter(filename) ) {
+                xstream.toXML(palettes.get(activePalette), out);
+            } catch(IOException e1) {
+                LOG.error("error writing palette to file '{}'", filename, e1);
+            }
+        });
 
         Group grpDetails_1 = new Group(shell, SWT.NONE);
         GridData gd_grpDetails_1 = new GridData(SWT.LEFT, SWT.FILL, false, false, 1, 1);
@@ -372,16 +427,40 @@ public class Editor implements Runnable {
                 dmd.setColor(j, newColor);
             });
         }
+        
+        Combo paletteCombo = new Combo(grpDetails_1, SWT.NONE);
+        paletteCombo.setBounds(590, 155, 173, 29);
+        ComboViewer paletteViewer = new ComboViewer(paletteCombo);
+        paletteViewer.setContentProvider(ArrayContentProvider.getInstance());
+        paletteViewer.setLabelProvider(new LabelProvider(){
 
+            @Override
+            public String getText(Object element) {
+                if( element instanceof Palette) {
+                    return ((Palette) element).name;
+                }
+                return super.getText(element);
+            }
+            
+        } );
+        paletteViewer.setInput(palettes);
+        paletteViewer.setSelection(new StructuredSelection(palettes.get(0)));
+        
         Button useHash1 = new Button(grpDetails_1, SWT.CHECK);
         useHash1.setBounds(16, 105, 26, 24);
         
         Button useHash2 = new Button(grpDetails_1, SWT.CHECK);
         useHash2.setBounds(16, 123, 26, 24);
         
+        Label lblPalette = new Label(grpDetails_1, SWT.NONE);
+        lblPalette.setBounds(525, 162, 70, 17);
+        lblPalette.setText("Palette:");
+
+        
         Button btnReset = new Button(grpDetails_1, SWT.NONE);
         btnReset.setBounds(715, 79, 106, 29);
-        btnReset.setText("Reset Pal");
+        btnReset.setText("Reset Pal");        
+        
         btnReset.addListener(SWT.Selection, e -> { 
             dmd.resetColors();
             for (int i = 0; i < colBtn.length; i++) {
@@ -393,6 +472,7 @@ public class Editor implements Runnable {
             dmd.removeAllMasks();
             previewCanvas.update();
         });
+        
         animationHandler.setLabelHandler(new EventHandler() {
 
             @Override
@@ -433,7 +513,6 @@ public class Editor implements Runnable {
         }
 
     }
-    int x1,y1,x2,y2;
     
     private void handleMouse(Event e)
     {
@@ -514,10 +593,6 @@ public class Editor implements Runnable {
         populateList(sourceList, sourceAnis);
     }
 
-    int cutNameNumber = 1; // postfix for names
-    int markStart = 0;
-    int markEnd = 0;
-
     private java.util.List<String> buildTransitions(String basePath, Combo transitions) {
         Pattern pattern = Pattern.compile("^([a-z_\\.\\-A-Z]*)([0-9]*)\\.png$");
         String[] list = new File(basePath+"transitions/").list();
@@ -537,9 +612,6 @@ public class Editor implements Runnable {
         return new ArrayList<>(trans);
     }
 
-    private DMD dmd = new DMD();
-
-    private AnimationHandler animationHandler;
     private String transitionsPath = "./";//home/sr/Downloads/Pinball/";
 
     private class DmdPaintListener implements PaintListener {
