@@ -2,10 +2,13 @@ package com.rinke.solutions.pinball;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -43,8 +46,12 @@ import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.rinke.solutions.pinball.model.Format;
 import com.rinke.solutions.pinball.model.Palette;
 import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
+import com.thoughtworks.xstream.io.binary.BinaryStreamDriver;
 import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 
 
@@ -57,7 +64,9 @@ public class Editor implements Runnable {
     private String lastPath;
     private XStream xstream;
     private XStream jstream;
-
+    private XStream bstream;
+    BinaryStreamDriver driver;
+    
     public Editor(String[] args) {
         this.args = args;
         setupXStream();
@@ -66,10 +75,41 @@ public class Editor implements Runnable {
     private void setupXStream() {
         xstream = new XStream();
         jstream = new XStream(new JettisonMappedXmlDriver());
+        jstream = new XStream(new JettisonMappedXmlDriver());
+        
+		driver = new BinaryStreamDriver();
+//		HierarchicalStreamWriter writer = driver.createWriter(stream);
+		bstream = new XStream(driver);
+        
         xstream.alias("rgb", RGB.class);
         xstream.alias("palette", Palette.class);
         jstream.alias("rgb", RGB.class);
         jstream.alias("palette", Palette.class);
+    }
+    
+    public void storeObject(Object obj, Format format, String filename) throws IOException {
+    	OutputStream out = new FileOutputStream(filename);
+    	HierarchicalStreamWriter writer = null;
+    	switch (format) {
+		case XML:
+			xstream.toXML(obj, out);
+			break;
+		case JSON:
+			jstream.toXML(obj, out);
+			break;
+		case BIN:
+			writer = driver.createWriter(out);
+			bstream.marshal(obj, writer);
+			break;
+
+		default:
+			break;
+		}
+    	if(writer!=null) writer.close(); else out.close();
+    }
+    
+    public Object loadObject(Format format, String filename) throws IOException {
+    	return null;
     }
 
     /**
