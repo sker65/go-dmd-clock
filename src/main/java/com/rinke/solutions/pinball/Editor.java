@@ -2,6 +2,7 @@ package com.rinke.solutions.pinball;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
@@ -52,6 +53,7 @@ import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.Project;
 import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import com.thoughtworks.xstream.io.binary.BinaryStreamDriver;
 import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
@@ -122,7 +124,20 @@ public class Editor implements Runnable {
     }
     
     public Object loadObject(Format format, String filename) throws IOException {
-    	return null;
+    	InputStream in = new FileInputStream(filename);
+    	HierarchicalStreamReader reader = null;
+    	Object res = null;
+    	switch (format) {
+		case BIN:
+			reader = driver.createReader(in);
+			res = bstream.unmarshal(reader, null);
+			break;
+
+		default:
+			break;
+		}
+    	in.close();
+    	return res;
     }
     
     public void testStore() {
@@ -143,6 +158,9 @@ public class Editor implements Runnable {
 			storeObject(project, Format.XML, "tftc.xml");
 			storeObject(project, Format.JSON, "tftc.json");
 			storeObject(project, Format.BIN, "tftc.bin");
+			
+			loadObject(Format.BIN, "tftc.bin");
+			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
