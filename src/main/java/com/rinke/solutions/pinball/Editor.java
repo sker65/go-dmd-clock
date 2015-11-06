@@ -680,30 +680,99 @@ public class Editor implements Runnable {
         fileChooser.setFilterNames(new String[] { "Paletten XML", "Paletten JSON" });
         String filename = fileChooser.open();
         lastPath = fileChooser.getFilterPath();
-        if (filename == null)
-            return null;
-        try( Writer out = new FileWriter(filename) ) {
-            xstream.toXML(palettes.get(activePalette), out);
-        } catch(IOException e1) {
-            LOG.error("error writing palette to file '{}'", filename, e1);
+        if (filename != null) {
+            try( Writer out = new FileWriter(filename) ) {
+                if( filename.endsWith(".xml")) {
+                    xstream.toXML(palettes.get(activePalette), out);
+                } else if( filename.endsWith(".json")) {
+                    jstream.toXML(palettes.get(activePalette), out);
+                }
+            } catch(IOException e1) {
+                LOG.error("error writing palette to file '{}'", filename, e1);
+            }
         }
         return null;
     }
 
 
+    private void loadPalette(Event e) {
+        FileDialog fileChooser = new FileDialog(shell, SWT.OPEN);
+        if (lastPath != null)
+            fileChooser.setFilterPath(lastPath);
+        fileChooser.setFilterExtensions(new String[] { "*.xml;*.json;" });
+        fileChooser.setFilterNames(new String[] { "Palette XML", "Palette JSON" });
+        String filename = fileChooser.open();
+        lastPath = fileChooser.getFilterPath();
+        if (filename != null) {
+            Palette pal = null;
+            LOG.info("load palette from {}",filename);
+            if( filename.endsWith(".xml")) {
+                pal = (Palette) xstream.fromXML(new File(filename));
+                
+            } else if( filename.endsWith(".json")) {
+                pal = (Palette) jstream.fromXML(new File(filename));
+            }
+            if( pal != null ) {
+                palettes.add(pal);
+                activePalette = palettes.size()-1;
+            }
+        }
+    }
+    
+    Project project = new Project();
+    
     private Object loadProject(Event e) {
-        // TODO Auto-generated method stub
+        FileDialog fileChooser = new FileDialog(shell, SWT.OPEN);
+        if (lastPath != null)
+            fileChooser.setFilterPath(lastPath);
+        fileChooser.setFilterExtensions(new String[] { "*.xml;*.json;" });
+        fileChooser.setFilterNames(new String[] { "Project XML", "Project JSON" });
+        String filename = fileChooser.open();
+        lastPath = fileChooser.getFilterPath();
+        if (filename != null) {
+            Project projectToLoad = null;
+            LOG.info("load project from {}",filename);
+            if( filename.endsWith(".xml")) {
+                projectToLoad = (Project) xstream.fromXML(new File(filename));
+                
+            } else if( filename.endsWith(".json")) {
+                projectToLoad = (Project) jstream.fromXML(new File(filename));
+            }
+            if( projectToLoad != null ) {
+                // TODO update frame title
+                project = projectToLoad;
+            }
+        }
         return null;
     }
 
-    private Object loadPalette(Event e) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    private Object saveProject(Event e) {
-        // TODO Auto-generated method stub
-        return null;
+    private void saveProject(Event e) {
+        FileDialog fileChooser = new FileDialog(shell, SWT.SAVE);
+        fileChooser.setOverwrite(true);
+        //fileChooser.setFileName(project.name);
+        if (lastPath != null)
+            fileChooser.setFilterPath(lastPath);
+        fileChooser.setFilterExtensions(new String[] { "*.xml", "*.json", "*.dat" });
+        fileChooser.setFilterNames(new String[] { "Project XML", "Project JSON", "Export dat" });
+        String filename = fileChooser.open();
+        lastPath = fileChooser.getFilterPath();        
+        if (filename != null) {
+            LOG.info("write project to {}",filename);
+            try ( FileOutputStream out = new FileOutputStream(filename)){
+                if( filename.endsWith(".xml")) {
+                    xstream.toXML(project, out);
+                } else if( filename.endsWith(".json")) {
+                    jstream.toXML(project,out);
+                } else if( filename.endsWith(".dat")) {
+                    DataOutputStream dos = new DataOutputStream(out);
+                    project.writeTo(dos);
+                    dos.close();
+                }
+            } catch (IOException e2) {
+                LOG.error("could not write to "+filename,e);
+                throw new RuntimeException(e2);
+            }
+         }
     }
 
     private void setColorBtn() {
