@@ -52,6 +52,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.rinke.solutions.pinball.model.Format;
+import com.rinke.solutions.pinball.model.Model;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.Project;
@@ -104,41 +105,57 @@ public class Editor implements Runnable {
         jstream.setMode(XStream.NO_REFERENCES);
     }
     
-    public void storeObject(Object obj, Format format, String filename) throws IOException {
-    	OutputStream out = new FileOutputStream(filename);
-    	HierarchicalStreamWriter writer = null;
-    	switch (format) {
-		case XML:
-			xstream.toXML(obj, out);
-			break;
-		case JSON:
-			jstream.toXML(obj, out);
-			break;
-		case BIN:
-			writer = driver.createWriter(out);
-			bstream.marshal(obj, writer);
-			break;
+    public void storeObject(Model obj,  String filename) {
+    	try( OutputStream out = new FileOutputStream(filename)) {
+            HierarchicalStreamWriter writer = null;
+            switch (Format.byFilename(filename)) {
+            case XML:
+                xstream.toXML(obj, out);
+                break;
+            case JSON:
+                jstream.toXML(obj, out);
+                break;
+            case BIN:
+                writer = driver.createWriter(out);
+                bstream.marshal(obj, writer);
+                break;
+            case DAT:
+                DataOutputStream dos = new DataOutputStream(new FileOutputStream(filename));
+                obj.writeTo(dos);
+                dos.close();
 
-		default:
-			break;
-		}
-    	if(writer!=null) writer.close(); else out.close();
+            default:
+                throw new RuntimeException("unsupported filetype / extension " +filename);
+            }
+            if(writer!=null) writer.close(); else out.close();
+    	} catch( IOException e) {
+    	    LOG.error("error on storing "+filename, e);
+    	    throw new RuntimeException("error on storing "+filename,e);
+    	}
     }
     
-    public Object loadObject(Format format, String filename) throws IOException {
-    	InputStream in = new FileInputStream(filename);
-    	HierarchicalStreamReader reader = null;
-    	Object res = null;
-    	switch (format) {
-		case BIN:
-			reader = driver.createReader(in);
-			res = bstream.unmarshal(reader, null);
-			break;
+    public Object loadObject(String filename) {
+        Object res = null;
+    	try ( InputStream in = new FileInputStream(filename) ) {
+            HierarchicalStreamReader reader = null;
+            
+            switch (Format.byFilename(filename)) {
+            case XML:
+                return xstream.fromXML(in);
+            case JSON:
+                return jstream.fromXML(in);
+            case BIN:
+                reader = driver.createReader(in);
+                res = bstream.unmarshal(reader, null);
+                break;
 
-		default:
-			break;
-		}
-    	in.close();
+            default:
+                throw new RuntimeException("unsupported filetype / extension " +filename);
+            }
+    	} catch( IOException e2) {
+    	    LOG.error("error on load "+filename,e2);
+    	    throw new RuntimeException("error on load "+filename, e2);
+    	}
     	return res;
     }
     
@@ -159,13 +176,13 @@ public class Editor implements Runnable {
 		Project project = new Project(1,"tftc-dump.txt.gz", tpalettes, palMappings);
     	try {
     		DataOutputStream dos = new DataOutputStream(new FileOutputStream("tftc.dat"));
-			storeObject(project, Format.XML, "tftc.xml");
-			storeObject(project, Format.JSON, "tftc.json");
-			storeObject(project, Format.BIN, "tftc.bin");
+			storeObject(project, "tftc.xml");
+			storeObject(project, "tftc.json");
+			storeObject(project, "tftc.bin");
 			project.writeTo(dos);
 			dos.close();
 			
-			loadObject(Format.BIN, "tftc.bin");
+			loadObject("tftc.bin");
 			
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -681,15 +698,7 @@ public class Editor implements Runnable {
         String filename = fileChooser.open();
         lastPath = fileChooser.getFilterPath();
         if (filename != null) {
-            try( Writer out = new FileWriter(filename) ) {
-                if( filename.endsWith(".xml")) {
-                    xstream.toXML(palettes.get(activePalette), out);
-                } else if( filename.endsWith(".json")) {
-                    jstream.toXML(palettes.get(activePalette), out);
-                }
-            } catch(IOException e1) {
-                LOG.error("error writing palette to file '{}'", filename, e1);
-            }
+            storeObject(palettes.get(activePalette), filename);
         }
         return null;
     }
@@ -704,18 +713,10 @@ public class Editor implements Runnable {
         String filename = fileChooser.open();
         lastPath = fileChooser.getFilterPath();
         if (filename != null) {
-            Palette pal = null;
+            Palette pal = (Palette) loadObject(filename);
             LOG.info("load palette from {}",filename);
-            if( filename.endsWith(".xml")) {
-                pal = (Palette) xstream.fromXML(new File(filename));
-                
-            } else if( filename.endsWith(".json")) {
-                pal = (Palette) jstream.fromXML(new File(filename));
-            }
-            if( pal != null ) {
-                palettes.add(pal);
-                activePalette = palettes.size()-1;
-            }
+            palettes.add(pal);
+            activePalette = palettes.size()-1;
         }
     }
     
@@ -730,14 +731,9 @@ public class Editor implements Runnable {
         String filename = fileChooser.open();
         lastPath = fileChooser.getFilterPath();
         if (filename != null) {
-            Project projectToLoad = null;
             LOG.info("load project from {}",filename);
-            if( filename.endsWith(".xml")) {
-                projectToLoad = (Project) xstream.fromXML(new File(filename));
-                
-            } else if( filename.endsWith(".json")) {
-                projectToLoad = (Project) jstream.fromXML(new File(filename));
-            }
+            Project projectToLoad  = (Project) loadObject(filename);
+
             if( projectToLoad != null ) {
                 // TODO update frame title
                 project = projectToLoad;
@@ -758,20 +754,7 @@ public class Editor implements Runnable {
         lastPath = fileChooser.getFilterPath();        
         if (filename != null) {
             LOG.info("write project to {}",filename);
-            try ( FileOutputStream out = new FileOutputStream(filename)){
-                if( filename.endsWith(".xml")) {
-                    xstream.toXML(project, out);
-                } else if( filename.endsWith(".json")) {
-                    jstream.toXML(project,out);
-                } else if( filename.endsWith(".dat")) {
-                    DataOutputStream dos = new DataOutputStream(out);
-                    project.writeTo(dos);
-                    dos.close();
-                }
-            } catch (IOException e2) {
-                LOG.error("could not write to "+filename,e);
-                throw new RuntimeException(e2);
-            }
+            storeObject(project, filename);
          }
     }
 
