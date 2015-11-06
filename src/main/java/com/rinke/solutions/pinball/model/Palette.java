@@ -16,7 +16,7 @@ public class Palette implements Model {
         super();
         this.numberOfColors = colors.length;
         this.index = index;
-        this.colors = colors;
+        this.colors = Arrays.copyOf(colors, colors.length);
         this.name = name;
     }
 

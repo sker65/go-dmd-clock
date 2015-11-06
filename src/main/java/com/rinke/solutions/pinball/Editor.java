@@ -74,6 +74,7 @@ public class Editor implements Runnable {
     private XStream jstream;
     private XStream bstream;
     BinaryStreamDriver driver;
+    Project project = new Project();
     
     public Editor(String[] args) {
         this.args = args;
@@ -560,6 +561,20 @@ public class Editor implements Runnable {
             setColorBtn();
         });
         
+        Button btnNewPalette = new Button(grpDetails_1, SWT.NONE);
+        btnNewPalette.setBounds(782, 155, 58, 29);
+        btnNewPalette.setText("New");
+        btnNewPalette.addListener(SWT.Selection, e -> {
+            String name = this.paletteCombo.getText();
+            if( !isNewPaletteName(name)) {
+                name = name+"1";
+            }
+            Palette p = new Palette(dmd.rgb,palettes.size(), name);
+            palettes.add(p);
+            paletteViewer.add(p);
+            activePalette = palettes.size()-1;
+        });
+        
         btnRemoveMasks.addListener(SWT.Selection, e -> {
             dmd.removeAllMasks();
             previewCanvas.update();
@@ -599,6 +614,7 @@ public class Editor implements Runnable {
                 }
                 System.exit(0);
             } catch( Exception e) {
+                GlobalExceptionHandler.getInstance().showError(e);
                 LOG.error("unexpected error: {}",e);
                 if( retry++ > 10 ) System.exit(1);
             }
@@ -681,15 +697,6 @@ public class Editor implements Runnable {
         FileDialog fileChooser = new FileDialog(shell, SWT.SAVE);
         fileChooser.setOverwrite(true);
         
-        if( isNewPaletteName(this.paletteCombo.getText()) ) {
-            Palette newPal = new Palette(dmd.rgb, palettes.size(), this.paletteCombo.getText());
-            palettes.add(newPal);
-            paletteViewer.add(newPal);
-            activePalette = palettes.size()-1;
-        }
-        
-        // TODO handle new Palettes (with new name)
-        
         fileChooser.setFileName(palettes.get(activePalette).name);
         if (lastPath != null)
             fileChooser.setFilterPath(lastPath);
@@ -698,11 +705,11 @@ public class Editor implements Runnable {
         String filename = fileChooser.open();
         lastPath = fileChooser.getFilterPath();
         if (filename != null) {
+            LOG.info("store palette to {}",filename);
             storeObject(palettes.get(activePalette), filename);
         }
         return null;
     }
-
 
     private void loadPalette(Event e) {
         FileDialog fileChooser = new FileDialog(shell, SWT.OPEN);
@@ -719,8 +726,6 @@ public class Editor implements Runnable {
             activePalette = palettes.size()-1;
         }
     }
-    
-    Project project = new Project();
     
     private Object loadProject(Event e) {
         FileDialog fileChooser = new FileDialog(shell, SWT.OPEN);
