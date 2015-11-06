@@ -1,5 +1,7 @@
 package com.rinke.solutions.pinball.model;
 
+import java.util.Arrays;
+
 import org.eclipse.swt.graphics.RGB;
 
 public class Palette {
@@ -15,5 +17,13 @@ public class Palette {
         this.colors = colors;
         this.name = name;
     }
+
+	@Override
+	public String toString() {
+		return "Palette [name=" + name + ", numberOfColors=" + numberOfColors
+				+ ", index=" + index + ", colors=" + Arrays.toString(colors)
+				+ "]";
+	}
+    
     
 }

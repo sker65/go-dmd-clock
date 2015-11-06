@@ -1,5 +1,7 @@
 package com.rinke.solutions.pinball.model;
 
+import java.util.Arrays;
+
 public class PalMapping {
     public byte digest[];
     public Palette palette;
@@ -17,6 +19,13 @@ public class PalMapping {
         this.durationInMillis = durationInMillis;
         this.durationInFrames = durationInFrames;
     }
+
+	@Override
+	public String toString() {
+		return "PalMapping [digest=" + Arrays.toString(digest) + ", palette="
+				+ palette + ", durationInMillis=" + durationInMillis
+				+ ", durationInFrames=" + durationInFrames + "]";
+	}
     
     
     
