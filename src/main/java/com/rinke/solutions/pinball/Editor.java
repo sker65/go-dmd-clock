@@ -12,6 +12,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.regex.Matcher;
@@ -63,6 +64,7 @@ import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import com.thoughtworks.xstream.io.binary.BinaryStreamDriver;
 import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
+
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 
@@ -218,7 +220,7 @@ public class Editor implements Runnable {
 
     java.util.List<Animation> sourceAnis = new ArrayList<>();
     java.util.List<Animation> targetAnis = new ArrayList<>();
-    java.util.List<Animation> playingAnis = new ArrayList<>();
+    java.util.List<Animation> playingAnis = new ArrayList<>();    
 
     List sourceList;
 
@@ -242,18 +244,32 @@ public class Editor implements Runnable {
 
     int cutNameNumber = 1; // postfix for names
     int markStart = 0;
+    long startTimeCode = 0L;
+    long lastTimeCode = 0L;
     int markEnd = 0;
 
     int x1,y1,x2,y2;
     
     Project project = new Project();
     java.util.List<Palette> palettes = project.palettes;
+    java.util.List<PalMapping> palMappings = project.palMappings;
+    
+    PalMapping palMapping;
 
     private int activePalette = 0;
     Combo paletteCombo;
     ComboViewer paletteViewer;
     final Button colBtn[] = new Button[16];
+    Button useHash1;
+    Button useHash2;
+    java.util.List<byte[]> hashes;
 
+    private void saveHashes(java.util.List<byte[]> hashes) {
+        this.hashes.clear();
+        for( byte[] h : hashes) {
+            this.hashes.add( Arrays.copyOf(h, h.length));
+        }
+    }
 
     /**
      * @wbp.parser.entryPoint
@@ -330,6 +346,16 @@ public class Editor implements Runnable {
         btnMarkStart.setText("Mark Start");
         btnMarkStart.addListener(SWT.Selection, e -> {
             markStart = selectedAnimation.actFrame;
+            // store start frame for pal mapping
+            palMapping = new PalMapping();
+            if(useHash1.getSelection()) {
+                palMapping.digest = hashes.get(0);
+            }
+            if(useHash2.getSelection()) {
+                palMapping.digest = hashes.get(1);
+            }
+            palMapping.palIndex = palettes.get(activePalette).index;
+            startTimeCode = lastTimeCode;
             btnCut.setEnabled(markEnd > 0 && markEnd > markStart);
         });
 
@@ -339,6 +365,10 @@ public class Editor implements Runnable {
         btnMarkEnd.addListener(SWT.Selection, e -> {
             markEnd = selectedAnimation.actFrame;
             btnCut.setEnabled(markEnd > 0 && markEnd > markStart);
+            if( palMapping != null ) {
+                palMapping.durationInMillis = (lastTimeCode - startTimeCode);
+                palMapping.durationInFrames = (int) (palMapping.durationInMillis / (122 / 3));
+            }
         });
 
         btnCut = new Button(grpDetails, SWT.NONE);
@@ -501,6 +531,11 @@ public class Editor implements Runnable {
         txtTdelay.setText("30");
         txtTdelay.setBounds(644, 30, 75, 27);
 
+        useHash1 = new Button(grpDetails_1, SWT.CHECK);
+        useHash1.setBounds(16, 105, 26, 24);    
+        useHash2 = new Button(grpDetails_1, SWT.CHECK);
+        useHash2.setBounds(16, 123, 26, 24);
+        
         Label lblName = new Label(grpDetails_1, SWT.NONE);
         lblName.setText("Name");
         lblName.setBounds(10, 64, 50, 17);
@@ -547,12 +582,6 @@ public class Editor implements Runnable {
         
         paletteViewer.setInput(palettes);
         paletteViewer.setSelection(new StructuredSelection(palettes.get(0)));
-        
-        Button useHash1 = new Button(grpDetails_1, SWT.CHECK);
-        useHash1.setBounds(16, 105, 26, 24);
-        
-        Button useHash2 = new Button(grpDetails_1, SWT.CHECK);
-        useHash2.setBounds(16, 123, 26, 24);
         
         Label lblPalette = new Label(grpDetails_1, SWT.NONE);
         lblPalette.setBounds(525, 162, 70, 17);
@@ -603,7 +632,9 @@ public class Editor implements Runnable {
                 case ANI:
                     lblDetails.setText("Frame: " + evt.actFrame);
                     lblTc.setText("TC: "+evt.timecode);
-                    hashLabel.setText(evt.hashes.replaceAll("plane 1","\nplane 1"));
+                    hashLabel.setText(evt.getPrintableHashes().replaceAll("plane 1","\nplane 1"));
+                    saveHashes(evt.hashes);
+                    lastTimeCode = evt.timecode;
                     break;
                 case CLOCK:
                     lblDetails.setText("");
@@ -635,6 +666,11 @@ public class Editor implements Runnable {
             }
         }
 
+    }
+
+    private byte[] buildDigest() {
+        // TODO Auto-generated method stub
+        return null;
     }
 
     private void createColorButtons(Group grpDetails_1) {
@@ -858,6 +894,7 @@ public class Editor implements Runnable {
             }
         }
         populateList(sourceList, anis);
+        // remove pal mapping
     }
 
     protected void cutOutNewClip(int start, int end) {
@@ -868,6 +905,11 @@ public class Editor implements Runnable {
         ani.setDesc(selectedAnimation.getDesc() + (cutNameNumber++));
         sourceAnis.add(ani);
         populateList(sourceList, sourceAnis);
+        
+        if( palMapping != null ) {
+            palMapping.palIndex = palettes.get(activePalette).index;
+            palMappings.add(palMapping);
+        }
     }
 
     private java.util.List<String> buildTransitions(String basePath, Combo transitions) {

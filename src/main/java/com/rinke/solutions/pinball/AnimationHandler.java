@@ -79,7 +79,7 @@ public class AnimationHandler implements Runnable {
 				transitionFrame=0;
 			}
 			if( scale.isDisposed() ) return;
-			eventHandler.notifyAni(new AniEvent(Type.CLOCK, 0, null, "",0));
+			eventHandler.notifyAni(new AniEvent(Type.CLOCK, 0, null, null,0));
 		} else {
 			if( anis.isEmpty() ) {
 				clockActive = true;

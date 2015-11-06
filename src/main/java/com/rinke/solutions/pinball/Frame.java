@@ -42,7 +42,8 @@ public class Frame {
         }
     }
     
-    String getHashes() {
+    List<byte[]> getHashes() {
+        List<byte[]> res = new ArrayList<>();
         try {
             int j = 0;
             
@@ -50,17 +51,13 @@ public class Frame {
             for (Plane plane : planes) {
                 MessageDigest md = MessageDigest.getInstance("MD5");
                 md.update(transform(plane.plane), 0, plane.plane.length);
-                byte[] digest = md.digest();
-                StringBuffer hexString = new StringBuffer();
-                for(int i = 0;i<digest.length;i++)
-                    hexString.append(String.format("%02X ", digest[i]));
-                sb.append("plane "+ (j++) + ": "+ hexString.toString());
+                res.add(md.digest());
             }
-            return sb.toString();
+            return res;
         } catch (NoSuchAlgorithmException e) {
          
         }
-        return "";
+        return res;
     }
 
     private byte[] transform(byte[] plane) {

@@ -22,7 +22,10 @@ public class PalMapping implements Model {
         this.durationInFrames = durationInFrames;
     }
 
-	@Override
+	public PalMapping() {
+    }
+
+    @Override
 	public String toString() {
 		return "PalMapping [digest=" + Arrays.toString(digest) + ", palIndex="
 				+ palIndex + ", durationInMillis=" + durationInMillis
