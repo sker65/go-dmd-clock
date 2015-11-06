@@ -20,6 +20,8 @@ import java.util.regex.Pattern;
 
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ComboViewer;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
@@ -227,6 +229,10 @@ public class Editor implements Runnable {
     java.util.List<Palette> palettes = new ArrayList<>();
 
     private int activePalette = 0;
+    Combo paletteCombo;
+    ComboViewer paletteViewer;
+    final Button colBtn[] = new Button[16];
+
 
     /**
      * @wbp.parser.entryPoint
@@ -427,6 +433,13 @@ public class Editor implements Runnable {
             FileDialog fileChooser = new FileDialog(shell, SWT.SAVE);
             fileChooser.setOverwrite(true);
             
+            if( isNewPaletteName(this.paletteCombo.getText()) ) {
+                Palette newPal = new Palette(dmd.rgb, palettes.size(), this.paletteCombo.getText());
+                palettes.add(newPal);
+                paletteViewer.add(newPal);
+                activePalette = palettes.size()-1;
+            }
+            
             // TODO handle new Palettes (with new name)
             
             fileChooser.setFileName(palettes.get(activePalette).name);
@@ -508,7 +521,6 @@ public class Editor implements Runnable {
         hashLabel.setBounds(48, 108, 404, 35);
         hashLabel.setText("Hashes");
         
-        final Button colBtn[] = new Button[16];
         for(int i = 0; i < colBtn.length; i++) {
             colBtn[i] = new Button(grpDetails_1, SWT.PUSH);
             colBtn[i].setData(Integer.valueOf(i));
@@ -529,9 +541,9 @@ public class Editor implements Runnable {
             });
         }
         
-        Combo paletteCombo = new Combo(grpDetails_1, SWT.NONE);
+        paletteCombo = new Combo(grpDetails_1, SWT.NONE);
         paletteCombo.setBounds(590, 155, 173, 29);
-        ComboViewer paletteViewer = new ComboViewer(paletteCombo);
+        paletteViewer = new ComboViewer(paletteCombo);
         paletteViewer.setContentProvider(ArrayContentProvider.getInstance());
         paletteViewer.setLabelProvider(new LabelProvider(){
 
@@ -544,6 +556,16 @@ public class Editor implements Runnable {
             }
             
         } );
+        paletteViewer.addSelectionChangedListener(event -> {
+            IStructuredSelection selection = (IStructuredSelection) event.getSelection();
+                  if (selection.size() > 0){
+                      Palette pal = (Palette)selection.getFirstElement();
+                      activePalette = pal.index;
+                      dmd.rgb = pal.colors;
+                      setColorBtn();
+                      
+                  }
+        });
         paletteViewer.setInput(palettes);
         paletteViewer.setSelection(new StructuredSelection(palettes.get(0)));
         
@@ -557,17 +579,14 @@ public class Editor implements Runnable {
         lblPalette.setBounds(525, 162, 70, 17);
         lblPalette.setText("Palette:");
 
-        
         Button btnReset = new Button(grpDetails_1, SWT.NONE);
         btnReset.setBounds(715, 79, 106, 29);
         btnReset.setText("Reset Pal");        
         
         btnReset.addListener(SWT.Selection, e -> { 
             dmd.resetColors();
-            for (int i = 0; i < colBtn.length; i++) {
-                colBtn[i].setImage(getSquareImage(display, new Color(display,dmd.rgb[i])));
-            }
-            });
+            setColorBtn();
+        });
         
         btnRemoveMasks.addListener(SWT.Selection, e -> {
             dmd.removeAllMasks();
@@ -615,6 +634,19 @@ public class Editor implements Runnable {
 
     }
     
+    private void setColorBtn() {
+        for (int i = 0; i < colBtn.length; i++) {
+            colBtn[i].setImage(getSquareImage(display, new Color(display,dmd.rgb[i])));
+        }
+    }
+
+    private boolean isNewPaletteName(String text) {
+        for(Palette pal : palettes) {
+            if( pal.name.equals(text)) return false;
+        }
+        return true;
+    }
+
     private void handleMouse(Event e)
     {
         switch (e.type) {
