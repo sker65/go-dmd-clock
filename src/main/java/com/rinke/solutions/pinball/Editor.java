@@ -25,6 +25,8 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
+import org.eclipse.swt.events.VerifyEvent;
+import org.eclipse.swt.events.VerifyListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
@@ -61,6 +63,8 @@ import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import com.thoughtworks.xstream.io.binary.BinaryStreamDriver;
 import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 
 
 public class Editor implements Runnable {
@@ -74,7 +78,6 @@ public class Editor implements Runnable {
     private XStream jstream;
     private XStream bstream;
     BinaryStreamDriver driver;
-    Project project = new Project();
     
     public Editor(String[] args) {
         this.args = args;
@@ -243,7 +246,8 @@ public class Editor implements Runnable {
 
     int x1,y1,x2,y2;
     
-    java.util.List<Palette> palettes = new ArrayList<>();
+    Project project = new Project();
+    java.util.List<Palette> palettes = project.palettes;
 
     private int activePalette = 0;
     Combo paletteCombo;
@@ -279,7 +283,7 @@ public class Editor implements Runnable {
         palettes.add(new Palette(dmd.rgb, 0, "default"));
 
         Label lblAnimations = new Label(shell, SWT.NONE);
-        lblAnimations.setText("Animations");
+        lblAnimations.setText("Animations / Scenes");
 
         Group grpDetails = new Group(shell, SWT.NONE);
         GridData gd_grpDetails = new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1);
@@ -539,6 +543,8 @@ public class Editor implements Runnable {
                       
                   }
         });
+
+        
         paletteViewer.setInput(palettes);
         paletteViewer.setSelection(new StructuredSelection(palettes.get(0)));
         
@@ -575,6 +581,15 @@ public class Editor implements Runnable {
             activePalette = palettes.size()-1;
         });
         
+        
+        Button btnRename = new Button(grpDetails_1, SWT.NONE);
+        btnRename.setBounds(846, 155, 75, 29);
+        btnRename.setText("Rename");
+        btnRename.addListener(SWT.Selection, e -> {
+            palettes.get(activePalette).name = paletteCombo.getText();
+            paletteViewer.refresh();
+        });
+
         btnRemoveMasks.addListener(SWT.Selection, e -> {
             dmd.removeAllMasks();
             previewCanvas.update();
