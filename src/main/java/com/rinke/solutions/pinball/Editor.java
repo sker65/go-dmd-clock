@@ -396,7 +396,7 @@ public class Editor implements Runnable {
 
         Button btnSave = new Button(grpActions, SWT.NONE);
         btnSave.setBounds(106, 61, 91, 29);
-        btnSave.setText("Save");
+        btnSave.setText("Save Ani");
         btnSave.addListener(SWT.Selection, e -> save());
 
         btnDelete = new Button(grpActions, SWT.NONE);
@@ -408,12 +408,12 @@ public class Editor implements Runnable {
         Button btnLoad = new Button(grpActions, SWT.NONE);
         btnLoad.addListener(SWT.Selection, e -> load(false));
 
-        btnLoad.setText("Load");
+        btnLoad.setText("Load Ani");
         btnLoad.setBounds(9, 26, 91, 29);
 
         Button btnAdd = new Button(grpActions, SWT.NONE);
         btnAdd.addListener(SWT.Selection, e -> load(true));
-        btnAdd.setText("Add");
+        btnAdd.setText("Add Ani");
         btnAdd.setBounds(106, 26, 91, 29);
 
         Button btnSelectAll = new Button(grpActions, SWT.NONE);
@@ -424,39 +424,13 @@ public class Editor implements Runnable {
         Button btnLoadPal = new Button(grpActions, SWT.NONE);
         btnLoadPal.setBounds(9, 133, 91, 29);
         btnLoadPal.setText("Load Pal");
+        btnLoadPal.addListener(SWT.Selection, e -> loadPalette(e));
         
         Button btnSavePal = new Button(grpActions, SWT.NONE);
         btnSavePal.setBounds(106, 133, 91, 29);
         btnSavePal.setText("Save Pal");
-        btnSavePal.addListener(SWT.Selection, e -> {
-            FileDialog fileChooser = new FileDialog(shell, SWT.SAVE);
-            fileChooser.setOverwrite(true);
-            
-            if( isNewPaletteName(this.paletteCombo.getText()) ) {
-                Palette newPal = new Palette(dmd.rgb, palettes.size(), this.paletteCombo.getText());
-                palettes.add(newPal);
-                paletteViewer.add(newPal);
-                activePalette = palettes.size()-1;
-            }
-            
-            // TODO handle new Palettes (with new name)
-            
-            fileChooser.setFileName(palettes.get(activePalette).name);
-            if (lastPath != null)
-                fileChooser.setFilterPath(lastPath);
-            fileChooser.setFilterExtensions(new String[] { "*.xml", "*.json" });
-            fileChooser.setFilterNames(new String[] { "Paletten XML", "Paletten JSON" });
-            String filename = fileChooser.open();
-            lastPath = fileChooser.getFilterPath();
-            if (filename == null)
-                return;
-            try( Writer out = new FileWriter(filename) ) {
-                xstream.toXML(palettes.get(activePalette), out);
-            } catch(IOException e1) {
-                LOG.error("error writing palette to file '{}'", filename, e1);
-            }
-        });
-
+        btnSavePal.addListener(SWT.Selection, e -> savePalette(e));
+        
         Group grpDetails_1 = new Group(shell, SWT.NONE);
         GridData gd_grpDetails_1 = new GridData(SWT.LEFT, SWT.FILL, false, false, 1, 1);
         gd_grpDetails_1.heightHint = 134;
@@ -520,25 +494,7 @@ public class Editor implements Runnable {
         hashLabel.setBounds(48, 108, 404, 35);
         hashLabel.setText("Hashes");
         
-        for(int i = 0; i < colBtn.length; i++) {
-            colBtn[i] = new Button(grpDetails_1, SWT.PUSH);
-            colBtn[i].setData(Integer.valueOf(i));
-            // on mac use wider buttons e.g. 32 pix instead of 26
-            colBtn[i].setBounds(525+i*28, 113, 32, 26);
-            colBtn[i].setImage(getSquareImage(display, new Color(display,dmd.rgb[i])));
-            colBtn[i].addListener(SWT.Selection, e -> {
-                ColorDialog cd = new ColorDialog(shell);
-                cd.setText("ColorDialog Demo");
-                int j = (Integer) e.widget.getData();
-                cd.setRGB(dmd.getColor(j));
-                RGB newColor = cd.open();
-                if (newColor == null) {
-                    return;
-                }
-                ((Button)e.widget).setImage(getSquareImage(display, new Color(display,newColor)));
-                dmd.setColor(j, newColor);
-            });
-        }
+        createColorButtons(grpDetails_1);
         
         paletteCombo = new Combo(grpDetails_1, SWT.NONE);
         paletteCombo.setBounds(590, 155, 173, 29);
@@ -632,6 +588,28 @@ public class Editor implements Runnable {
         }
 
     }
+
+    private void createColorButtons(Group grpDetails_1) {
+        for(int i = 0; i < colBtn.length; i++) {
+            colBtn[i] = new Button(grpDetails_1, SWT.PUSH);
+            colBtn[i].setData(Integer.valueOf(i));
+            // on mac use wider buttons e.g. 32 pix instead of 26
+            colBtn[i].setBounds(525+i*28, 113, 32, 26);
+            colBtn[i].setImage(getSquareImage(display, new Color(display,dmd.rgb[i])));
+            colBtn[i].addListener(SWT.Selection, e -> {
+                ColorDialog cd = new ColorDialog(shell);
+                cd.setText("ColorDialog Demo");
+                int j = (Integer) e.widget.getData();
+                cd.setRGB(dmd.getColor(j));
+                RGB newColor = cd.open();
+                if (newColor == null) {
+                    return;
+                }
+                ((Button)e.widget).setImage(getSquareImage(display, new Color(display,newColor)));
+                dmd.setColor(j, newColor);
+            });
+        }
+    }
     
     private Menu createMenu() {
         Menu menuBar = new Menu(shell, SWT.BAR);
@@ -643,9 +621,21 @@ public class Editor implements Runnable {
 
         MenuItem fileLoadItem = new MenuItem(fileMenu, SWT.PUSH);
         fileLoadItem.setText("&Load Project");
+        fileLoadItem.addListener(SWT.Selection, e -> loadProject(e));
 
         MenuItem fileSaveItem = new MenuItem(fileMenu, SWT.PUSH);
         fileSaveItem.setText("&Save Project");
+        fileSaveItem.addListener(SWT.Selection, e -> saveProject(e));
+        
+        new MenuItem(fileMenu, SWT.SEPARATOR);
+
+        MenuItem fileLoadPalItem = new MenuItem(fileMenu, SWT.PUSH);
+        fileLoadPalItem.setText("&Load Palette");
+        fileLoadPalItem.addListener(SWT.Selection, e -> loadPalette(e));
+
+        MenuItem fileSavePalItem = new MenuItem(fileMenu, SWT.PUSH);
+        fileSavePalItem.setText("&Save Palette");
+        fileSavePalItem.addListener(SWT.Selection, e -> savePalette(e));
         
         new MenuItem(fileMenu, SWT.SEPARATOR);
 
@@ -653,7 +643,6 @@ public class Editor implements Runnable {
         fileExitItem.setText("E&xit");
         fileExitItem.addListener(SWT.Selection, e -> {
             // TODO check dirty before save
-            
             shell.close();
             display.dispose();
         });
@@ -668,6 +657,53 @@ public class Editor implements Runnable {
         helpGetHelpItem.setText("&Get Help");
 
         return menuBar;
+    }
+
+    private Object savePalette(Event e)
+    {
+        FileDialog fileChooser = new FileDialog(shell, SWT.SAVE);
+        fileChooser.setOverwrite(true);
+        
+        if( isNewPaletteName(this.paletteCombo.getText()) ) {
+            Palette newPal = new Palette(dmd.rgb, palettes.size(), this.paletteCombo.getText());
+            palettes.add(newPal);
+            paletteViewer.add(newPal);
+            activePalette = palettes.size()-1;
+        }
+        
+        // TODO handle new Palettes (with new name)
+        
+        fileChooser.setFileName(palettes.get(activePalette).name);
+        if (lastPath != null)
+            fileChooser.setFilterPath(lastPath);
+        fileChooser.setFilterExtensions(new String[] { "*.xml", "*.json" });
+        fileChooser.setFilterNames(new String[] { "Paletten XML", "Paletten JSON" });
+        String filename = fileChooser.open();
+        lastPath = fileChooser.getFilterPath();
+        if (filename == null)
+            return null;
+        try( Writer out = new FileWriter(filename) ) {
+            xstream.toXML(palettes.get(activePalette), out);
+        } catch(IOException e1) {
+            LOG.error("error writing palette to file '{}'", filename, e1);
+        }
+        return null;
+    }
+
+
+    private Object loadProject(Event e) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    private Object loadPalette(Event e) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    private Object saveProject(Event e) {
+        // TODO Auto-generated method stub
+        return null;
     }
 
     private void setColorBtn() {
