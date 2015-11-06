@@ -1,5 +1,13 @@
 package com.rinke.solutions.pinball.model;
 
 public enum Format {
-	XML, JSON, BIN
+	XML, JSON, BIN, DAT, UNKOWN;
+
+    public static Format byFilename(String filename) {
+        int i = filename.lastIndexOf('.');
+        if( i != -1) {
+            return Format.valueOf(filename.substring(i).toUpperCase());
+        }
+        return UNKOWN;
+    }
 }
