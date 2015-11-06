@@ -1,6 +1,7 @@
 package com.rinke.solutions.pinball;
 
 import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -153,11 +154,15 @@ public class Editor implements Runnable {
 		palMappings.add( new PalMapping(digest , 0,	1000, 30));
 		palMappings.add( new PalMapping(digest2 , 1,	3000, 90));
 		
-		Project project = new Project("tftc-dump.txt.gz", tpalettes, palMappings);
+		
+		Project project = new Project(1,"tftc-dump.txt.gz", tpalettes, palMappings);
     	try {
+    		DataOutputStream dos = new DataOutputStream(new FileOutputStream("tftc.dat"));
 			storeObject(project, Format.XML, "tftc.xml");
 			storeObject(project, Format.JSON, "tftc.json");
 			storeObject(project, Format.BIN, "tftc.bin");
+			project.writeTo(dos);
+			dos.close();
 			
 			loadObject(Format.BIN, "tftc.bin");
 			
