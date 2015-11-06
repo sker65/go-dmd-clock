@@ -2,6 +2,7 @@ package com.rinke.solutions.pinball.model;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Project implements Model {
@@ -17,7 +18,15 @@ public class Project implements Model {
 		this.palettes = palettes;
 		this.palMappings = palMappings;
 	}
-	@Override
+	
+	public Project() {
+        version = 1;
+        palettes = new ArrayList<Palette>();
+        palMappings = new ArrayList<>();
+        inputFile="";
+    }
+	
+    @Override
 	public String toString() {
 		return "Project [version=" + version + ", inputFile=" + inputFile
 				+ ", palettes=" + palettes + ", palMappings=" + palMappings
