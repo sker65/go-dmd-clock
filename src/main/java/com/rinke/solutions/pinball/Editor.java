@@ -48,7 +48,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.rinke.solutions.pinball.model.Format;
+import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.Palette;
+import com.rinke.solutions.pinball.model.Project;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import com.thoughtworks.xstream.io.binary.BinaryStreamDriver;
@@ -80,11 +82,22 @@ public class Editor implements Runnable {
 		driver = new BinaryStreamDriver();
 //		HierarchicalStreamWriter writer = driver.createWriter(stream);
 		bstream = new XStream(driver);
+        bstream.alias("rgb", RGB.class);
+        bstream.alias("palette", Palette.class);
+        bstream.alias("project", Project.class);
+        bstream.alias("palMapping", PalMapping.class);
+        bstream.setMode(XStream.NO_REFERENCES);
         
         xstream.alias("rgb", RGB.class);
         xstream.alias("palette", Palette.class);
+        xstream.alias("project", Project.class);
+        xstream.alias("palMapping", PalMapping.class);
+        xstream.setMode(XStream.NO_REFERENCES);
         jstream.alias("rgb", RGB.class);
         jstream.alias("palette", Palette.class);
+        jstream.alias("project", Project.class);
+        jstream.alias("palMapping", PalMapping.class);
+        jstream.setMode(XStream.NO_REFERENCES);
     }
     
     public void storeObject(Object obj, Format format, String filename) throws IOException {
@@ -111,6 +124,29 @@ public class Editor implements Runnable {
     public Object loadObject(Format format, String filename) throws IOException {
     	return null;
     }
+    
+    public void testStore() {
+    	java.util.List<Palette> tpalettes = new ArrayList<Palette>();
+    	tpalettes.add( new Palette(dmd.rgb, 0, "default"));
+    	tpalettes.add( new Palette(dmd.rgb, 1, "logo"));
+    	
+		java.util.List<PalMapping> palMappings = new ArrayList<PalMapping>();
+		
+		byte[] digest = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
+		byte[] digest2 = {0,-1,-2,-3,-4,-5,-6,-7,-8,-9,-10,-11,-12,-13,-14,-15};
+		
+		palMappings.add( new PalMapping(digest , 0,	1000, 30));
+		palMappings.add( new PalMapping(digest2 , 1,	3000, 90));
+		
+		Project project = new Project("tftc-dump.txt.gz", tpalettes, palMappings);
+    	try {
+			storeObject(project, Format.XML, "tftc.xml");
+			storeObject(project, Format.JSON, "tftc.json");
+			storeObject(project, Format.BIN, "tftc.bin");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+    }
 
     /**
      * Launch the application.
@@ -122,7 +158,8 @@ public class Editor implements Runnable {
         // Display display = Display.getDefault();
         Editor editor = new Editor(args);
         try {
-            editor.run();
+        	editor.testStore();
+            //editor.run();
         } catch (Exception e) {
             e.printStackTrace();
         }
