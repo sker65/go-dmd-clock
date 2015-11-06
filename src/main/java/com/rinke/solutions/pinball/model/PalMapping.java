@@ -1,8 +1,10 @@
 package com.rinke.solutions.pinball.model;
 
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.util.Arrays;
 
-public class PalMapping {
+public class PalMapping implements Model {
     public byte digest[];
     public int palIndex;
     public long durationInMillis;
@@ -26,7 +28,14 @@ public class PalMapping {
 				+ palIndex + ", durationInMillis=" + durationInMillis
 				+ ", durationInFrames=" + durationInFrames + "]";
 	}
-    
+   
+	public void writeTo(DataOutputStream os) throws IOException {
+		os.write(digest);
+		os.writeShort(palIndex);
+		os.writeLong(durationInMillis);
+		os.writeShort(durationInFrames);
+	}
+
     
     
 }

@@ -1,10 +1,12 @@
 package com.rinke.solutions.pinball.model;
 
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.util.Arrays;
 
 import org.eclipse.swt.graphics.RGB;
 
-public class Palette {
+public class Palette implements Model {
     public String name;
     public int numberOfColors;
     public int index;
@@ -23,6 +25,17 @@ public class Palette {
 		return "Palette [name=" + name + ", numberOfColors=" + numberOfColors
 				+ ", index=" + index + ", colors=" + Arrays.toString(colors)
 				+ "]";
+	}
+
+	public void writeTo(DataOutputStream os) throws IOException {
+		os.writeUTF(name);
+		os.writeShort(numberOfColors);
+		os.writeShort(index);
+		for (int i = 0; i < colors.length; i++) {
+			os.writeByte(colors[i].red);
+			os.writeByte(colors[i].green);
+			os.writeByte(colors[i].blue);
+		}
 	}
     
     
