@@ -262,12 +262,14 @@ public class Editor implements Runnable {
     final Button colBtn[] = new Button[16];
     Button useHash1;
     Button useHash2;
-    java.util.List<byte[]> hashes;
+    java.util.List<byte[]> hashes = new ArrayList<byte[]>();
 
     private void saveHashes(java.util.List<byte[]> hashes) {
-        this.hashes.clear();
-        for( byte[] h : hashes) {
-            this.hashes.add( Arrays.copyOf(h, h.length));
+        if( hashes != null ) {
+            this.hashes.clear();
+            for( byte[] h : hashes) {
+                this.hashes.add( Arrays.copyOf(h, h.length));
+            }
         }
     }
 
@@ -458,13 +460,13 @@ public class Editor implements Runnable {
         btnDelete.addListener(SWT.Selection, e -> deleteFromList(sourceList.getSelection(), sourceAnis));
 
         Button btnLoad = new Button(grpActions, SWT.NONE);
-        btnLoad.addListener(SWT.Selection, e -> load(false));
+        btnLoad.addListener(SWT.Selection, e -> loadAni(false));
 
         btnLoad.setText("Load Ani");
         btnLoad.setBounds(9, 26, 91, 29);
 
         Button btnAdd = new Button(grpActions, SWT.NONE);
-        btnAdd.addListener(SWT.Selection, e -> load(true));
+        btnAdd.addListener(SWT.Selection, e -> loadAni(true));
         btnAdd.setText("Add Ani");
         btnAdd.setBounds(106, 26, 91, 29);
 
@@ -957,6 +959,7 @@ public class Editor implements Runnable {
         AnimationCompiler.writeToCompiledFile(sourceAnis, filename);
     }
 
+    // TODO switch also palMapping / palette
     private void bindToWidget() {
         if (selectedAnimation != null) {
             comboFsk.select(comboFsk.indexOf(String.valueOf(selectedAnimation.getFsk())));
@@ -994,7 +997,7 @@ public class Editor implements Runnable {
     }
 
 
-    protected void load(boolean append) {
+    protected void loadAni(boolean append) {
         FileDialog fileChooser = new FileDialog(shell, SWT.OPEN);
         if (lastPath != null)
             fileChooser.setFilterPath(lastPath);
@@ -1013,6 +1016,8 @@ public class Editor implements Runnable {
         } else if (filename.endsWith(".properties")) {
             loadedList.addAll(AnimationFactory.createAnimationsFromProperties(filename));
         }
+        project.inputFile = new File(filename).getName();
+        
         // animationHandler.setAnimations(sourceAnis);
         if (!append) {
             sourceAnis.clear();
