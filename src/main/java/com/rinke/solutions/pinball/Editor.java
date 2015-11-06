@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -20,7 +19,6 @@ import java.util.regex.Pattern;
 
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ComboViewer;
-import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.StructuredSelection;
@@ -44,6 +42,8 @@ import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.List;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Scale;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Spinner;
@@ -85,7 +85,6 @@ public class Editor implements Runnable {
         jstream = new XStream(new JettisonMappedXmlDriver());
         
 		driver = new BinaryStreamDriver();
-//		HierarchicalStreamWriter writer = driver.createWriter(stream);
 		bstream = new XStream(driver);
         bstream.alias("rgb", RGB.class);
         bstream.alias("palette", Palette.class);
@@ -183,8 +182,8 @@ public class Editor implements Runnable {
         // Display display = Display.getDefault();
         Editor editor = new Editor(args);
         try {
-        	editor.testStore();
-            //editor.run();
+//        	editor.testStore();
+            editor.run();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -337,7 +336,7 @@ public class Editor implements Runnable {
         lblTc.setBounds(749, 20, 120, 17);
         lblTc.setText("TimeCode");
 
-        // shell.setMenuBar(createMenu());
+        shell.setMenuBar(createMenu());
 
         // Group grpSource = new Group(shell, SWT.NONE);
         // grpSource.setText("Source");
@@ -634,6 +633,43 @@ public class Editor implements Runnable {
 
     }
     
+    private Menu createMenu() {
+        Menu menuBar = new Menu(shell, SWT.BAR);
+        MenuItem fileMenuHeader = new MenuItem(menuBar, SWT.CASCADE);
+        fileMenuHeader.setText("&File");
+
+        Menu fileMenu = new Menu(shell, SWT.DROP_DOWN);
+        fileMenuHeader.setMenu(fileMenu);
+
+        MenuItem fileLoadItem = new MenuItem(fileMenu, SWT.PUSH);
+        fileLoadItem.setText("&Load Project");
+
+        MenuItem fileSaveItem = new MenuItem(fileMenu, SWT.PUSH);
+        fileSaveItem.setText("&Save Project");
+        
+        new MenuItem(fileMenu, SWT.SEPARATOR);
+
+        MenuItem fileExitItem = new MenuItem(fileMenu, SWT.PUSH);
+        fileExitItem.setText("E&xit");
+        fileExitItem.addListener(SWT.Selection, e -> {
+            // TODO check dirty before save
+            
+            shell.close();
+            display.dispose();
+        });
+
+        MenuItem helpMenuHeader = new MenuItem(menuBar, SWT.CASCADE);
+        helpMenuHeader.setText("&Help");
+
+        Menu helpMenu = new Menu(shell, SWT.DROP_DOWN);
+        helpMenuHeader.setMenu(helpMenu);
+
+        MenuItem helpGetHelpItem = new MenuItem(helpMenu, SWT.PUSH);
+        helpGetHelpItem.setText("&Get Help");
+
+        return menuBar;
+    }
+
     private void setColorBtn() {
         for (int i = 0; i < colBtn.length; i++) {
             colBtn[i].setImage(getSquareImage(display, new Color(display,dmd.rgb[i])));
