@@ -251,8 +251,8 @@ public class Editor implements Runnable {
     int x1,y1,x2,y2;
     
     Project project = new Project();
-    java.util.List<Palette> palettes = project.palettes;
-    java.util.List<PalMapping> palMappings = project.palMappings;
+    final java.util.List<Palette> palettes = project.palettes;
+    final java.util.List<PalMapping> palMappings = project.palMappings;
     
     PalMapping palMapping;
 
@@ -410,6 +410,8 @@ public class Editor implements Runnable {
                 pullFromWidget(selectedAnimation);
                 sourceList.setItem(selectedAnimationIndex, selectedAnimation.getDesc());
             }
+            // TODO update palette idx on palMapping
+            
             selectedAnimationIndex = sourceList.getSelectionIndex();
             selectedAnimation = sourceAnis.get(selectedAnimationIndex);
             playingAnis.clear();
@@ -417,6 +419,16 @@ public class Editor implements Runnable {
             animationHandler.setAnimations(playingAnis);
             btnDelete.setEnabled(sourceList.getSelectionCount() > 0);
             bindToWidget();
+            
+            // add handling of project / palMapping
+            if( selectedAnimationIndex>0 && selectedAnimationIndex <= project.palMappings.size() ) {
+                // pull palette
+                int palIdx = project.palMappings.get(selectedAnimationIndex-1).palIndex;
+                paletteViewer.setSelection(new StructuredSelection(palettes.get(palIdx)));
+            }
+            if( selectedAnimationIndex == 0 ) {
+                paletteViewer.setSelection(new StructuredSelection(palettes.get(0)));
+            }
         });
 
         previewCanvas = new Canvas(shell, SWT.BORDER|SWT.DOUBLE_BUFFERED);
@@ -797,6 +809,11 @@ public class Editor implements Runnable {
                 project = projectToLoad;
             }
         }
+        
+        // TODO recreate animation list on load of project
+        // which means reload initial source file and recreate
+        // scenes and populate source list
+        
         return null;
     }
 
