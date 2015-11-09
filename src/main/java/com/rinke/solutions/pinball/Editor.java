@@ -205,8 +205,8 @@ public class Editor implements Runnable {
         // Display display = Display.getDefault();
         Editor editor = new Editor(args);
         try {
-        	editor.testStore();
-//            editor.run();
+//        	editor.testStore();
+            editor.run();
         } catch (Exception e) {
             e.printStackTrace();
         }
