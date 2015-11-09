@@ -167,7 +167,7 @@ public class Editor implements Runnable {
     
     public void testStore() {
     	java.util.List<Palette> tpalettes = new ArrayList<Palette>();
-    	tpalettes.add( new Palette(dmd.rgb, 0, "default"));
+    	tpalettes.add( new Palette(dmd.rgb, 0, "default", true));
     	tpalettes.add( new Palette(dmd.rgb, 1, "logo"));
     	
 		java.util.List<PalMapping> palMappings = new ArrayList<PalMapping>();
@@ -205,8 +205,8 @@ public class Editor implements Runnable {
         // Display display = Display.getDefault();
         Editor editor = new Editor(args);
         try {
-//        	editor.testStore();
-            editor.run();
+        	editor.testStore();
+//            editor.run();
         } catch (Exception e) {
             e.printStackTrace();
         }
