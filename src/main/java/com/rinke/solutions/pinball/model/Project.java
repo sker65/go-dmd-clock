@@ -10,6 +10,7 @@ public class Project implements Model {
 	public String inputFile;
 	public List<Palette> palettes;
 	public List<PalMapping> palMappings;
+	public List<Scene> scenes;
 	public Project(int version, String inputFile, List<Palette> palettes,
 			List<PalMapping> palMappings) {
 		super();
@@ -23,6 +24,7 @@ public class Project implements Model {
         version = 1;
         palettes = new ArrayList<Palette>();
         palMappings = new ArrayList<>();
+        scenes = new ArrayList<>();
         inputFile="";
     }
 	

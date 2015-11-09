@@ -59,6 +59,7 @@ import com.rinke.solutions.pinball.model.Model;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.Project;
+import com.rinke.solutions.pinball.model.Scene;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
@@ -272,6 +273,8 @@ public class Editor implements Runnable {
             }
         }
     }
+    
+    String frameTextPrefix = "";
 
     /**
      * @wbp.parser.entryPoint
@@ -281,7 +284,7 @@ public class Editor implements Runnable {
         InputStream stream;
         String version = "";
         try{ 
-            stream = this.getClass().getClassLoader().getResourceAsStream("version");
+            stream = this.getClass().getClassLoader().getResourceAsStream("/version");
             BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
             version = reader.readLine();
             reader.close();
@@ -295,7 +298,8 @@ public class Editor implements Runnable {
         GlobalExceptionHandler.getInstance().setShell(shell);
         
         shell.setSize(1260, 600);
-        shell.setText("Animation Editor - "+version);
+        frameTextPrefix = "Animation Editor - "+version;
+        shell.setText(frameTextPrefix + " - no project");
         shell.setLayout(new GridLayout(2, false));
         
         palettes.add(new Palette(dmd.rgb, 0, "default"));
@@ -460,13 +464,13 @@ public class Editor implements Runnable {
         btnDelete.addListener(SWT.Selection, e -> deleteFromList(sourceList.getSelection(), sourceAnis));
 
         Button btnLoad = new Button(grpActions, SWT.NONE);
-        btnLoad.addListener(SWT.Selection, e -> loadAni(false));
+        btnLoad.addListener(SWT.Selection, e -> loadAniWithFC(false));
 
         btnLoad.setText("Load Ani");
         btnLoad.setBounds(9, 26, 91, 29);
 
         Button btnAdd = new Button(grpActions, SWT.NONE);
-        btnAdd.addListener(SWT.Selection, e -> loadAni(true));
+        btnAdd.addListener(SWT.Selection, e -> loadAniWithFC(true));
         btnAdd.setText("Add Ani");
         btnAdd.setBounds(106, 26, 91, 29);
 
@@ -793,7 +797,7 @@ public class Editor implements Runnable {
             Project projectToLoad  = (Project) loadObject(filename);
 
             if( projectToLoad != null ) {
-                // TODO update frame title
+                shell.setText(frameTextPrefix+" - "+project.inputFile);
                 project = projectToLoad;
             }
         }
@@ -912,6 +916,10 @@ public class Editor implements Runnable {
             palMapping.palIndex = palettes.get(activePalette).index;
             palMappings.add(palMapping);
         }
+        
+        if( project.scenes != null ) {
+        	project.scenes.add( new Scene(ani.getDesc(), start,end) );
+        }
     }
 
     private java.util.List<String> buildTransitions(String basePath, Combo transitions) {
@@ -996,8 +1004,7 @@ public class Editor implements Runnable {
         }
     }
 
-
-    protected void loadAni(boolean append) {
+    protected void loadAniWithFC(boolean append) {
         FileDialog fileChooser = new FileDialog(shell, SWT.OPEN);
         if (lastPath != null)
             fileChooser.setFilterPath(lastPath);
@@ -1008,6 +1015,10 @@ public class Editor implements Runnable {
         if (filename == null)
             return;
 
+        loadAni(filename, append);
+    }
+    
+    protected void loadAni(String filename, boolean append) {
         java.util.List<Animation> loadedList = new ArrayList<>();
         if (filename.endsWith(".ani")) {
             loadedList.addAll(AnimationCompiler.readFromCompiledFile(filename));
@@ -1016,7 +1027,8 @@ public class Editor implements Runnable {
         } else if (filename.endsWith(".properties")) {
             loadedList.addAll(AnimationFactory.createAnimationsFromProperties(filename));
         }
-        project.inputFile = new File(filename).getName();
+        
+        project.inputFile = filename;
         
         // animationHandler.setAnimations(sourceAnis);
         if (!append) {
