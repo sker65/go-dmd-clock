@@ -35,7 +35,6 @@ public class Project implements Model {
 	
 	public void writeTo(DataOutputStream os) throws IOException {
 		os.writeByte(version);
-		os.writeUTF(inputFile);
 		os.writeShort(palettes.size());
 		for(Palette p: palettes) {
 			p.writeTo(os);
