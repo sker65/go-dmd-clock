@@ -13,6 +13,10 @@ public class Palette implements Model {
     public RGB[] colors;
     public boolean isDefault;
 
+    public Palette(RGB[] colors, int index, String name) {
+    	this(colors, index, name, false);
+    }
+    
     public Palette(RGB[] colors, int index, String name, boolean isDefault) {
         super();
         this.numberOfColors = colors.length;
