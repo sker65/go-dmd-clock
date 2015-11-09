@@ -11,6 +11,7 @@ public class Palette implements Model {
     public int numberOfColors;
     public int index;
     public RGB[] colors;
+    public boolean isDefault;
 
     public Palette(RGB[] colors, int index, String name) {
         super();
@@ -28,9 +29,9 @@ public class Palette implements Model {
 	}
 
 	public void writeTo(DataOutputStream os) throws IOException {
-		os.writeUTF(name);
-		os.writeShort(numberOfColors);
 		os.writeShort(index);
+		os.writeShort(numberOfColors);
+		os.writeBoolean(isDefault);
 		for (int i = 0; i < colors.length; i++) {
 			os.writeByte(colors[i].red);
 			os.writeByte(colors[i].green);
