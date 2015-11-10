@@ -411,7 +411,7 @@ public class Editor implements Runnable {
 
         sourceList.addListener(SWT.Selection, e -> {
             if( selectedAnimation != null ) {
-                pullFromWidget(selectedAnimation);
+                pullFromWidget(selectedAnimation, selectedAnimationIndex);
                 sourceList.setItem(selectedAnimationIndex, selectedAnimation.getDesc());
             }
             selectedAnimationIndex = sourceList.getSelectionIndex();
@@ -420,7 +420,7 @@ public class Editor implements Runnable {
             playingAnis.add(selectedAnimation);
             animationHandler.setAnimations(playingAnis);
             btnDelete.setEnabled(sourceList.getSelectionCount() > 0);
-            bindToWidget();
+            bindToWidget(selectedAnimationIndex);
         });
 
         previewCanvas = new Canvas(shell, SWT.BORDER|SWT.DOUBLE_BUFFERED);
@@ -674,11 +674,6 @@ public class Editor implements Runnable {
 
     }
 
-    private byte[] buildDigest() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
     private void createColorButtons(Group grpDetails_1) {
         for(int i = 0; i < colBtn.length; i++) {
             colBtn[i] = new Button(grpDetails_1, SWT.PUSH);
@@ -919,7 +914,7 @@ public class Editor implements Runnable {
         }
         
         if( project.scenes != null ) {
-        	project.scenes.add( new Scene(ani.getDesc(), start,end) );
+        	project.scenes.add( new Scene(ani.getDesc(), start,end, activePalette) );
         }
     }
 
@@ -968,8 +963,8 @@ public class Editor implements Runnable {
         AnimationCompiler.writeToCompiledFile(sourceAnis, filename);
     }
 
-    // TODO switch also palMapping / palette
-    private void bindToWidget() {
+    //  switch also palMapping / palette
+    private void bindToWidget(int index) {
         if (selectedAnimation != null) {
             comboFsk.select(comboFsk.indexOf(String.valueOf(selectedAnimation.getFsk())));
             spinnerCycle.setSelection(selectedAnimation.getCycles());
@@ -981,15 +976,18 @@ public class Editor implements Runnable {
             } else {
                 comboTransition.select(transitions.indexOf(selectedAnimation.getTransitionName()));
             }
+            Scene scene = project.scenes.get(index);
+            paletteViewer.setSelection(new StructuredSelection(palettes.get(scene.palIndex)));
         }
     }
     
-    private void pullFromWidget(Animation ani) {
+    private void pullFromWidget(Animation ani, int index) {
         ani.setFsk(Integer.valueOf(fsks[comboFsk.getSelectionIndex()]));
         ani.setCycles(spinnerCycle.getSelection());
         ani.setHoldCycles(spinnerHold.getSelection());
         ani.setDesc(nameText.getText());
         pullTransition(ani);
+        project.scenes.get(index).palIndex = paletteCombo.getSelectionIndex();
     }
 
     private void pullTransition(Animation ani) {
