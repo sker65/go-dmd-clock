@@ -904,8 +904,9 @@ public class Editor implements Runnable {
     }
 
     protected void cutOutNewClip(int start, int end) {
-        // only works if current is MAME
-        Animation ani = buildMameAnimation(selectedAnimation.getBasePath() + selectedAnimation.getName());
+        // only works if current is MAME or PCAP
+        Animation ani = buildAnimationFromFile(selectedAnimation.getBasePath() + selectedAnimation.getName(), 
+        		selectedAnimation.getType());
         ani.start = start;
         ani.end = end;
         ani.setDesc(selectedAnimation.getDesc() + (cutNameNumber++));
@@ -1008,7 +1009,7 @@ public class Editor implements Runnable {
         FileDialog fileChooser = new FileDialog(shell, SWT.OPEN);
         if (lastPath != null)
             fileChooser.setFilterPath(lastPath);
-        fileChooser.setFilterExtensions(new String[] { "*.properties;*.ani;*.txt.gz" });
+        fileChooser.setFilterExtensions(new String[] { "*.properties;*.ani;*.txt.gz;*.pcap;*.pcap.gz" });
         fileChooser.setFilterNames(new String[] { "Animationen", "properties, txt.gz, ani" });
         String filename = fileChooser.open();
         lastPath = fileChooser.getFilterPath();
@@ -1023,9 +1024,11 @@ public class Editor implements Runnable {
         if (filename.endsWith(".ani")) {
             loadedList.addAll(AnimationCompiler.readFromCompiledFile(filename));
         } else if (filename.endsWith(".txt.gz")) {
-            loadedList.add(buildMameAnimation(filename));
+            loadedList.add(buildAnimationFromFile(filename, AnimationType.MAME));
         } else if (filename.endsWith(".properties")) {
             loadedList.addAll(AnimationFactory.createAnimationsFromProperties(filename));
+        } else if (filename.endsWith(".pcap") || filename.endsWith(".pcap.gz") ) {
+        	loadedList.add(buildAnimationFromFile(filename, AnimationType.PCAP));
         }
         
         project.inputFile = filename;
@@ -1041,10 +1044,10 @@ public class Editor implements Runnable {
         populateList(sourceList, sourceAnis);
     }
 
-    private Animation buildMameAnimation(String filename) {
+    private Animation buildAnimationFromFile(String filename, AnimationType type) {
         File file = new File(filename);
         String base = file.getName();
-        Animation ani = new Animation(AnimationType.MAME, base, 0, 0, 1, 1, 0);
+        Animation ani = new Animation(type, base, 0, 0, 1, 1, 0);
         ani.setBasePath(file.getParent() + "/");
         ani.setDesc(base.substring(0, base.indexOf('.')));
         return ani;

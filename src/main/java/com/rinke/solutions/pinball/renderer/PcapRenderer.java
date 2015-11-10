@@ -44,12 +44,23 @@ public class PcapRenderer extends Renderer {
     		Header header = pcap.readHeader();
     		System.out.println(header);
     		Paket p;
+    		long lastTimestamp = 0;
     		while( ( p = pcap.readPaket()) != null ) {
     			byte[] data = new byte[p.incLen];
     			stream.read(data);
-    			System.out.println(p);
+    			int offset = findPinDmdMagicOffset(data);
+    			Frame res = new Frame(dmd.getWidth(), dmd.getHeight(), 
+    					Frame.transform(data, offset+4, dmd.getFrameSizeInByte()),
+    					Frame.transform(data, offset+4+512, dmd.getFrameSizeInByte()));
+    			res.delay = lastTimestamp == 0 ? 0 : (int) (p.getTimestampInMillis() - lastTimestamp);
+    			if( res.delay > 1 ) {
+    				System.out.println("frame"+frames.size()+", delay: "+res.delay + " "+p);
+    				frames.add(res);
+    			}
+				lastTimestamp = p.getTimestampInMillis();
+    				//frameNo++;
     		}
-    		
+    		this.maxFrame = frames.size();
     		
     	} catch(IOException e) {
 			LOG.error("error on reading from stream for {}", filename, e);
@@ -63,6 +74,19 @@ public class PcapRenderer extends Renderer {
     		}
     	}
     	
+	}
+
+	private int findPinDmdMagicOffset(byte[] data) {
+		for (int i = 0; i < data.length; i++) {
+			if( data[i] == (byte)0x81 &&
+					data[i+1] == (byte)0xC3 &&
+					data[i+2] == (byte)0xE7 &&
+					data[i+3] == 0x00
+					) {
+				return i;
+			}	
+		}
+		return -1;
 	}
 
 	@Override

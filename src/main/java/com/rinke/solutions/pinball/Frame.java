@@ -60,39 +60,22 @@ public class Frame {
         return res;
     }
 
-    private byte[] transform(byte[] plane) {
-        byte[] res = new byte[plane.length];
-        for(int i = 0; i < plane.length; i++) {
-            byte x = plane[i];
+    public static byte[] transform(byte[] plane) {
+    	return transform(plane, 0, plane.length);
+    }
+
+	public static byte[] transform(byte[] data, int offset, int size) {
+        byte[] res = new byte[size];
+        for(int i = offset; i < size+offset; i++) {
+            byte x = data[i];
             byte b = 0;
             for( int bit=0; bit<8; bit++){
                 b<<=1;
                 b|=( x &1);
                 x>>=1;
             }
-            res[i]=b;
-            /*byte v = 0;
-            v |= (plane[i] & 1<<0) != 0 ? 1 << 7 : 0;
-            v |= (plane[i] & 1<<1) != 0 ? 1 << 6 : 0;
-            v |= (plane[i] & 1<<2) != 0 ? 1 << 5 : 0;
-            v |= (plane[i] & 1<<3) != 0 ? 1 << 4 : 0;
-            v |= (plane[i] & 1<<4) != 0 ? 1 << 3 : 0;
-            v |= (plane[i] & 1<<5) != 0 ? 1 << 2 : 0;
-            v |= (plane[i] & 1<<6) != 0 ? 1 << 1 : 0;
-            v |= (plane[i] & 1<<7) != 0 ? 1 << 0 : 0;
-            res[i] = v;*/
+            res[i-offset]=b;
         }
         return res;
-    }
-    private byte[] transform1(byte[] plane) {
-        byte[] res = new byte[plane.length];
-        int bytesPerRow = plane.length / height;
-        for (int row = 0; row < height; row++) {
-            int offset = row*bytesPerRow;
-            for( int col = 0; col<bytesPerRow; col++) {
-                res[offset+col]=(byte) Integer.reverse(plane[offset+bytesPerRow-1-col]);
-            }
-        }
-        return res;
-    }
+	}
 }
