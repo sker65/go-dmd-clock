@@ -27,7 +27,6 @@ public class VPinMameRenderer extends Renderer {
 
 	@Override
 	public Frame convert(String filename, DMD dmd, int frameNo) {
-
 		if (frames.isEmpty())
 			readImage(filename, dmd);
 		return frames.get(frameNo);
