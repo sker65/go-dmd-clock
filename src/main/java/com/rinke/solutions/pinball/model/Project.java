@@ -41,9 +41,10 @@ public class Project implements Model {
 		for(Palette p: palettes) {
 			p.writeTo(os);
 		}
-		os.writeShort(palMappings.size());
+		os.writeShort(palMappings.size()-1); // exclude default
 		for(PalMapping p : palMappings ) {
-			p.writeTo(os);
+			if( p.palIndex != -1 )
+				p.writeTo(os);
 		}
 	}
 }

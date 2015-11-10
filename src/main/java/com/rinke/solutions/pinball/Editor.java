@@ -98,17 +98,20 @@ public class Editor implements Runnable {
         bstream.alias("palette", Palette.class);
         bstream.alias("project", Project.class);
         bstream.alias("palMapping", PalMapping.class);
+        bstream.alias("scene", Scene.class);
         bstream.setMode(XStream.NO_REFERENCES);
         
         xstream.alias("rgb", RGB.class);
         xstream.alias("palette", Palette.class);
         xstream.alias("project", Project.class);
         xstream.alias("palMapping", PalMapping.class);
+        xstream.alias("scene", Scene.class);
         xstream.setMode(XStream.NO_REFERENCES);
         jstream.alias("rgb", RGB.class);
         jstream.alias("palette", Palette.class);
         jstream.alias("project", Project.class);
         jstream.alias("palMapping", PalMapping.class);
+        jstream.alias("scene", Scene.class);
         jstream.setMode(XStream.NO_REFERENCES);
     }
     
@@ -353,12 +356,16 @@ public class Editor implements Runnable {
         btnMarkStart.addListener(SWT.Selection, e -> {
             markStart = selectedAnimation.actFrame;
             // store start frame for pal mapping
-            palMapping = new PalMapping();
+            palMapping = new PalMapping(-1);
             if(useHash1.getSelection()) {
                 palMapping.digest = hashes.get(0);
-            }
-            if(useHash2.getSelection()) {
+                palMapping.hashIndex = 0;
+            } else if(useHash2.getSelection()) {
                 palMapping.digest = hashes.get(1);
+                palMapping.hashIndex = 0;
+            } else {
+            	palMapping.digest = hashes.get(0);
+            	palMapping.hashIndex = 0;
             }
             palMapping.palIndex = palettes.get(activePalette).index;
             startTimeCode = lastTimeCode;
@@ -794,6 +801,15 @@ public class Editor implements Runnable {
             if( projectToLoad != null ) {
                 shell.setText(frameTextPrefix+" - "+project.inputFile);
                 project = projectToLoad;
+                loadAni(project.inputFile, false, false);
+                
+                for( int i = 1; i < project.scenes.size(); i++) {
+                	cutOutNewAnimation(project.scenes.get(i).start, project.scenes.get(i).end, sourceAnis.get(0));
+                	System.out.println("cutting out "+project.scenes.get(i));
+                }
+                palettes = project.palettes;
+                palMappings = project.palMappings;
+                paletteViewer.setInput(projectToLoad.palettes);
             }
         }
         return null;
@@ -897,16 +913,22 @@ public class Editor implements Runnable {
         populateList(sourceList, anis);
         // remove pal mapping
     }
-
-    protected void cutOutNewClip(int start, int end) {
+    
+    protected Animation cutOutNewAnimation(int start, int end, Animation input) {
         // only works if current is MAME or PCAP
-        Animation ani = buildAnimationFromFile(selectedAnimation.getBasePath() + selectedAnimation.getName(), 
-        		selectedAnimation.getType());
+        Animation ani = buildAnimationFromFile(input.getBasePath() + input.getName(), 
+        		input.getType());
         ani.start = start;
         ani.end = end;
-        ani.setDesc(selectedAnimation.getDesc() + (cutNameNumber++));
+        ani.setDesc(input.getDesc() + (cutNameNumber++));
         sourceAnis.add(ani);
         populateList(sourceList, sourceAnis);
+        return ani;
+    }
+
+    protected void cutOutNewClip(int start, int end) {
+    	
+    	Animation ani = cutOutNewAnimation(start, end, selectedAnimation);
         
         if( palMapping != null ) {
             palMapping.palIndex = palettes.get(activePalette).index;
@@ -978,6 +1000,20 @@ public class Editor implements Runnable {
             }
             Scene scene = project.scenes.get(index);
             paletteViewer.setSelection(new StructuredSelection(palettes.get(scene.palIndex)));
+            switch( project.palMappings.get(index).hashIndex ) {
+            case 0:
+            	useHash1.setSelection(true);
+            	useHash2.setSelection(false);
+            	break;
+            case 1:
+            	useHash1.setSelection(false);
+            	useHash2.setSelection(true);
+            	break;
+            default:
+            	useHash1.setSelection(false);
+            	useHash2.setSelection(false);
+            	break;
+            }
         }
     }
     
@@ -988,6 +1024,7 @@ public class Editor implements Runnable {
         ani.setDesc(nameText.getText());
         pullTransition(ani);
         project.scenes.get(index).palIndex = paletteCombo.getSelectionIndex();
+        project.palMappings.get(index).hashIndex = useHash1.getSelection()?0:(useHash2.getSelection()?1:2);
     }
 
     private void pullTransition(Animation ani) {
@@ -1014,10 +1051,10 @@ public class Editor implements Runnable {
         if (filename == null)
             return;
 
-        loadAni(filename, append);
+        loadAni(filename, append, true);
     }
     
-    protected void loadAni(String filename, boolean append) {
+    protected void loadAni(String filename, boolean append, boolean populateProject) {
         java.util.List<Animation> loadedList = new ArrayList<>();
         if (filename.endsWith(".ani")) {
             loadedList.addAll(AnimationCompiler.readFromCompiledFile(filename));
@@ -1029,7 +1066,14 @@ public class Editor implements Runnable {
         	loadedList.add(buildAnimationFromFile(filename, AnimationType.PCAP));
         }
         
-        project.inputFile = filename;
+        if( populateProject ) {
+            project.inputFile = filename;
+            //DMD dmd = new DMD(128, 32);
+            for (Animation ani : loadedList) {
+    			project.scenes.add(new Scene(ani.getDesc(),0,/*ani.getFrameCount(dmd)*/100000,0));
+    			project.palMappings.add(new PalMapping(-1));
+    		}
+        }
         
         // animationHandler.setAnimations(sourceAnis);
         if (!append) {
