@@ -133,7 +133,8 @@ public class Editor implements Runnable {
                 DataOutputStream dos = new DataOutputStream(new FileOutputStream(filename));
                 obj.writeTo(dos);
                 dos.close();
-
+                break;
+                
             default:
                 throw new RuntimeException("unsupported filetype / extension " +filename);
             }
