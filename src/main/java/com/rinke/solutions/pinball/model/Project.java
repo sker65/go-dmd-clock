@@ -10,6 +10,7 @@ public class Project implements Model {
 	public String inputFile;
 	public List<Palette> palettes;
 	public List<PalMapping> palMappings;
+	public List<Scene> scenes;
 	public Project(int version, String inputFile, List<Palette> palettes,
 			List<PalMapping> palMappings) {
 		super();
@@ -23,6 +24,7 @@ public class Project implements Model {
         version = 1;
         palettes = new ArrayList<Palette>();
         palMappings = new ArrayList<>();
+        scenes = new ArrayList<>();
         inputFile="";
     }
 	
@@ -35,14 +37,14 @@ public class Project implements Model {
 	
 	public void writeTo(DataOutputStream os) throws IOException {
 		os.writeByte(version);
-		os.writeUTF(inputFile);
 		os.writeShort(palettes.size());
 		for(Palette p: palettes) {
 			p.writeTo(os);
 		}
-		os.writeShort(palMappings.size());
+		os.writeShort(palMappings.size()-1); // exclude default
 		for(PalMapping p : palMappings ) {
-			p.writeTo(os);
+			if( p.palIndex != -1 )
+				p.writeTo(os);
 		}
 	}
 }

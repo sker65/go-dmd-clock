@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import com.rinke.solutions.pinball.renderer.AnimatedGIFRenderer;
 import com.rinke.solutions.pinball.renderer.DMDFRenderer;
+import com.rinke.solutions.pinball.renderer.PcapRenderer;
 import com.rinke.solutions.pinball.renderer.PngRenderer;
 import com.rinke.solutions.pinball.renderer.Renderer;
 import com.rinke.solutions.pinball.renderer.VPinMameRenderer;
@@ -251,6 +252,9 @@ public class Animation {
 			break;
 		case MAME:
 			renderer = new VPinMameRenderer();
+			break;
+		case PCAP:
+			renderer = new PcapRenderer();
 			break;
 		default:
 			break;

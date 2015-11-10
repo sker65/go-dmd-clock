@@ -59,6 +59,7 @@ import com.rinke.solutions.pinball.model.Model;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.Project;
+import com.rinke.solutions.pinball.model.Scene;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
@@ -97,17 +98,20 @@ public class Editor implements Runnable {
         bstream.alias("palette", Palette.class);
         bstream.alias("project", Project.class);
         bstream.alias("palMapping", PalMapping.class);
+        bstream.alias("scene", Scene.class);
         bstream.setMode(XStream.NO_REFERENCES);
         
         xstream.alias("rgb", RGB.class);
         xstream.alias("palette", Palette.class);
         xstream.alias("project", Project.class);
         xstream.alias("palMapping", PalMapping.class);
+        xstream.alias("scene", Scene.class);
         xstream.setMode(XStream.NO_REFERENCES);
         jstream.alias("rgb", RGB.class);
         jstream.alias("palette", Palette.class);
         jstream.alias("project", Project.class);
         jstream.alias("palMapping", PalMapping.class);
+        jstream.alias("scene", Scene.class);
         jstream.setMode(XStream.NO_REFERENCES);
     }
     
@@ -129,7 +133,8 @@ public class Editor implements Runnable {
                 DataOutputStream dos = new DataOutputStream(new FileOutputStream(filename));
                 obj.writeTo(dos);
                 dos.close();
-
+                break;
+                
             default:
                 throw new RuntimeException("unsupported filetype / extension " +filename);
             }
@@ -167,7 +172,7 @@ public class Editor implements Runnable {
     
     public void testStore() {
     	java.util.List<Palette> tpalettes = new ArrayList<Palette>();
-    	tpalettes.add( new Palette(dmd.rgb, 0, "default"));
+    	tpalettes.add( new Palette(dmd.rgb, 0, "default", true));
     	tpalettes.add( new Palette(dmd.rgb, 1, "logo"));
     	
 		java.util.List<PalMapping> palMappings = new ArrayList<PalMapping>();
@@ -251,8 +256,8 @@ public class Editor implements Runnable {
     int x1,y1,x2,y2;
     
     Project project = new Project();
-    final java.util.List<Palette> palettes = project.palettes;
-    final java.util.List<PalMapping> palMappings = project.palMappings;
+    java.util.List<Palette> palettes = project.palettes;
+    java.util.List<PalMapping> palMappings = project.palMappings;
     
     PalMapping palMapping;
 
@@ -272,6 +277,8 @@ public class Editor implements Runnable {
             }
         }
     }
+    
+    String frameTextPrefix = "";
 
     /**
      * @wbp.parser.entryPoint
@@ -281,7 +288,7 @@ public class Editor implements Runnable {
         InputStream stream;
         String version = "";
         try{ 
-            stream = this.getClass().getClassLoader().getResourceAsStream("version");
+            stream = this.getClass().getClassLoader().getResourceAsStream("/version");
             BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
             version = reader.readLine();
             reader.close();
@@ -295,7 +302,8 @@ public class Editor implements Runnable {
         GlobalExceptionHandler.getInstance().setShell(shell);
         
         shell.setSize(1260, 600);
-        shell.setText("Animation Editor - "+version);
+        frameTextPrefix = "Animation Editor - "+version;
+        shell.setText(frameTextPrefix + " - no project");
         shell.setLayout(new GridLayout(2, false));
         
         palettes.add(new Palette(dmd.rgb, 0, "default"));
@@ -349,12 +357,16 @@ public class Editor implements Runnable {
         btnMarkStart.addListener(SWT.Selection, e -> {
             markStart = selectedAnimation.actFrame;
             // store start frame for pal mapping
-            palMapping = new PalMapping();
+            palMapping = new PalMapping(-1);
             if(useHash1.getSelection()) {
                 palMapping.digest = hashes.get(0);
-            }
-            if(useHash2.getSelection()) {
+                palMapping.hashIndex = 0;
+            } else if(useHash2.getSelection()) {
                 palMapping.digest = hashes.get(1);
+                palMapping.hashIndex = 0;
+            } else {
+            	palMapping.digest = hashes.get(0);
+            	palMapping.hashIndex = 0;
             }
             palMapping.palIndex = palettes.get(activePalette).index;
             startTimeCode = lastTimeCode;
@@ -407,7 +419,7 @@ public class Editor implements Runnable {
 
         sourceList.addListener(SWT.Selection, e -> {
             if( selectedAnimation != null ) {
-                pullFromWidget(selectedAnimation);
+                pullFromWidget(selectedAnimation, selectedAnimationIndex);
                 sourceList.setItem(selectedAnimationIndex, selectedAnimation.getDesc());
             }
             // TODO update palette idx on palMapping
@@ -418,17 +430,9 @@ public class Editor implements Runnable {
             playingAnis.add(selectedAnimation);
             animationHandler.setAnimations(playingAnis);
             btnDelete.setEnabled(sourceList.getSelectionCount() > 0);
-            bindToWidget();
             
-            // add handling of project / palMapping
-            if( selectedAnimationIndex>0 && selectedAnimationIndex <= project.palMappings.size() ) {
-                // pull palette
-                int palIdx = project.palMappings.get(selectedAnimationIndex-1).palIndex;
-                paletteViewer.setSelection(new StructuredSelection(palettes.get(palIdx)));
-            }
-            if( selectedAnimationIndex == 0 ) {
-                paletteViewer.setSelection(new StructuredSelection(palettes.get(0)));
-            }
+            bindToWidget(selectedAnimationIndex);
+        
         });
 
         previewCanvas = new Canvas(shell, SWT.BORDER|SWT.DOUBLE_BUFFERED);
@@ -472,13 +476,13 @@ public class Editor implements Runnable {
         btnDelete.addListener(SWT.Selection, e -> deleteFromList(sourceList.getSelection(), sourceAnis));
 
         Button btnLoad = new Button(grpActions, SWT.NONE);
-        btnLoad.addListener(SWT.Selection, e -> loadAni(false));
+        btnLoad.addListener(SWT.Selection, e -> loadAniWithFC(false));
 
         btnLoad.setText("Load Ani");
         btnLoad.setBounds(9, 26, 91, 29);
 
         Button btnAdd = new Button(grpActions, SWT.NONE);
-        btnAdd.addListener(SWT.Selection, e -> loadAni(true));
+        btnAdd.addListener(SWT.Selection, e -> loadAniWithFC(true));
         btnAdd.setText("Add Ani");
         btnAdd.setBounds(106, 26, 91, 29);
 
@@ -682,11 +686,6 @@ public class Editor implements Runnable {
 
     }
 
-    private byte[] buildDigest() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
     private void createColorButtons(Group grpDetails_1) {
         for(int i = 0; i < colBtn.length; i++) {
             colBtn[i] = new Button(grpDetails_1, SWT.PUSH);
@@ -805,8 +804,17 @@ public class Editor implements Runnable {
             Project projectToLoad  = (Project) loadObject(filename);
 
             if( projectToLoad != null ) {
-                // TODO update frame title
+                shell.setText(frameTextPrefix+" - "+project.inputFile);
                 project = projectToLoad;
+                loadAni(project.inputFile, false, false);
+                
+                for( int i = 1; i < project.scenes.size(); i++) {
+                	cutOutNewAnimation(project.scenes.get(i).start, project.scenes.get(i).end, sourceAnis.get(0));
+                	System.out.println("cutting out "+project.scenes.get(i));
+                }
+                palettes = project.palettes;
+                palMappings = project.palMappings;
+                paletteViewer.setInput(projectToLoad.palettes);
             }
         }
         
@@ -915,19 +923,30 @@ public class Editor implements Runnable {
         populateList(sourceList, anis);
         // remove pal mapping
     }
-
-    protected void cutOutNewClip(int start, int end) {
-        // only works if current is MAME
-        Animation ani = buildMameAnimation(selectedAnimation.getBasePath() + selectedAnimation.getName());
+    
+    protected Animation cutOutNewAnimation(int start, int end, Animation input) {
+        // only works if current is MAME or PCAP
+        Animation ani = buildAnimationFromFile(input.getBasePath() + input.getName(), 
+        		input.getType());
         ani.start = start;
         ani.end = end;
-        ani.setDesc(selectedAnimation.getDesc() + (cutNameNumber++));
+        ani.setDesc(input.getDesc() + (cutNameNumber++));
         sourceAnis.add(ani);
         populateList(sourceList, sourceAnis);
+        return ani;
+    }
+
+    protected void cutOutNewClip(int start, int end) {
+    	
+    	Animation ani = cutOutNewAnimation(start, end, selectedAnimation);
         
         if( palMapping != null ) {
             palMapping.palIndex = palettes.get(activePalette).index;
             palMappings.add(palMapping);
+        }
+        
+        if( project.scenes != null ) {
+        	project.scenes.add( new Scene(ani.getDesc(), start,end, activePalette) );
         }
     }
 
@@ -976,8 +995,8 @@ public class Editor implements Runnable {
         AnimationCompiler.writeToCompiledFile(sourceAnis, filename);
     }
 
-    // TODO switch also palMapping / palette
-    private void bindToWidget() {
+    //  switch also palMapping / palette
+    private void bindToWidget(int index) {
         if (selectedAnimation != null) {
             comboFsk.select(comboFsk.indexOf(String.valueOf(selectedAnimation.getFsk())));
             spinnerCycle.setSelection(selectedAnimation.getCycles());
@@ -989,15 +1008,33 @@ public class Editor implements Runnable {
             } else {
                 comboTransition.select(transitions.indexOf(selectedAnimation.getTransitionName()));
             }
+            Scene scene = project.scenes.get(index);
+            paletteViewer.setSelection(new StructuredSelection(palettes.get(scene.palIndex)));
+            switch( project.palMappings.get(index).hashIndex ) {
+            case 0:
+            	useHash1.setSelection(true);
+            	useHash2.setSelection(false);
+            	break;
+            case 1:
+            	useHash1.setSelection(false);
+            	useHash2.setSelection(true);
+            	break;
+            default:
+            	useHash1.setSelection(false);
+            	useHash2.setSelection(false);
+            	break;
+            }
         }
     }
     
-    private void pullFromWidget(Animation ani) {
+    private void pullFromWidget(Animation ani, int index) {
         ani.setFsk(Integer.valueOf(fsks[comboFsk.getSelectionIndex()]));
         ani.setCycles(spinnerCycle.getSelection());
         ani.setHoldCycles(spinnerHold.getSelection());
         ani.setDesc(nameText.getText());
         pullTransition(ani);
+        project.scenes.get(index).palIndex = paletteCombo.getSelectionIndex();
+        project.palMappings.get(index).hashIndex = useHash1.getSelection()?0:(useHash2.getSelection()?1:2);
     }
 
     private void pullTransition(Animation ani) {
@@ -1013,27 +1050,40 @@ public class Editor implements Runnable {
         }
     }
 
-
-    protected void loadAni(boolean append) {
+    protected void loadAniWithFC(boolean append) {
         FileDialog fileChooser = new FileDialog(shell, SWT.OPEN);
         if (lastPath != null)
             fileChooser.setFilterPath(lastPath);
-        fileChooser.setFilterExtensions(new String[] { "*.properties;*.ani;*.txt.gz" });
+        fileChooser.setFilterExtensions(new String[] { "*.properties;*.ani;*.txt.gz;*.pcap;*.pcap.gz" });
         fileChooser.setFilterNames(new String[] { "Animationen", "properties, txt.gz, ani" });
         String filename = fileChooser.open();
         lastPath = fileChooser.getFilterPath();
         if (filename == null)
             return;
 
+        loadAni(filename, append, true);
+    }
+    
+    protected void loadAni(String filename, boolean append, boolean populateProject) {
         java.util.List<Animation> loadedList = new ArrayList<>();
         if (filename.endsWith(".ani")) {
             loadedList.addAll(AnimationCompiler.readFromCompiledFile(filename));
         } else if (filename.endsWith(".txt.gz")) {
-            loadedList.add(buildMameAnimation(filename));
+            loadedList.add(buildAnimationFromFile(filename, AnimationType.MAME));
         } else if (filename.endsWith(".properties")) {
             loadedList.addAll(AnimationFactory.createAnimationsFromProperties(filename));
+        } else if (filename.endsWith(".pcap") || filename.endsWith(".pcap.gz") ) {
+        	loadedList.add(buildAnimationFromFile(filename, AnimationType.PCAP));
         }
-        project.inputFile = new File(filename).getName();
+        
+        if( populateProject ) {
+            project.inputFile = filename;
+            //DMD dmd = new DMD(128, 32);
+            for (Animation ani : loadedList) {
+    			project.scenes.add(new Scene(ani.getDesc(),0,/*ani.getFrameCount(dmd)*/100000,0));
+    			project.palMappings.add(new PalMapping(-1));
+    		}
+        }
         
         // animationHandler.setAnimations(sourceAnis);
         if (!append) {
@@ -1046,10 +1096,10 @@ public class Editor implements Runnable {
         populateList(sourceList, sourceAnis);
     }
 
-    private Animation buildMameAnimation(String filename) {
+    private Animation buildAnimationFromFile(String filename, AnimationType type) {
         File file = new File(filename);
         String base = file.getName();
-        Animation ani = new Animation(AnimationType.MAME, base, 0, 0, 1, 1, 0);
+        Animation ani = new Animation(type, base, 0, 0, 1, 1, 0);
         ani.setBasePath(file.getParent() + "/");
         ani.setDesc(base.substring(0, base.indexOf('.')));
         return ani;

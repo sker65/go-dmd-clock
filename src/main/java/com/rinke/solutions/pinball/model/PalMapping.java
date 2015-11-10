@@ -9,6 +9,7 @@ public class PalMapping implements Model {
     public int palIndex;
     public long durationInMillis;
     public int durationInFrames;
+    public int hashIndex; // which hash (from which frame)
     
     public PalMapping(byte[] digest, int palIndex, long durationInMillis, int durationInFrames) {
         super();
@@ -22,21 +23,23 @@ public class PalMapping implements Model {
         this.durationInFrames = durationInFrames;
     }
 
-	public PalMapping() {
-    }
-
-    @Override
-	public String toString() {
-		return "PalMapping [digest=" + Arrays.toString(digest) + ", palIndex="
-				+ palIndex + ", durationInMillis=" + durationInMillis
-				+ ", durationInFrames=" + durationInFrames + "]";
+	public PalMapping(int palIndex) {
+		this.palIndex = palIndex;
 	}
-   
+
 	public void writeTo(DataOutputStream os) throws IOException {
 		os.write(digest);
 		os.writeShort(palIndex);
 		os.writeLong(durationInMillis);
 		os.writeShort(durationInFrames);
+	}
+
+	@Override
+	public String toString() {
+		return "PalMapping [digest=" + Arrays.toString(digest) + ", palIndex="
+				+ palIndex + ", durationInMillis=" + durationInMillis
+				+ ", durationInFrames=" + durationInFrames + ", hashIndex="
+				+ hashIndex + "]";
 	}
 
     
