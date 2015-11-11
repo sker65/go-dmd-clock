@@ -771,20 +771,27 @@ public class Editor implements Runnable {
         }
         return null;
     }
+    
+    SmartDMDImporter smartDMDImporter = new SmartDMDImporter();
 
     private void loadPalette(Event e) {
         FileDialog fileChooser = new FileDialog(shell, SWT.OPEN);
         if (lastPath != null)
             fileChooser.setFilterPath(lastPath);
-        fileChooser.setFilterExtensions(new String[] { "*.xml;*.json;" });
-        fileChooser.setFilterNames(new String[] { "Palette XML", "Palette JSON" });
+        fileChooser.setFilterExtensions(new String[] { "*.xml;*.json;*.txt" });
+        fileChooser.setFilterNames(new String[] { "Palette XML", "Palette JSON", "smartdmd.txt" });
         String filename = fileChooser.open();
         lastPath = fileChooser.getFilterPath();
         if (filename != null) {
-            Palette pal = (Palette) loadObject(filename);
-            LOG.info("load palette from {}",filename);
-            palettes.add(pal);
-            activePalette = palettes.size()-1;
+            if( filename.endsWith(".txt") ) {
+                palettes.addAll( smartDMDImporter.importFromFile(filename));
+            } else {
+                Palette pal = (Palette) loadObject(filename);
+                LOG.info("load palette from {}",filename);
+                palettes.add(pal);
+                activePalette = palettes.size()-1;
+            }
+            paletteViewer.refresh();
         }
     }
     

@@ -18,12 +18,16 @@ public class Palette implements Model {
     }
     
     public Palette(RGB[] colors, int index, String name, boolean isDefault) {
-        super();
-        this.numberOfColors = colors.length;
+        this(colors);
         this.index = index;
-        this.colors = Arrays.copyOf(colors, colors.length);
         this.name = name;
         this.isDefault = isDefault;
+    }
+
+    public Palette(RGB[] colors) {
+        this.colors = new RGB[colors.length];
+        this.numberOfColors = colors.length;
+        this.colors = Arrays.copyOf(colors, colors.length);
     }
 
     public void writeTo(DataOutputStream os) throws IOException {
