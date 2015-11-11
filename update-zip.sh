@@ -3,11 +3,14 @@
 version=$(git describe --always --tags)
 date=$(date)
 echo "$version -- $date" > version
+
+zip go-dmd-editor.jar version
 zip go-dmd-editor_mac_x86.jar version
 zip go-dmd-editor_mac_x86_64.jar version
 zip go-dmd-editor_x86.jar version
 zip go-dmd-editor_x86_64.jar version
 
+(cd target/classes/ && zip -r ../../go-dmd-editor.jar com)
 (cd target/classes/ && zip -r ../../go-dmd-editor_mac_x86.jar com)
 (cd target/classes/ && zip -r ../../go-dmd-editor_mac_x86_64.jar com)
 (cd target/classes/ && zip -r ../../go-dmd-editor_x86.jar com)
