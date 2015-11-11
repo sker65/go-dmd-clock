@@ -1,11 +1,9 @@
 package com.rinke.solutions.pinball.renderer;
 
-import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.Arrays;
 
 import com.google.common.io.LittleEndianDataInputStream;
-import com.rinke.solutions.pinball.renderer.Pcap.Paket;
 
 public class Pcap {
 

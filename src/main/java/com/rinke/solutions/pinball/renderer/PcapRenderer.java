@@ -1,6 +1,5 @@
 package com.rinke.solutions.pinball.renderer;
 
-import java.io.DataInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
