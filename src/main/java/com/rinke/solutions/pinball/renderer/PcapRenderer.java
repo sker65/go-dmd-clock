@@ -1,5 +1,7 @@
 package com.rinke.solutions.pinball.renderer;
 
+import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -30,11 +32,14 @@ public class PcapRenderer extends Renderer {
 	
     private void readImage(String filename, DMD dmd) {
     	LittleEndianDataInputStream stream = null;
+    	long bufSize = new File(filename).length();
     	try {
     		if( filename.endsWith(".pcap.gz")) {
-    			stream = new LittleEndianDataInputStream(new GZIPInputStream(new FileInputStream(filename)));
+    			stream = new LittleEndianDataInputStream(new GZIPInputStream(
+    			        new FileInputStream(filename),(int)bufSize));
     		} else if( filename.endsWith(".pcap")) {
-    			stream = new LittleEndianDataInputStream(new FileInputStream(filename));
+    			stream = new LittleEndianDataInputStream(new BufferedInputStream(
+    			        new FileInputStream(filename)));
     		} else {
     			throw new RuntimeException( "bad file type / file extension. *.pcap or *.pcap.gz expected");
     		}

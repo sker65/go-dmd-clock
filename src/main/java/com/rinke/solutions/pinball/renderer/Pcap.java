@@ -1,5 +1,6 @@
 package com.rinke.solutions.pinball.renderer;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.util.Arrays;
 
@@ -7,81 +8,81 @@ import com.google.common.io.LittleEndianDataInputStream;
 
 public class Pcap {
 
-	private LittleEndianDataInputStream stream;
+    private LittleEndianDataInputStream stream;
 
-	public Pcap(LittleEndianDataInputStream stream) {
-		this.stream = stream;
-	}
-	
-	public Header readHeader() throws IOException {
-		Header header = new Header();
-		header.read(stream);
-		return header;
-	}
-	
-	public static class Header {
-		public byte[] magic = new byte[4];
-		public int versionMajor;
-		public int versionMinor;
-		public long gmtOffset;
-		public long flags;
-		public long snaplen;
-		public long network;
+    public Pcap(LittleEndianDataInputStream stream) {
+        this.stream = stream;
+    }
 
-		public void read(LittleEndianDataInputStream stream) throws IOException {
-			stream.read(magic);
-			versionMajor = stream.readShort();
-			versionMinor = stream.readShort();
-			gmtOffset = stream.readInt();
-			flags = stream.readInt();
-			snaplen = stream.readInt();
-			network = stream.readInt();
-		}
+    public Header readHeader() throws IOException {
+        Header header = new Header();
+        header.read(stream);
+        return header;
+    }
 
-		@Override
-		public String toString() {
-			return "Header [magic=" + Arrays.toString(magic)
-					+ ", versionMajor=" + versionMajor + ", versionMinor="
-					+ versionMinor + ", gmtOffset=" + gmtOffset + ", flags="
-					+ flags + ", snaplen=" + snaplen + ", network=" + network
-					+ "]";
-		}
-	}
-	
-	public static class Paket {
-		public int sec;
-		public int usec;
-		public int incLen;
-		public int orgLen;
+    public static class Header {
+        public byte[] magic = new byte[4];
+        public int versionMajor;
+        public int versionMinor;
+        public long gmtOffset;
+        public long flags;
+        public long snaplen;
+        public long network;
 
-		public void read(LittleEndianDataInputStream stream) throws IOException {
-			sec = stream.readInt();
-			usec = stream.readInt();
-			incLen = stream.readInt();
-			orgLen = stream.readInt();
-		}
+        public void read(LittleEndianDataInputStream stream) throws IOException {
+            stream.read(magic);
+            versionMajor = stream.readShort();
+            versionMinor = stream.readShort();
+            gmtOffset = stream.readInt();
+            flags = stream.readInt();
+            snaplen = stream.readInt();
+            network = stream.readInt();
+        }
 
-		@Override
-		public String toString() {
-			return "Paket [sec=" + sec + ", usec=" + usec + ", incLen="
-					+ incLen + ", orgLen=" + orgLen + "]";
-		}
+        @Override
+        public String toString() {
+            return "Header [magic=" + Arrays.toString(magic) + ", versionMajor=" + versionMajor + ", versionMinor="
+                    + versionMinor + ", gmtOffset=" + gmtOffset + ", flags=" + flags + ", snaplen=" + snaplen + ", network="
+                    + network + "]";
+        }
+    }
 
-		public long getTimestampInMillis() {			
-			return sec*1000 + usec / 1000;
-		}
-		
-	}
+    public static class Paket {
+        public int sec;
+        public int usec;
+        public int incLen;
+        public int orgLen;
 
-	public Paket readPaket() throws IOException {
-		if( stream.available() >0 ) {
-			Paket paket = new Paket();
-			paket.read(stream);
-			return paket;
-		} else {
-			return null;
-		}
-	}
-	
+        public void read(LittleEndianDataInputStream stream) throws IOException {
+            sec = stream.readInt();
+            usec = stream.readInt();
+            incLen = stream.readInt();
+            orgLen = stream.readInt();
+        }
+
+        @Override
+        public String toString() {
+            return "Paket [sec=" + sec + ", usec=" + usec + ", incLen=" + incLen + ", orgLen=" + orgLen + "]";
+        }
+
+        public long getTimestampInMillis() {
+            return sec * 1000 + usec / 1000;
+        }
+
+    }
+
+    public Paket readPaket() throws IOException {
+        try {
+            if (stream.available() > 0) {
+                Paket paket = new Paket();
+                paket.read(stream);
+                return paket;
+            } else {
+                return null;
+            }
+        } catch (EOFException e) {
+            return null;
+        }
+    }
 
 }
