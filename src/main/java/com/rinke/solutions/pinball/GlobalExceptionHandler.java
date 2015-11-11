@@ -23,6 +23,19 @@ public class GlobalExceptionHandler {
         showError(lastException);
     }
     
+    private String getMessage(Exception e) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(e.getClass().getName()+": ");
+        sb.append(e.getMessage());
+        sb.append("\n@   ");
+        StackTraceElement ste = e.getStackTrace()[0];
+        sb.append(ste.getClassName()+"."
+                +ste.getMethodName()+"("
+                +ste.getFileName()+":"+ste.getLineNumber()+")");
+        
+        return sb.toString();
+    }
+    
     
     public void showError(Exception e) {
         display.asyncExec(new Runnable() {
@@ -33,7 +46,7 @@ public class GlobalExceptionHandler {
                         SWT.ICON_WARNING | SWT.YES | SWT.NO );
                 
                 messageBox.setText("Fehler aufgetreten!");
-                messageBox.setMessage(e.getMessage()+"\n\nTrotzdem weitermachen?");
+                messageBox.setMessage(getMessage(e)+"\n\nTrotzdem weitermachen?");
                 if( SWT.NO == messageBox.open()) System.exit(1);
                 lastException=null;
             }
