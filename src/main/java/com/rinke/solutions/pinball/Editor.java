@@ -5,16 +5,16 @@ import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -26,8 +26,6 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
-import org.eclipse.swt.events.VerifyEvent;
-import org.eclipse.swt.events.VerifyListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
@@ -47,6 +45,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.List;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Scale;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Spinner;
@@ -253,8 +252,6 @@ public class Editor implements Runnable {
     int x1,y1,x2,y2;
     
     Project project = new Project();
-    java.util.List<Palette> palettes = project.palettes;
-    java.util.List<PalMapping> palMappings = project.palMappings;
     
     PalMapping palMapping;
 
@@ -276,6 +273,8 @@ public class Editor implements Runnable {
     }
     
     String frameTextPrefix = "";
+    Button btnDefault = null;
+    
 
     /**
      * @wbp.parser.entryPoint
@@ -303,7 +302,7 @@ public class Editor implements Runnable {
         shell.setText(frameTextPrefix + " - no project");
         shell.setLayout(new GridLayout(2, false));
         
-        palettes.add(new Palette(dmd.rgb, 0, "default"));
+        project.palettes.add(new Palette(dmd.rgb, 0, "default"));
 
         Label lblAnimations = new Label(shell, SWT.NONE);
         lblAnimations.setText("Animations / Scenes");
@@ -365,7 +364,7 @@ public class Editor implements Runnable {
             	palMapping.digest = hashes.get(0);
             	palMapping.hashIndex = 0;
             }
-            palMapping.palIndex = palettes.get(activePalette).index;
+            palMapping.palIndex = project.palettes.get(activePalette).index;
             startTimeCode = lastTimeCode;
             btnCut.setEnabled(markEnd > 0 && markEnd > markStart);
         });
@@ -590,13 +589,13 @@ public class Editor implements Runnable {
                       activePalette = pal.index;
                       dmd.rgb = pal.colors;
                       setColorBtn();
-                      
+                      btnDefault.setSelection( pal.isDefault ); 
                   }
         });
 
         
-        paletteViewer.setInput(palettes);
-        paletteViewer.setSelection(new StructuredSelection(palettes.get(0)));
+        paletteViewer.setInput(project.palettes);
+        paletteViewer.setSelection(new StructuredSelection(project.palettes.get(0)));
         
         Label lblPalette = new Label(grpDetails_1, SWT.NONE);
         lblPalette.setBounds(463, 162, 70, 17);
@@ -619,10 +618,10 @@ public class Editor implements Runnable {
             if( !isNewPaletteName(name)) {
                 name = name+"1";
             }
-            Palette p = new Palette(dmd.rgb,palettes.size(), name);
-            palettes.add(p);
+            Palette p = new Palette(dmd.rgb,project.palettes.size(), name);
+            project.palettes.add(p);
             paletteViewer.add(p);
-            activePalette = palettes.size()-1;
+            activePalette = project.palettes.size()-1;
         });
         
         Button btnRename = new Button(grpDetails_1, SWT.NONE);
@@ -630,13 +629,21 @@ public class Editor implements Runnable {
         btnRename.setText("Rename");
 
         btnRename.addListener(SWT.Selection, e -> {
-            palettes.get(activePalette).name = paletteCombo.getText();
+            project.palettes.get(activePalette).name = paletteCombo.getText();
             paletteViewer.refresh();
         });
         
-        Button btnDefault = new Button(grpDetails_1, SWT.CHECK);
+        btnDefault = new Button(grpDetails_1, SWT.CHECK);
         btnDefault.setBounds(870, 158, 75, 24);
         btnDefault.setText("default");
+        btnDefault.addListener(SWT.Selection, e -> {
+            boolean isDefault = btnDefault.getSelection();
+            if( isDefault ) {
+                // clean default state from others
+                project.palettes.stream().forEach(p->p.isDefault=false);
+            }
+            project.palettes.get(activePalette).isDefault = isDefault;
+        });
         
         btnRemoveMasks.addListener(SWT.Selection, e -> {
             dmd.removeAllMasks();
@@ -717,6 +724,10 @@ public class Editor implements Runnable {
         Menu fileMenu = new Menu(shell, SWT.DROP_DOWN);
         fileMenuHeader.setMenu(fileMenu);
 
+        MenuItem newProjectItem = new MenuItem(fileMenu, SWT.PUSH);
+        newProjectItem.setText("&New Project");
+        newProjectItem.addListener(SWT.Selection, e -> newProject(e));
+
         MenuItem fileLoadItem = new MenuItem(fileMenu, SWT.PUSH);
         fileLoadItem.setText("&Load Project");
         fileLoadItem.addListener(SWT.Selection, e -> loadProject(e));
@@ -757,12 +768,18 @@ public class Editor implements Runnable {
         return menuBar;
     }
 
+    private Object newProject(Event e) {
+        // TODO save / dirty waring
+        this.project = new Project();
+        return null;
+    }
+
     private Object savePalette(Event e)
     {
         FileDialog fileChooser = new FileDialog(shell, SWT.SAVE);
         fileChooser.setOverwrite(true);
         
-        fileChooser.setFileName(palettes.get(activePalette).name);
+        fileChooser.setFileName(project.palettes.get(activePalette).name);
         if (lastPath != null)
             fileChooser.setFilterPath(lastPath);
         fileChooser.setFilterExtensions(new String[] { "*.xml", "*.json" });
@@ -771,7 +788,7 @@ public class Editor implements Runnable {
         lastPath = fileChooser.getFilterPath();
         if (filename != null) {
             LOG.info("store palette to {}",filename);
-            storeObject(palettes.get(activePalette), filename);
+            storeObject(project.palettes.get(activePalette), filename);
         }
         return null;
     }
@@ -788,17 +805,64 @@ public class Editor implements Runnable {
         lastPath = fileChooser.getFilterPath();
         if (filename != null) {
             if( filename.toLowerCase().endsWith(".txt") ) {
-                palettes.addAll( smartDMDImporter.importFromFile(filename));
+                java.util.List<Palette> palettesImported = smartDMDImporter.importFromFile(filename);
+                String override = checkOverride(project.palettes, palettesImported);
+                if( !override.isEmpty() ) {
+                    MessageBox messageBox = new MessageBox(shell,
+                            SWT.ICON_WARNING | SWT.OK | SWT.IGNORE | SWT.ABORT  );
+                    
+                    messageBox.setText("Override warning");
+                    messageBox.setMessage("importing these palettes will override palettes: "+override+
+                            "\n");
+                    int res = messageBox.open();
+                    if( res != SWT.ABORT ) {
+                        importPalettes(palettesImported,res==SWT.OK);
+                    }
+                } else {
+                    importPalettes(palettesImported,true);
+                }
             } else {
                 Palette pal = (Palette) loadObject(filename);
                 LOG.info("load palette from {}",filename);
-                palettes.add(pal);
-                activePalette = palettes.size()-1;
+                project.palettes.add(pal);
+                activePalette = project.palettes.size()-1;
             }
             paletteViewer.refresh();
         }
     }
     
+    private Map<Integer,Palette> getMap(java.util.List<Palette> palettes) {
+        Map<Integer,Palette> res = new HashMap<>();
+        for (Palette p : palettes) {
+            res.put(p.index, p);
+        }
+        return res;
+    }
+    
+    private void importPalettes(java.util.List<Palette> palettesImported, boolean override) {
+        Map<Integer, Palette> map = getMap(project.palettes);
+        for (Palette p : palettesImported) {
+            if( map.containsKey(p.index) ) {
+                if( override ) map.put(p.index, p);
+            } else {
+                map.put(p.index, p);
+            }
+        }
+        project.palettes.clear();
+        project.palettes.addAll(map.values());
+    }
+
+    private String checkOverride(java.util.List<Palette> palettes2, java.util.List<Palette> palettesImported) {
+        StringBuilder sb = new StringBuilder();
+        Map<Integer, Palette> map = getMap(palettes2);
+        for (Palette pi : palettesImported) {
+            if( map.containsKey(pi.index)) {
+                sb.append(pi.index+", ");
+            }   
+        }
+        return sb.toString();
+    }
+
     private Object loadProject(Event e) {
         FileDialog fileChooser = new FileDialog(shell, SWT.OPEN);
         if (lastPath != null)
@@ -820,8 +884,8 @@ public class Editor implements Runnable {
                 	cutOutNewAnimation(project.scenes.get(i).start, project.scenes.get(i).end, sourceAnis.get(0));
                 	System.out.println("cutting out "+project.scenes.get(i));
                 }
-                palettes = project.palettes;
-                palMappings = project.palMappings;
+                project.palettes = project.palettes;
+                project.palMappings = project.palMappings;
                 paletteViewer.setInput(projectToLoad.palettes);
             }
         }
@@ -856,7 +920,7 @@ public class Editor implements Runnable {
     }
 
     private boolean isNewPaletteName(String text) {
-        for(Palette pal : palettes) {
+        for(Palette pal : project.palettes) {
             if( pal.name.equals(text)) return false;
         }
         return true;
@@ -949,8 +1013,8 @@ public class Editor implements Runnable {
     	Animation ani = cutOutNewAnimation(start, end, selectedAnimation);
         
         if( palMapping != null ) {
-            palMapping.palIndex = palettes.get(activePalette).index;
-            palMappings.add(palMapping);
+            palMapping.palIndex = project.palettes.get(activePalette).index;
+            project.palMappings.add(palMapping);
         }
         
         if( project.scenes != null ) {
@@ -1017,7 +1081,7 @@ public class Editor implements Runnable {
                 comboTransition.select(transitions.indexOf(selectedAnimation.getTransitionName()));
             }
             Scene scene = project.scenes.get(index);
-            paletteViewer.setSelection(new StructuredSelection(palettes.get(scene.palIndex)));
+            paletteViewer.setSelection(new StructuredSelection(project.palettes.get(scene.palIndex)));
             switch( project.palMappings.get(index).hashIndex ) {
             case 0:
             	useHash1.setSelection(true);
