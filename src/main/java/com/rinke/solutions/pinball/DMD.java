@@ -19,9 +19,13 @@ public class DMD {
 
     private int width;
     private int height;
+    
+    List<byte[]> frames = new ArrayList<byte[]>();
 
     public byte[] frame1 = null;
     public byte[] frame2 = null;
+    
+    int numberOfSubframes = 2;
     
     List<DeleteMask> deleteMasks = new ArrayList<>();
 
@@ -86,9 +90,18 @@ public class DMD {
         if (width % 8 > 0)
             bytesPerRow++;
         frameSizeInByte = bytesPerRow * height;
-        frame1 = new byte[frameSizeInByte];
-        frame2 = new byte[frameSizeInByte];
+        setNumberOfSubframes(4);
         resetColors();
+    }
+    
+    public void setNumberOfSubframes(int n) {
+        frames.clear();
+        for(int i = 0; i < n; i++) {
+            frames.add( new byte[frameSizeInByte]);
+        }
+        frame1 = frames.get(0);
+        frame2 = frames.get(1);
+        numberOfSubframes = n;
     }
 
     public DMD() {
@@ -103,7 +116,6 @@ public class DMD {
     
     int pitch = 7;
     int offset = 20;
-
 
     public BufferedImage draw() {
         BufferedImage img = new BufferedImage(width * 8, height * 8, BufferedImage.TYPE_INT_ARGB);
@@ -155,11 +167,17 @@ public class DMD {
         // 2/3 ca8a2e
         // 1/3 7f561d
         // schwarz: 191106
-        Color cols[] = new Color[4];
-        cols[0] = new Color(ev.display, rgb[0]);
-        cols[1] = new Color(ev.display, rgb[1]);
-        cols[2] = new Color(ev.display, rgb[7]);
-        cols[3] = new Color(ev.display, rgb[15]);
+        Color cols[] = new Color[1<<numberOfSubframes];
+        if( numberOfSubframes == 2) {
+            cols[0] = new Color(ev.display, rgb[0]);
+            cols[1] = new Color(ev.display, rgb[1]);
+            cols[2] = new Color(ev.display, rgb[7]);
+            cols[3] = new Color(ev.display, rgb[15]);
+        } else {
+            for(int i = 0; i < (1 << numberOfSubframes);i++) {
+                cols[i] = new Color(ev.display, rgb[i]);
+            }
+        }
         Color bg = new Color(ev.display, 10, 10, 10);
         gcImage.setBackground(bg);
         gcImage.fillRectangle(0, 0, ev.width, ev.height);
@@ -171,8 +189,9 @@ public class DMD {
                 // hsb first
                 byte mask = (byte) (128 >> (col % 8));
                 int v = 0;
-                v += (frame1[col / 8 + row * bytesPerRow] & mask) != 0 ? 1 : 0;
-                v += (frame2[col / 8 + row * bytesPerRow] & mask) != 0 ? 2 : 0;
+                for(int i = 0; i < numberOfSubframes;i++) {
+                    v += (frames.get(i)[col / 8 + row * bytesPerRow] & mask) != 0 ? (1<<i) : 0;
+                }
 
                 gcImage.setBackground(cols[v]);
                 gcImage.fillOval(offset + col * pitch, offset + row * pitch, pitch, pitch);
@@ -184,10 +203,9 @@ public class DMD {
         // now draw mask marks if any
         deleteMasks.forEach(e -> e.drawMaskRects(ev));
 
-        cols[0].dispose();
-        cols[1].dispose();
-        cols[2].dispose();
-        cols[3].dispose();
+        for(int i = 0; i < (1 << numberOfSubframes);i++) 
+            cols[i].dispose();
+
         bg.dispose();
 
         image.dispose();
@@ -248,10 +266,9 @@ public class DMD {
     }
 
     // masken zum setzen von pixeln
-    int[] mask = { 0b01111111, 0b11011111, 0b11110111, 0b11111101,
-
-    0b10111111, 0b11101111, 0b11111011, 0b11111110
-
+    int[] mask = { 
+            0b01111111, 0b11011111, 0b11110111, 0b11111101,
+            0b10111111, 0b11101111, 0b11111011, 0b11111110
     };
 
     public boolean getPixel(byte[] buffer, int x, int y) {
