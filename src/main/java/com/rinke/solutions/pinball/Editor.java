@@ -569,7 +569,7 @@ public class Editor implements Runnable {
         createColorButtons(grpDetails_1);
         
         paletteCombo = new Combo(grpDetails_1, SWT.NONE);
-        paletteCombo.setBounds(590, 155, 173, 29);
+        paletteCombo.setBounds(536, 155, 173, 29);
         paletteViewer = new ComboViewer(paletteCombo);
         paletteViewer.setContentProvider(ArrayContentProvider.getInstance());
         paletteViewer.setLabelProvider(new LabelProvider(){
@@ -599,7 +599,7 @@ public class Editor implements Runnable {
         paletteViewer.setSelection(new StructuredSelection(palettes.get(0)));
         
         Label lblPalette = new Label(grpDetails_1, SWT.NONE);
-        lblPalette.setBounds(525, 162, 70, 17);
+        lblPalette.setBounds(463, 162, 70, 17);
         lblPalette.setText("Palette:");
 
         Button btnReset = new Button(grpDetails_1, SWT.NONE);
@@ -612,7 +612,7 @@ public class Editor implements Runnable {
         });
         
         Button btnNewPalette = new Button(grpDetails_1, SWT.NONE);
-        btnNewPalette.setBounds(782, 155, 58, 29);
+        btnNewPalette.setBounds(725, 155, 58, 29);
         btnNewPalette.setText("New");
         btnNewPalette.addListener(SWT.Selection, e -> {
             String name = this.paletteCombo.getText();
@@ -625,15 +625,19 @@ public class Editor implements Runnable {
             activePalette = palettes.size()-1;
         });
         
-        
         Button btnRename = new Button(grpDetails_1, SWT.NONE);
-        btnRename.setBounds(846, 155, 75, 29);
+        btnRename.setBounds(789, 155, 75, 29);
         btnRename.setText("Rename");
+
         btnRename.addListener(SWT.Selection, e -> {
             palettes.get(activePalette).name = paletteCombo.getText();
             paletteViewer.refresh();
         });
-
+        
+        Button btnDefault = new Button(grpDetails_1, SWT.CHECK);
+        btnDefault.setBounds(870, 158, 75, 24);
+        btnDefault.setText("default");
+        
         btnRemoveMasks.addListener(SWT.Selection, e -> {
             dmd.removeAllMasks();
             previewCanvas.update();
@@ -783,7 +787,7 @@ public class Editor implements Runnable {
         String filename = fileChooser.open();
         lastPath = fileChooser.getFilterPath();
         if (filename != null) {
-            if( filename.endsWith(".txt") ) {
+            if( filename.toLowerCase().endsWith(".txt") ) {
                 palettes.addAll( smartDMDImporter.importFromFile(filename));
             } else {
                 Palette pal = (Palette) loadObject(filename);
