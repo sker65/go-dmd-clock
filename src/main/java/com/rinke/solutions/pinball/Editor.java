@@ -649,6 +649,7 @@ public class Editor implements Runnable {
         planesCombo.setBounds(895, 79, 64, 29);
         planesCombo.setItems(planes);
         planesCombo.select(0);
+        planesChanged(0);
         planesCombo.addListener(SWT.Selection, e -> planesChanged( planesCombo.getSelectionIndex() ));
         
         btnRename.addListener(SWT.Selection, e -> {

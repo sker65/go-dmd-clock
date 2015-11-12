@@ -58,21 +58,21 @@ public class DMD {
     public void resetColors() {
         rgb[0] = new RGB(0x19, 0x00, 0x06);
         rgb[1] = new RGB(0x6f, 0x00, 0x00);
-        rgb[2] = new RGB(0xca, 0x00, 0x00);
-        rgb[3] = new RGB(0xff, 0x00, 0x00);
+        rgb[7] = new RGB(0xca, 0x00, 0x00);
+        rgb[15] = new RGB(0xff, 0x00, 0x00);
 
-        rgb[4] = newRGB(0x008000);
-        rgb[5] = newRGB(0x808000);
-        rgb[6] = newRGB(0x000080);
-        rgb[7] = newRGB(0x800080);
-        rgb[8] = newRGB(0xC0C0C0);
-        rgb[9] = newRGB(0x808080);
-        rgb[10] = newRGB(0x00FF00);
-        rgb[11] = newRGB(0xFFFF00);
-        rgb[12] = newRGB(0x0000FF);
-        rgb[13] = newRGB(0xFF00FF);
-        rgb[14] = newRGB(0x00FFFF);
-        rgb[15] = newRGB(0xFFFFFF);
+        rgb[2] = newRGB(0x008000);
+        rgb[3] = newRGB(0x808000);
+        rgb[4] = newRGB(0x000080);
+        rgb[5] = newRGB(0x800080);
+        rgb[6] = newRGB(0xC0C0C0);
+        rgb[8] = newRGB(0x808080);
+        rgb[9] = newRGB(0x00FF00);
+        rgb[10] = newRGB(0xFFFF00);
+        rgb[11] = newRGB(0x0000FF);
+        rgb[12] = newRGB(0xFF00FF);
+        rgb[13] = newRGB(0x00FFFF);
+        rgb[14] = newRGB(0xFFFFFF);
     }
     
     private RGB newRGB(int rgb) {
@@ -158,8 +158,8 @@ public class DMD {
         Color cols[] = new Color[4];
         cols[0] = new Color(ev.display, rgb[0]);
         cols[1] = new Color(ev.display, rgb[1]);
-        cols[2] = new Color(ev.display, rgb[2]);
-        cols[3] = new Color(ev.display, rgb[3]);
+        cols[2] = new Color(ev.display, rgb[7]);
+        cols[3] = new Color(ev.display, rgb[15]);
         Color bg = new Color(ev.display, 10, 10, 10);
         gcImage.setBackground(bg);
         gcImage.fillRectangle(0, 0, ev.width, ev.height);
