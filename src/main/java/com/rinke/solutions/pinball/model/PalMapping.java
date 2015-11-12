@@ -42,6 +42,11 @@ public class PalMapping implements Model {
 				+ hashIndex + "]";
 	}
 
+    public void setDigest(byte[] digest) {
+        this.digest = new byte[16];
+        System.arraycopy(digest, 0, this.digest, 0, 16);
+    }
+
     
     
 }
