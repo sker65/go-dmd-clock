@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -629,11 +630,11 @@ public class Editor implements Runnable {
         btnNewPalette.addListener(SWT.Selection, e -> {
             String name = this.paletteCombo.getText();
             if( !isNewPaletteName(name)) {
-                name = name+"1";
+                name = "new"+UUID.randomUUID().toString().substring(0, 4);
             }
             Palette p = new Palette(dmd.rgb,project.palettes.size(), name);
             project.palettes.add(p);
-            paletteViewer.add(p);
+            paletteViewer.refresh();
             activePalette = project.palettes.size()-1;
         });
         
