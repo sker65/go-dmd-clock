@@ -49,6 +49,7 @@ public class PcapRenderer extends Renderer {
     		System.out.println(header);
     		Paket p;
     		long lastTimestamp = 0;
+    		long tc = 0;
     		while( ( p = pcap.readPaket()) != null ) {
     			byte[] data = new byte[p.incLen];
     			stream.read(data);
@@ -57,7 +58,9 @@ public class PcapRenderer extends Renderer {
     					Frame.transform(data, offset+4, dmd.getFrameSizeInByte()),
     					Frame.transform(data, offset+4+512, dmd.getFrameSizeInByte()));
     			res.delay = lastTimestamp == 0 ? 0 : (int) (p.getTimestampInMillis() - lastTimestamp);
-    			if( res.delay > 1 ) {
+    			tc += res.delay;
+    			res.timecode = tc;
+    			if( res.delay > 1 ) {    			    
     				System.out.println("frame"+frames.size()+", delay: "+res.delay + " "+p);
     				frames.add(res);
     			}
