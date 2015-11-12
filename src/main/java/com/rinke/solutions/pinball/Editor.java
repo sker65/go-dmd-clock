@@ -238,6 +238,7 @@ public class Editor implements Runnable {
     Display display;
     
     String[] fsks = new String[] { "18", "16", "12", "6" };
+    String[] planes = new String[] { "2", "4" };
     private java.util.List<String> transitions;
 
     private DMD dmd = new DMD();
@@ -274,7 +275,7 @@ public class Editor implements Runnable {
     
     String frameTextPrefix = "";
     Button btnDefault = null;
-    
+    Combo planesCombo;
 
     /**
      * @wbp.parser.entryPoint
@@ -639,7 +640,17 @@ public class Editor implements Runnable {
         Button btnRename = new Button(grpDetails_1, SWT.NONE);
         btnRename.setBounds(789, 155, 75, 29);
         btnRename.setText("Rename");
-
+        
+        Label lblPlanes = new Label(grpDetails_1, SWT.NONE);
+        lblPlanes.setBounds(839, 86, 50, 17);
+        lblPlanes.setText("Planes");
+        
+        planesCombo = new Combo(grpDetails_1, SWT.READ_ONLY);
+        planesCombo.setBounds(895, 79, 64, 29);
+        planesCombo.setItems(planes);
+        planesCombo.select(0);
+        planesCombo.addListener(SWT.Selection, e -> planesChanged( planesCombo.getSelectionIndex() ));
+        
         btnRename.addListener(SWT.Selection, e -> {
             project.palettes.get(activePalette).name = paletteCombo.getText();
             paletteViewer.refresh();
@@ -691,7 +702,22 @@ public class Editor implements Runnable {
                 if( retry++ > 10 ) System.exit(1);
             }
         }
+    }
 
+    byte[] visible = { 1,1,0,0, 0,0,0,1, 0,0,0,0, 0,0,0,1 };
+    
+    private void  planesChanged(int planes) {
+        switch(planes) {
+        case 0: // 2 planes -> 4 colors
+            int j = 0;
+            for(int i = 0; i < colBtn.length; i++) { colBtn[i].setLocation(525+j*28, 113); if(visible[i]==1) j++; }
+            for(int i = 0; i < colBtn.length; i++) colBtn[i].setVisible(visible[i]==1); 
+            break;
+        case 1: // 4 planes -> 16 colors
+            for(int i = 0; i < colBtn.length; i++) colBtn[i].setLocation(525+i*28, 113);
+            for(int i = 0; i < colBtn.length; i++) colBtn[i].setVisible(true);
+            break;  
+        }
     }
 
     private void createColorButtons(Group grpDetails_1) {
