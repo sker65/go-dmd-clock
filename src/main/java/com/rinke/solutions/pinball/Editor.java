@@ -566,6 +566,18 @@ public class Editor implements Runnable {
         hashLabel.setText("Hashes");
         
         createColorButtons(grpDetails_1);
+
+        btnDefault = new Button(grpDetails_1, SWT.CHECK);
+        btnDefault.setBounds(870, 158, 75, 24);
+        btnDefault.setText("default");
+        btnDefault.addListener(SWT.Selection, e -> {
+            boolean isDefault = btnDefault.getSelection();
+            if( isDefault ) {
+                // clean default state from others
+                project.palettes.stream().forEach(p->p.isDefault=false);
+            }
+            project.palettes.get(activePalette).isDefault = isDefault;
+        });
         
         paletteCombo = new Combo(grpDetails_1, SWT.NONE);
         paletteCombo.setBounds(536, 155, 173, 29);
@@ -631,18 +643,6 @@ public class Editor implements Runnable {
         btnRename.addListener(SWT.Selection, e -> {
             project.palettes.get(activePalette).name = paletteCombo.getText();
             paletteViewer.refresh();
-        });
-        
-        btnDefault = new Button(grpDetails_1, SWT.CHECK);
-        btnDefault.setBounds(870, 158, 75, 24);
-        btnDefault.setText("default");
-        btnDefault.addListener(SWT.Selection, e -> {
-            boolean isDefault = btnDefault.getSelection();
-            if( isDefault ) {
-                // clean default state from others
-                project.palettes.stream().forEach(p->p.isDefault=false);
-            }
-            project.palettes.get(activePalette).isDefault = isDefault;
         });
         
         btnRemoveMasks.addListener(SWT.Selection, e -> {
