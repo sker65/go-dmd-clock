@@ -56,7 +56,7 @@ public class DMD {
     public RGB[] rgb = new RGB[16];
     
     public void resetColors() {
-        rgb[0] = new RGB(0x19, 0x00, 0x06);
+        rgb[0] = new RGB(0x0, 0x00, 0x00);//new RGB(0x19, 0x00, 0x06);
         rgb[1] = new RGB(0x6f, 0x00, 0x00);
         rgb[7] = new RGB(0xca, 0x00, 0x00);
         rgb[15] = new RGB(0xff, 0x00, 0x00);
