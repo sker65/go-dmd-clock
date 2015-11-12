@@ -357,13 +357,13 @@ public class Editor implements Runnable {
             // store start frame for pal mapping
             palMapping = new PalMapping(-1);
             if(useHash1.getSelection()) {
-                palMapping.digest = hashes.get(0);
+                palMapping.setDigest(hashes.get(0));
                 palMapping.hashIndex = 0;
             } else if(useHash2.getSelection()) {
-                palMapping.digest = hashes.get(1);
-                palMapping.hashIndex = 0;
+                palMapping.setDigest(hashes.get(1));
+                palMapping.hashIndex = 1;
             } else {
-            	palMapping.digest = hashes.get(0);
+            	palMapping.setDigest(hashes.get(0));
             	palMapping.hashIndex = 0;
             }
             palMapping.palIndex = project.palettes.get(activePalette).index;
@@ -1043,6 +1043,7 @@ public class Editor implements Runnable {
         if( palMapping != null ) {
             palMapping.palIndex = project.palettes.get(activePalette).index;
             project.palMappings.add(palMapping);
+            palMapping = null;
         }
         
         if( project.scenes != null ) {
