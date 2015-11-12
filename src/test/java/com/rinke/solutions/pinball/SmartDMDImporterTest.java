@@ -26,7 +26,7 @@ public class SmartDMDImporterTest {
 
             @Override
             protected BufferedReader getReader(String filename) throws IOException {
-                InputStream in = this.getClass().getResourceAsStream("/smartdmd.txt");
+                InputStream in = this.getClass().getResourceAsStream("/"+filename);
                 return new BufferedReader(new InputStreamReader(in, "UTF-8"));
             }
             
@@ -35,10 +35,16 @@ public class SmartDMDImporterTest {
     
     @Test
     public void testImportFromFile() throws Exception {
-        List<Palette> p = uut.importFromFile("foo");
+        List<Palette> p = uut.importFromFile("smartdmd.txt");
         assertEquals(15, p.size());
     }
 
+    @Test
+    public void testImportFromFile2() throws Exception {
+        List<Palette> p = uut.importFromFile("smartdmd-acdc.txt");
+        assertEquals(15, p.size());
+    }
+    
     String pal = "Ship,Upscaling=2,0xFF000000,0xFFFFFFBB,0xFF804000,0xFF808000,0xFFAC0000,0xFF797979,0xFFAC5400,0xFFACACAC,0xFF545454,0xFF5454FF,0xFF0000FF,0xFF000080,0xFFFF5454,0xFF494925,0xFFFFFF54,0xFFFFFFFF";
     
     @Test
