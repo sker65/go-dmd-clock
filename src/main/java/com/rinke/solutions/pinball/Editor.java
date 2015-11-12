@@ -856,7 +856,7 @@ public class Editor implements Runnable {
         StringBuilder sb = new StringBuilder();
         Map<Integer, Palette> map = getMap(palettes2);
         for (Palette pi : palettesImported) {
-            if( map.containsKey(pi.index)) {
+            if( pi.index != 0 && map.containsKey(pi.index)) {
                 sb.append(pi.index+", ");
             }   
         }
