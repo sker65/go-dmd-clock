@@ -10,6 +10,7 @@ public class PalMapping implements Model {
     public long durationInMillis;
     public int durationInFrames;
     public int hashIndex; // which hash (from which frame)
+    public String name;
     
     public PalMapping(byte[] digest, int palIndex, long durationInMillis, int durationInFrames) {
         super();
@@ -34,18 +35,18 @@ public class PalMapping implements Model {
 		os.writeShort(durationInFrames);
 	}
 
+    public void setDigest(byte[] digest) {
+        this.digest = new byte[16];
+        System.arraycopy(digest, 0, this.digest, 0, 16);
+    }
+
 	@Override
 	public String toString() {
 		return "PalMapping [digest=" + Arrays.toString(digest) + ", palIndex="
 				+ palIndex + ", durationInMillis=" + durationInMillis
 				+ ", durationInFrames=" + durationInFrames + ", hashIndex="
-				+ hashIndex + "]";
+				+ hashIndex + ", name=" + name + "]";
 	}
-
-    public void setDigest(byte[] digest) {
-        this.digest = new byte[16];
-        System.arraycopy(digest, 0, this.digest, 0, 16);
-    }
 
     
     

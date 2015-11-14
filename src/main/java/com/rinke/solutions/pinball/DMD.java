@@ -90,7 +90,7 @@ public class DMD {
         if (width % 8 > 0)
             bytesPerRow++;
         frameSizeInByte = bytesPerRow * height;
-        setNumberOfSubframes(4);
+        setNumberOfSubframes(2);
         resetColors();
     }
     

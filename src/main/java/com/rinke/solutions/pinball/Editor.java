@@ -74,98 +74,12 @@ public class Editor implements Runnable {
     private static final String NO_TRANS = " - ";
     String[] args;
     private String lastPath;
-    private XStream xstream;
-    private XStream jstream;
-    private XStream bstream;
-    BinaryStreamDriver driver;
+    FileHelper fileHelper = new FileHelper();
     
     public Editor(String[] args) {
         this.args = args;
-        setupXStream();
     }
     
-    private void setupXStream() {
-        xstream = new XStream();
-        jstream = new XStream(new JettisonMappedXmlDriver());
-        jstream = new XStream(new JettisonMappedXmlDriver());
-        
-		driver = new BinaryStreamDriver();
-		bstream = new XStream(driver);
-        bstream.alias("rgb", RGB.class);
-        bstream.alias("palette", Palette.class);
-        bstream.alias("project", Project.class);
-        bstream.alias("palMapping", PalMapping.class);
-        bstream.alias("scene", Scene.class);
-        bstream.setMode(XStream.NO_REFERENCES);
-        
-        xstream.alias("rgb", RGB.class);
-        xstream.alias("palette", Palette.class);
-        xstream.alias("project", Project.class);
-        xstream.alias("palMapping", PalMapping.class);
-        xstream.alias("scene", Scene.class);
-        xstream.setMode(XStream.NO_REFERENCES);
-        jstream.alias("rgb", RGB.class);
-        jstream.alias("palette", Palette.class);
-        jstream.alias("project", Project.class);
-        jstream.alias("palMapping", PalMapping.class);
-        jstream.alias("scene", Scene.class);
-        jstream.setMode(XStream.NO_REFERENCES);
-    }
-    
-    public void storeObject(Model obj,  String filename) {
-    	try( OutputStream out = new FileOutputStream(filename)) {
-            HierarchicalStreamWriter writer = null;
-            switch (Format.byFilename(filename)) {
-            case XML:
-                xstream.toXML(obj, out);
-                break;
-            case JSON:
-                jstream.toXML(obj, out);
-                break;
-            case BIN:
-                writer = driver.createWriter(out);
-                bstream.marshal(obj, writer);
-                break;
-            case DAT:
-                DataOutputStream dos = new DataOutputStream(new FileOutputStream(filename));
-                obj.writeTo(dos);
-                dos.close();
-                break;
-                
-            default:
-                throw new RuntimeException("unsupported filetype / extension " +filename);
-            }
-            if(writer!=null) writer.close(); else out.close();
-    	} catch( IOException e) {
-    	    LOG.error("error on storing "+filename, e);
-    	    throw new RuntimeException("error on storing "+filename,e);
-    	}
-    }
-    
-    public Object loadObject(String filename) {
-        Object res = null;
-    	try ( InputStream in = new FileInputStream(filename) ) {
-            HierarchicalStreamReader reader = null;
-            
-            switch (Format.byFilename(filename)) {
-            case XML:
-                return xstream.fromXML(in);
-            case JSON:
-                return jstream.fromXML(in);
-            case BIN:
-                reader = driver.createReader(in);
-                res = bstream.unmarshal(reader, null);
-                break;
-
-            default:
-                throw new RuntimeException("unsupported filetype / extension " +filename);
-            }
-    	} catch( IOException e2) {
-    	    LOG.error("error on load "+filename,e2);
-    	    throw new RuntimeException("error on load "+filename, e2);
-    	}
-    	return res;
-    }
     
     public void testStore() {
     	java.util.List<Palette> tpalettes = new ArrayList<Palette>();
@@ -184,13 +98,13 @@ public class Editor implements Runnable {
 		Project project = new Project(1,"tftc-dump.txt.gz", tpalettes, palMappings);
     	try {
     		DataOutputStream dos = new DataOutputStream(new FileOutputStream("tftc.dat"));
-			storeObject(project, "tftc.xml");
-			storeObject(project, "tftc.json");
-			storeObject(project, "tftc.bin");
+    		fileHelper.storeObject(project, "tftc.xml");
+    		fileHelper.storeObject(project, "tftc.json");
+    		fileHelper.storeObject(project, "tftc.bin");
 			project.writeTo(dos);
 			dos.close();
 			
-			loadObject("tftc.bin");
+			fileHelper.loadObject("tftc.bin");
 			
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -530,7 +444,7 @@ public class Editor implements Runnable {
         spinnerHold.setBounds(173, 30, 89, 27);
 
         comboFsk = new Combo(grpDetails_1, SWT.READ_ONLY);
-        comboFsk.setBounds(56, 30, 75, 17);
+        comboFsk.setBounds(58, 35, 75, 17);
         comboFsk.setItems(fsks);
 
         comboTransition = new Combo(grpDetails_1, SWT.READ_ONLY);
@@ -557,7 +471,7 @@ public class Editor implements Runnable {
         lblName.setBounds(10, 64, 50, 17);
 
         nameText = new Text(grpDetails_1, SWT.BORDER);
-        nameText.setBounds(56, 61, 149, 27);
+        nameText.setBounds(56, 61, 149, 17);
         
         Button btnRemoveMasks = new Button(grpDetails_1, SWT.NONE);
         btnRemoveMasks.setBounds(590, 79, 119, 29);
@@ -722,9 +636,9 @@ public class Editor implements Runnable {
         }
     }
 
-    private void createColorButtons(Group grpDetails_1) {
+    private void createColorButtons(Group grp) {
         for(int i = 0; i < colBtn.length; i++) {
-            colBtn[i] = new Button(grpDetails_1, SWT.PUSH);
+            colBtn[i] = new Button(grp, SWT.PUSH);
             colBtn[i].setData(Integer.valueOf(i));
             // on mac use wider buttons e.g. 32 pix instead of 26
             colBtn[i].setBounds(525+i*28, 113, 32, 26);
@@ -816,7 +730,7 @@ public class Editor implements Runnable {
         lastPath = fileChooser.getFilterPath();
         if (filename != null) {
             LOG.info("store palette to {}",filename);
-            storeObject(project.palettes.get(activePalette), filename);
+            fileHelper.storeObject(project.palettes.get(activePalette), filename);
         }
         return null;
     }
@@ -850,7 +764,7 @@ public class Editor implements Runnable {
                     importPalettes(palettesImported,true);
                 }
             } else {
-                Palette pal = (Palette) loadObject(filename);
+                Palette pal = (Palette) fileHelper.loadObject(filename);
                 LOG.info("load palette from {}",filename);
                 project.palettes.add(pal);
                 activePalette = project.palettes.size()-1;
@@ -901,7 +815,7 @@ public class Editor implements Runnable {
         lastPath = fileChooser.getFilterPath();
         if (filename != null) {
             LOG.info("load project from {}",filename);
-            Project projectToLoad  = (Project) loadObject(filename);
+            Project projectToLoad  = (Project) fileHelper.loadObject(filename);
 
             if( projectToLoad != null ) {
                 shell.setText(frameTextPrefix+" - "+project.inputFile);
@@ -937,7 +851,7 @@ public class Editor implements Runnable {
         lastPath = fileChooser.getFilterPath();        
         if (filename != null) {
             LOG.info("write project to {}",filename);
-            storeObject(project, filename);
+            fileHelper.storeObject(project, filename);
          }
     }
 
