@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
@@ -16,6 +17,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.List;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ListViewer;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.ColorDialog;
@@ -410,7 +412,7 @@ public class PinDmdEditor {
     
     private void createColorButtons(Group grp, int x, int y) {
         for(int i = 0; i < colBtn.length; i++) {
-            colBtn[i] = new Button(grp, SWT.PUSH);
+            colBtn[i] = new Button(grp, SWT.FLAT+SWT.TOGGLE);
             colBtn[i].setData(Integer.valueOf(i));
             // on mac use wider buttons e.g. 32 pix instead of 26
             colBtn[i].setBounds(x+i*28, y, 32, 26);
@@ -431,10 +433,10 @@ public class PinDmdEditor {
     }
 
     static Image getSquareImage(Display display, Color col) {
-        Image image = new Image(display, 10, 10);
+        Image image = new Image(display, 11, 11);
         GC gc = new GC(image);
         gc.setBackground(col);
-        gc.fillRectangle(0, 0, 10, 10);
+        gc.fillRectangle(0, 0, 11, 11);
         //gc.setForeground(col);
         gc.dispose();
         return image;
@@ -450,6 +452,9 @@ public class PinDmdEditor {
 	private Button btnHash1;
 	private Button btnHash2;
 	private Button btnHash3;
+	private Button btnDeleteKeyframe;
+	private PalMapping selectedPalMapping;
+	private long saveTimeCode;
     
     private void  planesChanged(int planes, int x, int y) {
         switch(planes) {
@@ -569,6 +574,16 @@ public class PinDmdEditor {
 		keyframeListViewer.setLabelProvider(new ViewerLabelProvider());
 		keyframeListViewer.setContentProvider(ArrayContentProvider.getInstance());
 		keyframeListViewer.setInput(project.palMappings);
+		keyframeListViewer.addSelectionChangedListener(event -> {
+            IStructuredSelection selection = (IStructuredSelection) event.getSelection();
+            if (selection.size() > 0){
+                selectedPalMapping = (PalMapping)selection.getFirstElement();
+                txtDuration.setText(selectedPalMapping.durationInMillis+"");
+                paletteComboViewer.setSelection(new StructuredSelection(project.palettes.get(selectedPalMapping.palIndex)));
+            }
+            selectedPalMapping = null;
+            btnDeleteKeyframe.setEnabled(selection.size()>0);
+		});
 		
 		previewCanvas = new Canvas(shlPindmdEditor, SWT.BORDER|SWT.DOUBLE_BUFFERED);
         GridData gd_canvas = new GridData(SWT.LEFT, SWT.TOP, true, false, 1, 1);
@@ -603,7 +618,7 @@ public class PinDmdEditor {
         btnHash3.setText("Hash3");
         
         txtDuration = new Text(grpKeyframe, SWT.BORDER);
-        txtDuration.setText("Duration");
+        txtDuration.setText("0");
         txtDuration.setBounds(260, 71, 64, 19);
         
         Label lblDuration = new Label(grpKeyframe, SWT.NONE);
@@ -615,13 +630,38 @@ public class PinDmdEditor {
         btnRemoveAni.setText("Remove Ani");
         btnRemoveAni.setEnabled(false);
         
-        Button btnDeleteKeyframe = new Button(grpKeyframe, SWT.NONE);
+        btnDeleteKeyframe = new Button(grpKeyframe, SWT.NONE);
         btnDeleteKeyframe.setBounds(205, 123, 119, 28);
         btnDeleteKeyframe.setText("Del KeyFrame");
+        btnDeleteKeyframe.addListener(SWT.Selection, e->{
+        	if( selectedPalMapping!=null) {
+        		project.palMappings.remove(selectedPalMapping);
+        		keyframeListViewer.refresh();
+        	}
+        });
         
         Button btnAddKeyframe = new Button(grpKeyframe, SWT.NONE);
         btnAddKeyframe.setText("Add KeyFrame");
         btnAddKeyframe.setBounds(205, 96, 119, 28);
+        btnAddKeyframe.addListener(SWT.Selection, e->{
+        	PalMapping palMapping = new PalMapping(activePalette);
+        	if( btnHash1.getSelection() ) palMapping.setDigest(hashes.get(0));
+        	if( btnHash1.getSelection() ) palMapping.setDigest(hashes.get(1));
+        	palMapping.name = "KeyFrame "+project.palMappings.size()+1;
+        	project.palMappings.add(palMapping);
+        	saveTimeCode = lastTimeCode;
+        	keyframeListViewer.refresh();
+        });
+        
+        Button btnSetDuration = new Button(grpKeyframe, SWT.NONE);
+        btnSetDuration.setBounds(205, 146, 119, 28);
+        btnSetDuration.setText("Set Duration");
+        btnSetDuration.addListener(SWT.Selection, e->{
+        	if( selectedPalMapping!=null) {
+        		selectedPalMapping.durationInMillis = lastTimeCode -saveTimeCode;
+        		txtDuration.setText(selectedPalMapping.durationInMillis+"");
+        	}
+        });
         
         Group grpDetails = new Group(shlPindmdEditor, SWT.NONE);
         GridData gd_grpDetails = new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1);
@@ -718,10 +758,26 @@ public class PinDmdEditor {
         Button btnNew = new Button(grpPalettes, SWT.NONE);
         btnNew.setBounds(198, 4, 67, 28);
         btnNew.setText("New");
+        btnNew.addListener(SWT.Selection, e -> {
+            String name = this.paletteComboViewer.getCombo().getText();
+            if( !isNewPaletteName(name)) {
+                name = "new"+UUID.randomUUID().toString().substring(0, 4);
+            }
+            Palette p = new Palette(dmd.rgb,project.palettes.size(), name);
+            project.palettes.add(p);
+            paletteComboViewer.refresh();
+            activePalette = project.palettes.size()-1;
+        });
         
         Button btnRename = new Button(grpPalettes, SWT.NONE);
         btnRename.setBounds(260, 4, 75, 28);
         btnRename.setText("Rename");
+        btnRename.addListener(SWT.Selection, e -> {
+            project.palettes.get(activePalette).name = paletteComboViewer.getCombo().getText().split(" - ")[1];
+            paletteComboViewer.getCombo().select(activePalette);
+            paletteComboViewer.refresh();
+        });
+        
         
         Button btnReset = new Button(grpPalettes, SWT.NONE);
         btnReset.setBounds(333, 4, 67, 28);
@@ -747,4 +803,12 @@ public class PinDmdEditor {
         lblPlanes.setText("planes");
 
 	}
+	
+    private boolean isNewPaletteName(String text) {
+        for(Palette pal : project.palettes) {
+            if( pal.name.equals(text)) return false;
+        }
+        return true;
+    }
+
 }
