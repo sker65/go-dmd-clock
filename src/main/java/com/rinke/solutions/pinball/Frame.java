@@ -25,6 +25,15 @@ public class Frame {
         planes.add(new Plane((byte)0, plane1));
         planes.add(new Plane((byte)1, plane2));
     }
+
+    public Frame(int w, int h, byte[] plane1, byte[] plane2, byte[] plane3, byte[] plane4) {
+        width = w;
+        height = h;
+        planes.add(new Plane((byte)0, plane1));
+        planes.add(new Plane((byte)1, plane2));
+        planes.add(new Plane((byte)2, plane3));
+        planes.add(new Plane((byte)3, plane4));
+    }
     
     
     @Override
