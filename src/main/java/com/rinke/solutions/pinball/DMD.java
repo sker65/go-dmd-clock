@@ -227,8 +227,17 @@ public class DMD {
 
     public void writeOr(Frame frame) {
         if (frame != null) {
-            copyOr(frame1, frame.planes.get(0).plane);
-            copyOr(frame2, frame.planes.get(1).plane);
+        	if( frame.planes.size()!=3) {
+        		while( frames.size()< frame.planes.size() ) {
+        			frames.add(new byte[bytesPerRow*height]);
+        		}
+        		for (int i = 0; i < frame.planes.size(); i++) {
+					copyOr(frames.get(i),frame.planes.get(i).plane);
+					
+				}
+        		//copyOr(frame1, frame.planes.get(0).plane);
+        		//copyOr(frame2, frame.planes.get(1).plane);
+        	}
         }
     }
 
