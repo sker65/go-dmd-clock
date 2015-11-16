@@ -56,7 +56,13 @@ public class PcapRenderer extends Renderer {
     			int offset = findPinDmdMagicOffset(data);
     			Frame res = new Frame(dmd.getWidth(), dmd.getHeight(), 
     					Frame.transform(data, offset+4, dmd.getFrameSizeInByte()),
-    					Frame.transform(data, offset+4+512, dmd.getFrameSizeInByte()));
+    					Frame.transform(data, offset+4+512, dmd.getFrameSizeInByte()),
+    					Frame.transform(data, offset+4+1024, dmd.getFrameSizeInByte()),
+    					Frame.transform(data, offset+4+1536, dmd.getFrameSizeInByte())
+    					);
+    			
+    			//res = buildSummarizedFrame(dmd.getWidth(), dmd.getHeight(),data, offset+4);
+    			
     			res.delay = lastTimestamp == 0 ? 0 : (int) (p.getTimestampInMillis() - lastTimestamp);
     			tc += res.delay;
     			res.timecode = tc;
@@ -82,6 +88,22 @@ public class PcapRenderer extends Renderer {
     	}
     	
 	}
+
+	/*private Frame buildSummarizedFrame(int width, int height, byte[] data, int offset) {
+		Frame res = new Frame(width, height, null, null);
+		int bytesPerPlane = width/8*height;
+		for(int i = 0; i < bytesPerPlane; i++) {
+			// 4 planes
+			byte v1 = data[offset+i];
+			byte v2 = data[offset+i+bytesPerPlane];
+			byte v3 = data[offset+i+bytesPerPlane*2];
+			byte v4 = data[offset+i+bytesPerPlane*3];
+			for(int j = 0; j < 8; j++) {
+				
+			}
+		}
+		return res;
+	}*/
 
 	private int findPinDmdMagicOffset(byte[] data) {
 		for (int i = 0; i < data.length; i++) {
