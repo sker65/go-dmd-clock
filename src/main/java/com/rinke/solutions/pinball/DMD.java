@@ -2,10 +2,14 @@ package com.rinke.solutions.pinball;
 
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
+import java.io.BufferedWriter;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.swt.events.PaintEvent;
@@ -82,6 +86,7 @@ public class DMD {
     private RGB newRGB(int rgb) {
         return new RGB(rgb >> 16, (rgb >> 8) & 0xFF, rgb & 0xFF);
     }
+
 
     public DMD(int w, int h) {
         this.width = w;
@@ -161,6 +166,8 @@ public class DMD {
         Image image = new Image(ev.display, ev.width, ev.height);
         GC gcImage = new GC(image);
 
+        int colIdx[] = {0,1,7,15};
+        
         int pitch = 7;
         int offset = 20;
         // hell ffae3a
@@ -189,6 +196,7 @@ public class DMD {
                 // hsb first
                 byte mask = (byte) (128 >> (col % 8));
                 int v = 0;
+
                 for(int i = 0; i < numberOfSubframes;i++) {
                     v += (frames.get(i)[col / 8 + row * bytesPerRow] & mask) != 0 ? (1<<i) : 0;
                 }
@@ -218,11 +226,9 @@ public class DMD {
     }
 
     public void clear() {
-        for (int i = 0; i < frameSizeInByte; i++) {
-            frame1[i] = 0;
-            frame2[i] = 0;
-        }
-
+        for (byte[] p : frames) {
+			Arrays.fill(p, (byte)0);
+		}
     }
 
     public void writeOr(Frame frame) {
@@ -231,6 +237,7 @@ public class DMD {
         		while( frames.size()< frame.planes.size() ) {
         			frames.add(new byte[bytesPerRow*height]);
         		}
+        		numberOfSubframes = frames.size();
         		for (int i = 0; i < frame.planes.size(); i++) {
 					copyOr(frames.get(i),frame.planes.get(i).plane);
 					
