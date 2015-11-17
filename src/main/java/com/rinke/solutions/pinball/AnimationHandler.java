@@ -216,6 +216,14 @@ public class AnimationHandler implements Runnable {
         return stop;
     }
 
+	public boolean isClockActive() {
+		return clockActive;
+	}
+
+	public void setClockActive(boolean clockActive) {
+		this.clockActive = clockActive;
+	}
+
 }
 
 
