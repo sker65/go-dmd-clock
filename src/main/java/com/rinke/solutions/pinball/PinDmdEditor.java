@@ -455,6 +455,8 @@ public class PinDmdEditor {
 	private Button btnDeleteKeyframe;
 	private PalMapping selectedPalMapping;
 	private long saveTimeCode;
+	private Button btnAddKeyframe;
+	private Button btnSetDuration;
     
     private void  planesChanged(int planes, int x, int y) {
         switch(planes) {
@@ -564,6 +566,7 @@ public class PinDmdEditor {
                 animationHandler.setAnimations(playingAnis);
             }
             btnRemoveAni.setEnabled(selection.size()>0);
+            btnAddKeyframe.setEnabled(selection.size()>0);
 		});
 		
 		keyframeListViewer = new ListViewer(shlPindmdEditor, SWT.BORDER | SWT.V_SCROLL);
@@ -580,9 +583,11 @@ public class PinDmdEditor {
                 selectedPalMapping = (PalMapping)selection.getFirstElement();
                 txtDuration.setText(selectedPalMapping.durationInMillis+"");
                 paletteComboViewer.setSelection(new StructuredSelection(project.palettes.get(selectedPalMapping.palIndex)));
+            } else {
+                selectedPalMapping = null;
             }
-            selectedPalMapping = null;
             btnDeleteKeyframe.setEnabled(selection.size()>0);
+            btnSetDuration.setEnabled(selection.size()>0);
 		});
 		
 		previewCanvas = new Canvas(shlPindmdEditor, SWT.BORDER|SWT.DOUBLE_BUFFERED);
@@ -633,6 +638,7 @@ public class PinDmdEditor {
         btnDeleteKeyframe = new Button(grpKeyframe, SWT.NONE);
         btnDeleteKeyframe.setBounds(205, 123, 119, 28);
         btnDeleteKeyframe.setText("Del KeyFrame");
+        btnDeleteKeyframe.setEnabled(false);
         btnDeleteKeyframe.addListener(SWT.Selection, e->{
         	if( selectedPalMapping!=null) {
         		project.palMappings.remove(selectedPalMapping);
@@ -640,9 +646,10 @@ public class PinDmdEditor {
         	}
         });
         
-        Button btnAddKeyframe = new Button(grpKeyframe, SWT.NONE);
+        btnAddKeyframe = new Button(grpKeyframe, SWT.NONE);
         btnAddKeyframe.setText("Add KeyFrame");
         btnAddKeyframe.setBounds(205, 96, 119, 28);
+        btnAddKeyframe.setEnabled(false);
         btnAddKeyframe.addListener(SWT.Selection, e->{
         	PalMapping palMapping = new PalMapping(activePalette);
         	if( btnHash1.getSelection() ) palMapping.setDigest(hashes.get(0));
@@ -653,9 +660,10 @@ public class PinDmdEditor {
         	keyframeListViewer.refresh();
         });
         
-        Button btnSetDuration = new Button(grpKeyframe, SWT.NONE);
+        btnSetDuration = new Button(grpKeyframe, SWT.NONE);
         btnSetDuration.setBounds(205, 146, 119, 28);
         btnSetDuration.setText("Set Duration");
+        btnSetDuration.setEnabled(false);
         btnSetDuration.addListener(SWT.Selection, e->{
         	if( selectedPalMapping!=null) {
         		selectedPalMapping.durationInMillis = lastTimeCode -saveTimeCode;
