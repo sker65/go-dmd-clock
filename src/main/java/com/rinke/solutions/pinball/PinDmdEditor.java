@@ -153,10 +153,10 @@ public class PinDmdEditor {
                     lblFrameNo.setText(""+ evt.actFrame);
                     lblTcval.setText( ""+evt.timecode);
                     //hashLabel.setText(
-                    String[] hashes = evt.getPrintableHashes().replaceAll("plane 1","#plane 1").split("#");
-                    btnHash1.setText(hashes[0]);
-                    btnHash2.setText(hashes[1]);
-                    btnHash3.setText("");
+                    int i = 0;
+                    for( byte[] p : evt.hashes) {
+						btnHash[i++].setText(getPrintableHashes(p));
+					}
 
                     saveHashes(evt.hashes);
                     lastTimeCode = evt.timecode;
@@ -293,7 +293,7 @@ public class PinDmdEditor {
             //DMD dmd = new DMD(128, 32);
             for (Animation ani : loadedList) {
     			project.scenes.add(new Scene(ani.getDesc(),0,/*ani.getFrameCount(dmd)*/100000,0));
-    			project.palMappings.add(new PalMapping(-1));
+    			//project.palMappings.add(new PalMapping(-1));
     		}
         }
         
@@ -448,15 +448,34 @@ public class PinDmdEditor {
         }
     }
     
+    int numberOfHashes = 4;
+    Button btnHash[]  = new Button[numberOfHashes];
+    
+    public void createHashButtons(Composite parent, int x, int y ) {
+    	for(int i = 0; i < numberOfHashes; i++) {
+            btnHash[i] = new Button(parent, SWT.CHECK);
+            if( i == 0 ) btnHash[i].setSelection(true);
+            btnHash[i].setData(Integer.valueOf(i));
+            btnHash[i].setText("Hash"+i);
+            btnHash[i].setBounds(x, y+i*16, 331, 18);
+            btnHash[i].addListener(SWT.Selection, e->{
+            	selectedHashIndex = (Integer) e.widget.getData();
+            	for(int j = 0; j < numberOfHashes; j++) {
+            		if( j != selectedHashIndex ) btnHash[j].setSelection(false);
+            	}
+            });
+    	}
+    }
+    
     byte[] visible = { 1,1,0,0, 0,0,0,1, 0,0,0,0, 0,0,0,1 };
-	private Button btnHash1;
-	private Button btnHash2;
-	private Button btnHash3;
 	private Button btnDeleteKeyframe;
 	private PalMapping selectedPalMapping;
 	private long saveTimeCode;
 	private Button btnAddKeyframe;
 	private Button btnSetDuration;
+	private Button btnPrev;
+	private Button btnNext;
+	private int selectedHashIndex;
     
     private void  planesChanged(int planes, int x, int y) {
         switch(planes) {
@@ -560,10 +579,12 @@ public class PinDmdEditor {
 		aniListViewer.addSelectionChangedListener(event -> {
             IStructuredSelection selection = (IStructuredSelection) event.getSelection();
             if (selection.size() > 0){
-                Animation ani = (Animation)selection.getFirstElement();
+            	selectedAnimation = (Animation)selection.getFirstElement();
                 playingAnis.clear();
-                playingAnis.add(ani);
-                animationHandler.setAnimations(playingAnis);
+                playingAnis.add(selectedAnimation);
+                animationHandler.setAnimations(playingAnis); 
+            } else {
+            	selectedAnimation = null;
             }
             btnRemoveAni.setEnabled(selection.size()>0);
             btnAddKeyframe.setEnabled(selection.size()>0);
@@ -610,17 +631,7 @@ public class PinDmdEditor {
         grpKeyframe.setLayoutData(gd_grpKeyframe);
         grpKeyframe.setText("Animations / KeyFrame");
         
-        btnHash1 = new Button(grpKeyframe, SWT.CHECK);
-        btnHash1.setText("Hash1");
-        btnHash1.setBounds(20, 10, 331, 18);
-        
-        btnHash2 = new Button(grpKeyframe, SWT.CHECK);
-        btnHash2.setBounds(20, 26, 331, 18);
-        btnHash2.setText("Hash2");
-        
-        btnHash3 = new Button(grpKeyframe, SWT.CHECK);
-        btnHash3.setBounds(20, 42, 331, 18);
-        btnHash3.setText("Hash3");
+        createHashButtons(grpKeyframe, 20, 5);
         
         txtDuration = new Text(grpKeyframe, SWT.BORDER);
         txtDuration.setText("0");
@@ -634,6 +645,15 @@ public class PinDmdEditor {
         btnRemoveAni.setBounds(10, 123, 94, 28);
         btnRemoveAni.setText("Remove Ani");
         btnRemoveAni.setEnabled(false);
+        btnRemoveAni.addListener(SWT.Selection, e->{
+        	if( selectedAnimation != null ) {
+        		animations.remove(selectedAnimation);
+        		aniListViewer.refresh();
+        		playingAnis.clear();
+        		animationHandler.setAnimations(playingAnis);
+        		animationHandler.setClockActive(true);
+        	}
+        });
         
         btnDeleteKeyframe = new Button(grpKeyframe, SWT.NONE);
         btnDeleteKeyframe.setBounds(205, 123, 119, 28);
@@ -652,8 +672,11 @@ public class PinDmdEditor {
         btnAddKeyframe.setEnabled(false);
         btnAddKeyframe.addListener(SWT.Selection, e->{
         	PalMapping palMapping = new PalMapping(activePalette);
-        	if( btnHash1.getSelection() ) palMapping.setDigest(hashes.get(0));
-        	if( btnHash1.getSelection() ) palMapping.setDigest(hashes.get(1));
+        	if( selectedHashIndex == -1 ) {
+        		
+        	} else {
+        		palMapping.setDigest(hashes.get(selectedHashIndex));
+        	}
         	palMapping.name = "KeyFrame "+project.palMappings.size()+1;
         	project.palMappings.add(palMapping);
         	saveTimeCode = lastTimeCode;
@@ -705,6 +728,8 @@ public class PinDmdEditor {
         	animationHandler.start();
     		btnStop.setEnabled(true);
     		btnStart.setEnabled(false);
+        	btnPrev.setEnabled(false);
+        	btnNext.setEnabled(false);
         });
         btnStart.setEnabled(false);
         
@@ -714,15 +739,19 @@ public class PinDmdEditor {
         	animationHandler.stop();
         	btnStop.setEnabled(false);
         	btnStart.setEnabled(true);
+        	btnPrev.setEnabled(true);
+        	btnNext.setEnabled(true);
         });
         
-        Button btnPrev = new Button(composite, SWT.NONE);
+        btnPrev = new Button(composite, SWT.NONE);
         btnPrev.setBounds(200, 0, 40, 28);
         btnPrev.setText("<");
+        btnPrev.setEnabled(false);
         btnPrev.addListener(SWT.Selection, e->animationHandler.prev());
         
-        Button btnNext = new Button(composite, SWT.NONE);
+        btnNext = new Button(composite, SWT.NONE);
         btnNext.setText(">");
+        btnNext.setEnabled(false);
         btnNext.setBounds(236, 0, 40, 28);
         btnNext.addListener(SWT.Selection, e->animationHandler.next());
         
@@ -734,6 +763,16 @@ public class PinDmdEditor {
         createColorButtons(grpPalettes,5,40);
         
         Button btnDefault = new Button(grpPalettes, SWT.CHECK);
+        btnDefault.setBounds(138, 10, 67, 18);
+        btnDefault.setText("default");
+        btnDefault.addListener(SWT.Selection, e -> {
+            boolean isDefault = btnDefault.getSelection();
+            if( isDefault ) {
+                // clean default state from others
+                project.palettes.stream().forEach(p->p.isDefault=false);
+            }
+            project.palettes.get(activePalette).isDefault = isDefault;
+        });
 
         paletteComboViewer = new ComboViewer(grpPalettes, SWT.NONE);
         Combo palettes = paletteComboViewer.getCombo();
@@ -752,17 +791,6 @@ public class PinDmdEditor {
                   }
         });
         
-        btnDefault.setBounds(138, 10, 67, 18);
-        btnDefault.setText("default");
-        btnDefault.addListener(SWT.Selection, e -> {
-            boolean isDefault = btnDefault.getSelection();
-            if( isDefault ) {
-                // clean default state from others
-                project.palettes.stream().forEach(p->p.isDefault=false);
-            }
-            project.palettes.get(activePalette).isDefault = isDefault;
-        });
-
         Button btnNew = new Button(grpPalettes, SWT.NONE);
         btnNew.setBounds(198, 4, 67, 28);
         btnNew.setText("New");
@@ -785,7 +813,6 @@ public class PinDmdEditor {
             paletteComboViewer.getCombo().select(activePalette);
             paletteComboViewer.refresh();
         });
-        
         
         Button btnReset = new Button(grpPalettes, SWT.NONE);
         btnReset.setBounds(333, 4, 67, 28);
@@ -810,6 +837,13 @@ public class PinDmdEditor {
         lblPlanes.setBounds(400, 10, 53, 14);
         lblPlanes.setText("planes");
 
+	}
+	
+	public String getPrintableHashes(byte[] p) {
+		StringBuffer hexString = new StringBuffer();
+		for (int j = 0; j < p.length; j++)
+			hexString.append(String.format("%02X ", p[j]));
+		return hexString.toString();
 	}
 	
     private boolean isNewPaletteName(String text) {
