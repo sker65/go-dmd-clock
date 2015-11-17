@@ -22,16 +22,5 @@ public class AniEvent {
         this.timecode = tc;
     }
 
-    public String getPrintableHashes() {
-        StringBuffer hexString = new StringBuffer();
-        int plane = 0;
-        for(byte[] p: hashes) {
-            hexString.append("plane " + (plane++)+": " );
-            for( int j = 0; j<p.length; j++) 
-                hexString.append(String.format("%02X ", p[j]));
-            if( plane<hashes.size()-1) hexString.append("\n");
-        }
-        return hexString.toString();
-    }
 
 }
