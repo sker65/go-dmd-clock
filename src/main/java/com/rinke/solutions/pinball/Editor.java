@@ -585,7 +585,7 @@ public class Editor implements Runnable {
                 case ANI:
                     lblDetails.setText("Frame: " + evt.actFrame);
                     lblTc.setText("TC: "+evt.timecode);
-                    hashLabel.setText(evt.getPrintableHashes().replaceAll("plane 1","\nplane 1"));
+                    //hashLabel.setText(evt.getPrintableHashes().replaceAll("plane 1","\nplane 1"));
                     saveHashes(evt.hashes);
                     lastTimeCode = evt.timecode;
                     break;
