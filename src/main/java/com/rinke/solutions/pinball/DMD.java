@@ -66,14 +66,14 @@ public class DMD {
     public void resetColors() {
         rgb[0] = new RGB(0x0, 0x00, 0x00);//new RGB(0x19, 0x00, 0x06);
         rgb[1] = new RGB(0x6f, 0x00, 0x00);
-        rgb[7] = new RGB(0xca, 0x00, 0x00);
+        rgb[4] = new RGB(0xca, 0x00, 0x00);
         rgb[15] = new RGB(0xff, 0x00, 0x00);
 
         rgb[2] = newRGB(0x008000);
         rgb[3] = newRGB(0x808000);
-        rgb[4] = newRGB(0x000080);
-        rgb[5] = newRGB(0x800080);
-        rgb[6] = newRGB(0xC0C0C0);
+        rgb[5] = newRGB(0x000080);
+        rgb[6] = newRGB(0x800080);
+        rgb[7] = newRGB(0xC0C0C0);
         rgb[8] = newRGB(0x808080);
         rgb[9] = newRGB(0x00FF00);
         rgb[10] = newRGB(0xFFFF00);
@@ -166,7 +166,7 @@ public class DMD {
         Image image = new Image(ev.display, ev.width, ev.height);
         GC gcImage = new GC(image);
 
-        int colIdx[] = {0,1,7,15};
+        int colIdx[] = {0,1,4,15};
         
         int pitch = 7;
         int offset = 20;
@@ -178,7 +178,7 @@ public class DMD {
         if( numberOfSubframes == 2) {
             cols[0] = new Color(ev.display, rgb[0]);
             cols[1] = new Color(ev.display, rgb[1]);
-            cols[2] = new Color(ev.display, rgb[7]);
+            cols[2] = new Color(ev.display, rgb[4]);
             cols[3] = new Color(ev.display, rgb[15]);
         } else {
             for(int i = 0; i < (1 << numberOfSubframes);i++) {

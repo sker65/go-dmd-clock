@@ -467,7 +467,7 @@ public class PinDmdEditor {
     	}
     }
     
-    byte[] visible = { 1,1,0,0, 0,0,0,1, 0,0,0,0, 0,0,0,1 };
+    byte[] visible = { 1,1,0,0, 1,0,0,0, 0,0,0,0, 0,0,0,1 };
 	private Button btnDeleteKeyframe;
 	private PalMapping selectedPalMapping;
 	private long saveTimeCode;
