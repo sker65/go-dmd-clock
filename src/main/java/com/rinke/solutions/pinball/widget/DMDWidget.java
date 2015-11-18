@@ -1,5 +1,6 @@
 package com.rinke.solutions.pinball.widget;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
@@ -7,6 +8,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
 
 import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.model.Palette;
@@ -20,6 +22,8 @@ public class DMDWidget extends ResourceManagedCanvas {
 	private int bytesPerRow;
 	int margin = 20;
 	int pitch = 7;
+	int pressedButton = 0;
+	DrawTool drawTool = new RectTool();//new SetPixelTool();
 
 	public DMDWidget(Composite parent, int style, DMD dmd) {
 		super(parent, style);
@@ -28,7 +32,16 @@ public class DMDWidget extends ResourceManagedCanvas {
 		resolutionY = dmd.getHeight();
 		bytesPerRow = dmd.getBytesPerRow();
 		this.dmd = dmd;
+		this.addListener( SWT.MouseDown, e -> handleMouse(e));
+		this.addListener( SWT.MouseUp, e -> handleMouse(e));
+		this.addListener( SWT.MouseMove, e -> handleMouse(e));
+		drawTool.setDMD(dmd);
 	}
+	
+	private void handleMouse(Event e) {
+		drawTool.handleMouse(e, (e.x-margin)/pitch, (e.y-margin)/pitch);
+	}
+
 
 	@Override
 	public void setBounds(int x, int y, int width, int height) {

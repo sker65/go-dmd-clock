@@ -10,7 +10,9 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.graphics.Color;
@@ -24,12 +26,17 @@ public class DMD {
     private int width;
     private int height;
     
+    // TODO remove public reference to ensure the actual buffer are accessed
     public List<byte[]> frames = new ArrayList<byte[]>();
+    
+    public Map<Integer,List<byte[]>> buffers = new HashMap<Integer,List<byte[]>>();
 
+    // remove simple fixed frames completely
     public byte[] frame1 = null;
     public byte[] frame2 = null;
     
     int numberOfSubframes = 2;
+    public int actualBuffer = 0;
     
     List<DeleteMask> deleteMasks = new ArrayList<>();
 
@@ -86,7 +93,28 @@ public class DMD {
     private RGB newRGB(int rgb) {
         return new RGB(rgb >> 16, (rgb >> 8) & 0xFF, rgb & 0xFF);
     }
+    
+    public void copyTemp() {
+    	List<byte[]> target = buffers.get(actualBuffer);
+    	List<byte[]> source = buffers.get(actualBuffer-1);
+    	for(int i = 0; i < source.size(); i++) {
+    		System.arraycopy(source.get(i), 0, target.get(i), 0, source.get(i).length);
+    	}
+    }
+    
+    public void createTemp() {
+    	List<byte[]> newframes = new ArrayList<byte[]>();
+    	for( byte[] frame : frames) {
+    		newframes.add(Arrays.copyOf(frame, frame.length));
+    	}
+    	actualBuffer++;
+    	buffers.put(actualBuffer, newframes);
+    	this.frames = newframes;
+    }
 
+    public void commit() {
+    	
+    }
 
     public DMD(int w, int h) {
         this.width = w;
@@ -97,6 +125,7 @@ public class DMD {
         frameSizeInByte = bytesPerRow * height;
         setNumberOfSubframes(2);
         resetColors();
+        buffers.put(actualBuffer, frames);
     }
     
     public void setNumberOfSubframes(int n) {
@@ -116,7 +145,25 @@ public class DMD {
     public void copyInto(DMD src, int xsrc, int ysrc, int w, int h, int destx, int desty) {
     }
 
-    public void setPixel(int col, int row, int v) {
+    public void setPixel(int x, int y, int v) {
+    	byte mask = (byte) (128 >> (x % 8));
+    	for(int plane = frames.size()-1; plane>=0; plane--) {
+    		if( (v & 0x01) != 0) {
+    			frames.get(plane)[y*bytesPerRow+x/8] |= mask;
+    		} else {
+    			frames.get(plane)[y*bytesPerRow+x/8] &= ~mask;
+    		}
+    		v >>= 1;
+    	}
+    }
+
+    public int getPixel(int x, int y) {
+    	byte mask = (byte) (128 >> (x % 8));
+    	int v = 0;
+    	for(int plane = 0; plane <frames.size(); plane++) {
+    		v += (frames.get(plane)[x / 8 + y * bytesPerRow] & mask) != 0 ? (1<<plane) : 0;
+    	}
+    	return v;
     }
     
     int pitch = 7;
