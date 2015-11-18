@@ -11,17 +11,17 @@ public class Palette implements Model {
     public int numberOfColors;
     public int index;
     public RGB[] colors;
-    public boolean isDefault;
+    public PaletteType type;
 
     public Palette(RGB[] colors, int index, String name) {
-    	this(colors, index, name, false);
+    	this(colors, index, name, PaletteType.NORMAL);
     }
     
-    public Palette(RGB[] colors, int index, String name, boolean isDefault) {
+    public Palette(RGB[] colors, int index, String name, PaletteType type) {
         this(colors);
         this.index = index;
         this.name = name;
-        this.isDefault = isDefault;
+        this.type = type;
     }
 
     public Palette(RGB[] colors) {
@@ -33,7 +33,7 @@ public class Palette implements Model {
     public void writeTo(DataOutputStream os) throws IOException {
 		os.writeShort(index);
 		os.writeShort(numberOfColors);
-		os.writeBoolean(isDefault);
+		os.writeByte(type.ordinal());
 		for (int i = 0; i < colors.length; i++) {
 			os.writeByte(colors[i].red);
 			os.writeByte(colors[i].green);
@@ -45,8 +45,7 @@ public class Palette implements Model {
 	public String toString() {
 		return "Palette [name=" + name + ", numberOfColors=" + numberOfColors
 				+ ", index=" + index + ", colors=" + Arrays.toString(colors)
-				+ ", isDefault=" + isDefault + "]";
+				+ ", type=" + type + "]";
 	}
-    
     
 }

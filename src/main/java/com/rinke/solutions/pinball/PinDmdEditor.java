@@ -39,6 +39,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.RGB;
 
 import com.rinke.solutions.pinball.model.Palette;
+import com.rinke.solutions.pinball.model.PaletteType;
 import com.rinke.solutions.pinball.model.Project;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.Scene;
@@ -476,6 +477,7 @@ public class PinDmdEditor {
 	private Button btnPrev;
 	private Button btnNext;
 	private int selectedHashIndex;
+	private ComboViewer paletteTypeComboViewer;
     
     private void  planesChanged(int planes, int x, int y) {
         switch(planes) {
@@ -760,23 +762,30 @@ public class PinDmdEditor {
         gd_grpPalettes.heightHint = 90;
         grpPalettes.setLayoutData(gd_grpPalettes);
         grpPalettes.setText("Palettes");
-        createColorButtons(grpPalettes,5,40);
+        createColorButtons(grpPalettes,10,40);
         
-        Button btnDefault = new Button(grpPalettes, SWT.CHECK);
-        btnDefault.setBounds(138, 10, 67, 18);
-        btnDefault.setText("default");
-        btnDefault.addListener(SWT.Selection, e -> {
-            boolean isDefault = btnDefault.getSelection();
-            if( isDefault ) {
-                // clean default state from others
-                project.palettes.stream().forEach(p->p.isDefault=false);
+        paletteTypeComboViewer = new ComboViewer( grpPalettes, SWT.READ_ONLY);
+        Combo paletteTypeCombo = paletteTypeComboViewer.getCombo();
+        paletteTypeCombo.setBounds(138, 6, 67, 22);
+        paletteTypeComboViewer.setContentProvider(ArrayContentProvider.getInstance());
+        paletteTypeComboViewer.setInput(PaletteType.values());
+        paletteTypeComboViewer.setSelection(new StructuredSelection(PaletteType.NORMAL));
+        paletteTypeComboViewer.addSelectionChangedListener(e -> {
+            IStructuredSelection selection = (IStructuredSelection) e.getSelection();
+            PaletteType palType = (PaletteType)selection.getFirstElement();
+            project.palettes.get(activePalette).type = palType;
+            if( !PaletteType.NORMAL.equals(palType)) {
+            	for(int i = 0; i<project.palettes.size(); i++) {
+            		if( i != activePalette ) { // set all other to normal
+            			project.palettes.get(activePalette).type = PaletteType.NORMAL;
+            		}
+            	}
             }
-            project.palettes.get(activePalette).isDefault = isDefault;
         });
 
         paletteComboViewer = new ComboViewer(grpPalettes, SWT.NONE);
         Combo palettes = paletteComboViewer.getCombo();
-        palettes.setBounds(10, 10, 122, 22);
+        palettes.setBounds(10, 6, 122, 22);
         paletteComboViewer.setContentProvider(ArrayContentProvider.getInstance());
         paletteComboViewer.setLabelProvider(new PaletteViewerLabelProvider());
         paletteComboViewer.setInput(project.palettes);
@@ -787,7 +796,7 @@ public class PinDmdEditor {
                       activePalette = pal.index;
                       dmd.rgb = pal.colors;
                       setColorBtn();
-                      btnDefault.setSelection( pal.isDefault ); 
+                      paletteTypeComboViewer.setSelection( new StructuredSelection(pal.type) ); 
                   }
         });
         
@@ -829,13 +838,13 @@ public class PinDmdEditor {
         planes.setBounds(465, 6, 46, 22);
         planes.select(0);
         planes.select(0);
-        planesChanged(0,5,40);
+        planesChanged(0,10,40);
         planes.addListener(SWT.Selection, e -> planesChanged( planes.getSelectionIndex(),5,40 ));
 
         
         Label lblPlanes = new Label(grpPalettes, SWT.NONE);
-        lblPlanes.setBounds(400, 10, 53, 14);
-        lblPlanes.setText("planes");
+        lblPlanes.setBounds(406, 6, 53, 22);
+        lblPlanes.setText("Planes");
 
 	}
 	

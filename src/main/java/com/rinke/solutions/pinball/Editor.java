@@ -58,6 +58,7 @@ import com.rinke.solutions.pinball.model.Format;
 import com.rinke.solutions.pinball.model.Model;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.Palette;
+import com.rinke.solutions.pinball.model.PaletteType;
 import com.rinke.solutions.pinball.model.Project;
 import com.rinke.solutions.pinball.model.Scene;
 import com.thoughtworks.xstream.XStream;
@@ -83,7 +84,7 @@ public class Editor implements Runnable {
     
     public void testStore() {
     	java.util.List<Palette> tpalettes = new ArrayList<Palette>();
-    	tpalettes.add( new Palette(dmd.rgb, 0, "default", true));
+    	tpalettes.add( new Palette(dmd.rgb, 0, "default", PaletteType.NORMAL));
     	tpalettes.add( new Palette(dmd.rgb, 1, "logo"));
     	
 		java.util.List<PalMapping> palMappings = new ArrayList<PalMapping>();
@@ -483,7 +484,7 @@ public class Editor implements Runnable {
         
         createColorButtons(grpDetails_1);
 
-        btnDefault = new Button(grpDetails_1, SWT.CHECK);
+        /*btnDefault = new Button(grpDetails_1, SWT.CHECK);
         btnDefault.setBounds(870, 158, 75, 24);
         btnDefault.setText("default");
         btnDefault.addListener(SWT.Selection, e -> {
@@ -493,7 +494,7 @@ public class Editor implements Runnable {
                 project.palettes.stream().forEach(p->p.isDefault=false);
             }
             project.palettes.get(activePalette).isDefault = isDefault;
-        });
+        });*/
         
         paletteCombo = new Combo(grpDetails_1, SWT.NONE);
         paletteCombo.setBounds(536, 155, 173, 29);
@@ -517,7 +518,7 @@ public class Editor implements Runnable {
                       activePalette = pal.index;
                       dmd.rgb = pal.colors;
                       setColorBtn();
-                      btnDefault.setSelection( pal.isDefault ); 
+                      //btnDefault.setSelection( pal.isDefault ); 
                   }
         });
 

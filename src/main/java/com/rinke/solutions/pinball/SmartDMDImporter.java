@@ -10,6 +10,7 @@ import java.util.List;
 import org.eclipse.swt.graphics.RGB;
 
 import com.rinke.solutions.pinball.model.Palette;
+import com.rinke.solutions.pinball.model.PaletteType;
 
 public class SmartDMDImporter {
 
@@ -19,6 +20,7 @@ public class SmartDMDImporter {
             String line = reader.readLine();
             int numberOfPalettes = 0;
             int defaultPalette = 0;
+            int persistent = 0;
             while (line != null) {
                 int pos = line.indexOf("=");
                 if (pos != -1) {
@@ -31,10 +33,12 @@ public class SmartDMDImporter {
                     } else if (key.startsWith("dmd_palette")) {
                         int idx = Integer.parseInt(key.substring(11));
                         Palette p = parsePalette(val);
-                        if (idx == defaultPalette)
-                            p.isDefault = true;
+                        p.type = idx == defaultPalette ? PaletteType.DEFAULT :
+                        	(persistent==0?PaletteType.NORMAL:PaletteType.PERSISTENT);
                         p.index = idx;
                         res.add(p);
+                    } else if( key.equals("dmd_persistentpalette")) {
+                    	persistent = Integer.parseInt(val);
                     }
                 }
                 line = reader.readLine();
