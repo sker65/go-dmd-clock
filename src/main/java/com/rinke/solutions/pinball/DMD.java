@@ -24,7 +24,7 @@ public class DMD {
     private int width;
     private int height;
     
-    List<byte[]> frames = new ArrayList<byte[]>();
+    public List<byte[]> frames = new ArrayList<byte[]>();
 
     public byte[] frame1 = null;
     public byte[] frame2 = null;

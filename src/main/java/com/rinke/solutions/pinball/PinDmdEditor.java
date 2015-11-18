@@ -43,6 +43,7 @@ import com.rinke.solutions.pinball.model.PaletteType;
 import com.rinke.solutions.pinball.model.Project;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.Scene;
+import com.rinke.solutions.pinball.widget.DMDWidget;
 
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.swt.widgets.Composite;
@@ -52,14 +53,21 @@ import org.slf4j.LoggerFactory;
 
 public class PinDmdEditor {
 
-    private class DmdPaintListener implements PaintListener {
+	/**
+	 * handles redraw of animations
+	 * @author steve
+	 */
+    private class CyclicRedraw implements Runnable {
 
-        public void paintControl(PaintEvent e) {
-            dmd.draw(e);
-            if (animationHandler != null)
-                e.display.timerExec(animationHandler.getRefreshDelay(), animationHandler);
-            e.gc.dispose();
-        }
+		@Override
+		public void run() {
+			previewCanvas.redraw();
+			dmdWidget.redraw();
+            if (animationHandler != null) {
+            	animationHandler.run();
+                display.timerExec(animationHandler.getRefreshDelay(), cyclicRedraw);
+            }
+		}
     }
 	
 	private static class PaletteViewerLabelProvider extends LabelProvider {
@@ -92,6 +100,7 @@ public class PinDmdEditor {
 
 	DMD dmd = new DMD(128,32);
 	AnimationHandler animationHandler = null;
+	CyclicRedraw cyclicRedraw = null;
 	
 	Project project = new Project();
 	java.util.List<Animation> animations = new ArrayList<>();
@@ -137,7 +146,9 @@ public class PinDmdEditor {
 	public void open() {
 		display = Display.getDefault();
 		
-		project.palettes.add(new Palette(dmd.rgb, 0, "default"));
+		project.palettes.add(new Palette(Palette.defaultColors(), 0, "default"));
+		
+		cyclicRedraw = new CyclicRedraw();
 
 		createContents();
 		
@@ -181,7 +192,7 @@ public class PinDmdEditor {
 		GlobalExceptionHandler.getInstance().setDisplay(display);
         GlobalExceptionHandler.getInstance().setShell(shell);
 
-		display.timerExec(animationHandler.getRefreshDelay(), animationHandler);
+		display.timerExec(animationHandler.getRefreshDelay(), cyclicRedraw);
         int retry = 0;
         while (true ) {
             try {
@@ -211,7 +222,7 @@ public class PinDmdEditor {
 	private Animation selectedAnimation = null;
 	private int selectedAnimationIndex = 0;
 	private java.util.List<Animation> playingAnis = new ArrayList<Animation>();
-	private int activePalette;
+	private int activePaletteIndex;
 	
     private Object loadProject(Event e) {
         FileDialog fileChooser = new FileDialog(shell, SWT.OPEN);
@@ -323,7 +334,7 @@ public class PinDmdEditor {
         FileDialog fileChooser = new FileDialog(shell, SWT.SAVE);
         fileChooser.setOverwrite(true);
         
-        fileChooser.setFileName(project.palettes.get(activePalette).name);
+        fileChooser.setFileName(project.palettes.get(activePaletteIndex).name);
         if (lastPath != null)
             fileChooser.setFilterPath(lastPath);
         fileChooser.setFilterExtensions(new String[] { "*.xml", "*.json" });
@@ -332,7 +343,7 @@ public class PinDmdEditor {
         lastPath = fileChooser.getFilterPath();
         if (filename != null) {
             LOG.info("store palette to {}",filename);
-            fileHelper.storeObject(project.palettes.get(activePalette), filename);
+            fileHelper.storeObject(project.palettes.get(activePaletteIndex), filename);
         }
         return null;
     }
@@ -373,7 +384,7 @@ public class PinDmdEditor {
                 Palette pal = (Palette) fileHelper.loadObject(filename);
                 LOG.info("load palette from {}",filename);
                 project.palettes.add(pal);
-                activePalette = project.palettes.size()-1;
+                activePaletteIndex = project.palettes.size()-1;
             }
             paletteComboViewer.refresh();
         }
@@ -423,12 +434,15 @@ public class PinDmdEditor {
                 cd.setText("ColorDialog Demo");
                 int j = (Integer) e.widget.getData();
                 cd.setRGB(dmd.getColor(j));
-                RGB newColor = cd.open();
-                if (newColor == null) {
+                RGB rgb = cd.open();
+                if (rgb == null) {
                     return;
                 }
-                ((Button)e.widget).setImage(getSquareImage(display, new Color(display,newColor)));
-                dmd.setColor(j, newColor);
+                ((Button)e.widget).setImage(getSquareImage(display, new Color(display,rgb)));
+                dmd.setColor(j, rgb);
+                Palette pal = project.palettes.get(activePaletteIndex);
+                pal.colors[j] = rgb;
+                dmdWidget.setPalette(pal);
             });
         }
     }
@@ -478,6 +492,7 @@ public class PinDmdEditor {
 	private Button btnNext;
 	private int selectedHashIndex;
 	private ComboViewer paletteTypeComboViewer;
+	private DMDWidget dmdWidget;
     
     private void  planesChanged(int planes, int x, int y) {
         switch(planes) {
@@ -499,7 +514,7 @@ public class PinDmdEditor {
 	 */
 	protected void createContents() {
 		shlPindmdEditor = new Shell();
-		shlPindmdEditor.setSize(1267, 575);
+		shlPindmdEditor.setSize(1267, 875);
 		shlPindmdEditor.setText("Pin2dmd - Editor");
 		shlPindmdEditor.setLayout(new GridLayout(3, false));
 		
@@ -619,7 +634,8 @@ public class PinDmdEditor {
         gd_canvas.widthHint = 960;
         previewCanvas.setLayoutData(gd_canvas);
         previewCanvas.setBackground(new Color(shlPindmdEditor.getDisplay(), 10,10,10));
-        previewCanvas.addPaintListener(new DmdPaintListener());
+        previewCanvas.addPaintListener(e -> { dmd.draw(e); });
+        
         new Label(shlPindmdEditor, SWT.NONE);
         new Label(shlPindmdEditor, SWT.NONE);
         
@@ -673,7 +689,7 @@ public class PinDmdEditor {
         btnAddKeyframe.setBounds(205, 96, 119, 28);
         btnAddKeyframe.setEnabled(false);
         btnAddKeyframe.addListener(SWT.Selection, e->{
-        	PalMapping palMapping = new PalMapping(activePalette);
+        	PalMapping palMapping = new PalMapping(activePaletteIndex);
         	if( selectedHashIndex == -1 ) {
         		
         	} else {
@@ -773,11 +789,11 @@ public class PinDmdEditor {
         paletteTypeComboViewer.addSelectionChangedListener(e -> {
             IStructuredSelection selection = (IStructuredSelection) e.getSelection();
             PaletteType palType = (PaletteType)selection.getFirstElement();
-            project.palettes.get(activePalette).type = palType;
+            project.palettes.get(activePaletteIndex).type = palType;
             if( !PaletteType.NORMAL.equals(palType)) {
             	for(int i = 0; i<project.palettes.size(); i++) {
-            		if( i != activePalette ) { // set all other to normal
-            			project.palettes.get(activePalette).type = PaletteType.NORMAL;
+            		if( i != activePaletteIndex ) { // set all other to normal
+            			project.palettes.get(activePaletteIndex).type = PaletteType.NORMAL;
             		}
             	}
             }
@@ -793,10 +809,11 @@ public class PinDmdEditor {
             IStructuredSelection selection = (IStructuredSelection) event.getSelection();
                   if (selection.size() > 0){
                       Palette pal = (Palette)selection.getFirstElement();
-                      activePalette = pal.index;
+                      activePaletteIndex = pal.index;
                       dmd.rgb = pal.colors;
+                      dmdWidget.setPalette(pal);
                       setColorBtn();
-                      paletteTypeComboViewer.setSelection( new StructuredSelection(pal.type) ); 
+                      paletteTypeComboViewer.setSelection( new StructuredSelection(pal.type) );
                   }
         });
         
@@ -811,15 +828,16 @@ public class PinDmdEditor {
             Palette p = new Palette(dmd.rgb,project.palettes.size(), name);
             project.palettes.add(p);
             paletteComboViewer.refresh();
-            activePalette = project.palettes.size()-1;
+            activePaletteIndex = project.palettes.size()-1;
+            paletteComboViewer.getCombo().select(activePaletteIndex);
         });
         
         Button btnRename = new Button(grpPalettes, SWT.NONE);
         btnRename.setBounds(260, 4, 75, 28);
         btnRename.setText("Rename");
         btnRename.addListener(SWT.Selection, e -> {
-            project.palettes.get(activePalette).name = paletteComboViewer.getCombo().getText().split(" - ")[1];
-            paletteComboViewer.getCombo().select(activePalette);
+            project.palettes.get(activePaletteIndex).name = paletteComboViewer.getCombo().getText().split(" - ")[1];
+            paletteComboViewer.getCombo().select(activePaletteIndex);
             paletteComboViewer.refresh();
         });
         
@@ -845,7 +863,12 @@ public class PinDmdEditor {
         Label lblPlanes = new Label(grpPalettes, SWT.NONE);
         lblPlanes.setBounds(406, 6, 53, 22);
         lblPlanes.setText("Planes");
-
+        
+        dmdWidget = new DMDWidget(shlPindmdEditor, SWT.NONE, this.dmd);
+        dmdWidget.setBounds(0, 0, 600, 200);
+        GridData gd_dmdWidget = new GridData(SWT.FILL, SWT.FILL, false, false, 3, 1);
+        gd_dmdWidget.heightHint = 200;
+        dmdWidget.setLayoutData(gd_dmdWidget);
 	}
 	
 	public String getPrintableHashes(byte[] p) {

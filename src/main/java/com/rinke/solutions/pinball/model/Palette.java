@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.Arrays;
 
 import org.eclipse.swt.graphics.RGB;
+import org.eclipse.swt.widgets.Composite;
 
 public class Palette implements Model {
     public String name;
@@ -47,5 +48,36 @@ public class Palette implements Model {
 				+ ", index=" + index + ", colors=" + Arrays.toString(colors)
 				+ ", type=" + type + "]";
 	}
+
+	public static Palette getDefaultPalette() {
+		return new Palette(defaultColors());
+	}
+	
+    private static RGB newRGB(int rgb) {
+        return new RGB(rgb >> 16, (rgb >> 8) & 0xFF, rgb & 0xFF);
+    }
+	
+    public static RGB[] defaultColors() {
+    	RGB[] rgb = new RGB[16];
+        rgb[0] = newRGB(0x00);
+        rgb[1] = newRGB(0x6f0000);
+        rgb[4] = newRGB(0xca0000);
+        rgb[15] = newRGB(0xff0000);
+
+        rgb[2] = newRGB(0x008000);
+        rgb[3] = newRGB(0x808000);
+        rgb[5] = newRGB(0x000080);
+        rgb[6] = newRGB(0x800080);
+        rgb[7] = newRGB(0xC0C0C0);
+        rgb[8] = newRGB(0x808080);
+        rgb[9] = newRGB(0x00FF00);
+        rgb[10] = newRGB(0xFFFF00);
+        rgb[11] = newRGB(0x0000FF);
+        rgb[12] = newRGB(0xFF00FF);
+        rgb[13] = newRGB(0x00FFFF);
+        rgb[14] = newRGB(0xFFFFFF);
+        return rgb;
+    }
+
     
 }
