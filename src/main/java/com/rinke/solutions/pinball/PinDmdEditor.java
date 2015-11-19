@@ -15,10 +15,13 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.List;
+import org.eclipse.core.runtime.MultiStatus;
+import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ListViewer;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.ColorDialog;
 import org.eclipse.swt.widgets.Event;
@@ -31,8 +34,6 @@ import org.eclipse.jface.viewers.ComboViewer;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.jface.viewers.LabelProvider;
-import org.eclipse.swt.events.PaintEvent;
-import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
@@ -44,6 +45,7 @@ import com.rinke.solutions.pinball.model.Project;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.Scene;
 import com.rinke.solutions.pinball.widget.DMDWidget;
+import com.rinke.solutions.pinball.ui.About;
 
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.swt.widgets.Composite;
@@ -206,6 +208,10 @@ public class PinDmdEditor {
             } catch( Exception e) {
                 GlobalExceptionHandler.getInstance().showError(e);
                 LOG.error("unexpected error: {}",e);
+//                MultiStatus status = createMultiStatus(e.getLocalizedMessage(), e);
+//                // show error dialog
+//                ErrorDialog.openError(shell, "Error", "This is an error", status);
+
                 if( retry++ > 10 ) System.exit(1);
             }
         }
@@ -514,7 +520,7 @@ public class PinDmdEditor {
 	 */
 	protected void createContents() {
 		shlPindmdEditor = new Shell();
-		shlPindmdEditor.setSize(1167, 575);
+		shlPindmdEditor.setSize(1167, 527);
 		shlPindmdEditor.setText("Pin2dmd - Editor");
 		shlPindmdEditor.setLayout(new GridLayout(3, false));
 		
@@ -575,6 +581,25 @@ public class PinDmdEditor {
 		MenuItem mntmSavePalette = new MenuItem(menu_3, SWT.NONE);
 		mntmSavePalette.setText("Save Palette");
 		mntmSavePalette.addListener(SWT.Selection, e->savePalette(e));
+		
+		mntmLoadPalette.setText("Load Palette");
+		mntmLoadPalette.addListener(SWT.Selection, e->loadPalette(e));
+		
+		MenuItem mntmhelp = new MenuItem(menu, SWT.CASCADE);
+		mntmhelp.setText("&Help");
+		
+		Menu menu_4 = new Menu(mntmhelp);
+		mntmhelp.setMenu(menu_4);
+		
+		MenuItem mntmGetHelp = new MenuItem(menu_4, SWT.NONE);
+		mntmGetHelp.setText("Get help");
+		mntmGetHelp.addListener(SWT.Selection, e->Program.launch("http://go-dmd.de/tools/"));
+		
+		new MenuItem(menu_4, SWT.SEPARATOR);
+		
+		MenuItem mntmAbout = new MenuItem(menu_4, SWT.NONE);
+		mntmAbout.setText("About");
+		mntmAbout.addListener(SWT.Selection, e->new About(shell).open());
 		
 		Label lblAnimations = new Label(shlPindmdEditor, SWT.NONE);
 		lblAnimations.setText("Animations");
@@ -888,6 +913,7 @@ public class PinDmdEditor {
         */
     }
 	
+
 	public String getPrintableHashes(byte[] p) {
 		StringBuffer hexString = new StringBuffer();
 		for (int j = 0; j < p.length; j++)
