@@ -62,7 +62,7 @@ public class PinDmdEditor {
 		@Override
 		public void run() {
 			previewCanvas.redraw();
-			dmdWidget.redraw();
+			if( dmdWidget!=null) dmdWidget.redraw();
             if (animationHandler != null) {
             	animationHandler.run();
                 display.timerExec(animationHandler.getRefreshDelay(), cyclicRedraw);
@@ -422,7 +422,7 @@ public class PinDmdEditor {
         return sb.toString();
     }
     
-    private void createColorButtons(Group grp, int x, int y) {
+    private void createColorButtons(Composite grp, int x, int y) {
         for(int i = 0; i < colBtn.length; i++) {
             colBtn[i] = new Button(grp, SWT.FLAT+SWT.TOGGLE);
             colBtn[i].setData(Integer.valueOf(i));
@@ -514,7 +514,7 @@ public class PinDmdEditor {
 	 */
 	protected void createContents() {
 		shlPindmdEditor = new Shell();
-		shlPindmdEditor.setSize(1267, 875);
+		shlPindmdEditor.setSize(1167, 575);
 		shlPindmdEditor.setText("Pin2dmd - Editor");
 		shlPindmdEditor.setLayout(new GridLayout(3, false));
 		
@@ -630,8 +630,8 @@ public class PinDmdEditor {
 		
 		previewCanvas = new Canvas(shlPindmdEditor, SWT.BORDER|SWT.DOUBLE_BUFFERED);
         GridData gd_canvas = new GridData(SWT.LEFT, SWT.TOP, true, false, 1, 1);
-        gd_canvas.heightHint = 250;
-        gd_canvas.widthHint = 960;
+        gd_canvas.heightHint = 6*32 +20;
+        gd_canvas.widthHint = 128*6 + 20;
         previewCanvas.setLayoutData(gd_canvas);
         previewCanvas.setBackground(new Color(shlPindmdEditor.getDisplay(), 10,10,10));
         previewCanvas.addPaintListener(e -> { dmd.draw(e); });
@@ -649,32 +649,35 @@ public class PinDmdEditor {
         grpKeyframe.setLayoutData(gd_grpKeyframe);
         grpKeyframe.setText("Animations / KeyFrame");
         
-        createHashButtons(grpKeyframe, 20, 5);
-        
-        txtDuration = new Text(grpKeyframe, SWT.BORDER);
-        txtDuration.setText("0");
-        txtDuration.setBounds(260, 71, 64, 19);
-        
-        Label lblDuration = new Label(grpKeyframe, SWT.NONE);
-        lblDuration.setBounds(205, 74, 53, 16);
-        lblDuration.setText("Duration:");
+        createHashButtons(grpKeyframe, 10, 20); // 20, 5 on mac
         
         btnRemoveAni = new Button(grpKeyframe, SWT.NONE);
         btnRemoveAni.setBounds(10, 123, 94, 28);
         btnRemoveAni.setText("Remove Ani");
         btnRemoveAni.setEnabled(false);
         btnRemoveAni.addListener(SWT.Selection, e->{
-        	if( selectedAnimation != null ) {
-        		animations.remove(selectedAnimation);
-        		aniListViewer.refresh();
-        		playingAnis.clear();
-        		animationHandler.setAnimations(playingAnis);
-        		animationHandler.setClockActive(true);
-        	}
+            if( selectedAnimation != null ) {
+                animations.remove(selectedAnimation);
+                aniListViewer.refresh();
+                playingAnis.clear();
+                animationHandler.setAnimations(playingAnis);
+                animationHandler.setClockActive(true);
+            }
         });
+
+        int x = 185; // mac 205
+        int y = 90;
+        
+        txtDuration = new Text(grpKeyframe, SWT.BORDER);
+        txtDuration.setText("0");
+        txtDuration.setBounds(x+75, y, 64, 26);
+        
+        Label lblDuration = new Label(grpKeyframe, SWT.NONE);
+        lblDuration.setBounds(x, y+4, 75, 16);
+        lblDuration.setText("Duration:");
         
         btnDeleteKeyframe = new Button(grpKeyframe, SWT.NONE);
-        btnDeleteKeyframe.setBounds(205, 123, 119, 28);
+        btnDeleteKeyframe.setBounds(x, y+52, 119, 28);
         btnDeleteKeyframe.setText("Del KeyFrame");
         btnDeleteKeyframe.setEnabled(false);
         btnDeleteKeyframe.addListener(SWT.Selection, e->{
@@ -686,7 +689,7 @@ public class PinDmdEditor {
         
         btnAddKeyframe = new Button(grpKeyframe, SWT.NONE);
         btnAddKeyframe.setText("Add KeyFrame");
-        btnAddKeyframe.setBounds(205, 96, 119, 28);
+        btnAddKeyframe.setBounds(x, y+26, 119, 28);
         btnAddKeyframe.setEnabled(false);
         btnAddKeyframe.addListener(SWT.Selection, e->{
         	PalMapping palMapping = new PalMapping(activePaletteIndex);
@@ -702,7 +705,7 @@ public class PinDmdEditor {
         });
         
         btnSetDuration = new Button(grpKeyframe, SWT.NONE);
-        btnSetDuration.setBounds(205, 146, 119, 28);
+        btnSetDuration.setBounds(x, y+78, 119, 28);
         btnSetDuration.setText("Set Duration");
         btnSetDuration.setEnabled(false);
         btnSetDuration.addListener(SWT.Selection, e->{
@@ -774,102 +777,110 @@ public class PinDmdEditor {
         btnNext.addListener(SWT.Selection, e->animationHandler.next());
         
         Group grpPalettes = new Group(shlPindmdEditor, SWT.NONE);
+        grpPalettes.setLayout(new GridLayout(7, false));
         GridData gd_grpPalettes = new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1);
         gd_grpPalettes.heightHint = 90;
         grpPalettes.setLayoutData(gd_grpPalettes);
         grpPalettes.setText("Palettes");
-        createColorButtons(grpPalettes,10,40);
-        
-        paletteTypeComboViewer = new ComboViewer( grpPalettes, SWT.READ_ONLY);
-        Combo paletteTypeCombo = paletteTypeComboViewer.getCombo();
-        paletteTypeCombo.setBounds(138, 6, 67, 22);
-        paletteTypeComboViewer.setContentProvider(ArrayContentProvider.getInstance());
-        paletteTypeComboViewer.setInput(PaletteType.values());
-        paletteTypeComboViewer.setSelection(new StructuredSelection(PaletteType.NORMAL));
-        paletteTypeComboViewer.addSelectionChangedListener(e -> {
-            IStructuredSelection selection = (IStructuredSelection) e.getSelection();
-            PaletteType palType = (PaletteType)selection.getFirstElement();
-            project.palettes.get(activePaletteIndex).type = palType;
-            if( !PaletteType.NORMAL.equals(palType)) {
-            	for(int i = 0; i<project.palettes.size(); i++) {
-            		if( i != activePaletteIndex ) { // set all other to normal
-            			project.palettes.get(activePaletteIndex).type = PaletteType.NORMAL;
-            		}
-            	}
-            }
-        });
+
+        y = 24;
 
         paletteComboViewer = new ComboViewer(grpPalettes, SWT.NONE);
-        Combo palettes = paletteComboViewer.getCombo();
-        palettes.setBounds(10, 6, 122, 22);
         paletteComboViewer.setContentProvider(ArrayContentProvider.getInstance());
         paletteComboViewer.setLabelProvider(new PaletteViewerLabelProvider());
         paletteComboViewer.setInput(project.palettes);
         paletteComboViewer.addSelectionChangedListener(event -> {
             IStructuredSelection selection = (IStructuredSelection) event.getSelection();
-                  if (selection.size() > 0){
-                      Palette pal = (Palette)selection.getFirstElement();
-                      activePaletteIndex = pal.index;
-                      dmd.rgb = pal.colors;
-                      dmdWidget.setPalette(pal);
-                      setColorBtn();
-                      paletteTypeComboViewer.setSelection( new StructuredSelection(pal.type) );
-                  }
+            if (selection.size() > 0) {
+                Palette pal = (Palette) selection.getFirstElement();
+                activePaletteIndex = pal.index;
+                dmd.rgb = pal.colors;
+                dmdWidget.setPalette(pal);
+                setColorBtn();
+                paletteTypeComboViewer.setSelection(new StructuredSelection(pal.type));
+            }
         });
-        
+
+        paletteTypeComboViewer = new ComboViewer(grpPalettes, SWT.READ_ONLY);
+        paletteTypeComboViewer.setContentProvider(ArrayContentProvider.getInstance());
+        paletteTypeComboViewer.setInput(PaletteType.values());
+        paletteTypeComboViewer.setSelection(new StructuredSelection(PaletteType.NORMAL));
+        paletteTypeComboViewer.addSelectionChangedListener(e -> {
+            IStructuredSelection selection = (IStructuredSelection) e.getSelection();
+            PaletteType palType = (PaletteType) selection.getFirstElement();
+            project.palettes.get(activePaletteIndex).type = palType;
+            if (!PaletteType.NORMAL.equals(palType)) {
+                for (int i = 0; i < project.palettes.size(); i++) {
+                    if (i != activePaletteIndex) { // set all other to normal
+                        project.palettes.get(activePaletteIndex).type = PaletteType.NORMAL;
+                    }
+                }
+            }
+        })  ;
+
         Button btnNew = new Button(grpPalettes, SWT.NONE);
-        btnNew.setBounds(198, 4, 67, 28);
         btnNew.setText("New");
         btnNew.addListener(SWT.Selection, e -> {
             String name = this.paletteComboViewer.getCombo().getText();
-            if( !isNewPaletteName(name)) {
-                name = "new"+UUID.randomUUID().toString().substring(0, 4);
+            if (!isNewPaletteName(name)) {
+                name = "new" + UUID.randomUUID().toString().substring(0, 4);
             }
-            Palette p = new Palette(dmd.rgb,project.palettes.size(), name);
+            Palette p = new Palette(dmd.rgb, project.palettes.size(), name);
             project.palettes.add(p);
             paletteComboViewer.refresh();
-            activePaletteIndex = project.palettes.size()-1;
+            activePaletteIndex = project.palettes.size() - 1;
             paletteComboViewer.getCombo().select(activePaletteIndex);
         });
-        
+
         Button btnRename = new Button(grpPalettes, SWT.NONE);
-        btnRename.setBounds(260, 4, 75, 28);
         btnRename.setText("Rename");
         btnRename.addListener(SWT.Selection, e -> {
             project.palettes.get(activePaletteIndex).name = paletteComboViewer.getCombo().getText().split(" - ")[1];
             paletteComboViewer.getCombo().select(activePaletteIndex);
             paletteComboViewer.refresh();
         });
-        
+
         Button btnReset = new Button(grpPalettes, SWT.NONE);
-        btnReset.setBounds(333, 4, 67, 28);
         btnReset.setText("Reset");
-        btnReset.addListener(SWT.Selection, e -> { 
+        btnReset.addListener(SWT.Selection, e -> {
             dmd.resetColors();
             setColorBtn();
         });
- 
+
+        Label lblPlanes = new Label(grpPalettes, SWT.NONE);
+        lblPlanes.setText("Planes");
+
         ComboViewer planesComboViewer = new ComboViewer(grpPalettes, SWT.READ_ONLY);
         Combo planes = planesComboViewer.getCombo();
-        planes.setItems(new String[]{"2","4"});
+        planes.setItems(new String[] { "2", "4" });
         planes.setToolTipText("Number of planes");
-        planes.setBounds(465, 6, 46, 22);
         planes.select(0);
         planes.select(0);
-        planesChanged(0,10,40);
-        planes.addListener(SWT.Selection, e -> planesChanged( planes.getSelectionIndex(),5,40 ));
+        planes.addListener(SWT.Selection, e -> planesChanged(planes.getSelectionIndex(), 5, 60));
 
+        Composite composite_1 = new Composite(grpPalettes, SWT.NONE);
+        composite_1.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 6, 1));
         
-        Label lblPlanes = new Label(grpPalettes, SWT.NONE);
-        lblPlanes.setBounds(406, 6, 53, 22);
-        lblPlanes.setText("Planes");
-        
-        dmdWidget = new DMDWidget(shlPindmdEditor, SWT.NONE, this.dmd);
+        createColorButtons(composite_1,20,10);
+
+        planesChanged(0,10,10);
+
+        new Label(grpPalettes, SWT.NONE);
+        new Label(grpPalettes, SWT.NONE);
+        new Label(grpPalettes, SWT.NONE);
+        new Label(grpPalettes, SWT.NONE);
+        new Label(grpPalettes, SWT.NONE);
+        new Label(grpPalettes, SWT.NONE);
+        new Label(grpPalettes, SWT.NONE);
+        new Label(grpPalettes, SWT.NONE);
+
+        /*dmdWidget = new DMDWidget(shlPindmdEditor, SWT.NONE, this.dmd);
         dmdWidget.setBounds(0, 0, 600, 200);
         GridData gd_dmdWidget = new GridData(SWT.FILL, SWT.FILL, false, false, 3, 1);
         gd_dmdWidget.heightHint = 200;
         dmdWidget.setLayoutData(gd_dmdWidget);
-	}
+        */
+    }
 	
 	public String getPrintableHashes(byte[] p) {
 		StringBuffer hexString = new StringBuffer();
@@ -884,5 +895,4 @@ public class PinDmdEditor {
         }
         return true;
     }
-
 }

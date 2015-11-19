@@ -212,11 +212,16 @@ public class DMD {
 
         Image image = new Image(ev.display, ev.width, ev.height);
         GC gcImage = new GC(image);
-
+        int w = ev.width;
+        int h = ev.height;
+        int minwh = w<h?w:h;
+        offset = minwh/25;
+        int pitchx = (w -2*offset) / width;
+        int pitchy = (h -2*offset) / height;
+        pitch = pitchx<pitchy?pitchx:pitchy;
+        
         int colIdx[] = {0,1,4,15};
         
-        int pitch = 7;
-        int offset = 20;
         // hell ffae3a
         // 2/3 ca8a2e
         // 1/3 7f561d
