@@ -644,15 +644,30 @@ public class PinDmdEditor {
         scale.addListener(SWT.Selection, e -> animationHandler.setPos(scale.getSelection()));
         
         Group grpKeyframe = new Group(shlPindmdEditor, SWT.NONE);
+        grpKeyframe.setLayout(new GridLayout(3, false));
         GridData gd_grpKeyframe = new GridData(SWT.FILL, SWT.FILL, false, false, 2, 3);
-        gd_grpKeyframe.widthHint = 255;
+        gd_grpKeyframe.widthHint = 317;
         grpKeyframe.setLayoutData(gd_grpKeyframe);
         grpKeyframe.setText("Animations / KeyFrame");
         
-        createHashButtons(grpKeyframe, 10, 20); // 20, 5 on mac
+        Composite composite_hash = new Composite(grpKeyframe, SWT.NONE);
+        GridData gd_composite_hash = new GridData(SWT.LEFT, SWT.CENTER, false, false, 3, 1);
+        gd_composite_hash.widthHint = 293;
+        composite_hash.setLayoutData(gd_composite_hash);
+
+        createHashButtons(composite_hash, 10, 20);
+        new Label(grpKeyframe, SWT.NONE);
+        
+        Label lblDuration = new Label(grpKeyframe, SWT.NONE);
+        lblDuration.setText("Duration:");
+        
+        txtDuration = new Text(grpKeyframe, SWT.BORDER);
+        GridData gd_txtDuration = new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1);
+        gd_txtDuration.widthHint = 76;
+        txtDuration.setLayoutData(gd_txtDuration);
+        txtDuration.setText("0");
         
         btnRemoveAni = new Button(grpKeyframe, SWT.NONE);
-        btnRemoveAni.setBounds(10, 123, 94, 28);
         btnRemoveAni.setText("Remove Ani");
         btnRemoveAni.setEnabled(false);
         btnRemoveAni.addListener(SWT.Selection, e->{
@@ -664,32 +679,11 @@ public class PinDmdEditor {
                 animationHandler.setClockActive(true);
             }
         });
-
-        int x = 185; // mac 205
-        int y = 90;
-        
-        txtDuration = new Text(grpKeyframe, SWT.BORDER);
-        txtDuration.setText("0");
-        txtDuration.setBounds(x+75, y, 64, 26);
-        
-        Label lblDuration = new Label(grpKeyframe, SWT.NONE);
-        lblDuration.setBounds(x, y+4, 75, 16);
-        lblDuration.setText("Duration:");
-        
-        btnDeleteKeyframe = new Button(grpKeyframe, SWT.NONE);
-        btnDeleteKeyframe.setBounds(x, y+52, 119, 28);
-        btnDeleteKeyframe.setText("Del KeyFrame");
-        btnDeleteKeyframe.setEnabled(false);
-        btnDeleteKeyframe.addListener(SWT.Selection, e->{
-        	if( selectedPalMapping!=null) {
-        		project.palMappings.remove(selectedPalMapping);
-        		keyframeListViewer.refresh();
-        	}
-        });
+        new Label(grpKeyframe, SWT.NONE);
         
         btnAddKeyframe = new Button(grpKeyframe, SWT.NONE);
+        btnAddKeyframe.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
         btnAddKeyframe.setText("Add KeyFrame");
-        btnAddKeyframe.setBounds(x, y+26, 119, 28);
         btnAddKeyframe.setEnabled(false);
         btnAddKeyframe.addListener(SWT.Selection, e->{
         	PalMapping palMapping = new PalMapping(activePaletteIndex);
@@ -703,9 +697,11 @@ public class PinDmdEditor {
         	saveTimeCode = lastTimeCode;
         	keyframeListViewer.refresh();
         });
+        new Label(grpKeyframe, SWT.NONE);
+        new Label(grpKeyframe, SWT.NONE);
         
         btnSetDuration = new Button(grpKeyframe, SWT.NONE);
-        btnSetDuration.setBounds(x, y+78, 119, 28);
+        btnSetDuration.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
         btnSetDuration.setText("Set Duration");
         btnSetDuration.setEnabled(false);
         btnSetDuration.addListener(SWT.Selection, e->{
@@ -714,36 +710,52 @@ public class PinDmdEditor {
         		txtDuration.setText(selectedPalMapping.durationInMillis+"");
         	}
         });
+        new Label(grpKeyframe, SWT.NONE);
+        new Label(grpKeyframe, SWT.NONE);
+        
+        btnDeleteKeyframe = new Button(grpKeyframe, SWT.NONE);
+        btnDeleteKeyframe.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
+        btnDeleteKeyframe.setText("Del KeyFrame");
+        btnDeleteKeyframe.setEnabled(false);
+        btnDeleteKeyframe.addListener(SWT.Selection, e->{
+        	if( selectedPalMapping!=null) {
+        		project.palMappings.remove(selectedPalMapping);
+        		keyframeListViewer.refresh();
+        	}
+        });
         
         Group grpDetails = new Group(shlPindmdEditor, SWT.NONE);
+        grpDetails.setLayout(new GridLayout(4, false));
         GridData gd_grpDetails = new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1);
+        gd_grpDetails.heightHint = 21;
         gd_grpDetails.widthHint = 231;
         grpDetails.setLayoutData(gd_grpDetails);
         grpDetails.setText("Details");
         
         Label lblFrame = new Label(grpDetails, SWT.NONE);
-        lblFrame.setBounds(10, 10, 48, 14);
         lblFrame.setText("Frame:");
         
         lblFrameNo = new Label(grpDetails, SWT.NONE);
-        lblFrameNo.setBounds(59, 10, 59, 14);
-        lblFrameNo.setText("");
+        GridData gd_lblFrameNo = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+        gd_lblFrameNo.minimumWidth = 60;
+        lblFrameNo.setLayoutData(gd_lblFrameNo);
+        lblFrameNo.setText("xxxxxxxx");
         
         Label lblTimecode = new Label(grpDetails, SWT.NONE);
-        lblTimecode.setBounds(152, 10, 59, 14);
         lblTimecode.setText("Timecode:");
         
         lblTcval = new Label(grpDetails, SWT.NONE);
-        lblTcval.setBounds(225, 10, 59, 14);
-        lblTcval.setText("");
+        GridData gd_lblTcval = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+        gd_lblTcval.minimumWidth = 80;
+        lblTcval.setLayoutData(gd_lblTcval);
+        lblTcval.setText("xxxxxxxxxx");
         
         Composite composite = new Composite(shlPindmdEditor, SWT.NONE);
+        composite.setLayout(new GridLayout(4, false));
         composite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
         
         Button btnStart = new Button(composite, SWT.NONE);
         Button btnStop = new Button(composite, SWT.NONE);
-
-        btnStart.setBounds(0, 0, 94, 28);
         btnStart.setText("Start");
         btnStart.addListener(SWT.Selection, e-> {
         	animationHandler.start();
@@ -753,8 +765,6 @@ public class PinDmdEditor {
         	btnNext.setEnabled(false);
         });
         btnStart.setEnabled(false);
-        
-        btnStop.setBounds(100, 0, 94, 28);
         btnStop.setText("Stop");
         btnStop.addListener(SWT.Selection, e->{
         	animationHandler.stop();
@@ -765,7 +775,6 @@ public class PinDmdEditor {
         });
         
         btnPrev = new Button(composite, SWT.NONE);
-        btnPrev.setBounds(200, 0, 40, 28);
         btnPrev.setText("<");
         btnPrev.setEnabled(false);
         btnPrev.addListener(SWT.Selection, e->animationHandler.prev());
@@ -773,7 +782,6 @@ public class PinDmdEditor {
         btnNext = new Button(composite, SWT.NONE);
         btnNext.setText(">");
         btnNext.setEnabled(false);
-        btnNext.setBounds(236, 0, 40, 28);
         btnNext.addListener(SWT.Selection, e->animationHandler.next());
         
         Group grpPalettes = new Group(shlPindmdEditor, SWT.NONE);
@@ -782,8 +790,6 @@ public class PinDmdEditor {
         gd_grpPalettes.heightHint = 90;
         grpPalettes.setLayoutData(gd_grpPalettes);
         grpPalettes.setText("Palettes");
-
-        y = 24;
 
         paletteComboViewer = new ComboViewer(grpPalettes, SWT.NONE);
         paletteComboViewer.setContentProvider(ArrayContentProvider.getInstance());
@@ -856,16 +862,16 @@ public class PinDmdEditor {
         planes.setToolTipText("Number of planes");
         planes.select(0);
         planes.select(0);
-        planes.addListener(SWT.Selection, e -> planesChanged(planes.getSelectionIndex(), 5, 60));
+        planes.addListener(SWT.Selection, e -> planesChanged(planes.getSelectionIndex(), 10, 10));
 
         Composite composite_1 = new Composite(grpPalettes, SWT.NONE);
-        composite_1.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 6, 1));
+        GridData gd_composite_1 = new GridData(SWT.LEFT, SWT.CENTER, false, false, 7, 1);
+        gd_composite_1.widthHint = 518;
+        composite_1.setLayoutData(gd_composite_1);
         
         createColorButtons(composite_1,20,10);
 
         planesChanged(0,10,10);
-
-        new Label(grpPalettes, SWT.NONE);
         new Label(grpPalettes, SWT.NONE);
         new Label(grpPalettes, SWT.NONE);
         new Label(grpPalettes, SWT.NONE);
