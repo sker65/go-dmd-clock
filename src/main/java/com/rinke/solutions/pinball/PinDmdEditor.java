@@ -45,12 +45,19 @@ import com.rinke.solutions.pinball.model.Project;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.Scene;
 import com.rinke.solutions.pinball.widget.DMDWidget;
+import com.rinke.solutions.pinball.widget.DrawTool;
+import com.rinke.solutions.pinball.widget.SetPixelTool;
+import com.rinke.solutions.pinball.widget.FloodFillTool;
+import com.rinke.solutions.pinball.widget.RectTool;
 import com.rinke.solutions.pinball.ui.About;
 
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.swt.widgets.Composite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.wb.swt.SWTResourceManager;
 
 
 public class PinDmdEditor {
@@ -106,7 +113,8 @@ public class PinDmdEditor {
 	
 	Project project = new Project();
 	java.util.List<Animation> animations = new ArrayList<>();
-	
+    Map<String,DrawTool> drawTools = new HashMap<>();
+
 	protected Shell shlPindmdEditor;
 	private Text txtDuration;
 	protected long lastTimeCode;
@@ -195,6 +203,9 @@ public class PinDmdEditor {
         GlobalExceptionHandler.getInstance().setShell(shell);
 
 		display.timerExec(animationHandler.getRefreshDelay(), cyclicRedraw);
+		
+		loadAni("./drwho-dump.txt.gz", false, true);
+		
         int retry = 0;
         while (true ) {
             try {
@@ -359,6 +370,7 @@ public class PinDmdEditor {
 	private ListViewer aniListViewer;
 	private ListViewer keyframeListViewer;
 	private Button btnRemoveAni;
+	private int selectedColor;
 
     private void loadPalette(Event e) {
         FileDialog fileChooser = new FileDialog(shell, SWT.OPEN);
@@ -436,24 +448,32 @@ public class PinDmdEditor {
             colBtn[i].setBounds(x+i*28, y, 32, 26);
             colBtn[i].setImage(getSquareImage(display, new Color(display,dmd.rgb[i])));
             colBtn[i].addListener(SWT.Selection, e -> {
-                ColorDialog cd = new ColorDialog(shell);
-                cd.setText("ColorDialog Demo");
+//                ColorDialog cd = new ColorDialog(shell);
+//                cd.setText("ColorDialog Demo");
                 int j = (Integer) e.widget.getData();
-                cd.setRGB(dmd.getColor(j));
-                RGB rgb = cd.open();
-                if (rgb == null) {
-                    return;
-                }
-                ((Button)e.widget).setImage(getSquareImage(display, new Color(display,rgb)));
-                dmd.setColor(j, rgb);
+//                cd.setRGB(dmd.getColor(j));
+//                RGB rgb = cd.open();
+//                if (rgb == null) {
+//                    return;
+//                }
+//                ((Button)e.widget).setImage(getSquareImage(display, new Color(display,rgb)));
+//                dmd.setColor(j, rgb);
                 Palette pal = project.palettes.get(activePaletteIndex);
-                pal.colors[j] = rgb;
-                dmdWidget.setPalette(pal);
+//                pal.colors[j] = rgb;
+//                dmdWidget.setPalette(pal);
+                selectColor(j);
             });
         }
     }
 
-    static Image getSquareImage(Display display, Color col) {
+    private void selectColor(int j) {
+		selectedColor = j;
+		for (DrawTool tool : drawTools.values()) {
+			tool.setActualColor(j);
+		}
+	}
+
+	static Image getSquareImage(Display display, Color col) {
         Image image = new Image(display, 11, 11);
         GC gc = new GC(image);
         gc.setBackground(col);
@@ -810,7 +830,7 @@ public class PinDmdEditor {
         btnNext.addListener(SWT.Selection, e->animationHandler.next());
         
         Group grpPalettes = new Group(shlPindmdEditor, SWT.NONE);
-        grpPalettes.setLayout(new GridLayout(7, false));
+        grpPalettes.setLayout(new GridLayout(8, false));
         GridData gd_grpPalettes = new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1);
         gd_grpPalettes.heightHint = 90;
         grpPalettes.setLayoutData(gd_grpPalettes);
@@ -885,18 +905,44 @@ public class PinDmdEditor {
         Combo planes = planesComboViewer.getCombo();
         planes.setItems(new String[] { "2", "4" });
         planes.setToolTipText("Number of planes");
-        planes.select(0);
-        planes.select(0);
+        planes.select(1);
         planes.addListener(SWT.Selection, e -> planesChanged(planes.getSelectionIndex(), 10, 10));
+        
+        Button btnUploadPalette = new Button(grpPalettes, SWT.NONE);
+        btnUploadPalette.setText("Upload Palette");
 
         Composite composite_1 = new Composite(grpPalettes, SWT.NONE);
         GridData gd_composite_1 = new GridData(SWT.LEFT, SWT.CENTER, false, false, 7, 1);
-        gd_composite_1.widthHint = 518;
+        gd_composite_1.widthHint = 466;
         composite_1.setLayoutData(gd_composite_1);
         
         createColorButtons(composite_1,20,10);
 
         planesChanged(0,10,10);
+        
+        ToolBar toolBar = new ToolBar(grpPalettes, SWT.FLAT | SWT.RIGHT);
+        toolBar.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
+        
+        ToolItem tltmPen = new ToolItem(toolBar, SWT.RADIO);
+        tltmPen.setImage(SWTResourceManager.getImage(PinDmdEditor.class, "/icons/pencil.png"));
+        tltmPen.addListener(SWT.Selection, e->dmdWidget.setDrawTool(drawTools.get("pencil")));
+        drawTools.put("pencil", new SetPixelTool(selectedColor));       
+        
+        ToolItem tltmFill = new ToolItem(toolBar, SWT.RADIO);
+        tltmFill.setImage(SWTResourceManager.getImage(PinDmdEditor.class, "/icons/color-fill.png"));
+        tltmFill.addListener(SWT.Selection, e->dmdWidget.setDrawTool(drawTools.get("fill")));
+        drawTools.put("fill", new FloodFillTool(selectedColor));       
+        
+        ToolItem tltmRect = new ToolItem(toolBar, SWT.RADIO);
+        tltmRect.setImage(SWTResourceManager.getImage(PinDmdEditor.class, "/icons/rect.png"));
+        tltmRect.addListener(SWT.Selection, e->dmdWidget.setDrawTool(drawTools.get("rect")));
+        drawTools.put("rect", new RectTool(selectedColor));       
+
+        ToolItem tltmEraser = new ToolItem(toolBar, SWT.RADIO);
+        tltmEraser.setImage(SWTResourceManager.getImage(PinDmdEditor.class, "/icons/eraser.png"));
+        tltmEraser.addListener(SWT.Selection, e->dmdWidget.setDrawTool(null));
+        
+        new Label(grpPalettes, SWT.NONE);
         new Label(grpPalettes, SWT.NONE);
         new Label(grpPalettes, SWT.NONE);
         new Label(grpPalettes, SWT.NONE);
@@ -905,12 +951,12 @@ public class PinDmdEditor {
         new Label(grpPalettes, SWT.NONE);
         new Label(grpPalettes, SWT.NONE);
 
-        /*dmdWidget = new DMDWidget(shlPindmdEditor, SWT.NONE, this.dmd);
+        dmdWidget = new DMDWidget(shlPindmdEditor, SWT.NONE, this.dmd);
         dmdWidget.setBounds(0, 0, 600, 200);
         GridData gd_dmdWidget = new GridData(SWT.FILL, SWT.FILL, false, false, 3, 1);
         gd_dmdWidget.heightHint = 200;
         dmdWidget.setLayoutData(gd_dmdWidget);
-        */
+        
     }
 	
 
