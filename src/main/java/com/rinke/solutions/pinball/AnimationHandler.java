@@ -38,7 +38,7 @@ public class AnimationHandler implements Runnable {
 	private GifSequenceWriter gifWriter;
 	private boolean showClock = true;
 	private int transitionFrame= 0;
-	private int lastPrintedHash = 0;
+	private int lastRenderedFrame = 0;
 	
 	public AnimationHandler(List<Animation> anis, DMDClock clock, DMD dmd, Canvas canvas, boolean export) {
 		this.anis = anis;
@@ -91,6 +91,8 @@ public class AnimationHandler implements Runnable {
 				scale.setMaximum(ani.end);
 				scale.setIncrement(ani.skip);
 				
+				if( stop && ani.actFrame == lastRenderedFrame ) return;
+				//System.out.println("rendering: "+ani.actFrame);
 				
 				dmd.clear();
 				if( ani.addClock() ) {
@@ -103,6 +105,8 @@ public class AnimationHandler implements Runnable {
                 scale.setSelection(ani.actFrame);
                 eventHandler.notifyAni(
                         new AniEvent(Type.ANI, ani.actFrame, ani, res.getHashes(), res.timecode));
+                
+                lastRenderedFrame = ani.actFrame;
                 
                 if( res.planes.size()==3 ) { // there is a mask
                     if( ani.getClockFrom()>ani.getTransitionFrom())
