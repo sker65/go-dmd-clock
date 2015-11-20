@@ -2,6 +2,10 @@ package com.rinke.solutions.pinball.widget;
 
 public class RectTool extends DrawTool {
 
+	public RectTool(int actualColor) {
+		super(actualColor);
+	}
+
 	@Override
 	public void mouseMove(int x, int y) {
 		if( pressedButton >0 ) {

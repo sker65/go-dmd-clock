@@ -23,7 +23,7 @@ public class DMDWidget extends ResourceManagedCanvas {
 	int margin = 20;
 	int pitch = 7;
 	int pressedButton = 0;
-	DrawTool drawTool = new RectTool();//new SetPixelTool();
+	private DrawTool drawTool = null;//new RectTool();//new SetPixelTool();
 
 	public DMDWidget(Composite parent, int style, DMD dmd) {
 		super(parent, style);
@@ -35,11 +35,11 @@ public class DMDWidget extends ResourceManagedCanvas {
 		this.addListener( SWT.MouseDown, e -> handleMouse(e));
 		this.addListener( SWT.MouseUp, e -> handleMouse(e));
 		this.addListener( SWT.MouseMove, e -> handleMouse(e));
-		drawTool.setDMD(dmd);
+		if( drawTool != null ) drawTool.setDMD(dmd);
 	}
 	
 	private void handleMouse(Event e) {
-		drawTool.handleMouse(e, (e.x-margin)/pitch, (e.y-margin)/pitch);
+		if( drawTool != null ) drawTool.handleMouse(e, (e.x-margin)/pitch, (e.y-margin)/pitch);
 	}
 
 
@@ -120,6 +120,15 @@ public class DMDWidget extends ResourceManagedCanvas {
 	public void setPalette(Palette palette) {
 		this.palette = palette;
 		redraw();
+	}
+
+	public DrawTool getDrawTool() {
+		return drawTool;
+	}
+
+	public void setDrawTool(DrawTool drawTool) {
+		this.drawTool = drawTool;
+		if(drawTool!= null) this.drawTool.setDMD(dmd);
 	}
 
 

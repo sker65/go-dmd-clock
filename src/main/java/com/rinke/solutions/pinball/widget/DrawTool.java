@@ -21,6 +21,11 @@ public abstract class DrawTool {
 	protected DMD dmd;
 	protected int actualColor = 3;
 	
+	public DrawTool(int actualColor) {
+		super();
+		this.actualColor = actualColor;
+	}
+
 	public void handleMouse(Event e, int x, int y) {
         switch (e.type) {
         case SWT.MouseDown:
