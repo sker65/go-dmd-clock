@@ -1,6 +1,7 @@
 package com.rinke.solutions.pinball;
 
 import java.io.File;
+import org.eclipse.core.runtime.Status;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -15,8 +16,10 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.List;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.MultiStatus;
 import org.eclipse.jface.dialogs.ErrorDialog;
+import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ListViewer;
 import org.eclipse.jface.viewers.StructuredSelection;
@@ -167,7 +170,7 @@ public class PinDmdEditor {
 		animationHandler = new AnimationHandler(playingAnis, clock, dmd, previewCanvas, false);
         animationHandler.setScale(scale);
 		animationHandler.setLabelHandler(new EventHandler() {
-
+		    
             @Override
             public void notifyAni(AniEvent evt) {
                 switch (evt.evtType) {
@@ -219,17 +222,14 @@ public class PinDmdEditor {
             } catch( Exception e) {
                 GlobalExceptionHandler.getInstance().showError(e);
                 LOG.error("unexpected error: {}",e);
-//                MultiStatus status = createMultiStatus(e.getLocalizedMessage(), e);
-//                // show error dialog
-//                ErrorDialog.openError(shell, "Error", "This is an error", status);
-
-                if( retry++ > 10 ) System.exit(1);
+                if (retry++ > 10)
+                    System.exit(1);
             }
         }
 
 	}
 	
-	private DMDClock clock = new DMDClock(false);
+    private DMDClock clock = new DMDClock(false);
 
 	Shell shell;
 	String lastPath;
@@ -896,12 +896,13 @@ public class PinDmdEditor {
 
         ToolBar paletteBar = new ToolBar(grpPalettes, SWT.FLAT | SWT.RIGHT);
         GridData gd_composite_1 = new GridData(SWT.LEFT, SWT.CENTER, false, false, 4, 1);
-        gd_composite_1.widthHint = 360;
+        gd_composite_1.widthHint = 420;
         paletteBar.setLayoutData(gd_composite_1);
         
         createColorButtons(paletteBar,20,10);
 
         planesChanged(0,10,10);
+        
         drawTools.put("pencil", new SetPixelTool(selectedColor));       
         drawTools.put("fill", new FloodFillTool(selectedColor));       
         drawTools.put("rect", new RectTool(selectedColor));       
@@ -924,10 +925,8 @@ public class PinDmdEditor {
 
         });
         
-        new Label(grpPalettes, SWT.NONE);
-        
         ToolBar toolBar = new ToolBar(grpPalettes, SWT.FLAT | SWT.RIGHT);
-        toolBar.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
+        toolBar.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
         
         ToolItem tltmPen = new ToolItem(toolBar, SWT.RADIO);
         tltmPen.setImage(SWTResourceManager.getImage(PinDmdEditor.class, "/icons/pencil.png"));
@@ -944,6 +943,7 @@ public class PinDmdEditor {
                 ToolItem tltmEraser = new ToolItem(toolBar, SWT.RADIO);
                 tltmEraser.setImage(SWTResourceManager.getImage(PinDmdEditor.class, "/icons/eraser.png"));
                 tltmEraser.addListener(SWT.Selection, e->dmdWidget.setDrawTool(null));
+        new Label(grpPalettes, SWT.NONE);
         new Label(grpPalettes, SWT.NONE);
 
         dmdWidget = new DMDWidget(shlPindmdEditor, SWT.DOUBLE_BUFFERED, this.dmd);
