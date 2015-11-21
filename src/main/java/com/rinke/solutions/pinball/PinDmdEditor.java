@@ -1,7 +1,10 @@
 package com.rinke.solutions.pinball;
 
+import java.awt.SplashScreen;
 import java.io.File;
+
 import org.eclipse.core.runtime.Status;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -195,12 +198,15 @@ public class PinDmdEditor {
             }
 
         });
-        
+		
+		SplashScreen splashScreen = SplashScreen.getSplashScreen();
+		if( splashScreen!=null) {
+		    splashScreen.close();
+		}
 
         shell = shlPindmdEditor.getShell();
 		shlPindmdEditor.open();
 		shlPindmdEditor.layout();
-		
 
 		GlobalExceptionHandler.getInstance().setDisplay(display);
         GlobalExceptionHandler.getInstance().setShell(shell);
