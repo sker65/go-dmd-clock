@@ -946,7 +946,7 @@ public class PinDmdEditor {
                 tltmEraser.addListener(SWT.Selection, e->dmdWidget.setDrawTool(null));
         new Label(grpPalettes, SWT.NONE);
 
-        dmdWidget = new DMDWidget(shlPindmdEditor, SWT.NONE, this.dmd);
+        dmdWidget = new DMDWidget(shlPindmdEditor, SWT.DOUBLE_BUFFERED, this.dmd);
         dmdWidget.setBounds(0, 0, 600, 200);
         GridData gd_dmdWidget = new GridData(SWT.FILL, SWT.FILL, false, false, 3, 1);
         gd_dmdWidget.heightHint = 200;
