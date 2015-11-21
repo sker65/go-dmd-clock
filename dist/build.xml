@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="pin2dmd" default="bundle" basedir=".">        
+
+    <taskdef name="bundleapp"
+             classname="com.oracle.appbundler.AppBundlerTask"   
+             classpath="./appbundler-1.0.jar" />
+
+    <target name="bundle">
+        <bundleapp outputdirectory="."
+            name="Pin2Dmd Editor"
+            icon="Icons8-Windows-8-Gaming-Pinball.icns"
+            displayname="Pin2Dmd Editor"
+            identifier="components.pin2dmdeditor"
+            mainclassname="org/eclipse/jdt/internal/jarinjarloader/JarRsrcLoader">
+            <classpath file="pin2dmd-editor_mac_x84_64.jar" />
+            <classpath file="pin2dmd-splash.png" />
+            <option value="-XstartOnFirstThread"/>
+            <option value="-splash:$APP_ROOT/Contents/Java/pin2dmd-splash.png"/>
+            <option value="-Dorg.slf4j.simpleLogger.logFile=pin2dmd-editor.log"/>
+            <option value="-Dorg.slf4j.simpleLogger.defaultLogLevel=debug"/>
+        </bundleapp>
+    </target>
+
+</project>
