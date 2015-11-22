@@ -213,7 +213,7 @@ public class PinDmdEditor {
 
 		display.timerExec(animationHandler.getRefreshDelay(), cyclicRedraw);
 		
-		loadAni("./drwho-dump.txt.gz", false, true);
+		//loadAni("./drwho-dump.txt.gz", false, true);
 		
         int retry = 0;
         while (true ) {
@@ -345,6 +345,9 @@ public class PinDmdEditor {
 
     private Animation buildAnimationFromFile(String filename, AnimationType type) {
         File file = new File(filename);
+        if( !file.canRead() ) {
+            throw new RuntimeException("Could not read '"+filename+"' to load animation");
+        }
         String base = file.getName();
         Animation ani = new Animation(type, base, 0, 0, 1, 1, 0);
         ani.setBasePath(file.getParent() + "/");
@@ -463,11 +466,15 @@ public class PinDmdEditor {
     }
 
 	static Image getSquareImage(Display display, Color col) {
-        Image image = new Image(display, 11, 11);
+        Image image = new Image(display, 12, 12);
         GC gc = new GC(image);
         gc.setBackground(col);
         gc.fillRectangle(0, 0, 11, 11);
-        //gc.setForeground(col);
+        Color fg = new Color(display,0,0,0);
+        gc.setForeground(fg);
+        gc.drawRectangle(0, 0, 11, 11);
+        //gc.setBackground(col);
+        fg.dispose();
         gc.dispose();
         return image;
       }
@@ -906,9 +913,7 @@ public class PinDmdEditor {
         paletteBar.setLayoutData(gd_composite_1);
         
         createColorButtons(paletteBar,20,10);
-
-        planesChanged(0,10,10);
-        
+       
         drawTools.put("pencil", new SetPixelTool(selectedColor));       
         drawTools.put("fill", new FloodFillTool(selectedColor));       
         drawTools.put("rect", new RectTool(selectedColor));       
