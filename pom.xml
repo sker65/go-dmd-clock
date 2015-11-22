@@ -149,8 +149,11 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>com.rinke.solutions.pinball.Editor</mainClass>
+							<mainClass>com.rinke.solutions.pinball.PinDmdEditor</mainClass>
 						</manifest>
+						<manifestEntries>
+    						<SplashScreen-Image>images/pin2dmd-splash.png</SplashScreen-Image>
+						</manifestEntries>
 					</archive>
 					<descriptorRefs>
 						<descriptorRef>jar-with-dependencies</descriptorRef>
