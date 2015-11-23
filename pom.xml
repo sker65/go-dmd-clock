@@ -26,6 +26,27 @@
 					<version>4.4</version>
 				</dependency>
 			</dependencies>
+			<build>
+				<plugins>
+					<plugin>
+						<artifactId>maven-assembly-plugin</artifactId>
+						<version>2.6</version>
+						<configuration>
+							<archive>
+								<manifest>
+									<mainClass>com.rinke.solutions.pinball.PinDmdEditor</mainClass>
+								</manifest>
+								<manifestEntries>
+									<SplashScreen-Image>images/pin2dmd-splash.png</SplashScreen-Image>
+								</manifestEntries>
+							</archive>
+							<descriptorRefs>
+								<descriptorRef>jar-with-dependencies</descriptorRef>
+							</descriptorRefs>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
 		</profile>
 		<profile>
 			<id>mac_64</id>
@@ -42,6 +63,53 @@
 					<version>4.3</version>
 				</dependency>
 			</dependencies>
+			<build>
+				<plugins>
+					<plugin>
+						<artifactId>maven-assembly-plugin</artifactId>
+						<version>2.6</version>
+						<configuration>
+							<archive>
+								<manifest>
+									<mainClass>com.rinke.solutions.pinball.PinDmdEditor</mainClass>
+								</manifest>
+							</archive>
+							<descriptorRefs>
+								<descriptorRef>jar-with-dependencies</descriptorRef>
+							</descriptorRefs>
+						</configuration>
+					</plugin>
+					<!-- plugin>
+						<groupId>sh.tak.appbundler</groupId>
+						<artifactId>appbundle-maven-plugin</artifactId>
+						<version>1.0.4</version>
+						<configuration>
+							<mainClass>com.rinke.solutions.pinball.PinDmdEditor</mainClass>
+							<iconFile>dist/Icons8-Windows-8-Gaming-Pinball.icns</iconFile>
+							<additionalResources>
+								<additionalResource>
+									<directory>${project.basedir}</directory>
+									<useDefaultExcludes>true</useDefaultExcludes>
+									<includes>
+										<include>**/*</include>
+									</includes>
+								</additionalResource>
+							</additionalResources>
+							<jvmOptions>
+								<jvmOption>-XstartOnFirstThread</jvmOption>
+							</jvmOptions>
+						</configuration>
+						<executions>
+							<execution>
+								<phase>package</phase>
+								<goals>
+									<goal>bundle</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin -->
+				</plugins>
+			</build>
 		</profile>
 		<profile>
 			<id>win_64</id>
@@ -141,23 +209,6 @@
 				<configuration>
 					<source>1.8</source>
 					<target>1.8</target>
-				</configuration>
-			</plugin>
-			<plugin>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<version>2.6</version>
-				<configuration>
-					<archive>
-						<manifest>
-							<mainClass>com.rinke.solutions.pinball.PinDmdEditor</mainClass>
-						</manifest>
-						<manifestEntries>
-    						<SplashScreen-Image>images/pin2dmd-splash.png</SplashScreen-Image>
-						</manifestEntries>
-					</archive>
-					<descriptorRefs>
-						<descriptorRef>jar-with-dependencies</descriptorRef>
-					</descriptorRefs>
 				</configuration>
 			</plugin>
 			<plugin>

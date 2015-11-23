@@ -11,8 +11,8 @@
             icon="Icons8-Windows-8-Gaming-Pinball.icns"
             displayname="Pin2Dmd Editor"
             identifier="components.pin2dmdeditor"
-            mainclassname="org/eclipse/jdt/internal/jarinjarloader/JarRsrcLoader">
-            <classpath file="pin2dmd-editor_mac_x84_64.jar" />
+            mainclassname="com/rinke/solutions/pinball/PinDmdEditor">
+            <classpath file="../target/go-dmd-clock-0.0.1-SNAPSHOT-jar-with-dependencies.jar" />
             <classpath file="pin2dmd-splash.png" />
             <option value="-XstartOnFirstThread"/>
             <option value="-splash:$APP_ROOT/Contents/Java/pin2dmd-splash.png"/>
