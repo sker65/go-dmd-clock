@@ -658,7 +658,12 @@ public class PinDmdEditor {
 		keyframeListViewer.setInput(project.palMappings);
 		keyframeListViewer.addSelectionChangedListener(event -> {
             IStructuredSelection selection = (IStructuredSelection) event.getSelection();
-            if (selection.size() > 0){
+            if (selection.size() > 0) {
+            	// pull old mapping
+            	Palette old = (Palette) paletteComboViewer.getSelection();
+            	selectedPalMapping.palIndex = old.index;
+            	selectedPalMapping.durationInMillis = Long.parseLong(txtDuration.getText());
+            	// set new mapping
                 selectedPalMapping = (PalMapping)selection.getFirstElement();
                 txtDuration.setText(selectedPalMapping.durationInMillis+"");
                 paletteComboViewer.setSelection(new StructuredSelection(project.palettes.get(selectedPalMapping.palIndex)));
