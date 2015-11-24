@@ -937,10 +937,7 @@ public class PinDmdEditor {
         planes.setToolTipText("Number of planes");
         planes.select(1);
         planes.addListener(SWT.Selection, e -> planesChanged(planes.getSelectionIndex(), 10, 10));
-        
-        Button btnUploadPalette = new Button(grpPalettes, SWT.NONE);
-        btnUploadPalette.setText("Upload Palette");
-        btnUploadPalette.addListener(SWT.Selection, e->usbTool .upload(project.palettes.get(activePaletteIndex)));
+        new Label(grpPalettes, SWT.NONE);
 
         ToolBar paletteBar = new ToolBar(grpPalettes, SWT.FLAT | SWT.RIGHT);
         GridData gd_composite_1 = new GridData(SWT.LEFT, SWT.CENTER, false, false, 4, 1);
@@ -989,17 +986,18 @@ public class PinDmdEditor {
                 ToolItem tltmEraser = new ToolItem(toolBar, SWT.RADIO);
                 tltmEraser.setImage(SWTResourceManager.getImage(PinDmdEditor.class, "/icons/eraser.png"));
                 tltmEraser.addListener(SWT.Selection, e->dmdWidget.setDrawTool(null));
-        new Label(grpPalettes, SWT.NONE);
-        new Label(grpPalettes, SWT.NONE);
-        new Label(grpPalettes, SWT.NONE);
-        new Label(grpPalettes, SWT.NONE);
-        new Label(grpPalettes, SWT.NONE);
-        new Label(grpPalettes, SWT.NONE);
-        new Label(grpPalettes, SWT.NONE);
-        new Label(grpPalettes, SWT.NONE);
-        new Label(grpPalettes, SWT.NONE);
-        new Label(grpPalettes, SWT.NONE);
-        new Label(grpPalettes, SWT.NONE);
+        
+        Button btnUploadFrame = new Button(grpPalettes, SWT.NONE);
+        btnUploadFrame.setText("Upload Frame");
+        
+        Button btnUploadPalette = new Button(grpPalettes, SWT.NONE);
+        btnUploadPalette.setText("Upload Palette");
+        btnUploadPalette.addListener(SWT.Selection, e->usbTool.upload(project.palettes.get(activePaletteIndex)));
+        
+        Button btnUploadMappings = new Button(grpPalettes, SWT.NONE);
+        btnUploadMappings.setText("Upload KeyFrames");
+        btnUploadMappings.addListener(SWT.Selection, e->usbTool.upload(project.palMappings));
+        
         new Label(grpPalettes, SWT.NONE);
         new Label(grpPalettes, SWT.NONE);
         new Label(grpPalettes, SWT.NONE);

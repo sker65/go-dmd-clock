@@ -2,6 +2,7 @@ package com.rinke.solutions.pinball;
 
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,13 +14,27 @@ import org.usb4java.DeviceList;
 import org.usb4java.LibUsb;
 import org.usb4java.LibUsbException;
 
+import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.Palette;
 
 public class UsbTool {
     
     private static Logger LOG = LoggerFactory.getLogger(UsbTool.class);
 
-    public void upload(Palette palette) {
+    public void upload(Palette palette) { 
+        byte[] bytes = fromPalette(palette);
+        bulk(bytes);
+    }
+    
+    public void upload(List<PalMapping> palMapppings) { 
+        for (PalMapping palMapping : palMapppings) {
+            byte[] bytes = fromMapping(palMapping);
+            bulk(bytes);
+        }
+    }
+
+    
+    public void bulk(byte[] data) {
         Context ctx = initUsb();
         Device device = findDevice((short) 0x314, (short)0xE457);
         DeviceHandle handle = new DeviceHandle();
@@ -28,14 +43,32 @@ public class UsbTool {
             throw new LibUsbException("Unable to open USB device", result);
         try {
             IntBuffer intBuffer = IntBuffer.allocate(1);
-            byte[] bytes = fromPalette(palette);
-            ByteBuffer buffer = ByteBuffer.wrap(bytes );
+            ByteBuffer buffer = ByteBuffer.wrap(data);
+            if( intBuffer.array()[0] != data.length ) {
+                LOG.error("unexpected length returned on bulk: {}", intBuffer.array()[0]);
+            }
             // Use device handle here
             LibUsb.bulkTransfer(handle, (byte) 0, buffer, intBuffer, 4000);
         } finally {
             LibUsb.close(handle);
             LibUsb.exit(ctx);
         }
+    }
+    
+    private byte[] fromMapping(PalMapping palMapping) {
+        byte[] res = new byte[24];
+        res[0] = (byte)0x81;
+        res[1] = (byte)0xc3;
+        res[2] = (byte)0xe8;
+        res[3] = (byte)0xFF; // do config
+        res[4] = (byte)0x05; // upload mapping
+        int j = 5;
+        for(int i = 0; i < palMapping.digest.length; i++)
+            res[j++] = palMapping.digest[i];
+        res[j++] = (byte) palMapping.palIndex;
+        res[j++] = (byte) (palMapping.durationInFrames / 256);
+        res[j++] = (byte) (palMapping.durationInFrames & 0xFF);
+        return res;
     }
 
     private byte[] fromPalette(Palette palette) {
