@@ -819,9 +819,9 @@ public class Editor implements Runnable {
             Project projectToLoad  = (Project) fileHelper.loadObject(filename);
 
             if( projectToLoad != null ) {
-                shell.setText(frameTextPrefix+" - "+project.inputFile);
+                shell.setText(frameTextPrefix+" - "+filename);
                 project = projectToLoad;
-                loadAni(project.inputFile, false, false);
+                loadAni(filename, false, false);
                 
                 for( int i = 1; i < project.scenes.size(); i++) {
                 	cutOutNewAnimation(project.scenes.get(i).start, project.scenes.get(i).end, sourceAnis.get(0));
@@ -1093,7 +1093,7 @@ public class Editor implements Runnable {
         }
         
         if( populateProject ) {
-            project.inputFile = filename;
+            project.inputFiles.add(filename);
             //DMD dmd = new DMD(128, 32);
             for (Animation ani : loadedList) {
     			project.scenes.add(new Scene(ani.getDesc(),0,/*ani.getFrameCount(dmd)*/100000,0));

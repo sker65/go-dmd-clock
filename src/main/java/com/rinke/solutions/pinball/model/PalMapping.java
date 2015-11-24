@@ -11,6 +11,8 @@ public class PalMapping implements Model {
     public int durationInFrames;
     public int hashIndex; // which hash (from which frame)
     public String name;
+    public int animationIndex;
+    public int frameIndex;
     
     public PalMapping(byte[] digest, int palIndex, long durationInMillis, int durationInFrames) {
         super();

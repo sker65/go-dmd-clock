@@ -7,7 +7,7 @@ import java.util.List;
 
 public class Project implements Model {
 	public byte version;
-	public String inputFile;
+	public List<String> inputFiles;
 	public List<Palette> palettes;
 	public List<PalMapping> palMappings;
 	public List<Scene> scenes;
@@ -15,7 +15,8 @@ public class Project implements Model {
 			List<PalMapping> palMappings) {
 		super();
 		this.version = (byte)version;
-		this.inputFile = inputFile;
+		this.inputFiles = new ArrayList<String>();
+		inputFiles.add(inputFile);
 		this.palettes = palettes;
 		this.palMappings = palMappings;
 	}
@@ -25,12 +26,12 @@ public class Project implements Model {
         palettes = new ArrayList<Palette>();
         palMappings = new ArrayList<>();
         scenes = new ArrayList<>();
-        inputFile="";
+        inputFiles=new ArrayList<>();
     }
 	
     @Override
 	public String toString() {
-		return "Project [version=" + version + ", inputFile=" + inputFile
+		return "Project [version=" + version + ", inputFiles=" + inputFiles
 				+ ", palettes=" + palettes + ", palMappings=" + palMappings
 				+ "]";
 	}

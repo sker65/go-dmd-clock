@@ -194,9 +194,11 @@ public class AnimationHandler implements Runnable {
 	}
 
 	public void setPos(int pos) {
-		anis.get(index).setPos(pos);
-		run();
-		canvas.redraw();
+		if( !anis.isEmpty() ) {
+		    anis.get(index).setPos(pos);
+	        run();
+	        canvas.redraw();
+		}
 	}
 
 	public void setAnimations(java.util.List<Animation> anis2) {

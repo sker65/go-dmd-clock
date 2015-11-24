@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
@@ -77,8 +78,8 @@ public class PinDmdEditor {
 
 		@Override
 		public void run() {
-			previewCanvas.redraw();
-			if( dmdWidget!=null) dmdWidget.redraw();
+			if( !previewCanvas.isDisposed()) previewCanvas.redraw();
+			if( dmdWidget!=null && !dmdWidget.isDisposed() ) dmdWidget.redraw();
             if (animationHandler != null) {
             	animationHandler.run();
                 display.timerExec(animationHandler.getRefreshDelay(), cyclicRedraw);
@@ -261,7 +262,7 @@ public class PinDmdEditor {
             Project projectToLoad  = (Project) fileHelper.loadObject(filename);
 
             if( projectToLoad != null ) {
-                shell.setText(frameTextPrefix+" - "+project.inputFile);
+                shell.setText(frameTextPrefix+" - "+new File(filename).getName());
                 project = projectToLoad;
                 
                 //loadAni(project.inputFile, false, false);
@@ -325,7 +326,8 @@ public class PinDmdEditor {
         }
         
         if( populateProject ) {
-            project.inputFile = filename;
+            if( !append ) project.inputFiles.clear();
+            project.inputFiles.add(filename);
             //DMD dmd = new DMD(128, 32);
             for (Animation ani : loadedList) {
     			project.scenes.add(new Scene(ani.getDesc(),0,/*ani.getFrameCount(dmd)*/100000,0));
@@ -497,6 +499,9 @@ public class PinDmdEditor {
             btnHash[i].setBounds(x, y+i*16, 331, 18);
             btnHash[i].addListener(SWT.Selection, e->{
             	selectedHashIndex = (Integer) e.widget.getData();
+            	if( selectedPalMapping != null ) {
+            	    selectedPalMapping.hashIndex = selectedHashIndex;
+            	}
             	for(int j = 0; j < numberOfHashes; j++) {
             		if( j != selectedHashIndex ) btnHash[j].setSelection(false);
             	}
@@ -551,6 +556,7 @@ public class PinDmdEditor {
 		
 		MenuItem mntmNewProject = new MenuItem(menu_1, SWT.NONE);
 		mntmNewProject.setText("New Project");
+		mntmNewProject.addListener(SWT.Selection, e->{ project = new Project(); } );
 		
 		MenuItem mntmLoadProject = new MenuItem(menu_1, SWT.NONE);
 		mntmLoadProject.addListener(SWT.Selection, e-> loadProject(e));
@@ -638,6 +644,7 @@ public class PinDmdEditor {
             IStructuredSelection selection = (IStructuredSelection) event.getSelection();
             if (selection.size() > 0){
             	selectedAnimation = (Animation)selection.getFirstElement();
+            	selectedAnimationIndex = aniList.getSelectionIndex();
                 playingAnis.clear();
                 playingAnis.add(selectedAnimation);
                 animationHandler.setAnimations(playingAnis); 
@@ -659,14 +666,18 @@ public class PinDmdEditor {
 		keyframeListViewer.addSelectionChangedListener(event -> {
             IStructuredSelection selection = (IStructuredSelection) event.getSelection();
             if (selection.size() > 0) {
-            	// pull old mapping
-            	Palette old = (Palette) ((StructuredSelection) paletteComboViewer.getSelection()).getFirstElement();
-            	selectedPalMapping.palIndex = old.index;
-            	selectedPalMapping.durationInMillis = Long.parseLong(txtDuration.getText());
             	// set new mapping
                 selectedPalMapping = (PalMapping)selection.getFirstElement();
+                selectedHashIndex = selectedPalMapping.hashIndex;
+                
                 txtDuration.setText(selectedPalMapping.durationInMillis+"");
                 paletteComboViewer.setSelection(new StructuredSelection(project.palettes.get(selectedPalMapping.palIndex)));
+                for(int j = 0; j < numberOfHashes; j++) {
+                    btnHash[j].setSelection(j == selectedHashIndex);
+                }
+                aniListViewer.setSelection(new StructuredSelection(
+                        animations.get(selectedPalMapping.animationIndex)));
+                selectedAnimation.setPos(selectedPalMapping.frameIndex);
             } else {
                 selectedPalMapping = null;
             }
@@ -712,6 +723,13 @@ public class PinDmdEditor {
         gd_txtDuration.widthHint = 76;
         txtDuration.setLayoutData(gd_txtDuration);
         txtDuration.setText("0");
+        txtDuration.addListener(SWT.Verify, e-> e.doit = Pattern.matches("^[0-9]*$", e.text) );
+        txtDuration.addListener(SWT.Modify, e-> {
+            if( selectedPalMapping != null ) {
+                selectedPalMapping.durationInMillis = Long.parseLong(txtDuration.getText());
+                selectedPalMapping.durationInFrames = (int)selectedPalMapping.durationInMillis / 40;
+            }
+        });
         
         btnRemoveAni = new Button(grpKeyframe, SWT.NONE);
         btnRemoveAni.setText("Remove Ani");
@@ -738,7 +756,9 @@ public class PinDmdEditor {
         	} else {
         		palMapping.setDigest(hashes.get(selectedHashIndex));
         	}
-        	palMapping.name = "KeyFrame "+project.palMappings.size()+1;
+        	palMapping.name = "KeyFrame "+(project.palMappings.size()+1);
+        	palMapping.animationIndex = selectedAnimationIndex;
+        	palMapping.frameIndex = selectedAnimation.actFrame;
         	project.palMappings.add(palMapping);
         	saveTimeCode = lastTimeCode;
         	keyframeListViewer.refresh();
@@ -846,6 +866,7 @@ public class PinDmdEditor {
             if (selection.size() > 0) {
                 Palette pal = (Palette) selection.getFirstElement();
                 activePaletteIndex = pal.index;
+                if( selectedPalMapping != null ) selectedPalMapping.palIndex = pal.index;
                 dmd.rgb = pal.colors;
                 dmdWidget.setPalette(pal);
                 setColorBtn();
@@ -986,9 +1007,9 @@ public class PinDmdEditor {
         dmdWidget.setLayoutData(gd_dmdWidget);
         
     }
-	
 
-	public String getPrintableHashes(byte[] p) {
+
+public String getPrintableHashes(byte[] p) {
 		StringBuffer hexString = new StringBuffer();
 		for (int j = 0; j < p.length; j++)
 			hexString.append(String.format("%02X", p[j]));
