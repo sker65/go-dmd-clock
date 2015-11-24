@@ -536,7 +536,7 @@ public class PinDmdEditor {
 	 */
 	protected void createContents() {
 		shlPindmdEditor = new Shell();
-		shlPindmdEditor.setSize(1167, 527);
+		shlPindmdEditor.setSize(1167, 553);
 		shlPindmdEditor.setText("Pin2dmd - Editor");
 		shlPindmdEditor.setLayout(new GridLayout(3, false));
 		
@@ -660,7 +660,7 @@ public class PinDmdEditor {
             IStructuredSelection selection = (IStructuredSelection) event.getSelection();
             if (selection.size() > 0) {
             	// pull old mapping
-            	Palette old = (Palette) paletteComboViewer.getSelection();
+            	Palette old = (Palette) ((StructuredSelection) paletteComboViewer.getSelection()).getFirstElement();
             	selectedPalMapping.palIndex = old.index;
             	selectedPalMapping.durationInMillis = Long.parseLong(txtDuration.getText());
             	// set new mapping
@@ -904,6 +904,9 @@ public class PinDmdEditor {
 
         ComboViewer planesComboViewer = new ComboViewer(grpPalettes, SWT.NONE);
         Combo planes = planesComboViewer.getCombo();
+        GridData gd_planes = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+        gd_planes.widthHint = 60;
+        planes.setLayoutData(gd_planes);
         planes.setItems(new String[] { "2", "4" });
         planes.setToolTipText("Number of planes");
         planes.select(1);
@@ -942,7 +945,7 @@ public class PinDmdEditor {
         });
         
         ToolBar toolBar = new ToolBar(grpPalettes, SWT.FLAT | SWT.RIGHT);
-        toolBar.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
+        toolBar.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 3, 1));
         
         ToolItem tltmPen = new ToolItem(toolBar, SWT.RADIO);
         tltmPen.setImage(SWTResourceManager.getImage(PinDmdEditor.class, "/icons/pencil.png"));
@@ -959,6 +962,13 @@ public class PinDmdEditor {
                 ToolItem tltmEraser = new ToolItem(toolBar, SWT.RADIO);
                 tltmEraser.setImage(SWTResourceManager.getImage(PinDmdEditor.class, "/icons/eraser.png"));
                 tltmEraser.addListener(SWT.Selection, e->dmdWidget.setDrawTool(null));
+        new Label(grpPalettes, SWT.NONE);
+        new Label(grpPalettes, SWT.NONE);
+        new Label(grpPalettes, SWT.NONE);
+        new Label(grpPalettes, SWT.NONE);
+        new Label(grpPalettes, SWT.NONE);
+        new Label(grpPalettes, SWT.NONE);
+        new Label(grpPalettes, SWT.NONE);
         new Label(grpPalettes, SWT.NONE);
         new Label(grpPalettes, SWT.NONE);
         new Label(grpPalettes, SWT.NONE);
