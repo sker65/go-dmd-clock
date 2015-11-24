@@ -202,6 +202,7 @@
 									<jar>target/go-dmd-clock-${project.version}-jar-with-dependencies.jar</jar>
 									<errTitle>pin2dmd editor</errTitle>
 									<icon>dist/Icons8-Windows-8-Gaming-Pinball.ico</icon>
+									<runtimeBits>32</runtimeBits>
 									<splash>
 										<file>dist/pin2dmd-splash.bmp</file>
 										<waitForWindow>true</waitForWindow>
