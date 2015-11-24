@@ -115,6 +115,8 @@ public class PinDmdEditor {
 		}
 	}
 
+    private static final String HELP_URL = "http://go-dmd.de/2015/11/24/pin2dmd-editor/";
+
 	DMD dmd = new DMD(128,32);
 	AnimationHandler animationHandler = null;
 	CyclicRedraw cyclicRedraw = null;
@@ -615,7 +617,7 @@ public class PinDmdEditor {
 		
 		MenuItem mntmGetHelp = new MenuItem(menu_4, SWT.NONE);
 		mntmGetHelp.setText("Get help");
-		mntmGetHelp.addListener(SWT.Selection, e->Program.launch("http://go-dmd.de/tools/"));
+		mntmGetHelp.addListener(SWT.Selection, e->Program.launch(HELP_URL));
 		
 		new MenuItem(menu_4, SWT.SEPARATOR);
 		
@@ -1005,7 +1007,7 @@ public class PinDmdEditor {
         GridData gd_dmdWidget = new GridData(SWT.FILL, SWT.FILL, false, false, 3, 1);
         gd_dmdWidget.heightHint = 200;
         dmdWidget.setLayoutData(gd_dmdWidget);
-        
+        dmdWidget.setVisible(false);
     }
 
 
