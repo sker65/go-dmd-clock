@@ -7,12 +7,12 @@
 
     <target name="bundle">
         <bundleapp outputdirectory="."
-            name="Pin2Dmd Editor"
+            name="Pin2Dmd-Editor"
             icon="Icons8-Windows-8-Gaming-Pinball.icns"
-            displayname="Pin2Dmd Editor"
+            displayname="Pin2Dmd-Editor"
             identifier="components.pin2dmdeditor"
             mainclassname="com/rinke/solutions/pinball/PinDmdEditor">
-            <classpath file="../target/go-dmd-clock-0.0.1-SNAPSHOT-jar-with-dependencies.jar" />
+            <classpath file="../target/go-dmd-clock-*-jar-with-dependencies.jar" />
             <classpath file="pin2dmd-splash.png" />
             <option value="-XstartOnFirstThread"/>
             <option value="-splash:$APP_ROOT/Contents/Java/pin2dmd-splash.png"/>
