@@ -522,6 +522,8 @@ public class PinDmdEditor {
 	private int selectedHashIndex;
 	private ComboViewer paletteTypeComboViewer;
 	private DMDWidget dmdWidget;
+
+    private UsbTool usbTool = new UsbTool();
     
     private void  planesChanged(int planes, int x, int y) {
         switch(planes) {
@@ -938,6 +940,7 @@ public class PinDmdEditor {
         
         Button btnUploadPalette = new Button(grpPalettes, SWT.NONE);
         btnUploadPalette.setText("Upload Palette");
+        btnUploadPalette.addListener(SWT.Selection, e->usbTool .upload(project.palettes.get(activePaletteIndex)));
 
         ToolBar paletteBar = new ToolBar(grpPalettes, SWT.FLAT | SWT.RIGHT);
         GridData gd_composite_1 = new GridData(SWT.LEFT, SWT.CENTER, false, false, 4, 1);
