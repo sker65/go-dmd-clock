@@ -80,7 +80,7 @@ public class PinDmdEditor {
 		public void run() {
 			if( !previewCanvas.isDisposed()) previewCanvas.redraw();
 			if( dmdWidget!=null && !dmdWidget.isDisposed() ) dmdWidget.redraw();
-            if (animationHandler != null) {
+            if (animationHandler != null && !animationHandler.isStopped()) {
             	animationHandler.run();
                 display.timerExec(animationHandler.getRefreshDelay(), cyclicRedraw);
             }
@@ -831,6 +831,7 @@ public class PinDmdEditor {
     		btnStart.setEnabled(false);
         	btnPrev.setEnabled(false);
         	btnNext.setEnabled(false);
+        	display.timerExec(animationHandler.getRefreshDelay(), cyclicRedraw);
         });
         btnStart.setEnabled(false);
         btnStop.setText("Stop");
