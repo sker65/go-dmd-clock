@@ -41,6 +41,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.RGB;
@@ -453,8 +454,6 @@ public class PinDmdEditor {
         for(int i = 0; i < colBtn.length; i++) {
             colBtn[i] = new ToolItem(toolBar, SWT.RADIO);
             colBtn[i].setData(Integer.valueOf(i));
-            // on mac use wider buttons e.g. 32 pix instead of 26
-            //colBtn[i].setBounds(x+i*28, y, 32, 26);
             colBtn[i].setImage(getSquareImage(display, new Color(display,dmd.rgb[i])));
             colBtn[i].addListener(SWT.Selection, e -> {
                 selectedColor = (Integer) e.widget.getData();
@@ -494,6 +493,7 @@ public class PinDmdEditor {
             if( i == 0 ) btnHash[i].setSelection(true);
             btnHash[i].setData(Integer.valueOf(i));
             btnHash[i].setText("Hash"+i);
+            //btnHash[i].setFont(new Font(shell.getDisplay(), "sans", 10, 0));
             btnHash[i].setBounds(x, y+i*16, 331, 18);
             btnHash[i].addListener(SWT.Selection, e->{
             	selectedHashIndex = (Integer) e.widget.getData();
@@ -648,7 +648,7 @@ public class PinDmdEditor {
             btnAddKeyframe.setEnabled(selection.size()>0);
 		});
 		
-		keyframeListViewer = new ListViewer(shlPindmdEditor, SWT.BORDER | SWT.V_SCROLL);
+		keyframeListViewer = new ListViewer(shlPindmdEditor, SWT.SINGLE | SWT.BORDER | SWT.V_SCROLL);
 		List keyframeList = keyframeListViewer.getList();
 		GridData gd_keyframeList = new GridData(SWT.LEFT, SWT.FILL, false, false, 1, 1);
 		gd_keyframeList.widthHint = 137;
@@ -692,13 +692,13 @@ public class PinDmdEditor {
         Group grpKeyframe = new Group(shlPindmdEditor, SWT.NONE);
         grpKeyframe.setLayout(new GridLayout(3, false));
         GridData gd_grpKeyframe = new GridData(SWT.FILL, SWT.FILL, false, false, 2, 3);
-        gd_grpKeyframe.widthHint = 317;
+        gd_grpKeyframe.widthHint = 350;
         grpKeyframe.setLayoutData(gd_grpKeyframe);
         grpKeyframe.setText("Animations / KeyFrame");
         
         Composite composite_hash = new Composite(grpKeyframe, SWT.NONE);
-        GridData gd_composite_hash = new GridData(SWT.LEFT, SWT.CENTER, false, false, 3, 1);
-        gd_composite_hash.widthHint = 293;
+        GridData gd_composite_hash = new GridData(SWT.FILL, SWT.CENTER, false, false, 3, 1);
+        gd_composite_hash.widthHint = 341;
         composite_hash.setLayoutData(gd_composite_hash);
 
         createHashButtons(composite_hash, 10, 20);
@@ -902,7 +902,7 @@ public class PinDmdEditor {
         Label lblPlanes = new Label(grpPalettes, SWT.NONE);
         lblPlanes.setText("Planes");
 
-        ComboViewer planesComboViewer = new ComboViewer(grpPalettes, SWT.READ_ONLY);
+        ComboViewer planesComboViewer = new ComboViewer(grpPalettes, SWT.NONE);
         Combo planes = planesComboViewer.getCombo();
         planes.setItems(new String[] { "2", "4" });
         planes.setToolTipText("Number of planes");
@@ -961,6 +961,13 @@ public class PinDmdEditor {
                 tltmEraser.addListener(SWT.Selection, e->dmdWidget.setDrawTool(null));
         new Label(grpPalettes, SWT.NONE);
         new Label(grpPalettes, SWT.NONE);
+        new Label(grpPalettes, SWT.NONE);
+        new Label(grpPalettes, SWT.NONE);
+        new Label(grpPalettes, SWT.NONE);
+        new Label(grpPalettes, SWT.NONE);
+        new Label(grpPalettes, SWT.NONE);
+        new Label(grpPalettes, SWT.NONE);
+        new Label(grpPalettes, SWT.NONE);
 
         dmdWidget = new DMDWidget(shlPindmdEditor, SWT.DOUBLE_BUFFERED, this.dmd);
         dmdWidget.setBounds(0, 0, 600, 200);
@@ -974,7 +981,7 @@ public class PinDmdEditor {
 	public String getPrintableHashes(byte[] p) {
 		StringBuffer hexString = new StringBuffer();
 		for (int j = 0; j < p.length; j++)
-			hexString.append(String.format("%02X ", p[j]));
+			hexString.append(String.format("%02X", p[j]));
 		return hexString.toString();
 	}
 	
