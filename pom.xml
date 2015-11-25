@@ -46,9 +46,9 @@
 			<id>mac_64</id>
 			<dependencies>
 				<dependency>
-					<groupId>org.eclipse.swt.org.eclipse.swt.cocoa.macosx.x86_64.4.3.swt</groupId>
+					<groupId>org.eclipse.swt</groupId>
 					<artifactId>org.eclipse.swt.cocoa.macosx.x86_64</artifactId>
-					<version>4.3</version>
+					<version>4.4</version>
 				</dependency>
 			</dependencies>
 			<build>
@@ -75,6 +75,34 @@
 						<jvmOptions> <jvmOption>-XstartOnFirstThread</jvmOption> </jvmOptions> </configuration> 
 						<executions> <execution> <phase>package</phase> <goals> <goal>bundle</goal> 
 						</goals> </execution> </executions> </plugin -->
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>mac</id>
+			<dependencies>
+				<dependency>
+					<groupId>org.eclipse.swt</groupId>
+					<artifactId>org.eclipse.swt.cocoa.macosx</artifactId>
+					<version>4.4</version>
+				</dependency>
+			</dependencies>
+			<build>
+				<plugins>
+					<plugin>
+						<artifactId>maven-assembly-plugin</artifactId>
+						<version>2.6</version>
+						<configuration>
+							<archive>
+								<manifest>
+									<mainClass>com.rinke.solutions.pinball.PinDmdEditor</mainClass>
+								</manifest>
+							</archive>
+							<descriptorRefs>
+								<descriptorRef>jar-with-dependencies</descriptorRef>
+							</descriptorRefs>
+						</configuration>
+					</plugin>
 				</plugins>
 			</build>
 		</profile>
