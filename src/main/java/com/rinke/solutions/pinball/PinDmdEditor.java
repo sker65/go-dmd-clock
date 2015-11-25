@@ -890,7 +890,7 @@ public class PinDmdEditor {
             if (!PaletteType.NORMAL.equals(palType)) {
                 for (int i = 0; i < project.palettes.size(); i++) {
                     if (i != activePaletteIndex) { // set all other to normal
-                        project.palettes.get(activePaletteIndex).type = PaletteType.NORMAL;
+                        project.palettes.get(i).type = PaletteType.NORMAL;
                     }
                 }
             }
