@@ -15,7 +15,7 @@
             <classpath file="../target/go-dmd-clock-*-jar-with-dependencies.jar" />
             <classpath file="pin2dmd-splash.png" />
             <option value="-XstartOnFirstThread"/>
-            <option value="-splash:$APP_ROOT/Contents/Java/pin2dmd-splash.png"/>
+            <!-- option value="-splash:$APP_ROOT/Contents/Java/pin2dmd-splash.png"/ -->
             <option value="-Dorg.slf4j.simpleLogger.logFile=pin2dmd-editor.log"/>
             <option value="-Dorg.slf4j.simpleLogger.defaultLogLevel=debug"/>
         </bundleapp>
