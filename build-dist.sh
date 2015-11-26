@@ -15,5 +15,12 @@ ant
 zip -r Pin2Dmd-Editor.zip Pin2Dmd-Editor.app
 cd ..
 mv dist/Pin2Dmd-Editor.zip build
+mvn -Pmac clean package assembly:single
+cd dist
+rm -rf Pin2Dmd-Editor.app/
+ant
+zip -r Pin2Dmd-Editor32.zip Pin2Dmd-Editor.app
+cd ..
+mv dist/Pin2Dmd-Editor32.zip build
 echo "Successfull build"
 
