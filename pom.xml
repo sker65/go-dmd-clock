@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.rinke.solutions.pinball</groupId>
 	<artifactId>go-dmd-clock</artifactId>
-	<version>1.0.0.1</version>
+	<version>1.0.2</version>
 	<repositories>
 		<repository>
 			<id>swt-repo</id>
