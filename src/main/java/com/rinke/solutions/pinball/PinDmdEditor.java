@@ -267,14 +267,16 @@ public class PinDmdEditor {
                 shell.setText(frameTextPrefix+" - "+new File(filename).getName());
                 project = projectToLoad;
                 
-                //loadAni(project.inputFile, false, false);
+                if( project.inputFiles.size() >0 ) loadAni(project.inputFiles.get(0), false, false);
                 for( int i = 1; i < project.scenes.size(); i++) {
                 	//cutOutNewAnimation(project.scenes.get(i).start, project.scenes.get(i).end, animations.get(0));
                 	System.out.println("cutting out "+project.scenes.get(i));
                 }
-                project.palettes = project.palettes;
-                project.palMappings = project.palMappings;
-                
+                aniListViewer.refresh();
+                paletteComboViewer.setInput(project.palettes);
+            	//paletteComboViewer.refresh();
+                keyframeListViewer.setInput(project.palMappings);
+            	//keyframeListViewer.refresh();
             }
         }
         
