@@ -78,7 +78,7 @@ public class PinDmdEditor {
 
 		@Override
 		public void run() {
-			if( !previewCanvas.isDisposed()) previewCanvas.redraw();
+			//if( !previewCanvas.isDisposed()) previewCanvas.redraw();
 			if( dmdWidget!=null && !dmdWidget.isDisposed() ) dmdWidget.redraw();
             if (animationHandler != null && !animationHandler.isStopped()) {
             	animationHandler.run();
@@ -130,7 +130,7 @@ public class PinDmdEditor {
 	protected long lastTimeCode;
     Display display;
     final ToolItem colBtn[] = new ToolItem[16];
-	private Canvas previewCanvas;
+	//private Canvas previewCanvas;
 	private Label lblTcval;
 	private Label lblFrameNo;
 	private Scale scale;
@@ -174,7 +174,7 @@ public class PinDmdEditor {
 		
 		paletteComboViewer.getCombo().select(0);
 		
-		animationHandler = new AnimationHandler(playingAnis, clock, dmd, previewCanvas, false);
+		animationHandler = new AnimationHandler(playingAnis, clock, dmd, dmdWidget, false);
         animationHandler.setScale(scale);
 		animationHandler.setLabelHandler(new EventHandler() {
 		    
@@ -526,6 +526,10 @@ public class PinDmdEditor {
 	private DMDWidget dmdWidget;
 
     private UsbTool usbTool = new UsbTool();
+
+    private int cutStart;
+
+    private int cutEnd;
     
     private void  planesChanged(int planes, int x, int y) {
         switch(planes) {
@@ -691,13 +695,20 @@ public class PinDmdEditor {
             btnSetDuration.setEnabled(selection.size()>0);
 		});
 		
-		previewCanvas = new Canvas(shlPindmdEditor, SWT.BORDER|SWT.DOUBLE_BUFFERED);
+        dmdWidget = new DMDWidget(shlPindmdEditor, SWT.DOUBLE_BUFFERED, this.dmd);
+        dmdWidget.setBounds(0, 0, 600, 200);
+        GridData gd_dmdWidget = new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1);
+        gd_dmdWidget.heightHint = 200;
+        dmdWidget.setLayoutData(gd_dmdWidget);
+        //dmdWidget.setVisible(false);
+        
+        /*previewCanvas = new Canvas(shlPindmdEditor, SWT.BORDER|SWT.DOUBLE_BUFFERED);
         GridData gd_canvas = new GridData(SWT.LEFT, SWT.TOP, true, false, 1, 1);
         gd_canvas.heightHint = 6*32 +20;
         gd_canvas.widthHint = 128*6 + 20;
         previewCanvas.setLayoutData(gd_canvas);
         previewCanvas.setBackground(new Color(shlPindmdEditor.getDisplay(), 10,10,10));
-        previewCanvas.addPaintListener(e -> { dmd.draw(e); });
+        previewCanvas.addPaintListener(e -> { dmd.draw(e); });*/
         
         new Label(shlPindmdEditor, SWT.NONE);
         new Label(shlPindmdEditor, SWT.NONE);
@@ -823,7 +834,7 @@ public class PinDmdEditor {
         lblTcval.setText("xxxxxxxxxx");
         
         Composite composite = new Composite(shlPindmdEditor, SWT.NONE);
-        composite.setLayout(new GridLayout(4, false));
+        composite.setLayout(new GridLayout(7, false));
         composite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
         
         Button btnStart = new Button(composite, SWT.NONE);
@@ -856,6 +867,32 @@ public class PinDmdEditor {
         btnNext.setText(">");
         btnNext.setEnabled(false);
         btnNext.addListener(SWT.Selection, e->animationHandler.next());
+        
+        Button btnMarkStart = new Button(composite, SWT.NONE);
+        Button btnMarkEnd = new Button(composite, SWT.NONE);
+        Button btnCut = new Button(composite, SWT.NONE);
+
+        btnMarkStart.setText("Mark Start");
+        btnMarkStart.addListener(SWT.Selection, e->{
+            cutStart = selectedAnimation.actFrame; 
+            btnMarkEnd.setEnabled(true);
+            });
+        
+        btnMarkEnd.setText("Mark End");
+        btnMarkEnd.addListener(SWT.Selection, e->{
+            cutEnd = selectedAnimation.actFrame;
+            btnCut.setEnabled(true);
+            });
+        btnMarkEnd.setEnabled(false);
+        
+        btnCut.setText("Cut");
+        btnCut.addListener(SWT.Selection, e->{
+            cutScene(selectedAnimation, cutStart, cutEnd);
+            cutStart = 0; cutEnd = 0;
+            btnMarkEnd.setEnabled(false);
+            btnCut.setEnabled(false);
+        });
+        btnCut.setEnabled(false);
         
         Group grpPalettes = new Group(shlPindmdEditor, SWT.NONE);
         grpPalettes.setLayout(new GridLayout(8, false));
@@ -1006,14 +1043,14 @@ public class PinDmdEditor {
         new Label(grpPalettes, SWT.NONE);
         new Label(grpPalettes, SWT.NONE);
 
-        dmdWidget = new DMDWidget(shlPindmdEditor, SWT.DOUBLE_BUFFERED, this.dmd);
-        dmdWidget.setBounds(0, 0, 600, 200);
-        GridData gd_dmdWidget = new GridData(SWT.FILL, SWT.FILL, false, false, 3, 1);
-        gd_dmdWidget.heightHint = 200;
-        dmdWidget.setLayoutData(gd_dmdWidget);
-        dmdWidget.setVisible(false);
+
     }
 
+
+private void cutScene(Animation selectedAnimation2, int cutStart2, int cutEnd2) {
+        // TODO Auto-generated method stub
+        
+    }
 
 public String getPrintableHashes(byte[] p) {
 		StringBuffer hexString = new StringBuffer();
