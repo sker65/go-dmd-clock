@@ -36,7 +36,7 @@ public class UsbTool {
     
     public void bulk(byte[] data) {
         Context ctx = initUsb();
-        Device device = findDevice((short) 0x314, (short)0xE457);
+        Device device = findDevice(ctx, (short) 0x314, (short)0xE457);
         DeviceHandle handle = new DeviceHandle();
         int result = LibUsb.open(device, handle);
         if (result != LibUsb.SUCCESS)
@@ -102,10 +102,10 @@ public class UsbTool {
         return context;
     }
 
-    public Device findDevice(short vendorId, short productId) {
+    public Device findDevice(Context ctx, short vendorId, short productId) {
         // Read the USB device list
         DeviceList list = new DeviceList();
-        int result = LibUsb.getDeviceList(null, list);
+        int result = LibUsb.getDeviceList(ctx, list);
         if (result < 0)
             throw new LibUsbException("Unable to get device list", result);
 
@@ -116,6 +116,9 @@ public class UsbTool {
                 result = LibUsb.getDeviceDescriptor(device, descriptor);
                 if (result != LibUsb.SUCCESS)
                     throw new LibUsbException("Unable to read device descriptor", result);
+                System.out.println("scanning for device: "
+                    +String.format("%04X", descriptor.idVendor())
+                    +", "+String.format("%04X", descriptor.idProduct()));
                 if (descriptor.idVendor() == vendorId && descriptor.idProduct() == productId)
                     return device;
             }
