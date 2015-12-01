@@ -70,7 +70,9 @@ import org.eclipse.wb.swt.SWTResourceManager;
 
 public class PinDmdEditor {
 
-	/**
+	private static final int FRAME_RATE = 40;
+
+    /**
 	 * handles redraw of animations
 	 * @author steve
 	 */
@@ -566,7 +568,14 @@ public class PinDmdEditor {
 		
 		MenuItem mntmNewProject = new MenuItem(menu_1, SWT.NONE);
 		mntmNewProject.setText("New Project");
-		mntmNewProject.addListener(SWT.Selection, e->{ project = new Project(); } );
+		mntmNewProject.addListener(SWT.Selection, e->{ 
+		    project = new Project();
+		    paletteComboViewer.setInput(project.palettes);
+		    keyframeListViewer.setInput(project.palMappings);
+		    animations.clear();
+		    playingAnis.clear();
+		    selectedAnimation = null;
+		} );
 		
 		MenuItem mntmLoadProject = new MenuItem(menu_1, SWT.NONE);
 		mntmLoadProject.addListener(SWT.Selection, e-> loadProject(e));
@@ -789,7 +798,8 @@ public class PinDmdEditor {
         btnSetDuration.setEnabled(false);
         btnSetDuration.addListener(SWT.Selection, e->{
         	if( selectedPalMapping!=null) {
-        		selectedPalMapping.durationInMillis = lastTimeCode -saveTimeCode;
+        		selectedPalMapping.durationInMillis = lastTimeCode - saveTimeCode;
+                selectedPalMapping.durationInFrames = (int)selectedPalMapping.durationInMillis / FRAME_RATE;
         		txtDuration.setText(selectedPalMapping.durationInMillis+"");
         	}
         });
