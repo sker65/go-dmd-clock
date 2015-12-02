@@ -11,6 +11,8 @@ public class Project implements Model {
 	public List<Palette> palettes;
 	public List<PalMapping> palMappings;
 	public List<Scene> scenes;
+	public List<FrameSequence> frameSequences;
+	
 	public boolean dirty;
 	
 	public Project(int version, String inputFile, List<Palette> palettes,
@@ -21,6 +23,7 @@ public class Project implements Model {
 		inputFiles.add(inputFile);
 		this.palettes = palettes;
 		this.palMappings = palMappings;
+		this.frameSequences = new ArrayList<FrameSequence>();
 	}
 	
 	public Project() {
@@ -29,6 +32,7 @@ public class Project implements Model {
         palMappings = new ArrayList<>();
         scenes = new ArrayList<>();
         inputFiles=new ArrayList<>();
+        frameSequences = new ArrayList<>();
     }
 	
     @Override
@@ -47,6 +51,10 @@ public class Project implements Model {
 		os.writeShort(palMappings.size());
 		for(PalMapping p : palMappings ) {
 			p.writeTo(os);
+		}
+		os.writeShort(frameSequences.size());
+		for(FrameSequence fs:frameSequences) {
+			fs.writeTo(os);
 		}
 	}
 }
