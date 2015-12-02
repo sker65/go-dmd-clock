@@ -2,9 +2,6 @@ package com.rinke.solutions.pinball;
 
 import java.awt.SplashScreen;
 import java.io.File;
-
-import org.eclipse.core.runtime.Status;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -12,60 +9,53 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.MenuItem;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.List;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.MultiStatus;
-import org.eclipse.jface.dialogs.ErrorDialog;
-import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.viewers.ArrayContentProvider;
+import org.eclipse.jface.viewers.ComboViewer;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.ListViewer;
 import org.eclipse.jface.viewers.StructuredSelection;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.program.Program;
-import org.eclipse.swt.widgets.Canvas;
-import org.eclipse.swt.widgets.ColorDialog;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.FileDialog;
-import org.eclipse.swt.widgets.MessageBox;
-import org.eclipse.swt.widgets.Scale;
-import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Combo;
-import org.eclipse.jface.viewers.ComboViewer;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Text;
-import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.RGB;
-
-import com.rinke.solutions.pinball.model.Palette;
-import com.rinke.solutions.pinball.model.PaletteType;
-import com.rinke.solutions.pinball.model.Project;
-import com.rinke.solutions.pinball.model.PalMapping;
-import com.rinke.solutions.pinball.model.Scene;
-import com.rinke.solutions.pinball.widget.DMDWidget;
-import com.rinke.solutions.pinball.widget.DrawTool;
-import com.rinke.solutions.pinball.widget.SetPixelTool;
-import com.rinke.solutions.pinball.widget.FloodFillTool;
-import com.rinke.solutions.pinball.widget.RectTool;
-import com.rinke.solutions.pinball.ui.About;
-
-import org.eclipse.jface.viewers.ArrayContentProvider;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.program.Program;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.ColorDialog;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.FileDialog;
+import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.List;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.MessageBox;
+import org.eclipse.swt.widgets.Scale;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.wb.swt.SWTResourceManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.rinke.solutions.pinball.model.PalMapping;
+import com.rinke.solutions.pinball.model.Palette;
+import com.rinke.solutions.pinball.model.PaletteType;
+import com.rinke.solutions.pinball.model.Project;
+import com.rinke.solutions.pinball.model.Scene;
+import com.rinke.solutions.pinball.ui.About;
+import com.rinke.solutions.pinball.widget.DMDWidget;
+import com.rinke.solutions.pinball.widget.DrawTool;
+import com.rinke.solutions.pinball.widget.FloodFillTool;
+import com.rinke.solutions.pinball.widget.RectTool;
+import com.rinke.solutions.pinball.widget.SetPixelTool;
 
 
 public class PinDmdEditor {
@@ -94,8 +84,7 @@ public class PinDmdEditor {
 	private Label lblFrameNo;
 	private Scale scale;
 	
-	String lastPath;
-	
+	private String lastPath;
 	private String frameTextPrefix = "Pin2dmd Editor ";
 	private Animation selectedAnimation = null;
 	private int selectedAnimationIndex = 0;
@@ -111,6 +100,7 @@ public class PinDmdEditor {
     private int selectedColor;
 
     int numberOfHashes = 4;
+    java.util.List<byte[]> hashes = new ArrayList<byte[]>();
     byte[] visible = { 1,1,0,0, 1,0,0,0, 0,0,0,0, 0,0,0,1 };
 
     /** instance level SWT widgets*/
@@ -197,7 +187,6 @@ public class PinDmdEditor {
 		}
 	}
 
-    java.util.List<byte[]> hashes = new ArrayList<byte[]>();
 
     private void saveHashes(java.util.List<byte[]> hashes) {
         if( hashes != null ) {
@@ -258,6 +247,9 @@ public class PinDmdEditor {
 
 		shell.open();
 		shell.layout();
+		shell.addListener(SWT.Close,  e -> {
+			e.doit = dirtyCheck();
+		});
 
 		GlobalExceptionHandler.getInstance().setDisplay(display);
         GlobalExceptionHandler.getInstance().setShell(shell);
@@ -335,7 +327,8 @@ public class PinDmdEditor {
         if (filename != null) {
             LOG.info("write project to {}",filename);
             fileHelper.storeObject(project, filename);
-         }
+        }
+        project.dirty = false;
     }
 
     protected void loadAniWithFC(boolean append) {
@@ -383,6 +376,7 @@ public class PinDmdEditor {
         }
         animations.addAll(loadedList);
         aniListViewer.refresh();
+        project.dirty = true;
     }
 
     private Animation buildAnimationFromFile(String filename, AnimationType type) {
@@ -966,8 +960,25 @@ public class PinDmdEditor {
         new Label(grpPalettes, SWT.NONE);
         new Label(grpPalettes, SWT.NONE);
 
-
     }
+	
+	/**
+	 * check if dirty.
+	 * @return true, if not dirty or if user decides to ignore dirtyness
+	 */
+	boolean dirtyCheck() {
+		if( project.dirty ) {
+			MessageBox messageBox = new MessageBox(shell,
+                    SWT.ICON_WARNING | SWT.OK | SWT.ABORT  );
+            
+            messageBox.setText("Unsaved Changes");
+            messageBox.setMessage("There are unsaved changes in project. Proceed?");
+            int res = messageBox.open();
+            return (res != 0);
+		} else {
+			return true;
+		}
+	}
 	
 	/**
 	 * creates the top level menu
@@ -985,12 +996,15 @@ public class PinDmdEditor {
 		MenuItem mntmNewProject = new MenuItem(menu_1, SWT.NONE);
 		mntmNewProject.setText("New Project");
 		mntmNewProject.addListener(SWT.Selection, e->{ 
-		    project = new Project();
-		    paletteComboViewer.setInput(project.palettes);
-		    keyframeListViewer.setInput(project.palMappings);
-		    animations.clear();
-		    playingAnis.clear();
-		    selectedAnimation = null;
+			if( dirtyCheck() ) {
+			    project = new Project();
+			    paletteComboViewer.setInput(project.palettes);
+			    keyframeListViewer.setInput(project.palMappings);
+			    animations.clear();
+			    aniListViewer.refresh();
+			    playingAnis.clear();
+			    selectedAnimation = null;
+			}
 		} );
 		
 		MenuItem mntmLoadProject = new MenuItem(menu_1, SWT.NONE);
