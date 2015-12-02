@@ -70,7 +70,73 @@ import org.eclipse.wb.swt.SWTResourceManager;
 
 public class PinDmdEditor {
 
+	private static final Logger LOG = LoggerFactory.getLogger(PinDmdEditor.class);
+	
 	private static final int FRAME_RATE = 40;
+
+	private static final String HELP_URL = "http://go-dmd.de/2015/11/24/pin2dmd-editor/";
+
+	DMD dmd = new DMD(128,32);
+	AnimationHandler animationHandler = null;
+	CyclicRedraw cyclicRedraw = null;
+	
+	Project project = new Project();
+	java.util.List<Animation> animations = new ArrayList<>();
+    Map<String,DrawTool> drawTools = new HashMap<>();
+
+    Display display;
+	protected Shell shell;
+
+	protected long lastTimeCode;
+
+    //private Canvas previewCanvas;
+	private Label lblTcval;
+	private Label lblFrameNo;
+	private Scale scale;
+	
+	String lastPath;
+	
+	private String frameTextPrefix = "Pin2dmd Editor ";
+	private Animation selectedAnimation = null;
+	private int selectedAnimationIndex = 0;
+	private java.util.List<Animation> playingAnis = new ArrayList<Animation>();
+	private int activePaletteIndex;
+
+	// colaboration classes
+    private DMDClock clock = new DMDClock(false);
+	FileHelper fileHelper = new FileHelper();
+    SmartDMDImporter smartDMDImporter = new SmartDMDImporter();
+    UsbTool usbTool = new UsbTool();
+
+    private int selectedColor;
+
+    int numberOfHashes = 4;
+    byte[] visible = { 1,1,0,0, 1,0,0,0, 0,0,0,0, 0,0,0,1 };
+
+    /** instance level SWT widgets*/
+    Button btnHash[]  = new Button[numberOfHashes];
+    private Text txtDuration;
+    final ToolItem colBtn[] = new ToolItem[16];
+	private ComboViewer paletteComboViewer;
+	private ListViewer aniListViewer;
+	private ListViewer keyframeListViewer;
+	private Button btnRemoveAni;
+    private Button btnDeleteKeyframe;
+	private PalMapping selectedPalMapping;
+	private long saveTimeCode;
+	private Button btnAddKeyframe;
+	private Button btnSetDuration;
+	private Button btnPrev;
+	private Button btnNext;
+	private int selectedHashIndex;
+	private ComboViewer paletteTypeComboViewer;
+	private DMDWidget dmdWidget;
+
+
+    private int cutStart;
+    private int cutEnd;
+    
+
 
     /**
 	 * handles redraw of animations
@@ -116,26 +182,6 @@ public class PinDmdEditor {
 			return ((Animation) element).getDesc();
 		}
 	}
-
-    private static final String HELP_URL = "http://go-dmd.de/2015/11/24/pin2dmd-editor/";
-
-	DMD dmd = new DMD(128,32);
-	AnimationHandler animationHandler = null;
-	CyclicRedraw cyclicRedraw = null;
-	
-	Project project = new Project();
-	java.util.List<Animation> animations = new ArrayList<>();
-    Map<String,DrawTool> drawTools = new HashMap<>();
-
-	protected Shell shlPindmdEditor;
-	private Text txtDuration;
-	protected long lastTimeCode;
-    Display display;
-    final ToolItem colBtn[] = new ToolItem[16];
-	//private Canvas previewCanvas;
-	private Label lblTcval;
-	private Label lblFrameNo;
-	private Scale scale;
 
 
 	/**
@@ -210,9 +256,8 @@ public class PinDmdEditor {
 		    splashScreen.close();
 		}
 
-        shell = shlPindmdEditor.getShell();
-		shlPindmdEditor.open();
-		shlPindmdEditor.layout();
+		shell.open();
+		shell.layout();
 
 		GlobalExceptionHandler.getInstance().setDisplay(display);
         GlobalExceptionHandler.getInstance().setShell(shell);
@@ -241,18 +286,6 @@ public class PinDmdEditor {
 
 	}
 	
-    private DMDClock clock = new DMDClock(false);
-
-	Shell shell;
-	String lastPath;
-    private static Logger LOG = LoggerFactory.getLogger(PinDmdEditor.class); 
-    FileHelper fileHelper = new FileHelper();
-	private String frameTextPrefix = "Pin2dmd Editor ";
-	private Animation selectedAnimation = null;
-	private int selectedAnimationIndex = 0;
-	private java.util.List<Animation> playingAnis = new ArrayList<Animation>();
-	private int activePaletteIndex;
-	
     private Object loadProject(Event e) {
         FileDialog fileChooser = new FileDialog(shell, SWT.OPEN);
         if (lastPath != null)
@@ -266,7 +299,7 @@ public class PinDmdEditor {
             Project projectToLoad  = (Project) fileHelper.loadObject(filename);
 
             if( projectToLoad != null ) {
-                shell.setText(frameTextPrefix+" - "+new File(filename).getName());
+            	shell.setText(frameTextPrefix+" - "+new File(filename).getName());
                 project = projectToLoad;
                 
                 if( project.inputFiles.size() >0 ) loadAni(project.inputFiles.get(0), false, false);
@@ -383,13 +416,6 @@ public class PinDmdEditor {
         return null;
     }
     
-    SmartDMDImporter smartDMDImporter = new SmartDMDImporter();
-	private ComboViewer paletteComboViewer;
-	private ListViewer aniListViewer;
-	private ListViewer keyframeListViewer;
-	private Button btnRemoveAni;
-	private int selectedColor;
-
     private void loadPalette(Event e) {
         FileDialog fileChooser = new FileDialog(shell, SWT.OPEN);
         if (lastPath != null)
@@ -492,9 +518,6 @@ public class PinDmdEditor {
         }
     }
     
-    int numberOfHashes = 4;
-    Button btnHash[]  = new Button[numberOfHashes];
-    
     public void createHashButtons(Composite parent, int x, int y ) {
     	for(int i = 0; i < numberOfHashes; i++) {
             btnHash[i] = new Button(parent, SWT.CHECK);
@@ -515,24 +538,6 @@ public class PinDmdEditor {
     	}
     }
     
-    byte[] visible = { 1,1,0,0, 1,0,0,0, 0,0,0,0, 0,0,0,1 };
-	private Button btnDeleteKeyframe;
-	private PalMapping selectedPalMapping;
-	private long saveTimeCode;
-	private Button btnAddKeyframe;
-	private Button btnSetDuration;
-	private Button btnPrev;
-	private Button btnNext;
-	private int selectedHashIndex;
-	private ComboViewer paletteTypeComboViewer;
-	private DMDWidget dmdWidget;
-
-    private UsbTool usbTool = new UsbTool();
-
-    private int cutStart;
-
-    private int cutEnd;
-    
     private void  planesChanged(int planes, int x, int y) {
         switch(planes) {
         case 0: // 2 planes -> 4 colors
@@ -552,23 +557,23 @@ public class PinDmdEditor {
 	 * Create contents of the window.
 	 */
 	protected void createContents() {
-		shlPindmdEditor = new Shell();
-		shlPindmdEditor.setSize(1167, 553);
-		shlPindmdEditor.setText("Pin2dmd - Editor");
-		shlPindmdEditor.setLayout(new GridLayout(3, false));
+		shell = new Shell();
+		shell.setSize(1167, 553);
+		shell.setText("Pin2dmd - Editor");
+		shell.setLayout(new GridLayout(3, false));
 		
 		createMenu();
 		
-		Label lblAnimations = new Label(shlPindmdEditor, SWT.NONE);
+		Label lblAnimations = new Label(shell, SWT.NONE);
 		lblAnimations.setText("Animations");
 		
-		Label lblKeyframes = new Label(shlPindmdEditor, SWT.NONE);
+		Label lblKeyframes = new Label(shell, SWT.NONE);
 		lblKeyframes.setText("KeyFrames");
 		
-		Label lblPreview = new Label(shlPindmdEditor, SWT.NONE);
+		Label lblPreview = new Label(shell, SWT.NONE);
 		lblPreview.setText("Preview");
 		
-		aniListViewer = new ListViewer(shlPindmdEditor, SWT.BORDER | SWT.V_SCROLL);
+		aniListViewer = new ListViewer(shell, SWT.BORDER | SWT.V_SCROLL);
 		List aniList = aniListViewer.getList();
 		GridData gd_aniList = new GridData(SWT.LEFT, SWT.FILL, false, false, 1, 1);
 		gd_aniList.widthHint = 189;
@@ -591,7 +596,7 @@ public class PinDmdEditor {
             btnAddKeyframe.setEnabled(selection.size()>0);
 		});
 		
-		keyframeListViewer = new ListViewer(shlPindmdEditor, SWT.SINGLE | SWT.BORDER | SWT.V_SCROLL);
+		keyframeListViewer = new ListViewer(shell, SWT.SINGLE | SWT.BORDER | SWT.V_SCROLL);
 		List keyframeList = keyframeListViewer.getList();
 		GridData gd_keyframeList = new GridData(SWT.LEFT, SWT.FILL, false, false, 1, 1);
 		gd_keyframeList.widthHint = 137;
@@ -621,20 +626,20 @@ public class PinDmdEditor {
             btnSetDuration.setEnabled(selection.size()>0);
 		});
 		
-        dmdWidget = new DMDWidget(shlPindmdEditor, SWT.DOUBLE_BUFFERED, this.dmd);
+        dmdWidget = new DMDWidget(shell, SWT.DOUBLE_BUFFERED, this.dmd);
         dmdWidget.setBounds(0, 0, 600, 200);
         GridData gd_dmdWidget = new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1);
         gd_dmdWidget.heightHint = 200;
         dmdWidget.setLayoutData(gd_dmdWidget);
         
-        new Label(shlPindmdEditor, SWT.NONE);
-        new Label(shlPindmdEditor, SWT.NONE);
+        new Label(shell, SWT.NONE);
+        new Label(shell, SWT.NONE);
         
-        scale = new Scale(shlPindmdEditor, SWT.NONE);
+        scale = new Scale(shell, SWT.NONE);
         scale.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
         scale.addListener(SWT.Selection, e -> animationHandler.setPos(scale.getSelection()));
         
-        Group grpKeyframe = new Group(shlPindmdEditor, SWT.NONE);
+        Group grpKeyframe = new Group(shell, SWT.NONE);
         grpKeyframe.setLayout(new GridLayout(3, false));
         GridData gd_grpKeyframe = new GridData(SWT.FILL, SWT.FILL, false, false, 2, 3);
         gd_grpKeyframe.widthHint = 350;
@@ -725,7 +730,7 @@ public class PinDmdEditor {
         	}
         });
         
-        Group grpDetails = new Group(shlPindmdEditor, SWT.NONE);
+        Group grpDetails = new Group(shell, SWT.NONE);
         grpDetails.setLayout(new GridLayout(4, false));
         GridData gd_grpDetails = new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1);
         gd_grpDetails.heightHint = 21;
@@ -751,7 +756,7 @@ public class PinDmdEditor {
         lblTcval.setLayoutData(gd_lblTcval);
         lblTcval.setText("xxxxxxxxxx");
         
-        Composite composite = new Composite(shlPindmdEditor, SWT.NONE);
+        Composite composite = new Composite(shell, SWT.NONE);
         composite.setLayout(new GridLayout(7, false));
         composite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
         
@@ -812,7 +817,7 @@ public class PinDmdEditor {
         });
         btnCut.setEnabled(false);
         
-        Group grpPalettes = new Group(shlPindmdEditor, SWT.NONE);
+        Group grpPalettes = new Group(shell, SWT.NONE);
         grpPalettes.setLayout(new GridLayout(8, false));
         GridData gd_grpPalettes = new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1);
         gd_grpPalettes.heightHint = 90;
@@ -968,8 +973,8 @@ public class PinDmdEditor {
 	 * creates the top level menu
 	 */
 	private void createMenu() {
-		Menu menu = new Menu(shlPindmdEditor, SWT.BAR);
-		shlPindmdEditor.setMenuBar(menu);
+		Menu menu = new Menu(shell, SWT.BAR);
+		shell.setMenuBar(menu);
 		
 		MenuItem mntmfile = new MenuItem(menu, SWT.CASCADE);
 		mntmfile.setText("&File");
@@ -1002,8 +1007,8 @@ public class PinDmdEditor {
 		mntmExit.setText("Exit");
 		mntmExit.addListener(SWT.Selection, e->{
 			// TODO add dirty check
-			shlPindmdEditor.close();
-            shlPindmdEditor.dispose();
+			shell.close();
+            shell.dispose();
 		});
 		
 		MenuItem mntmAnimations = new MenuItem(menu, SWT.CASCADE);
