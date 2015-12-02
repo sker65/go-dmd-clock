@@ -696,7 +696,7 @@ public class PinDmdEditor {
                 }
                 aniListViewer.setSelection(new StructuredSelection(
                         animations.get(selectedPalMapping.animationIndex)));
-                selectedAnimation.setPos(selectedPalMapping.frameIndex);
+                animationHandler.setPos(selectedPalMapping.frameIndex);
             } else {
                 selectedPalMapping = null;
             }
@@ -709,15 +709,6 @@ public class PinDmdEditor {
         GridData gd_dmdWidget = new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1);
         gd_dmdWidget.heightHint = 200;
         dmdWidget.setLayoutData(gd_dmdWidget);
-        //dmdWidget.setVisible(false);
-        
-        /*previewCanvas = new Canvas(shlPindmdEditor, SWT.BORDER|SWT.DOUBLE_BUFFERED);
-        GridData gd_canvas = new GridData(SWT.LEFT, SWT.TOP, true, false, 1, 1);
-        gd_canvas.heightHint = 6*32 +20;
-        gd_canvas.widthHint = 128*6 + 20;
-        previewCanvas.setLayoutData(gd_canvas);
-        previewCanvas.setBackground(new Color(shlPindmdEditor.getDisplay(), 10,10,10));
-        previewCanvas.addPaintListener(e -> { dmd.draw(e); });*/
         
         new Label(shlPindmdEditor, SWT.NONE);
         new Label(shlPindmdEditor, SWT.NONE);
