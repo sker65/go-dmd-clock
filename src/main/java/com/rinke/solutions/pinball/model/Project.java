@@ -11,6 +11,8 @@ public class Project implements Model {
 	public List<Palette> palettes;
 	public List<PalMapping> palMappings;
 	public List<Scene> scenes;
+	public boolean dirty;
+	
 	public Project(int version, String inputFile, List<Palette> palettes,
 			List<PalMapping> palMappings) {
 		super();
