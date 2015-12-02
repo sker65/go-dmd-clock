@@ -5,23 +5,23 @@ import java.io.IOException;
 import java.util.List;
 
 public class Frame implements Model {
-	public int repeatCount;
+	public long timecode;
 	public List<byte[]> planes;
 	
-	public Frame(int repeatCount, List<byte[]> planes) {
+	public Frame(long timecode, List<byte[]> planes) {
 		super();
-		this.repeatCount = repeatCount;
+		this.timecode = timecode;
 		this.planes = planes;
 	}
 
 	@Override
 	public String toString() {
-		return "Frame [repeatCount=" + repeatCount + ", planes=" + planes + "]";
+		return "Frame [timecode=" + timecode + ", planes=" + planes + "]";
 	}
 
 	@Override
 	public void writeTo(DataOutputStream os) throws IOException {
-		os.writeShort(repeatCount);
+		os.writeLong(timecode);
 		os.writeShort(planes.size());
 		for(byte[] data : planes) {
 			os.write(data);
