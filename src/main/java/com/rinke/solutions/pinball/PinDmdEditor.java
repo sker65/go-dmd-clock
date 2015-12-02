@@ -1088,8 +1088,10 @@ public class PinDmdEditor {
 
 
 private Animation cutScene(Animation selectedAnimation, int start, int end) {
-        // TODO Auto-generated method stub
-        return null;
+        // create a copy of the animation 
+		CompiledAnimation animation = new CompiledAnimation(selectedAnimation.getType(), selectedAnimation.getName(), start, end, selectedAnimation.skip, 1, 1);
+		
+        return animation;
     }
 
 public String getPrintableHashes(byte[] p) {
