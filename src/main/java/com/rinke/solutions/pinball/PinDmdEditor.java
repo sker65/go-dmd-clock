@@ -279,13 +279,14 @@ public class PinDmdEditor {
 	
     private void createNewProject() {
 	    project = new Project();
-	    paletteComboViewer.setInput(project.palettes);
+    	project.palettes.add(new Palette(Palette.defaultColors(), 0, "default"));		
+
+    	paletteComboViewer.setInput(project.palettes);
 	    keyframeListViewer.setInput(project.palMappings);
 	    animations.clear();
 	    aniListViewer.refresh();
 	    playingAnis.clear();
 	    selectedAnimation = null;
-    	project.palettes.add(new Palette(Palette.defaultColors(), 0, "default"));		
 	}
 
 
