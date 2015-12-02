@@ -37,7 +37,7 @@ public class AnimationHandler implements Runnable {
 	private boolean export;
 	private GifSequenceWriter gifWriter;
 	private boolean showClock = true;
-	private int transitionFrame= 0;
+	//private int transitionFrame= 0;
 	private int lastRenderedFrame = 0;
 	
 	public AnimationHandler(List<Animation> anis, DMDClock clock, DMD dmd, Canvas canvas, boolean export) {
@@ -76,7 +76,7 @@ public class AnimationHandler implements Runnable {
 				clockActive = false;
 				clockCycles = 0;
 				clock.restart();
-				transitionFrame=0;
+				//not used transitionFrame=0;
 			}
 			if( scale.isDisposed() ) return;
 			eventHandler.notifyAni(new AniEvent(Type.CLOCK, 0, null, null,0));
