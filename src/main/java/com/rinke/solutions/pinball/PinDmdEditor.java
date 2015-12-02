@@ -557,90 +557,7 @@ public class PinDmdEditor {
 		shlPindmdEditor.setText("Pin2dmd - Editor");
 		shlPindmdEditor.setLayout(new GridLayout(3, false));
 		
-		Menu menu = new Menu(shlPindmdEditor, SWT.BAR);
-		shlPindmdEditor.setMenuBar(menu);
-		
-		MenuItem mntmfile = new MenuItem(menu, SWT.CASCADE);
-		mntmfile.setText("&File");
-		
-		Menu menu_1 = new Menu(mntmfile);
-		mntmfile.setMenu(menu_1);
-		
-		MenuItem mntmNewProject = new MenuItem(menu_1, SWT.NONE);
-		mntmNewProject.setText("New Project");
-		mntmNewProject.addListener(SWT.Selection, e->{ 
-		    project = new Project();
-		    paletteComboViewer.setInput(project.palettes);
-		    keyframeListViewer.setInput(project.palMappings);
-		    animations.clear();
-		    playingAnis.clear();
-		    selectedAnimation = null;
-		} );
-		
-		MenuItem mntmLoadProject = new MenuItem(menu_1, SWT.NONE);
-		mntmLoadProject.addListener(SWT.Selection, e-> loadProject(e));
-		mntmLoadProject.setText("Load Project");
-		
-		MenuItem mntmSaveProject = new MenuItem(menu_1, SWT.NONE);
-		mntmSaveProject.setText("Save Project");
-		mntmSaveProject.addListener(SWT.Selection, e->saveProject(e));
-		
-		new MenuItem(menu_1, SWT.SEPARATOR);
-		
-		MenuItem mntmExit = new MenuItem(menu_1, SWT.NONE);
-		mntmExit.setText("Exit");
-		mntmExit.addListener(SWT.Selection, e->{
-			// TODO addd rity check
-			shlPindmdEditor.close();
-            shlPindmdEditor.dispose();
-		});
-		
-		MenuItem mntmAnimations = new MenuItem(menu, SWT.CASCADE);
-		mntmAnimations.setText("&Animations");
-		
-		Menu menu_2 = new Menu(mntmAnimations);
-		mntmAnimations.setMenu(menu_2);
-		
-		MenuItem mntmLoadAnimation = new MenuItem(menu_2, SWT.NONE);
-		mntmLoadAnimation.setText("Load Animation");
-		mntmLoadAnimation.addListener(SWT.Selection, e->loadAniWithFC(false));
-		
-		MenuItem mntmAddAnimation = new MenuItem(menu_2, SWT.NONE);
-		mntmAddAnimation.setText("Add Animation");
-		mntmAddAnimation.addListener(SWT.Selection, e->loadAniWithFC(true));
-		
-		MenuItem mntmpalettes = new MenuItem(menu, SWT.CASCADE);
-		mntmpalettes.setText("&Palettes");
-		
-		Menu menu_3 = new Menu(mntmpalettes);
-		mntmpalettes.setMenu(menu_3);
-		
-		MenuItem mntmLoadPalette = new MenuItem(menu_3, SWT.NONE);
-		mntmLoadPalette.setText("Load Palette");
-		mntmLoadPalette.addListener(SWT.Selection, e->loadPalette(e));
-		
-		MenuItem mntmSavePalette = new MenuItem(menu_3, SWT.NONE);
-		mntmSavePalette.setText("Save Palette");
-		mntmSavePalette.addListener(SWT.Selection, e->savePalette(e));
-		
-		mntmLoadPalette.setText("Load Palette");
-		mntmLoadPalette.addListener(SWT.Selection, e->loadPalette(e));
-		
-		MenuItem mntmhelp = new MenuItem(menu, SWT.CASCADE);
-		mntmhelp.setText("&Help");
-		
-		Menu menu_4 = new Menu(mntmhelp);
-		mntmhelp.setMenu(menu_4);
-		
-		MenuItem mntmGetHelp = new MenuItem(menu_4, SWT.NONE);
-		mntmGetHelp.setText("Get help");
-		mntmGetHelp.addListener(SWT.Selection, e->Program.launch(HELP_URL));
-		
-		new MenuItem(menu_4, SWT.SEPARATOR);
-		
-		MenuItem mntmAbout = new MenuItem(menu_4, SWT.NONE);
-		mntmAbout.setText("About");
-		mntmAbout.addListener(SWT.Selection, e->new About(shell).open());
+		createMenu();
 		
 		Label lblAnimations = new Label(shlPindmdEditor, SWT.NONE);
 		lblAnimations.setText("Animations");
@@ -1046,11 +963,101 @@ public class PinDmdEditor {
 
 
     }
+	
+	/**
+	 * creates the top level menu
+	 */
+	private void createMenu() {
+		Menu menu = new Menu(shlPindmdEditor, SWT.BAR);
+		shlPindmdEditor.setMenuBar(menu);
+		
+		MenuItem mntmfile = new MenuItem(menu, SWT.CASCADE);
+		mntmfile.setText("&File");
+		
+		Menu menu_1 = new Menu(mntmfile);
+		mntmfile.setMenu(menu_1);
+		
+		MenuItem mntmNewProject = new MenuItem(menu_1, SWT.NONE);
+		mntmNewProject.setText("New Project");
+		mntmNewProject.addListener(SWT.Selection, e->{ 
+		    project = new Project();
+		    paletteComboViewer.setInput(project.palettes);
+		    keyframeListViewer.setInput(project.palMappings);
+		    animations.clear();
+		    playingAnis.clear();
+		    selectedAnimation = null;
+		} );
+		
+		MenuItem mntmLoadProject = new MenuItem(menu_1, SWT.NONE);
+		mntmLoadProject.addListener(SWT.Selection, e-> loadProject(e));
+		mntmLoadProject.setText("Load Project");
+		
+		MenuItem mntmSaveProject = new MenuItem(menu_1, SWT.NONE);
+		mntmSaveProject.setText("Save Project");
+		mntmSaveProject.addListener(SWT.Selection, e->saveProject(e));
+		
+		new MenuItem(menu_1, SWT.SEPARATOR);
+		
+		MenuItem mntmExit = new MenuItem(menu_1, SWT.NONE);
+		mntmExit.setText("Exit");
+		mntmExit.addListener(SWT.Selection, e->{
+			// TODO add dirty check
+			shlPindmdEditor.close();
+            shlPindmdEditor.dispose();
+		});
+		
+		MenuItem mntmAnimations = new MenuItem(menu, SWT.CASCADE);
+		mntmAnimations.setText("&Animations");
+		
+		Menu menu_2 = new Menu(mntmAnimations);
+		mntmAnimations.setMenu(menu_2);
+		
+		MenuItem mntmLoadAnimation = new MenuItem(menu_2, SWT.NONE);
+		mntmLoadAnimation.setText("Load Animation");
+		mntmLoadAnimation.addListener(SWT.Selection, e->loadAniWithFC(false));
+		
+		MenuItem mntmAddAnimation = new MenuItem(menu_2, SWT.NONE);
+		mntmAddAnimation.setText("Add Animation");
+		mntmAddAnimation.addListener(SWT.Selection, e->loadAniWithFC(true));
+		
+		MenuItem mntmpalettes = new MenuItem(menu, SWT.CASCADE);
+		mntmpalettes.setText("&Palettes");
+		
+		Menu menu_3 = new Menu(mntmpalettes);
+		mntmpalettes.setMenu(menu_3);
+		
+		MenuItem mntmLoadPalette = new MenuItem(menu_3, SWT.NONE);
+		mntmLoadPalette.setText("Load Palette");
+		mntmLoadPalette.addListener(SWT.Selection, e->loadPalette(e));
+		
+		MenuItem mntmSavePalette = new MenuItem(menu_3, SWT.NONE);
+		mntmSavePalette.setText("Save Palette");
+		mntmSavePalette.addListener(SWT.Selection, e->savePalette(e));
+		
+		mntmLoadPalette.setText("Load Palette");
+		mntmLoadPalette.addListener(SWT.Selection, e->loadPalette(e));
+		
+		MenuItem mntmhelp = new MenuItem(menu, SWT.CASCADE);
+		mntmhelp.setText("&Help");
+		
+		Menu menu_4 = new Menu(mntmhelp);
+		mntmhelp.setMenu(menu_4);
+		
+		MenuItem mntmGetHelp = new MenuItem(menu_4, SWT.NONE);
+		mntmGetHelp.setText("Get help");
+		mntmGetHelp.addListener(SWT.Selection, e->Program.launch(HELP_URL));
+		
+		new MenuItem(menu_4, SWT.SEPARATOR);
+		
+		MenuItem mntmAbout = new MenuItem(menu_4, SWT.NONE);
+		mntmAbout.setText("About");
+		mntmAbout.addListener(SWT.Selection, e->new About(shell).open());
+	}
 
 
-private void cutScene(Animation selectedAnimation2, int cutStart2, int cutEnd2) {
+private Animation cutScene(Animation selectedAnimation, int start, int end) {
         // TODO Auto-generated method stub
-        
+        return null;
     }
 
 public String getPrintableHashes(byte[] p) {
