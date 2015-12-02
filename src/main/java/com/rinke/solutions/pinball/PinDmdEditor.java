@@ -209,6 +209,8 @@ public class PinDmdEditor {
 		createNewProject();
 		
 		paletteComboViewer.getCombo().select(0);
+		dmd.rgb = project.palettes.get(0).colors;
+		setColorBtn();
 		
 		animationHandler = new AnimationHandler(playingAnis, clock, dmd, dmdWidget, false);
         animationHandler.setScale(scale);
@@ -518,7 +520,9 @@ public class PinDmdEditor {
 
     private void setColorBtn() {
         for (int i = 0; i < colBtn.length; i++) {
-            colBtn[i].setImage(getSquareImage(display, new Color(display,dmd.rgb[i])));
+        	Color color = new Color(display,dmd.rgb[i]);
+            colBtn[i].setImage(getSquareImage(display, color));
+            color.dispose();
         }
     }
     
