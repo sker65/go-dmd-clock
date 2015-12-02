@@ -68,9 +68,8 @@ public class PinDmdEditor {
 
 	DMD dmd = new DMD(128,32);
 	AnimationHandler animationHandler = null;
-	CyclicRedraw cyclicRedraw = null;
 	
-	Project project = new Project();
+	CyclicRedraw cyclicRedraw = new CyclicRedraw();
 	java.util.List<Animation> animations = new ArrayList<>();
     Map<String,DrawTool> drawTools = new HashMap<>();
 
@@ -96,6 +95,8 @@ public class PinDmdEditor {
 	FileHelper fileHelper = new FileHelper();
     SmartDMDImporter smartDMDImporter = new SmartDMDImporter();
     UsbTool usbTool = new UsbTool();
+    
+    private Project project;
 
     private int selectedColor;
 
@@ -203,11 +204,9 @@ public class PinDmdEditor {
 	public void open() {
 		display = Display.getDefault();
 		
-		project.palettes.add(new Palette(Palette.defaultColors(), 0, "default"));
-		
-		cyclicRedraw = new CyclicRedraw();
-
 		createContents();
+
+		createNewProject();
 		
 		paletteComboViewer.getCombo().select(0);
 		
@@ -278,7 +277,19 @@ public class PinDmdEditor {
 
 	}
 	
-    private Object loadProject(Event e) {
+    private void createNewProject() {
+	    project = new Project();
+	    paletteComboViewer.setInput(project.palettes);
+	    keyframeListViewer.setInput(project.palMappings);
+	    animations.clear();
+	    aniListViewer.refresh();
+	    playingAnis.clear();
+	    selectedAnimation = null;
+    	project.palettes.add(new Palette(Palette.defaultColors(), 0, "default"));		
+	}
+
+
+	private Object loadProject(Event e) {
         FileDialog fileChooser = new FileDialog(shell, SWT.OPEN);
         if (lastPath != null)
             fileChooser.setFilterPath(lastPath);
@@ -301,9 +312,7 @@ public class PinDmdEditor {
                 }
                 aniListViewer.refresh();
                 paletteComboViewer.setInput(project.palettes);
-            	//paletteComboViewer.refresh();
                 keyframeListViewer.setInput(project.palMappings);
-            	//keyframeListViewer.refresh();
             }
         }
         
@@ -535,7 +544,7 @@ public class PinDmdEditor {
     private void  planesChanged(int planes, int x, int y) {
         switch(planes) {
         case 0: // 2 planes -> 4 colors
-            int j = 0;
+            //int j = 0;
             //for(int i = 0; i < colBtn.length; i++) { colBtn[i].setLocation(x+j*28, y); if(visible[i]==1) j++; }
             for(int i = 0; i < colBtn.length; i++) colBtn[i].setEnabled(visible[i]==1); 
             break;
@@ -597,7 +606,6 @@ public class PinDmdEditor {
 		keyframeList.setLayoutData(gd_keyframeList);
 		keyframeListViewer.setLabelProvider(new ViewerLabelProvider());
 		keyframeListViewer.setContentProvider(ArrayContentProvider.getInstance());
-		keyframeListViewer.setInput(project.palMappings);
 		keyframeListViewer.addSelectionChangedListener(event -> {
             IStructuredSelection selection = (IStructuredSelection) event.getSelection();
             if (selection.size() > 0) {
@@ -610,9 +618,12 @@ public class PinDmdEditor {
                 for(int j = 0; j < numberOfHashes; j++) {
                     btnHash[j].setSelection(j == selectedHashIndex);
                 }
-                aniListViewer.setSelection(new StructuredSelection(
-                        animations.get(selectedPalMapping.animationIndex)));
+                selectedAnimationIndex = selectedPalMapping.animationIndex;
+                selectedAnimation = animations.get(selectedAnimationIndex);
+                aniListViewer.setSelection(new StructuredSelection(selectedAnimation));
+                
                 animationHandler.setPos(selectedPalMapping.frameIndex);
+                saveTimeCode = selectedAnimation.getTimeCode(selectedPalMapping.frameIndex);
             } else {
                 selectedPalMapping = null;
             }
@@ -701,7 +712,7 @@ public class PinDmdEditor {
         
         btnSetDuration = new Button(grpKeyframe, SWT.NONE);
         btnSetDuration.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
-        btnSetDuration.setText("Set Duration");
+        btnSetDuration.setText("Fetch Duration");
         btnSetDuration.setEnabled(false);
         btnSetDuration.addListener(SWT.Selection, e->{
         	if( selectedPalMapping!=null) {
@@ -819,9 +830,10 @@ public class PinDmdEditor {
         grpPalettes.setText("Palettes");
 
         paletteComboViewer = new ComboViewer(grpPalettes, SWT.NONE);
+        Combo combo = paletteComboViewer.getCombo();
+        combo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
         paletteComboViewer.setContentProvider(ArrayContentProvider.getInstance());
         paletteComboViewer.setLabelProvider(new PaletteViewerLabelProvider());
-        paletteComboViewer.setInput(project.palettes);
         paletteComboViewer.addSelectionChangedListener(event -> {
             IStructuredSelection selection = (IStructuredSelection) event.getSelection();
             if (selection.size() > 0) {
@@ -836,6 +848,8 @@ public class PinDmdEditor {
         });
 
         paletteTypeComboViewer = new ComboViewer(grpPalettes, SWT.READ_ONLY);
+        Combo combo_1 = paletteTypeComboViewer.getCombo();
+        combo_1.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
         paletteTypeComboViewer.setContentProvider(ArrayContentProvider.getInstance());
         paletteTypeComboViewer.setInput(PaletteType.values());
         paletteTypeComboViewer.setSelection(new StructuredSelection(PaletteType.NORMAL));
@@ -969,12 +983,12 @@ public class PinDmdEditor {
 	boolean dirtyCheck() {
 		if( project.dirty ) {
 			MessageBox messageBox = new MessageBox(shell,
-                    SWT.ICON_WARNING | SWT.OK | SWT.ABORT  );
+                    SWT.ICON_WARNING | SWT.OK | SWT.CANCEL  );
             
             messageBox.setText("Unsaved Changes");
             messageBox.setMessage("There are unsaved changes in project. Proceed?");
             int res = messageBox.open();
-            return (res != 0);
+            return (res == SWT.OK);
 		} else {
 			return true;
 		}
@@ -997,13 +1011,7 @@ public class PinDmdEditor {
 		mntmNewProject.setText("New Project");
 		mntmNewProject.addListener(SWT.Selection, e->{ 
 			if( dirtyCheck() ) {
-			    project = new Project();
-			    paletteComboViewer.setInput(project.palettes);
-			    keyframeListViewer.setInput(project.palMappings);
-			    animations.clear();
-			    aniListViewer.refresh();
-			    playingAnis.clear();
-			    selectedAnimation = null;
+				createNewProject();
 			}
 		} );
 		
