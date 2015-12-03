@@ -17,9 +17,19 @@ public class Frame {
         this.delay = delay;
         width = w;
         height = h;
-   }
-    
-    public Frame(int w, int h, byte[] plane1, byte[] plane2) {
+    }
+     
+    public Frame(Frame src) {
+    	this.width = src.width;
+    	this.height = src.height;
+    	this.delay = src.delay;
+    	this.timecode = src.timecode;
+    	for (Plane p : src.planes) {
+			planes.add(new Plane(p.marker, p.plane));
+		}
+	}
+
+	public Frame(int w, int h, byte[] plane1, byte[] plane2) {
         width = w;
         height = h;
         planes.add(new Plane((byte)0, plane1));
@@ -87,4 +97,5 @@ public class Frame {
         }
         return res;
 	}
+
 }
