@@ -819,13 +819,18 @@ public class PinDmdEditor {
         btnMarkEnd.setEnabled(false);
         
         btnCut.setText("Cut");
-        btnCut.addListener(SWT.Selection, e->{
-            cutScene(selectedAnimation, cutStart, cutEnd);
+        btnCut.setEnabled(false);
+        btnCut.addListener(SWT.Selection, e -> {
+        	// respect number of planes while cutting / copying
+            Animation ani = cutScene(selectedAnimation, cutStart, cutEnd);
+            LOG.info("cutting out scene from {} to {}", cutStart, cutEnd);
             cutStart = 0; cutEnd = 0;
             btnMarkEnd.setEnabled(false);
             btnCut.setEnabled(false);
+            ani.setDesc("Scene "+animations.size());
+            animations.add(ani);
+            aniListViewer.refresh();
         });
-        btnCut.setEnabled(false);
         
         Group grpPalettes = new Group(shell, SWT.NONE);
         grpPalettes.setLayout(new GridLayout(8, false));
@@ -1086,25 +1091,32 @@ public class PinDmdEditor {
 		mntmAbout.addListener(SWT.Selection, e->new About(shell).open());
 	}
 
+	private Animation cutScene(Animation src, int start, int end) {
+		// create a copy of the animation
+		DMD tmp = new DMD(128,32);
+		CompiledAnimation dest = new CompiledAnimation(
+				selectedAnimation.getType(), selectedAnimation.getName(),
+				0, end-start, selectedAnimation.skip, 1, 1);
+		// rerender and thereby copy all frames
+		for (int i = start; i <= end; i++) {
+			Frame frame = src.render(tmp, false);
+			dest.frames.add(new Frame(frame));
+		}
+		return dest;
+	}
 
-private Animation cutScene(Animation selectedAnimation, int start, int end) {
-        // create a copy of the animation 
-		CompiledAnimation animation = new CompiledAnimation(selectedAnimation.getType(), selectedAnimation.getName(), start, end, selectedAnimation.skip, 1, 1);
-		
-        return animation;
-    }
-
-public String getPrintableHashes(byte[] p) {
+	public String getPrintableHashes(byte[] p) {
 		StringBuffer hexString = new StringBuffer();
 		for (int j = 0; j < p.length; j++)
 			hexString.append(String.format("%02X", p[j]));
 		return hexString.toString();
 	}
-	
-    private boolean isNewPaletteName(String text) {
-        for(Palette pal : project.palettes) {
-            if( pal.name.equals(text)) return false;
-        }
-        return true;
-    }
+
+	private boolean isNewPaletteName(String text) {
+		for (Palette pal : project.palettes) {
+			if (pal.name.equals(text))
+				return false;
+		}
+		return true;
+	}
 }
