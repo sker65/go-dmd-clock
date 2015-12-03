@@ -829,7 +829,11 @@ public class PinDmdEditor {
             btnCut.setEnabled(false);
             ani.setDesc("Scene "+animations.size());
             animations.add(ani);
-            aniListViewer.refresh();
+            
+            // TODO mark such a scene somehow, to copy it to the projects frames sequence for later export
+            // alternatively introduce a dedicated flag for scenes that should be exported
+            // also define a way that a keyframe triggers a replacement sequence instead of switching 
+            // the palette only
         });
         
         Group grpPalettes = new Group(shell, SWT.NONE);
