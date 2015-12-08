@@ -203,8 +203,9 @@ public class PinDmdEditor {
 	 */
 	public void open() {
 		display = Display.getDefault();
+		shell = new Shell();
 		
-		createContents();
+		createContents(shell);
 
 		createNewProject();
 		
@@ -564,13 +565,12 @@ public class PinDmdEditor {
 	/**
 	 * Create contents of the window.
 	 */
-	protected void createContents() {
-		shell = new Shell();
+	 void createContents(Shell shell) {
 		shell.setSize(1167, 553);
 		shell.setText("Pin2dmd - Editor");
 		shell.setLayout(new GridLayout(3, false));
 		
-		createMenu();
+		createMenu(shell);
 		
 		Label lblAnimations = new Label(shell, SWT.NONE);
 		lblAnimations.setText("Animations");
@@ -1011,7 +1011,7 @@ public class PinDmdEditor {
 	/**
 	 * creates the top level menu
 	 */
-	private void createMenu() {
+	private void createMenu(Shell shell) {
 		Menu menu = new Menu(shell, SWT.BAR);
 		shell.setMenuBar(menu);
 		
