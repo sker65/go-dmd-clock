@@ -1,7 +1,9 @@
 package com.rinke.solutions.pinball;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Shell;
 import org.junit.Rule;
 import org.junit.Test;
@@ -14,13 +16,11 @@ import com.fappel.swt.DisplayHelper;
 
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.MatcherAssert.*;
+import static com.fappel.swt.SWTEventHelper.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PinDmdEditorTest {
 	
-	@Mock
-	private List<Animation> animations;
-
 	@InjectMocks
 	private PinDmdEditor pinDmdEditor = new PinDmdEditor();
 
@@ -43,16 +43,5 @@ public class PinDmdEditorTest {
 		}
 
 	}
-
-	@Rule
-	public final DisplayHelper displayHelper = new DisplayHelper();
-
-//	@Test
-//	public void testMouseDownIncreasesCount() {
-//		Shell shell = displayHelper.createShell();
-//		pinDmdEditor.createContents(shell);
-//		//trigger(SWT.MouseDown).on(control);
-//		//assertEquals(1, counter.getCount());
-//	}
 
 }
