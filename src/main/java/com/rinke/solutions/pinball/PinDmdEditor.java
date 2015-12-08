@@ -1095,12 +1095,13 @@ public class PinDmdEditor {
 		mntmAbout.addListener(SWT.Selection, e->new About(shell).open());
 	}
 
-	private Animation cutScene(Animation src, int start, int end) {
+	Animation cutScene(Animation src, int start, int end) {
 		// create a copy of the animation
 		DMD tmp = new DMD(128,32);
 		CompiledAnimation dest = new CompiledAnimation(
-				selectedAnimation.getType(), selectedAnimation.getName(),
-				0, end-start, selectedAnimation.skip, 1, 1);
+				src.getType(), src.getName(),
+				0, end-start, src.skip, 1, 1);
+		src.actFrame = start;
 		// rerender and thereby copy all frames
 		for (int i = start; i <= end; i++) {
 			Frame frame = src.render(tmp, false);
