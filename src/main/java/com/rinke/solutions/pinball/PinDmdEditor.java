@@ -111,12 +111,12 @@ public class PinDmdEditor {
 	private ComboViewer paletteComboViewer;
 	private ListViewer aniListViewer;
 	private ListViewer keyframeListViewer;
-	private Button btnRemoveAni;
+	Button btnRemoveAni;
     private Button btnDeleteKeyframe;
 	private PalMapping selectedPalMapping;
 	private long saveTimeCode;
 	private Button btnAddKeyframe;
-	private Button btnSetDuration;
+	Button btnSetDuration;
 	private Button btnPrev;
 	private Button btnNext;
 	private int selectedHashIndex;
