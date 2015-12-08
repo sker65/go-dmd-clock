@@ -16,10 +16,10 @@ public class SmartDMDImporter {
 
     public List<Palette> importFromFile(String filename) {
         List<Palette> res = new ArrayList<>();
+        int defaultPalette = 0;
         try(BufferedReader reader = getReader(filename) ) {
             String line = reader.readLine();
             int numberOfPalettes = 0;
-            int defaultPalette = 0;
             int persistent = 0;
             while (line != null) {
                 int pos = line.indexOf("=");
@@ -33,8 +33,7 @@ public class SmartDMDImporter {
                     } else if (key.startsWith("dmd_palette")) {
                         int idx = Integer.parseInt(key.substring(11));
                         Palette p = parsePalette(val);
-                        p.type = idx == defaultPalette ? PaletteType.DEFAULT :
-                        	(persistent==0?PaletteType.NORMAL:PaletteType.PERSISTENT);
+                        p.type = (persistent==0?PaletteType.NORMAL:PaletteType.PERSISTENT);
                         p.index = idx;
                         res.add(p);
                     } else if( key.equals("dmd_persistentpalette")) {
@@ -45,7 +44,13 @@ public class SmartDMDImporter {
             }
         } catch (IOException e) {
             throw new RuntimeException("error reading "+filename, e);
-        } 
+        }
+        for (Palette palette : res) {
+			if( palette.index == defaultPalette ) {
+				palette.type = PaletteType.DEFAULT;
+				break;
+			}
+		}
         return res;
     }
 
