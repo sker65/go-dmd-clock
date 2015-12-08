@@ -55,8 +55,9 @@ public class SmartDMDImporter {
     protected Palette parsePalette(String pal) {
         String[] ptok = pal.split(",");
         List<RGB> rgb = new ArrayList<>();
-        for (int i = 2; i < ptok.length; i++) {
+        for (int i = 1; i < ptok.length; i++) {
             String t = ptok[i];
+            if( t.startsWith("Upscaling=")) continue;
             long val = Long.parseLong(t.substring(2), 16) & 0xFFFFFF;
             rgb.add(new RGB(
                     (int)(val >> 16),
