@@ -45,8 +45,8 @@ public class Palette implements Model {
 	@Override
 	public String toString() {
 		return "Palette [name=" + name + ", numberOfColors=" + numberOfColors
-				+ ", index=" + index + ", colors=" + Arrays.toString(colors)
-				+ ", type=" + type + "]";
+				+ ", index=" + index 
+				+ ", type=" + type + ", colors=" + Arrays.toString(colors) + "]";
 	}
 
 	public static Palette getDefaultPalette() {

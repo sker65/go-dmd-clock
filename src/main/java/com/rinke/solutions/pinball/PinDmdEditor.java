@@ -427,8 +427,8 @@ public class PinDmdEditor {
         FileDialog fileChooser = new FileDialog(shell, SWT.OPEN);
         if (lastPath != null)
             fileChooser.setFilterPath(lastPath);
-        fileChooser.setFilterExtensions(new String[] { "*.xml;*.json;*.txt" });
-        fileChooser.setFilterNames(new String[] { "Palette XML", "Palette JSON", "smartdmd.txt" });
+        fileChooser.setFilterExtensions(new String[] { "*.xml","*.json,", "*.txt" });
+        fileChooser.setFilterNames(new String[] { "Palette XML", "Palette JSON", "smartdmd" });
         String filename = fileChooser.open();
         lastPath = fileChooser.getFilterPath();
         if (filename != null) {
@@ -456,6 +456,7 @@ public class PinDmdEditor {
                 activePaletteIndex = project.palettes.size()-1;
             }
             paletteComboViewer.refresh();
+            paletteComboViewer.getCombo().select(0);
         }
     }
     
@@ -857,6 +858,7 @@ public class PinDmdEditor {
                 dmd.rgb = pal.colors;
                 dmdWidget.setPalette(pal);
                 setColorBtn();
+                LOG.info("new palette is {}",pal);
                 paletteTypeComboViewer.setSelection(new StructuredSelection(pal.type));
             }
         });
@@ -871,10 +873,12 @@ public class PinDmdEditor {
             IStructuredSelection selection = (IStructuredSelection) e.getSelection();
             PaletteType palType = (PaletteType) selection.getFirstElement();
             project.palettes.get(activePaletteIndex).type = palType;
-            if (!PaletteType.NORMAL.equals(palType)) {
+            if (PaletteType.DEFAULT.equals(palType)) {
                 for (int i = 0; i < project.palettes.size(); i++) {
-                    if (i != activePaletteIndex) { // set all other to normal
-                        project.palettes.get(i).type = PaletteType.NORMAL;
+                    if (i != activePaletteIndex) { // set previous default to normal
+                        if( project.palettes.get(i).type.equals(PaletteType.DEFAULT )) {
+                        	project.palettes.get(i).type = PaletteType.NORMAL;
+                        };
                     }
                 }
             }
@@ -1074,9 +1078,6 @@ public class PinDmdEditor {
 		MenuItem mntmSavePalette = new MenuItem(menu_3, SWT.NONE);
 		mntmSavePalette.setText("Save Palette");
 		mntmSavePalette.addListener(SWT.Selection, e->savePalette(e));
-		
-		mntmLoadPalette.setText("Load Palette");
-		mntmLoadPalette.addListener(SWT.Selection, e->loadPalette(e));
 		
 		MenuItem mntmhelp = new MenuItem(menu, SWT.CASCADE);
 		mntmhelp.setText("&Help");

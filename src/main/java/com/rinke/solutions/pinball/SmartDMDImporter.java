@@ -8,19 +8,23 @@ import java.util.Collection;
 import java.util.List;
 
 import org.eclipse.swt.graphics.RGB;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.PaletteType;
 
 public class SmartDMDImporter {
+	
+	private static final Logger LOG = LoggerFactory.getLogger(SmartDMDImporter.class);
 
     public List<Palette> importFromFile(String filename) {
         List<Palette> res = new ArrayList<>();
         int defaultPalette = 0;
+        int persistent = 0;
         try(BufferedReader reader = getReader(filename) ) {
             String line = reader.readLine();
             int numberOfPalettes = 0;
-            int persistent = 0;
             while (line != null) {
                 int pos = line.indexOf("=");
                 if (pos != -1) {
@@ -33,7 +37,6 @@ public class SmartDMDImporter {
                     } else if (key.startsWith("dmd_palette")) {
                         int idx = Integer.parseInt(key.substring(11));
                         Palette p = parsePalette(val);
-                        p.type = (persistent==0?PaletteType.NORMAL:PaletteType.PERSISTENT);
                         p.index = idx;
                         res.add(p);
                     } else if( key.equals("dmd_persistentpalette")) {
@@ -48,8 +51,10 @@ public class SmartDMDImporter {
         for (Palette palette : res) {
 			if( palette.index == defaultPalette ) {
 				palette.type = PaletteType.DEFAULT;
-				break;
+			} else {
+				palette.type = (persistent==0?PaletteType.NORMAL:PaletteType.PERSISTENT);
 			}
+			LOG.info("loaded palette: {}", palette);
 		}
         return res;
     }
