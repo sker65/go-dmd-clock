@@ -597,7 +597,8 @@ public class PinDmdEditor {
             	selectedAnimationIndex = aniList.getSelectionIndex();
                 playingAnis.clear();
                 playingAnis.add(selectedAnimation);
-                animationHandler.setAnimations(playingAnis); 
+                animationHandler.setAnimations(playingAnis);
+                dmdWidget.redraw();
             } else {
             	selectedAnimation = null;
             }
@@ -830,6 +831,7 @@ public class PinDmdEditor {
             btnCut.setEnabled(false);
             ani.setDesc("Scene "+animations.size());
             animations.add(ani);
+            aniListViewer.refresh();
             
             // TODO mark such a scene somehow, to copy it to the projects frames sequence for later export
             // alternatively introduce a dedicated flag for scenes that should be exported
@@ -1104,6 +1106,7 @@ public class PinDmdEditor {
 				0, end-start, src.skip, 1, 1);
 		src.actFrame = start;
 		// rerender and thereby copy all frames
+		src.actFrame = start;
 		for (int i = start; i <= end; i++) {
 			Frame frame = src.render(tmp, false);
 			dest.frames.add(new Frame(frame));
