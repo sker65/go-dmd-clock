@@ -9,6 +9,10 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
+import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.resource.JFaceResources;
+import org.eclipse.jface.resource.LocalResourceManager;
+import org.eclipse.jface.resource.ResourceManager;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ComboViewer;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -41,7 +45,6 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
-import org.eclipse.wb.swt.SWTResourceManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -506,17 +509,23 @@ public class PinDmdEditor {
         }
     }
 
-	static Image getSquareImage(Display display, Color col) {
-        Image image = new Image(display, 12, 12);
-        GC gc = new GC(image);
-        gc.setBackground(col);
-        gc.fillRectangle(0, 0, 11, 11);
-        Color fg = new Color(display,0,0,0);
-        gc.setForeground(fg);
-        gc.drawRectangle(0, 0, 11, 11);
-        //gc.setBackground(col);
-        fg.dispose();
-        gc.dispose();
+    Map<Color,Image> colImageCache = new HashMap<>();
+
+	Image getSquareImage(Display display, Color col) {
+	    Image image = colImageCache.get(col);
+	    if( image == null ) {
+	        image = resManager.createImage(ImageDescriptor.createFromImage(new Image(display, 12, 12)));
+	        GC gc = new GC(image);
+	        gc.setBackground(col);
+	        gc.fillRectangle(0, 0, 11, 11);
+	        Color fg = new Color(display,0,0,0);
+	        gc.setForeground(fg);
+	        gc.drawRectangle(0, 0, 11, 11);
+	        //gc.setBackground(col);
+	        fg.dispose();
+	        gc.dispose();
+	        colImageCache.put(col, image);
+	    }
         return image;
       }
 
@@ -562,6 +571,7 @@ public class PinDmdEditor {
         }
     }
 
+    ResourceManager resManager;
 
 	/**
 	 * Create contents of the window.
@@ -572,6 +582,8 @@ public class PinDmdEditor {
 		shell.setLayout(new GridLayout(3, false));
 		
 		createMenu(shell);
+
+		resManager = new LocalResourceManager(JFaceResources.getResources(),shell);
 		
 		Label lblAnimations = new Label(shell, SWT.NONE);
 		lblAnimations.setText("Animations");
@@ -962,20 +974,20 @@ public class PinDmdEditor {
         toolBar.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 3, 1));
         
         ToolItem tltmPen = new ToolItem(toolBar, SWT.RADIO);
-        tltmPen.setImage(SWTResourceManager.getImage(PinDmdEditor.class, "/icons/pencil.png"));
+        tltmPen.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/pencil.png")));
         tltmPen.addListener(SWT.Selection, e->dmdWidget.setDrawTool(drawTools.get("pencil")));
         
         ToolItem tltmFill = new ToolItem(toolBar, SWT.RADIO);
-        tltmFill.setImage(SWTResourceManager.getImage(PinDmdEditor.class, "/icons/color-fill.png"));
+        tltmFill.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/color-fill.png")));
         tltmFill.addListener(SWT.Selection, e->dmdWidget.setDrawTool(drawTools.get("fill")));
         
         ToolItem tltmRect = new ToolItem(toolBar, SWT.RADIO);
-        tltmRect.setImage(SWTResourceManager.getImage(PinDmdEditor.class, "/icons/rect.png"));
+        tltmRect.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/rect.png")));
         tltmRect.addListener(SWT.Selection, e->dmdWidget.setDrawTool(drawTools.get("rect")));
         
-                ToolItem tltmEraser = new ToolItem(toolBar, SWT.RADIO);
-                tltmEraser.setImage(SWTResourceManager.getImage(PinDmdEditor.class, "/icons/eraser.png"));
-                tltmEraser.addListener(SWT.Selection, e->dmdWidget.setDrawTool(null));
+        ToolItem tltmEraser = new ToolItem(toolBar, SWT.RADIO);
+        tltmEraser.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/eraser.png")));
+        tltmEraser.addListener(SWT.Selection, e->dmdWidget.setDrawTool(null));
         
         Button btnUploadFrame = new Button(grpPalettes, SWT.NONE);
         btnUploadFrame.setText("Upload Frame");
@@ -1104,7 +1116,6 @@ public class PinDmdEditor {
 		CompiledAnimation dest = new CompiledAnimation(
 				src.getType(), src.getName(),
 				0, end-start, src.skip, 1, 1);
-		src.actFrame = start;
 		// rerender and thereby copy all frames
 		src.actFrame = start;
 		for (int i = start; i <= end; i++) {

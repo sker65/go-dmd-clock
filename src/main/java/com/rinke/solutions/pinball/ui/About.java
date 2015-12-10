@@ -1,18 +1,18 @@
 package com.rinke.solutions.pinball.ui;
 
+import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.resource.JFaceResources;
+import org.eclipse.jface.resource.LocalResourceManager;
+import org.eclipse.jface.resource.ResourceManager;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.SWT;
-import org.eclipse.wb.swt.SWTResourceManager;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.widgets.Shell;
 
 public class About extends Dialog {
 
-	protected Object result;
 	protected Shell shlAboutPindmdEditor;
 
 	/**
@@ -29,7 +29,7 @@ public class About extends Dialog {
 	 * Open the dialog.
 	 * @return the result
 	 */
-	public Object open() {
+	public void open() {
 		createContents();
 		shlAboutPindmdEditor.open();
 		shlAboutPindmdEditor.layout();
@@ -39,19 +39,23 @@ public class About extends Dialog {
 				display.sleep();
 			}
 		}
-		return result;
 	}
 
 	/**
 	 * Create contents of the dialog.
 	 */
 	private void createContents() {
+	    
+	    
 		shlAboutPindmdEditor = new Shell(getParent(), getStyle());
 		shlAboutPindmdEditor.setSize(385, 237);
 		shlAboutPindmdEditor.setText("About pin2dmd editor");
+
+		ResourceManager resManager = 
+                new LocalResourceManager(JFaceResources.getResources(),shlAboutPindmdEditor);
 		
 		Label logo = new Label(shlAboutPindmdEditor, SWT.NONE);
-		logo.setImage(SWTResourceManager.getImage(About.class, "/logo.png"));
+		logo.setImage(resManager.createImage(ImageDescriptor.createFromFile(About.class, "/logo.png")));
 		logo.setBounds(10, 10, 195, 114);
 		
 		Button btnOk = new Button(shlAboutPindmdEditor, SWT.NONE);
