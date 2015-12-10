@@ -54,6 +54,14 @@ import org.eclipse.swt.widgets.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.rinke.solutions.pinball.animation.AniEvent;
+import com.rinke.solutions.pinball.animation.Animation;
+import com.rinke.solutions.pinball.animation.AnimationCompiler;
+import com.rinke.solutions.pinball.animation.AnimationFactory;
+import com.rinke.solutions.pinball.animation.AnimationType;
+import com.rinke.solutions.pinball.animation.EventHandler;
+import com.rinke.solutions.pinball.io.FileHelper;
+import com.rinke.solutions.pinball.io.SmartDMDImporter;
 import com.rinke.solutions.pinball.model.Format;
 import com.rinke.solutions.pinball.model.Model;
 import com.rinke.solutions.pinball.model.PalMapping;

@@ -21,7 +21,12 @@ import org.eclipse.swt.widgets.Scale;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
-import com.rinke.solutions.pinball.AniEvent.Type;
+import com.rinke.solutions.pinball.animation.AniEvent;
+import com.rinke.solutions.pinball.animation.Animation;
+import com.rinke.solutions.pinball.animation.AnimationCompiler;
+import com.rinke.solutions.pinball.animation.AnimationFactory;
+import com.rinke.solutions.pinball.animation.EventHandler;
+import com.rinke.solutions.pinball.animation.AniEvent.Type;
 
 
 public class GoDMDClock {

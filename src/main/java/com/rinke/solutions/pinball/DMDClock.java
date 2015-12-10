@@ -15,6 +15,7 @@ import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.rinke.solutions.pinball.animation.Frame;
 import com.rinke.solutions.pinball.renderer.PngRenderer;
 
 public class DMDClock {

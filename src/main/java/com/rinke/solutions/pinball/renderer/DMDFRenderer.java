@@ -5,7 +5,7 @@ import java.io.IOException;
 
 import com.google.common.io.LittleEndianDataInputStream;
 import com.rinke.solutions.pinball.DMD;
-import com.rinke.solutions.pinball.Frame;
+import com.rinke.solutions.pinball.animation.Frame;
 
 public class DMDFRenderer extends Renderer {
 

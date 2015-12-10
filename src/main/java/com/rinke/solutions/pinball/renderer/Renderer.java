@@ -1,7 +1,7 @@
 package com.rinke.solutions.pinball.renderer;
 
 import com.rinke.solutions.pinball.DMD;
-import com.rinke.solutions.pinball.Frame;
+import com.rinke.solutions.pinball.animation.Frame;
 
 public abstract class Renderer {
 

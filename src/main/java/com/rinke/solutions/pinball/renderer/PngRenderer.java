@@ -9,7 +9,7 @@ import ar.com.hjg.pngj.ImageLineInt;
 import ar.com.hjg.pngj.PngReader;
 
 import com.rinke.solutions.pinball.DMD;
-import com.rinke.solutions.pinball.Frame;
+import com.rinke.solutions.pinball.animation.Frame;
 
 public class PngRenderer extends Renderer {
     

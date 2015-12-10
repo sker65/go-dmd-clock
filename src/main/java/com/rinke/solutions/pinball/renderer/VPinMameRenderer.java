@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.Editor;
-import com.rinke.solutions.pinball.Frame;
+import com.rinke.solutions.pinball.animation.Frame;
 
 // als parameter in der Steuerdatei sollten
 // die helligkeits schwellen angebbar sein

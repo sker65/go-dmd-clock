@@ -18,6 +18,8 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.RGB;
 
+import com.rinke.solutions.pinball.animation.Frame;
+
 public class DMD {
 
     private int width;

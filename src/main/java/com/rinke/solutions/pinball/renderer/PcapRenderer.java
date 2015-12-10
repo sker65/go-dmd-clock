@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.io.LittleEndianDataInputStream;
 import com.rinke.solutions.pinball.DMD;
-import com.rinke.solutions.pinball.Frame;
+import com.rinke.solutions.pinball.animation.Frame;
 import com.rinke.solutions.pinball.renderer.Pcap.Header;
 import com.rinke.solutions.pinball.renderer.Pcap.Paket;
 
