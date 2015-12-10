@@ -4,6 +4,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Event;
 
 import com.rinke.solutions.pinball.DMD;
+import com.rinke.solutions.pinball.widget.PaletteTool.ColorIndexChangedListerner;
 
 /*
  * notes:
@@ -13,13 +14,13 @@ import com.rinke.solutions.pinball.DMD;
  * 
  */
 
-public abstract class DrawTool {
+public abstract class DrawTool implements ColorIndexChangedListerner {
 	
 	protected int x1 = -1;
 	protected int y1 = -1; // where mouse goes down
 	protected int pressedButton;
 	protected DMD dmd;
-	protected int actualColor = 3;
+	protected int actualColor = 0;
 	
 	public DrawTool(int actualColor) {
 		super();

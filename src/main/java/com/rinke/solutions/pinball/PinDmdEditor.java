@@ -68,6 +68,7 @@ import com.rinke.solutions.pinball.ui.FileDialogDelegate;
 import com.rinke.solutions.pinball.widget.DMDWidget;
 import com.rinke.solutions.pinball.widget.DrawTool;
 import com.rinke.solutions.pinball.widget.FloodFillTool;
+import com.rinke.solutions.pinball.widget.PaletteTool;
 import com.rinke.solutions.pinball.widget.RectTool;
 import com.rinke.solutions.pinball.widget.SetPixelTool;
 
@@ -112,19 +113,12 @@ public class PinDmdEditor {
     
     Project project;
 
-    private int selectedColor;
-
     int numberOfHashes = 4;
     java.util.List<byte[]> hashes = new ArrayList<byte[]>();
-    byte[] visible = { 1,1,0,0, 1,0,0,0, 0,0,0,0, 0,0,0,1 };
     
-    /** used to reused images in col buttons. */
-    Map<RGB,Image> colImageCache = new HashMap<>();
-
 	/** instance level SWT widgets */
 	Button btnHash[] = new Button[numberOfHashes];
 	Text txtDuration;
-	final ToolItem colBtn[] = new ToolItem[16];
 	ComboViewer paletteComboViewer;
 	ListViewer aniListViewer;
 	ListViewer keyframeListViewer;
@@ -147,8 +141,6 @@ public class PinDmdEditor {
 	long saveTimeCode;
     int cutStart;
     int cutEnd;
-    
-
 
     /**
 	 * handles redraw of animations
@@ -232,7 +224,7 @@ public class PinDmdEditor {
 		
 		paletteComboViewer.getCombo().select(0);
 		dmd.rgb = project.palettes.get(0).colors;
-		setColorBtn();
+		paletteTool.setColorFromDMD(dmd.rgb);
 		
 		animationHandler = new AnimationHandler(playingAnis, clock, dmd, dmdWidget, false);
         animationHandler.setScale(scale);
@@ -515,47 +507,8 @@ public class PinDmdEditor {
         }
         return sb.toString();
     }
-    
-    private void createColorButtons(ToolBar toolBar, int x, int y) {
-        for(int i = 0; i < colBtn.length; i++) {
-            colBtn[i] = new ToolItem(toolBar, SWT.RADIO);
-            colBtn[i].setData(Integer.valueOf(i));
-            colBtn[i].setImage(getSquareImage(display, dmd.rgb[i]));
-            colBtn[i].addListener(SWT.Selection, e -> {
-                selectedColor = (Integer) e.widget.getData();
-        		for (DrawTool tool : drawTools.values()) {
-        			tool.setActualColor(selectedColor);
-        		}
-            });
-        }
-    }
 
-	Image getSquareImage(Display display, RGB rgb) {
-	    Image image = colImageCache.get(rgb);
-	    if( image == null ) {
-	        image = resManager.createImage(ImageDescriptor.createFromImage(new Image(display, 12, 12)));
-	        GC gc = new GC(image);
-	        Color col = new Color(display, rgb);
-	        gc.setBackground(col);
-	        gc.fillRectangle(0, 0, 11, 11);
-	        Color fg = new Color(display,0,0,0);
-	        gc.setForeground(fg);
-	        gc.drawRectangle(0, 0, 11, 11);
-	        //gc.setBackground(col);
-	        fg.dispose();
-	        gc.dispose();
-	        col.dispose();
-	        colImageCache.put(rgb, image);
-	    }
-        return image;
-      }
 
-    private void setColorBtn() {
-        for (int i = 0; i < colBtn.length; i++) {
-            colBtn[i].setImage(getSquareImage(display, dmd.rgb[i]));
-        }
-    }
-    
     public void createHashButtons(Composite parent, int x, int y ) {
     	for(int i = 0; i < numberOfHashes; i++) {
             btnHash[i] = new Button(parent, SWT.CHECK);
@@ -576,19 +529,8 @@ public class PinDmdEditor {
     	}
     }
     
-    private void  planesChanged(int planes, int x, int y) {
-        switch(planes) {
-        case 0: // 2 planes -> 4 colors
-            //int j = 0;
-            //for(int i = 0; i < colBtn.length; i++) { colBtn[i].setLocation(x+j*28, y); if(visible[i]==1) j++; }
-            for(int i = 0; i < colBtn.length; i++) colBtn[i].setEnabled(visible[i]==1); 
-            break;
-        case 1: // 4 planes -> 16 colors
-            //for(int i = 0; i < colBtn.length; i++) colBtn[i].setLocation(x+i*28, y);
-            for(int i = 0; i < colBtn.length; i++) colBtn[i].setEnabled(true);
-            break;  
-        }
-    }
+
+	private PaletteTool paletteTool;
 
 	/**
 	 * Create contents of the window.
@@ -887,7 +829,7 @@ public class PinDmdEditor {
                 if( selectedPalMapping != null ) selectedPalMapping.palIndex = activePalette.index;
                 dmd.rgb = activePalette.colors;
                 dmdWidget.setPalette(activePalette);
-                setColorBtn();
+                paletteTool.setColorFromDMD(dmd.rgb);
                 LOG.info("new palette is {}",activePalette);
                 paletteTypeComboViewer.setSelection(new StructuredSelection(activePalette.type));
             }
@@ -939,7 +881,7 @@ public class PinDmdEditor {
         btnReset.setText("Reset");
         btnReset.addListener(SWT.Selection, e -> {
             dmd.resetColors();
-            setColorBtn();
+            paletteTool.setColorFromDMD(dmd.rgb);
         });
 
         Label lblPlanes = new Label(grpPalettes, SWT.NONE);
@@ -953,33 +895,29 @@ public class PinDmdEditor {
         planes.setItems(new String[] { "2", "4" });
         planes.setToolTipText("Number of planes");
         planes.select(1);
-        planes.addListener(SWT.Selection, e -> planesChanged(planes.getSelectionIndex(), 10, 10));
+        planes.addListener(SWT.Selection, e -> paletteTool.planesChanged(planes.getSelectionIndex()));
         new Label(grpPalettes, SWT.NONE);
 
-        ToolBar paletteBar = new ToolBar(grpPalettes, SWT.FLAT | SWT.RIGHT);
-        GridData gd_composite_1 = new GridData(SWT.LEFT, SWT.CENTER, false, false, 4, 1);
-        gd_composite_1.widthHint = 420;
-        paletteBar.setLayoutData(gd_composite_1);
+        paletteTool = new PaletteTool(grpPalettes, SWT.FLAT | SWT.RIGHT, dmd.rgb);
         
-        createColorButtons(paletteBar,20,10);
-       
-        drawTools.put("pencil", new SetPixelTool(selectedColor));       
-        drawTools.put("fill", new FloodFillTool(selectedColor));       
-        drawTools.put("rect", new RectTool(selectedColor));       
+        drawTools.put("pencil", new SetPixelTool(paletteTool.getSelectedColor()));       
+        drawTools.put("fill", new FloodFillTool(paletteTool.getSelectedColor()));       
+        drawTools.put("rect", new RectTool(paletteTool.getSelectedColor()));
+        drawTools.values().forEach(d->paletteTool.addListener(d));
         
         btnColor = new Button(grpPalettes, SWT.NONE);
         btnColor.setText("Color");
 		btnColor.addListener(SWT.Selection, e -> {
 			ColorDialog cd = new ColorDialog(shell);
 			cd.setText("Select new color");
-			cd.setRGB(dmd.getColor(selectedColor));
+			cd.setRGB(paletteTool.getSelectedRGB());
 			RGB rgb = cd.open();
 			if (rgb == null) {
 				return;
 			}
-			colBtn[selectedColor].setImage(getSquareImage(display, rgb));
-			dmd.setColor(selectedColor, rgb);
-			activePalette.colors[selectedColor] = rgb;
+			paletteTool.setColor(rgb);
+			dmd.setColor(paletteTool.getSelectedColor(), rgb);
+			activePalette.colors[paletteTool.getSelectedColor()] = rgb;
 			dmdWidget.setPalette(activePalette);
 		});
 
