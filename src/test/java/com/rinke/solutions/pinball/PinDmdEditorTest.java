@@ -7,6 +7,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import com.rinke.solutions.pinball.animation.Animation;
+import com.rinke.solutions.pinball.animation.AnimationType;
+import com.rinke.solutions.pinball.animation.Frame;
+import com.rinke.solutions.pinball.animation.Plane;
+
 @RunWith(MockitoJUnitRunner.class)
 public class PinDmdEditorTest {
 	
