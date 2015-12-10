@@ -36,8 +36,6 @@ public class DMD {
     
     int numberOfSubframes = 2;
     public int actualBuffer = 0;
-    
-    List<DeleteMask> deleteMasks = new ArrayList<>();
 
     private int frameSizeInByte;
 
@@ -268,7 +266,7 @@ public class DMD {
         ev.gc.drawImage(image, 0, 0);
         
         // now draw mask marks if any
-        deleteMasks.forEach(e -> e.drawMaskRects(ev));
+//        deleteMasks.forEach(e -> e.drawMaskRects(ev));
 
         for(int i = 0; i < (1 << numberOfSubframes);i++) 
             cols[i].dispose();
@@ -441,18 +439,6 @@ public class DMD {
     @Override
     public String toString() {
         return "DMD [width=" + width + ", height=" + height + "]";
-    }
-
-    public void setMask(int x1, int y1, int x2, int y2) {
-        Point p1 = transformCoord(x1, y1);
-        Point p2 = transformCoord(x2, y2);
-        if( p2.x - p1.x > 0 && p2.y - p1.y > 0 ) {
-            deleteMasks.add(new DeleteMask(x1, y1, x2-x1, y2-y1));
-        }
-    }
-
-    public void removeAllMasks() {
-        deleteMasks.clear();
     }
 
     public void setColor(int i, RGB newColor) {

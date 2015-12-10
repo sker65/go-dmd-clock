@@ -20,7 +20,6 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.rinke.solutions.pinball.DMD;
-import com.rinke.solutions.pinball.Editor;
 import com.rinke.solutions.pinball.animation.Frame;
 
 // als parameter in der Steuerdatei sollten

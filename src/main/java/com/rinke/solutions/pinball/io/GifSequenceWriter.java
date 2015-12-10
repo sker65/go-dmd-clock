@@ -1,4 +1,4 @@
-package com.rinke.solutions.pinball.renderer;
+package com.rinke.solutions.pinball.io;
 
 //
 //GifSequenceWriter.java
@@ -17,7 +17,6 @@ import javax.imageio.stream.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.rinke.solutions.pinball.Editor;
 
 import java.awt.image.*;
 import java.io.*;

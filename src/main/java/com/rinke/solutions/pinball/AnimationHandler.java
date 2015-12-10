@@ -18,7 +18,7 @@ import com.rinke.solutions.pinball.animation.EventHandler;
 import com.rinke.solutions.pinball.animation.Frame;
 import com.rinke.solutions.pinball.animation.AniEvent.Type;
 import com.rinke.solutions.pinball.animation.Animation;
-import com.rinke.solutions.pinball.renderer.GifSequenceWriter;
+import com.rinke.solutions.pinball.io.GifSequenceWriter;
 
 /**
  * handles the sequence of animations and clock

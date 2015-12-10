@@ -13,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.rinke.solutions.pinball.DMD;
-import com.rinke.solutions.pinball.Editor;
 import com.rinke.solutions.pinball.animation.Frame;
 
 // als parameter in der Steuerdatei sollten
