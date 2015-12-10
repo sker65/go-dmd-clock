@@ -1,5 +1,6 @@
 package com.rinke.solutions.pinball.animation;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -72,6 +73,18 @@ public class Animation {
 	int holdCount = 0;
 	
 	private String desc;
+
+    public static Animation buildAnimationFromFile(String filename, AnimationType type) {
+        File file = new File(filename);
+        if( !file.canRead() ) {
+            throw new RuntimeException("Could not read '"+filename+"' to load animation");
+        }
+        String base = file.getName();
+        Animation ani = new Animation(type, base, 0, 0, 1, 1, 0);
+        ani.setBasePath(file.getParent() + "/");
+        ani.setDesc(base.substring(0, base.indexOf('.')));
+        return ani;
+    }
 
 	public String getDesc() {
 		return desc;

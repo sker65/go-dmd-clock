@@ -441,8 +441,8 @@ public class DMD {
         return "DMD [width=" + width + ", height=" + height + "]";
     }
 
-    public void setColor(int i, RGB newColor) {
-        rgb[i] = newColor;
+    public void setColor(int j, RGB i) {
+        rgb[j] = new RGB(i.red,i.green,i.blue);
     }
 
     public RGB getColor(int j) {

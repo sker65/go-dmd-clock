@@ -52,9 +52,9 @@ public class PaletteTool {
         createColorButtons(paletteBar,20,10, rgb);
 	}
 
-	public void setColor( RGB rgbi) {
-		rgb[selectedColor] = new RGB(rgbi.red, rgbi.green, rgbi.blue);
-		colBtn[selectedColor].setImage(getSquareImage(display, rgbi));
+	public void setColor( RGB in) {
+		rgb[selectedColor] = new RGB(in.red, in.green, in.blue);
+		colBtn[selectedColor].setImage(getSquareImage(display, in));
 	}
 	
     byte[] visible = { 1,1,0,0, 1,0,0,0, 0,0,0,0, 0,0,0,1 };

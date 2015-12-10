@@ -132,7 +132,7 @@ public class PinDmdEditor {
 	DMDWidget dmdWidget;
 	ResourceManager resManager;
 
-	Button btnColor;
+	Button btnChangeColor;
 	Button btnNewPalette;
 	Button btnRenamePalette;
 
@@ -376,11 +376,11 @@ public class PinDmdEditor {
         if (filename.endsWith(".ani")) {
             loadedList.addAll(AnimationCompiler.readFromCompiledFile(filename));
         } else if (filename.endsWith(".txt.gz")) {
-            loadedList.add(buildAnimationFromFile(filename, AnimationType.MAME));
+            loadedList.add(Animation.buildAnimationFromFile(filename, AnimationType.MAME));
         } else if (filename.endsWith(".properties")) {
             loadedList.addAll(AnimationFactory.createAnimationsFromProperties(filename));
         } else if (filename.endsWith(".pcap") || filename.endsWith(".pcap.gz") ) {
-        	loadedList.add(buildAnimationFromFile(filename, AnimationType.PCAP));
+        	loadedList.add(Animation.buildAnimationFromFile(filename, AnimationType.PCAP));
         }
         
         if( populateProject ) {
@@ -403,18 +403,6 @@ public class PinDmdEditor {
         animations.addAll(loadedList);
         aniListViewer.refresh();
         project.dirty = true;
-    }
-
-    private Animation buildAnimationFromFile(String filename, AnimationType type) {
-        File file = new File(filename);
-        if( !file.canRead() ) {
-            throw new RuntimeException("Could not read '"+filename+"' to load animation");
-        }
-        String base = file.getName();
-        Animation ani = new Animation(type, base, 0, 0, 1, 1, 0);
-        ani.setBasePath(file.getParent() + "/");
-        ani.setDesc(base.substring(0, base.indexOf('.')));
-        return ani;
     }
 
     private void savePalette()
@@ -905,9 +893,9 @@ public class PinDmdEditor {
         drawTools.put("rect", new RectTool(paletteTool.getSelectedColor()));
         drawTools.values().forEach(d->paletteTool.addListener(d));
         
-        btnColor = new Button(grpPalettes, SWT.NONE);
-        btnColor.setText("Color");
-		btnColor.addListener(SWT.Selection, e -> {
+        btnChangeColor = new Button(grpPalettes, SWT.NONE);
+        btnChangeColor.setText("Color");
+		btnChangeColor.addListener(SWT.Selection, e -> {
 			ColorDialog cd = new ColorDialog(shell);
 			cd.setText("Select new color");
 			cd.setRGB(paletteTool.getSelectedRGB());
@@ -917,7 +905,7 @@ public class PinDmdEditor {
 			}
 			paletteTool.setColor(rgb);
 			dmd.setColor(paletteTool.getSelectedColor(), rgb);
-			activePalette.colors[paletteTool.getSelectedColor()] = rgb;
+			activePalette.colors[paletteTool.getSelectedColor()] = new RGB(rgb.red, rgb.green, rgb.blue);
 			dmdWidget.setPalette(activePalette);
 		});
 
