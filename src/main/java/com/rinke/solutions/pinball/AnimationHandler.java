@@ -141,13 +141,13 @@ public class AnimationHandler implements Runnable {
 				}
 			}
 		}
-		if( export ) {
-			try {
-				gifWriter.writeToSequence(dmd.draw(), getRefreshDelay());
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
+//		if( export ) {
+//			try {
+//				gifWriter.writeToSequence(dmd.draw(), getRefreshDelay());
+//			} catch (IOException e) {
+//				e.printStackTrace();
+//			}
+//		}
 		canvas.redraw();
 	}
 

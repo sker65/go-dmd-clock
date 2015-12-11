@@ -1,7 +1,6 @@
 package com.rinke.solutions.pinball;
 
 import java.awt.Graphics2D;
-import java.awt.image.BufferedImage;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -11,12 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.swt.events.PaintEvent;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.RGB;
 
 import com.rinke.solutions.pinball.animation.Frame;
 
@@ -65,32 +59,6 @@ public class DMD {
         return bytesPerRow;
     }
 
-    public RGB[] rgb = new RGB[16];
-    
-    public void resetColors() {
-        rgb[0] = new RGB(0x0, 0x00, 0x00);//new RGB(0x19, 0x00, 0x06);
-        rgb[1] = new RGB(0x6f, 0x00, 0x00);
-        rgb[4] = new RGB(0xca, 0x00, 0x00);
-        rgb[15] = new RGB(0xff, 0x00, 0x00);
-
-        rgb[2] = newRGB(0x008000);
-        rgb[3] = newRGB(0x808000);
-        rgb[5] = newRGB(0x000080);
-        rgb[6] = newRGB(0x800080);
-        rgb[7] = newRGB(0xC0C0C0);
-        rgb[8] = newRGB(0x808080);
-        rgb[9] = newRGB(0x00FF00);
-        rgb[10] = newRGB(0xFFFF00);
-        rgb[11] = newRGB(0x0000FF);
-        rgb[12] = newRGB(0xFF00FF);
-        rgb[13] = newRGB(0x00FFFF);
-        rgb[14] = newRGB(0xFFFFFF);
-    }
-    
-    private RGB newRGB(int rgb) {
-        return new RGB(rgb >> 16, (rgb >> 8) & 0xFF, rgb & 0xFF);
-    }
-    
     public void copyTemp() {
     	List<byte[]> target = buffers.get(actualBuffer);
     	List<byte[]> source = buffers.get(actualBuffer-1);
@@ -121,7 +89,6 @@ public class DMD {
             bytesPerRow++;
         frameSizeInByte = bytesPerRow * height;
         setNumberOfSubframes(2);
-        resetColors();
         buffers.put(actualBuffer, frames);
     }
     
@@ -171,112 +138,13 @@ public class DMD {
     	return v;
     }
     
-    int pitch = 7;
-    int offset = 20;
-
-    public BufferedImage draw() {
-        BufferedImage img = new BufferedImage(width * 8, height * 8, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g = (Graphics2D) img.getGraphics();
-        g.setPaint(new java.awt.Color(10, 10, 10));
-        g.fillRect(0, 0, width * 8, height * 8);
-
-        java.awt.Color[] cols = new java.awt.Color[4];
-        // hell ffae3a
-        // 2/3 ca8a2e
-        // 1/3 7f561d
-        // schwarz: 191106
-        cols[0] = new java.awt.Color(0x19, 0x00, 0x06);
-        cols[1] = new java.awt.Color(0x6f, 0x00, 0x00);
-        cols[2] = new java.awt.Color(0xca, 0x00, 0x00);
-        cols[3] = new java.awt.Color(0xff, 0x00, 0x00);
-
-        for (int row = 0; row < height; row++) {
-            for (int col = 0; col < width; col++) {
-                // lsb first
-                // byte mask = (byte) (1 << (col % 8));
-                // hsb first
-                byte mask = (byte) (128 >> (col % 8));
-                int v = 0;
-                v += (frame1[col / 8 + row * bytesPerRow] & mask) != 0 ? 1 : 0;
-                v += (frame2[col / 8 + row * bytesPerRow] & mask) != 0 ? 2 : 0;
-
-                g.setPaint(cols[v]);
-                g.fillOval(offset + col * pitch, offset + row * pitch, pitch, pitch);
-            }
-        }
-
-        g.dispose();
-        return img;
-    }
-    
-    public Point transformCoord( int x, int y) {
-        return new Point((x-offset)/pitch,(y-offset)/pitch);   
-    }
-    
-    public void draw(PaintEvent ev) {
-
-        Image image = new Image(ev.display, ev.width, ev.height);
-        GC gcImage = new GC(image);
-        int w = ev.width;
-        int h = ev.height;
-        int minwh = w<h?w:h;
-        offset = minwh/25;
-        int pitchx = (w -2*offset) / width;
-        int pitchy = (h -2*offset) / height;
-        pitch = pitchx<pitchy?pitchx:pitchy;
-        
-        int colIdx[] = {0,1,4,15};
-        
-        // hell ffae3a
-        // 2/3 ca8a2e
-        // 1/3 7f561d
-        // schwarz: 191106
-        Color cols[] = new Color[1<<numberOfSubframes];
-        if( numberOfSubframes == 2) {
-            cols[0] = new Color(ev.display, rgb[0]);
-            cols[1] = new Color(ev.display, rgb[1]);
-            cols[2] = new Color(ev.display, rgb[4]);
-            cols[3] = new Color(ev.display, rgb[15]);
-        } else {
-            for(int i = 0; i < (1 << numberOfSubframes);i++) {
-                cols[i] = new Color(ev.display, rgb[i]);
-            }
-        }
-        Color bg = new Color(ev.display, 10, 10, 10);
-        gcImage.setBackground(bg);
-        gcImage.fillRectangle(0, 0, ev.width, ev.height);
-
-        for (int row = 0; row < height; row++) {
-            for (int col = 0; col < width; col++) {
-                // lsb first
-                // byte mask = (byte) (1 << (col % 8));
-                // hsb first
-                byte mask = (byte) (128 >> (col % 8));
-                int v = 0;
-
-                for(int i = 0; i < numberOfSubframes;i++) {
-                    v += (frames.get(i)[col / 8 + row * bytesPerRow] & mask) != 0 ? (1<<i) : 0;
-                }
-
-                gcImage.setBackground(cols[v]);
-                gcImage.fillOval(offset + col * pitch, offset + row * pitch, pitch, pitch);
-            }
-        }
-
-        ev.gc.drawImage(image, 0, 0);
-        
-        // now draw mask marks if any
-//        deleteMasks.forEach(e -> e.drawMaskRects(ev));
-
-        for(int i = 0; i < (1 << numberOfSubframes);i++) 
-            cols[i].dispose();
-
-        bg.dispose();
-
-        image.dispose();
-        gcImage.dispose();
-    }
-
+//    int pitch = 7;
+//    int offset = 20;
+//
+//    public Point transformCoord( int x, int y) {
+//        return new Point((x-offset)/pitch,(y-offset)/pitch);   
+//    }
+//    
     public void setFrames(byte[] f1, byte[] f2) {
         this.frame1 = f1;
         this.frame2 = f2;
@@ -439,14 +307,6 @@ public class DMD {
     @Override
     public String toString() {
         return "DMD [width=" + width + ", height=" + height + "]";
-    }
-
-    public void setColor(int j, RGB i) {
-        rgb[j] = new RGB(i.red,i.green,i.blue);
-    }
-
-    public RGB getColor(int j) {
-        return rgb[j];
     }
 
 }

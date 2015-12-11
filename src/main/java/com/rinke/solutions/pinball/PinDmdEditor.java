@@ -111,7 +111,7 @@ public class PinDmdEditor {
     SmartDMDImporter smartDMDImporter = new SmartDMDImporter();
     UsbTool usbTool = new UsbTool();
     
-    Project project;
+    Project project = new Project();
 
     int numberOfHashes = 4;
     java.util.List<byte[]> hashes = new ArrayList<byte[]>();
@@ -141,8 +141,13 @@ public class PinDmdEditor {
 	long saveTimeCode;
     int cutStart;
     int cutEnd;
+    
+	public PinDmdEditor() {
+		super();
+	    activePalette = project.palettes.get(0);
+	}
 
-    /**
+	/**
 	 * handles redraw of animations
 	 * @author steve
 	 */
@@ -223,8 +228,7 @@ public class PinDmdEditor {
 		createNewProject();
 		
 		paletteComboViewer.getCombo().select(0);
-		dmd.rgb = project.palettes.get(0).colors;
-		paletteTool.setColorFromDMD(dmd.rgb);
+		paletteTool.setPalette(activePalette);
 		
 		animationHandler = new AnimationHandler(playingAnis, clock, dmd, dmdWidget, false);
         animationHandler.setScale(scale);
@@ -295,11 +299,9 @@ public class PinDmdEditor {
 	
     void createNewProject() {
 	    project = new Project();
-	    activePalette = new Palette(Palette.defaultColors(), 0, "default");
-    	project.palettes.add(activePalette);		
-
+	    activePalette = project.palettes.get(0);
     	paletteComboViewer.setInput(project.palettes);
-	    keyframeListViewer.setInput(project.palMappings);
+    	keyframeListViewer.setInput(project.palMappings);
 	    animations.clear();
 	    aniListViewer.refresh();
 	    playingAnis.clear();
@@ -815,9 +817,8 @@ public class PinDmdEditor {
             if (selection.size() > 0) {
             	activePalette = (Palette) selection.getFirstElement();
                 if( selectedPalMapping != null ) selectedPalMapping.palIndex = activePalette.index;
-                dmd.rgb = activePalette.colors;
                 dmdWidget.setPalette(activePalette);
-                paletteTool.setColorFromDMD(dmd.rgb);
+                paletteTool.setPalette(activePalette);
                 LOG.info("new palette is {}",activePalette);
                 paletteTypeComboViewer.setSelection(new StructuredSelection(activePalette.type));
             }
@@ -851,7 +852,7 @@ public class PinDmdEditor {
             if (!isNewPaletteName(name)) {
                 name = "new" + UUID.randomUUID().toString().substring(0, 4);
             }
-            activePalette = new Palette(dmd.rgb, project.palettes.size(), name);
+            activePalette = new Palette(activePalette.colors, project.palettes.size(), name);
             project.palettes.add(activePalette);
             paletteComboViewer.setSelection(new StructuredSelection(activePalette));
             paletteComboViewer.refresh();
@@ -868,8 +869,9 @@ public class PinDmdEditor {
         Button btnReset = new Button(grpPalettes, SWT.NONE);
         btnReset.setText("Reset");
         btnReset.addListener(SWT.Selection, e -> {
-            dmd.resetColors();
-            paletteTool.setColorFromDMD(dmd.rgb);
+            activePalette.setColors(Palette.defaultColors());
+            paletteTool.setPalette(activePalette);
+            dmdWidget.setPalette(activePalette);
         });
 
         Label lblPlanes = new Label(grpPalettes, SWT.NONE);
@@ -886,7 +888,7 @@ public class PinDmdEditor {
         planes.addListener(SWT.Selection, e -> paletteTool.planesChanged(planes.getSelectionIndex()));
         new Label(grpPalettes, SWT.NONE);
 
-        paletteTool = new PaletteTool(grpPalettes, SWT.FLAT | SWT.RIGHT, dmd.rgb);
+        paletteTool = new PaletteTool(grpPalettes, SWT.FLAT | SWT.RIGHT, activePalette.colors);
         
         drawTools.put("pencil", new SetPixelTool(paletteTool.getSelectedColor()));       
         drawTools.put("fill", new FloodFillTool(paletteTool.getSelectedColor()));       
@@ -904,7 +906,6 @@ public class PinDmdEditor {
 				return;
 			}
 			paletteTool.setColor(rgb);
-			dmd.setColor(paletteTool.getSelectedColor(), rgb);
 			activePalette.colors[paletteTool.getSelectedColor()] = new RGB(rgb.red, rgb.green, rgb.blue);
 			dmdWidget.setPalette(activePalette);
 		});

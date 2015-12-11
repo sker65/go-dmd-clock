@@ -29,6 +29,7 @@ public class Project implements Model {
 	public Project() {
         version = 1;
         palettes = new ArrayList<Palette>();
+        palettes.add(new Palette(Palette.defaultColors(), 0, "default"));
         palMappings = new ArrayList<>();
         scenes = new ArrayList<>();
         inputFiles=new ArrayList<>();

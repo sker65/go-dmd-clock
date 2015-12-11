@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.util.Arrays;
 
 import org.eclipse.swt.graphics.RGB;
-import org.eclipse.swt.widgets.Composite;
 
 public class Palette implements Model {
 	public String name;
@@ -26,9 +25,7 @@ public class Palette implements Model {
 	}
 
 	public Palette(RGB[] colors) {
-		this.colors = new RGB[colors.length];
-		this.numberOfColors = colors.length;
-		this.colors = Arrays.copyOf(colors, colors.length);
+		setColors(colors);
 	}
 
 	public void writeTo(DataOutputStream os) throws IOException {
@@ -72,6 +69,12 @@ public class Palette implements Model {
 		rgb[14] = new RGB(0xFF, 0xFF, 0x00); // yellow
 		rgb[15] = new RGB(0xFF, 0xFF, 0xFF); // white
 		return rgb;
+	}
+
+	public void setColors(RGB[] colors) {
+		this.colors = new RGB[colors.length];
+		this.numberOfColors = colors.length;
+		this.colors = Arrays.copyOf(colors, colors.length);
 	}
 
 }

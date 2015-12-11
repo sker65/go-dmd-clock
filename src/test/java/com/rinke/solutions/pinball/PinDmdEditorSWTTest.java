@@ -30,8 +30,6 @@ public class PinDmdEditorSWTTest {
 
 	@Before
 	public void setup() {
-		uut.animations = new ArrayList<>();
-		
 		Shell shell = displayHelper.createShell();
 		uut.createContents(shell);	
 		uut.createNewProject();

@@ -21,6 +21,8 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 
+import com.rinke.solutions.pinball.model.Palette;
+
 public class PaletteTool {
 
 	final ToolItem colBtn[] = new ToolItem[16];
@@ -102,18 +104,18 @@ public class PaletteTool {
         }
     }
 
-    public void setColorFromDMD(RGB[] rgb) {
-        for (int i = 0; i < colBtn.length; i++) {
-            colBtn[i].setImage(getSquareImage(display, rgb[i]));
-        }
-    }
-
 	public int getSelectedColor() {
 		return selectedColor;
 	}
 
 	public RGB getSelectedRGB() {
 		return rgb[selectedColor];
+	}
+
+	public void setPalette(Palette palette) {
+        for (int i = 0; i < colBtn.length; i++) {
+            colBtn[i].setImage(getSquareImage(display, rgb[i]));
+        }
 	}
     
 }
