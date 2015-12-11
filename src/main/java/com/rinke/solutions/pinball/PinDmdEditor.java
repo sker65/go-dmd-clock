@@ -328,7 +328,7 @@ public class PinDmdEditor {
                 if( project.inputFiles.size() >0 ) loadAni(project.inputFiles.get(0), false, false);
                 for( int i = 1; i < project.scenes.size(); i++) {
                 	//cutOutNewAnimation(project.scenes.get(i).start, project.scenes.get(i).end, animations.get(0));
-                	System.out.println("cutting out "+project.scenes.get(i));
+                	LOG.info("cutting out "+project.scenes.get(i));
                 }
                 aniListViewer.refresh();
                 paletteComboViewer.setInput(project.palettes);
