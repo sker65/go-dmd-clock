@@ -112,7 +112,8 @@ public class PaletteTool {
 	}
 
 	public void setPalette(Palette palette) {
-        for (int i = 0; i < colBtn.length; i++) {
+		this.palette = palette;
+		for (int i = 0; i < colBtn.length; i++) {
             colBtn[i].setImage(getSquareImage(display, palette.colors[i]));
         }
 	}
