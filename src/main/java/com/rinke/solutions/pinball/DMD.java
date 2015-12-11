@@ -1,6 +1,5 @@
 package com.rinke.solutions.pinball;
 
-import java.awt.Graphics2D;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -9,8 +8,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.eclipse.swt.graphics.Point;
 
 import com.rinke.solutions.pinball.animation.Frame;
 
