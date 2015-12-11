@@ -136,6 +136,7 @@ public class PinDmdEditor {
 	Button btnNewPalette;
 	Button btnRenamePalette;
 
+	PaletteTool paletteTool;
 	int selectedHashIndex;
 	PalMapping selectedPalMapping;
 	long saveTimeCode;
@@ -307,7 +308,6 @@ public class PinDmdEditor {
 	    playingAnis.clear();
 	    selectedAnimation = null;
 	}
-
 
 	private void loadProject() {
 		FileChooser fileChooser = createFileChooser(shell, SWT.OPEN);
@@ -498,7 +498,6 @@ public class PinDmdEditor {
         return sb.toString();
     }
 
-
     public void createHashButtons(Composite parent, int x, int y ) {
     	for(int i = 0; i < numberOfHashes; i++) {
             btnHash[i] = new Button(parent, SWT.CHECK);
@@ -519,8 +518,6 @@ public class PinDmdEditor {
     	}
     }
     
-
-	private PaletteTool paletteTool;
 
 	/**
 	 * Create contents of the window.
@@ -854,6 +851,7 @@ public class PinDmdEditor {
             }
             activePalette = new Palette(activePalette.colors, project.palettes.size(), name);
             project.palettes.add(activePalette);
+            paletteTool.setPalette(activePalette);
             paletteComboViewer.setSelection(new StructuredSelection(activePalette));
             paletteComboViewer.refresh();
         });
@@ -888,7 +886,7 @@ public class PinDmdEditor {
         planes.addListener(SWT.Selection, e -> paletteTool.planesChanged(planes.getSelectionIndex()));
         new Label(grpPalettes, SWT.NONE);
 
-        paletteTool = new PaletteTool(grpPalettes, SWT.FLAT | SWT.RIGHT, activePalette.colors);
+        paletteTool = new PaletteTool(grpPalettes, SWT.FLAT | SWT.RIGHT, activePalette);
         
         drawTools.put("pencil", new SetPixelTool(paletteTool.getSelectedColor()));       
         drawTools.put("fill", new FloodFillTool(paletteTool.getSelectedColor()));       
@@ -905,9 +903,9 @@ public class PinDmdEditor {
 			if (rgb == null) {
 				return;
 			}
-			paletteTool.setColor(rgb);
 			activePalette.colors[paletteTool.getSelectedColor()] = new RGB(rgb.red, rgb.green, rgb.blue);
 			dmdWidget.setPalette(activePalette);
+			paletteTool.setPalette(activePalette);
 		});
 
         ToolBar toolBar = new ToolBar(grpPalettes, SWT.FLAT | SWT.RIGHT);

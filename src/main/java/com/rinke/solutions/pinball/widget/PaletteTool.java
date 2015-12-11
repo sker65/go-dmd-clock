@@ -26,11 +26,13 @@ import com.rinke.solutions.pinball.model.Palette;
 public class PaletteTool {
 
 	final ToolItem colBtn[] = new ToolItem[16];
-	RGB[] rgb;
+	Palette palette;
 	private Display display;
 	
 	ResourceManager resManager;
 	private int selectedColor;
+    byte[] visible = { 1,1,0,0, 1,0,0,0, 0,0,0,0, 0,0,0,1 };
+	private ToolBar paletteBar;
 	
     /** used to reused images in col buttons. */
     Map<RGB,Image> colImageCache = new HashMap<>();
@@ -43,24 +45,21 @@ public class PaletteTool {
     public void addListener( ColorIndexChangedListerner listener) {
     	listeners.add(listener);
     }
+    
+    public void redraw() {
+    	paletteBar.redraw();
+    }
 
-	public PaletteTool(Composite parent, int flags, RGB[] rgb1) {
-		this.rgb = Arrays.copyOf(rgb1, rgb1.length);
+	public PaletteTool(Composite parent, int flags, Palette palette) {
+		this.palette = palette;
 		resManager = new LocalResourceManager(JFaceResources.getResources(),parent);
-        ToolBar paletteBar = new ToolBar(parent, flags);
+        paletteBar = new ToolBar(parent, flags);
         GridData gd = new GridData(SWT.LEFT, SWT.CENTER, false, false, 4, 1);
         gd.widthHint = 420;
         paletteBar.setLayoutData(gd);
-        createColorButtons(paletteBar,20,10, rgb);
+        createColorButtons(paletteBar,20,10, palette);
 	}
 
-	public void setColor( RGB in) {
-		rgb[selectedColor] = new RGB(in.red, in.green, in.blue);
-		colBtn[selectedColor].setImage(getSquareImage(display, in));
-	}
-	
-    byte[] visible = { 1,1,0,0, 1,0,0,0, 0,0,0,0, 0,0,0,1 };
-    
     public void  planesChanged(int planes) {
         switch(planes) {
         case 0: // 2 planes -> 4 colors
@@ -92,11 +91,11 @@ public class PaletteTool {
         return image;
     }
 	 
-    private void createColorButtons(ToolBar toolBar, int x, int y, RGB[] rgb) {
+    private void createColorButtons(ToolBar toolBar, int x, int y, Palette pal) {
         for(int i = 0; i < colBtn.length; i++) {
             colBtn[i] = new ToolItem(toolBar, SWT.RADIO);
             colBtn[i].setData(Integer.valueOf(i));
-            colBtn[i].setImage(getSquareImage(display, rgb[i]));
+            colBtn[i].setImage(getSquareImage(display, pal.colors[i]));
             colBtn[i].addListener(SWT.Selection, e -> {
                 selectedColor = (Integer) e.widget.getData();
                 listeners.forEach(l->l.setActualColor(selectedColor));
@@ -109,12 +108,12 @@ public class PaletteTool {
 	}
 
 	public RGB getSelectedRGB() {
-		return rgb[selectedColor];
+		return palette.colors[selectedColor];
 	}
 
 	public void setPalette(Palette palette) {
         for (int i = 0; i < colBtn.length; i++) {
-            colBtn[i].setImage(getSquareImage(display, rgb[i]));
+            colBtn[i].setImage(getSquareImage(display, palette.colors[i]));
         }
 	}
     
