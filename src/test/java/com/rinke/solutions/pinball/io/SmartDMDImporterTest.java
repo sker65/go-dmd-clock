@@ -60,10 +60,10 @@ public class SmartDMDImporterTest {
         assertEquals("Sparky MB Intro 1", p.name);
         assertEquals(new RGB(0,0,0), p.colors[0]);
         assertEquals(new RGB(0x4a,0x4a,0x4a), p.colors[1]);
-        assertEquals(PaletteType.PERSISTENT, p.type);
+        assertEquals(PaletteType.NORMAL, p.type);
         
         assertEquals(PaletteType.DEFAULT, list.get(11).type);
-        assertEquals(PaletteType.PERSISTENT, list.get(0).type);
+        assertEquals(PaletteType.NORMAL, list.get(0).type);
     }
 
     String pal = "Ship,Upscaling=2,0xFF000000,0xFFFFFFBB,0xFF804000,0xFF808000,0xFFAC0000,0xFF797979,0xFFAC5400,0xFFACACAC,0xFF545454,0xFF5454FF,0xFF0000FF,0xFF000080,0xFFFF5454,0xFF494925,0xFFFFFF54,0xFFFFFFFF";

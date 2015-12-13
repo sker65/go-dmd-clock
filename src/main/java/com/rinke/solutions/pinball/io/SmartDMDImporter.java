@@ -52,7 +52,7 @@ public class SmartDMDImporter {
 			if( palette.index == defaultPalette ) {
 				palette.type = PaletteType.DEFAULT;
 			} else {
-				palette.type = (persistent==0?PaletteType.NORMAL:PaletteType.PERSISTENT);
+				palette.type = PaletteType.NORMAL;
 			}
 			LOG.info("loaded palette: {}", palette);
 		}
