@@ -780,10 +780,6 @@ public class PinDmdEditor {
         
         btnCut.setText("Cut");
         btnCut.setEnabled(false);
-        new Label(composite, SWT.NONE);
-        
-        Button btnUndo = new Button(composite, SWT.NONE);
-        btnUndo.setText("Undo");
         btnCut.addListener(SWT.Selection, e -> {
         	// respect number of planes while cutting / copying
             Animation ani = cutScene(selectedAnimation, cutStart, cutEnd);
@@ -799,7 +795,15 @@ public class PinDmdEditor {
             // alternatively introduce a dedicated flag for scenes that should be exported
             // also define a way that a keyframe triggers a replacement sequence instead of switching 
             // the palette only
+            // TODO NEED TO ADD a reference to the animation in the list / map
+            project.scenes.add( new Scene(ani.getDesc(), ani.start, ani.end, activePalette.index));
         });
+        
+        new Label(composite, SWT.NONE);
+        
+        Button btnUndo = new Button(composite, SWT.NONE);
+        btnUndo.setText("Undo");        
+        btnUndo.addListener(SWT.Selection, e->undo());
         
         Group grpPalettes = new Group(shell, SWT.NONE);
         grpPalettes.setLayout(new GridLayout(8, false));
