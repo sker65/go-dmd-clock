@@ -727,7 +727,7 @@ public class PinDmdEditor {
         lblTcval.setText("xxxxxxxxxx");
         
         Composite composite = new Composite(shell, SWT.NONE);
-        composite.setLayout(new GridLayout(7, false));
+        composite.setLayout(new GridLayout(9, false));
         composite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
         
         Button btnStart = new Button(composite, SWT.NONE);
@@ -780,6 +780,10 @@ public class PinDmdEditor {
         
         btnCut.setText("Cut");
         btnCut.setEnabled(false);
+        new Label(composite, SWT.NONE);
+        
+        Button btnUndo = new Button(composite, SWT.NONE);
+        btnUndo.setText("Undo");
         btnCut.addListener(SWT.Selection, e -> {
         	// respect number of planes while cutting / copying
             Animation ani = cutScene(selectedAnimation, cutStart, cutEnd);
@@ -943,6 +947,10 @@ public class PinDmdEditor {
         new Label(grpPalettes, SWT.NONE);
         new Label(grpPalettes, SWT.NONE);
         new Label(grpPalettes, SWT.NONE);
+        new Label(grpPalettes, SWT.NONE);
+        new Label(grpPalettes, SWT.NONE);
+        new Label(grpPalettes, SWT.NONE);
+        new Label(grpPalettes, SWT.NONE);
 
     }
 	
@@ -1003,6 +1011,20 @@ public class PinDmdEditor {
             shell.dispose();
 		});
 		
+		MenuItem mntmedit = new MenuItem(menu, SWT.CASCADE);
+		mntmedit.setText("&Edit");
+		
+		Menu menu_5 = new Menu(mntmedit);
+		mntmedit.setMenu(menu_5);
+		
+		MenuItem mntmUndo = new MenuItem(menu_5, SWT.NONE);
+		mntmUndo.setText("Undo");
+		mntmUndo.addListener(SWT.Selection, e->undo());
+		
+		MenuItem mntmRedo = new MenuItem(menu_5, SWT.NONE);
+		mntmRedo.setText("Redo");
+		mntmRedo.addListener(SWT.Selection, e->redo());
+		
 		MenuItem mntmAnimations = new MenuItem(menu, SWT.CASCADE);
 		mntmAnimations.setText("&Animations");
 		
@@ -1046,6 +1068,19 @@ public class PinDmdEditor {
 		MenuItem mntmAbout = new MenuItem(menu_4, SWT.NONE);
 		mntmAbout.setText("About");
 		mntmAbout.addListener(SWT.Selection, e->new About(shell).open());
+	}
+
+	/**
+	 * redo last (drawing) operation
+	 */
+	void redo() {
+	}
+
+
+	/**
+	 * undo last (drawing) operation
+	 */
+	void undo() {
 	}
 
 	Animation cutScene(Animation src, int start, int end) {
