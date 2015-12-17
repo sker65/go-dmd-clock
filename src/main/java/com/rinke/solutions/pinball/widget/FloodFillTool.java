@@ -9,8 +9,11 @@ public class FloodFillTool extends DrawTool {
 	@Override
 	public boolean mouseUp(int x, int y) {
 		int oldColor = dmd.getPixel(x, y);
-		fill( oldColor, x, y);
-		return true;
+		if( oldColor != actualColor ) {
+			fill( oldColor, x, y);
+			return true;
+		}
+		return false;
 	}
 
 	private void fill(int oldColor, int x, int y) {

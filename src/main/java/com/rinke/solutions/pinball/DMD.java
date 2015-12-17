@@ -108,15 +108,15 @@ public class DMD {
 
     public void setPixel(int x, int y, int v) {
     	int numberOfPlanes = frames.size();
-    	if( v >= (1<<numberOfPlanes)) {
-    		// extend
-    		if( numberOfPlanes == 2) {
-    			frames.add(new byte[frameSizeInByte]);
-    			frames.add(Arrays.copyOf(frames.get(1), frameSizeInByte)); 	// must be a copy of plane 1		
-    		}
-    	}
+//    	if( v >= (1<<numberOfPlanes)) {
+//    		// extend
+//    		if( numberOfPlanes == 2) {
+//    			frames.add(new byte[frameSizeInByte]);
+//    			frames.add(Arrays.copyOf(frames.get(1), frameSizeInByte)); 	// must be a copy of plane 1		
+//    		}
+//    	}
     	byte mask = (byte) (128 >> (x % 8));
-    	for(int plane = numberOfPlanes-1; plane>=0; plane--) {
+    	for(int plane = 0; plane < numberOfPlanes; plane++) {
     		if( (v & 0x01) != 0) {
     			frames.get(plane)[y*bytesPerRow+x/8] |= mask;
     		} else {
