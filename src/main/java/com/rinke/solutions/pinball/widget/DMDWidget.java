@@ -39,7 +39,16 @@ public class DMDWidget extends ResourceManagedCanvas {
 	}
 	
 	private void handleMouse(Event e) {
-		if( drawTool != null ) drawTool.handleMouse(e, (e.x-margin)/pitch, (e.y-margin)/pitch);
+		if( drawTool != null ) {
+			int x = (e.x-margin)/pitch;
+			int y = (e.y-margin)/pitch;
+			//System.out.println(x+ ":"+y);
+			if( x >= 0 && x < dmd.getWidth() && y>=0 && y < dmd.getHeight() ) {
+				if( drawTool.handleMouse(e, x, y)) {
+					redraw();
+				}
+			}
+		}
 	}
 
 

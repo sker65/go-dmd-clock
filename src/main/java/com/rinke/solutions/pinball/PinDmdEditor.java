@@ -54,6 +54,7 @@ import com.rinke.solutions.pinball.animation.AnimationType;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.animation.EventHandler;
 import com.rinke.solutions.pinball.animation.Frame;
+import com.rinke.solutions.pinball.animation.Plane;
 import com.rinke.solutions.pinball.io.FileHelper;
 import com.rinke.solutions.pinball.io.SmartDMDImporter;
 import com.rinke.solutions.pinball.io.UsbTool;
@@ -142,6 +143,10 @@ public class PinDmdEditor {
 	long saveTimeCode;
     int cutStart;
     int cutEnd;
+
+	private int[] numberOfPlanes = { 2 , 4 };
+
+	private int actualNumberOfPlanes = 4;
     
 	public PinDmdEditor() {
 		super();
@@ -276,7 +281,12 @@ public class PinDmdEditor {
 
 		display.timerExec(animationHandler.getRefreshDelay(), cyclicRedraw);
 		
-		//loadAni("./drwho-dump.txt.gz", false, true);
+		loadAni("./src/test/resources/drwho-dump.txt.gz", false, true);
+		Animation cutScene = cutScene(animations.get(0), 0, 200);
+		cutScene.setDesc("foo");
+		animations.add(cutScene);
+		aniListViewer.refresh();
+		aniListViewer.setSelection(new StructuredSelection(cutScene));
 		
         int retry = 0;
         while (true ) {
@@ -389,10 +399,10 @@ public class PinDmdEditor {
             if( !append ) project.inputFiles.clear();
             project.inputFiles.add(filename);
             //DMD dmd = new DMD(128, 32);
-            for (Animation ani : loadedList) {
-    			project.scenes.add(new Scene(ani.getDesc(),0,/*ani.getFrameCount(dmd)*/100000,0));
-    			//project.palMappings.add(new PalMapping(-1));
-    		}
+//            for (Animation ani : loadedList) {
+//    			project.scenes.add(new Scene(ani.getDesc(),0,/*ani.getFrameCount(dmd)*/100000,0));
+//    			//project.palMappings.add(new PalMapping(-1));
+//    		}
         }
         
         // animationHandler.setAnimations(sourceAnis);
@@ -891,7 +901,10 @@ public class PinDmdEditor {
         planes.setItems(new String[] { "2", "4" });
         planes.setToolTipText("Number of planes");
         planes.select(1);
-        planes.addListener(SWT.Selection, e -> paletteTool.planesChanged(planes.getSelectionIndex()));
+        planes.addListener(SWT.Selection, e -> {
+        	actualNumberOfPlanes = numberOfPlanes [planes.getSelectionIndex()];
+        	paletteTool.setNumberOfPlanes(actualNumberOfPlanes);
+        });
         new Label(grpPalettes, SWT.NONE);
 
         paletteTool = new PaletteTool(grpPalettes, SWT.FLAT | SWT.RIGHT, activePalette);
@@ -1097,6 +1110,9 @@ public class PinDmdEditor {
 		src.actFrame = start;
 		for (int i = start; i <= end; i++) {
 			Frame frame = src.render(tmp, false);
+			while( frame.planes.size() < actualNumberOfPlanes ) {
+				frame.planes.add(new Plane(frame.planes.get(0).marker, frame.planes.get(0).plane));
+			}
 			dest.frames.add(new Frame(frame));
 		}
 		return dest;

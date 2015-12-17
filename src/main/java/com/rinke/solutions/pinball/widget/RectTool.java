@@ -7,22 +7,20 @@ public class RectTool extends DrawTool {
 	}
 
 	@Override
-	public void mouseMove(int x, int y) {
+	public boolean mouseMove(int x, int y) {
 		if( pressedButton >0 ) {
 			dmd.copyTemp();
 			drawRect(x1,y1,x,y);
+			return true;
 		}
+		return false;
 	}
 
 	@Override
-	public void mouseUp(int x, int y) {
-
-	}
-
-	@Override
-	public void mouseDown(int x, int y) {
+	public boolean mouseDown(int x, int y) {
 		dmd.createTemp();
 		drawRect(x1,y1,x,y);
+		return true;
 	}
 
 	private void drawRect(int x1, int y1, int x2, int y2) {

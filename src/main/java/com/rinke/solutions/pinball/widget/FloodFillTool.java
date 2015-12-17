@@ -7,13 +7,10 @@ public class FloodFillTool extends DrawTool {
 	}
 
 	@Override
-	public void mouseMove(int x, int y) {
-	}
-
-	@Override
-	public void mouseUp(int x, int y) {
+	public boolean mouseUp(int x, int y) {
 		int oldColor = dmd.getPixel(x, y);
 		fill( oldColor, x, y);
+		return true;
 	}
 
 	private void fill(int oldColor, int x, int y) {
@@ -25,10 +22,6 @@ public class FloodFillTool extends DrawTool {
 			if( y< dmd.getHeight()-1) fill(oldColor,x,y+1);
 
 		}
-	}
-
-	@Override
-	public void mouseDown(int x, int y) {
 	}
 
 }

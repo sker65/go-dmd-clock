@@ -60,12 +60,12 @@ public class PaletteTool {
         createColorButtons(paletteBar,20,10, palette);
 	}
 
-    public void  planesChanged(int planes) {
+    public void  setNumberOfPlanes(int planes) {
         switch(planes) {
-        case 0: // 2 planes -> 4 colors
+        case 2: // 2 planes -> 4 colors
             for(int i = 0; i < colBtn.length; i++) colBtn[i].setEnabled(visible[i]==1); 
             break;
-        case 1: // 4 planes -> 16 colors
+        case 4: // 4 planes -> 16 colors
             for(int i = 0; i < colBtn.length; i++) colBtn[i].setEnabled(true);
             break;  
         }

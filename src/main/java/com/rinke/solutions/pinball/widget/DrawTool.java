@@ -27,34 +27,39 @@ public abstract class DrawTool implements ColorIndexChangedListerner {
 		this.actualColor = actualColor;
 	}
 
-	public void handleMouse(Event e, int x, int y) {
+	/**
+	 * handles mouse
+	 * @param e event
+	 * @param x x coord
+	 * @param y y coord
+	 * @return true if redraw needed
+	 */
+	public boolean handleMouse(Event e, int x, int y) {
         switch (e.type) {
         case SWT.MouseDown:
         	pressedButton = e.button;
         	x1 = x;
         	y1 = y;
-        	mouseDown(x, y);
-            break;
+        	return mouseDown(x, y);
         case SWT.MouseUp:
         	pressedButton = 0;
-        	mouseUp(x, y);
+        	boolean ret = mouseUp(x, y);
         	x1 = -1;
         	y1 = -1;
-            break;
+        	return ret;
         case SWT.MouseMove:
-        	mouseMove(x, y);
-            break;
+        	return mouseMove(x, y);
         default:
             break;
         }
-
+        return false;
 	}
 	
-	public abstract void mouseMove(int x, int y);
+	public boolean mouseMove(int x, int y) { return false; }
 
-	public abstract void mouseUp(int x, int y);
+	public boolean mouseUp(int x, int y) { return false; }
 	
-	public abstract void mouseDown(int x, int y);
+	public boolean mouseDown(int x, int y)  { return false; }
 
 	public void setDMD(DMD dmd) {
 		this.dmd = dmd;
