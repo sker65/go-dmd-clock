@@ -813,7 +813,7 @@ public class PinDmdEditor {
         lblTcval.setText("xxxxxxxxxx");
         
         Composite composite = new Composite(shell, SWT.NONE);
-        composite.setLayout(new GridLayout(9, false));
+        composite.setLayout(new GridLayout(10, false));
         composite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
         
         btnStart = new Button(composite, SWT.NONE);
@@ -882,6 +882,14 @@ public class PinDmdEditor {
 			dmdWidget.redraw();
         });
         ObserverManager.bind(dmd, e -> btnUndo.setEnabled(e), ()->dmd.canUndo() );
+
+        Button btnRedo = new Button(composite, SWT.NONE);
+        btnRedo.setText("Redo");
+        btnRedo.addListener(SWT.Selection, e->{
+            dmd.redo();
+            dmdWidget.redraw();
+        });
+        ObserverManager.bind(dmd, e -> btnRedo.setEnabled(e), ()->dmd.canRedo() );
         
         Group grpPalettes = new Group(shell, SWT.NONE);
         grpPalettes.setLayout(new GridLayout(8, false));
