@@ -1,5 +1,7 @@
 package com.rinke.solutions.pinball.animation;
 
+import java.util.Arrays;
+
 
 public class Plane {
     public byte marker;
@@ -7,7 +9,7 @@ public class Plane {
     public Plane(byte marker, byte[] plane) {
         super();
         this.marker = marker;
-        this.plane = plane;
+        this.plane = Arrays.copyOf(plane, plane.length);
     }
     @Override
     public String toString() {
