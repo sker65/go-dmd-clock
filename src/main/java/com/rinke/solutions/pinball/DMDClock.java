@@ -227,19 +227,6 @@ public class DMDClock {
         }
     }
 	
-	private String dumpAsCode() {
-		StringBuilder sb = new StringBuilder();
-		for(Entry<Character, DMD> c: charMapBig.entrySet() ) {
-			sb.append("// big " +c.getKey()+"\n");
-			sb.append(c.getValue().dumpAsCode());
-		}
-//		for(Entry<Character, DMD> c: charMapSmall.entrySet() ) {
-//			sb.append("// small " +c.getKey()+"\n");
-//			sb.append(c.getValue().dumpAsCode(5));
-//		}
-		return sb.toString();
-	}
-	
 	public static void main( String[] args ) {
 		DMDClock clock = new DMDClock(false);
 		//System.out.println(clock.dumpAsCode());
