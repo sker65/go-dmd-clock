@@ -17,6 +17,7 @@ import com.fappel.swt.DisplayHelper;
 
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.MatcherAssert.*;
+import static org.junit.Assert.assertTrue;
 
 
 @RunWith(MockitoJUnitRunner.class)
@@ -33,6 +34,10 @@ public class PinDmdEditorSWTTest {
 		Shell shell = displayHelper.createShell();
 		uut.createContents(shell);	
 		uut.createNewProject();
+		
+		uut.animationHandler = new  AnimationHandler(null,null,null,null,false);
+		
+		uut.createBindings();
 	}
 	
 	@Test
@@ -53,6 +58,18 @@ public class PinDmdEditorSWTTest {
 		trigger(SWT.Selection).on(uut.btnRenamePalette);
 		assertThat(uut.activePalette, notNullValue());
 		assertThat(uut.activePalette.name, equalTo("foo"));
+	}
+	
+	@Test
+	public void testAniStop() {
+		uut.animationHandler.stop();
+		assertThat(uut.toolBar.getEnabled(), equalTo(true));
+	}
+
+	@Test
+	public void testAniStart() {
+		uut.animationHandler.start();
+		assertThat(uut.toolBar.getEnabled(), equalTo(false));
 	}
 
 }
