@@ -54,4 +54,23 @@ public class CompiledAnimation extends Animation {
     protected Frame addTransitionFrame(Frame in) {
         return in;
     }
+    
+    // TODO write a test around this
+
+	@Override
+	public void commitDMDchanges(DMD dmd) {
+		List<Plane> planes = frames.get(actFrame).planes;
+		List<byte[]> dmdPlanes = dmd.buffers.get(dmd.actualBuffer);
+		for(int i=0; i<planes.size(); i++) {
+			int len = min(dmdPlanes.get(i).length,planes.get(i).plane.length);
+			for(int b=0; b<len;b++) {
+				planes.get(i).plane[b] = dmdPlanes.get(i)[b];
+			}
+			//System.arraycopy(dmdPlanes.get(i), 0, planes.get(i).plane, 0, len );
+		}
+	}
+
+	private int min(int l, int l2) {
+		return l<l2?l:l2;
+	}
 }

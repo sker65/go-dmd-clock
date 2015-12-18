@@ -73,6 +73,26 @@ public class Animation {
 	int holdCount = 0;
 	
 	private String desc;
+	
+	public Animation cutScene( int start, int end, int actualNumberOfPlanes) {
+		// create a copy of the animation
+		DMD tmp = new DMD(128,32);
+		CompiledAnimation dest = new CompiledAnimation(
+				this.getType(), this.getName(),
+				0, end-start, this.skip, 1, 1);
+		// rerender and thereby copy all frames
+		this.actFrame = start;
+		for (int i = start; i <= end; i++) {
+			Frame frame = this.render(tmp, false);
+			while( frame.planes.size() < actualNumberOfPlanes ) {
+				frame.planes.add(new Plane(frame.planes.get(0).marker, frame.planes.get(0).plane));
+			}
+			dest.frames.add(new Frame(frame));
+		}
+		return dest;
+	}
+
+
 
     public static Animation buildAnimationFromFile(String filename, AnimationType type) {
         File file = new File(filename);
@@ -402,5 +422,8 @@ public class Animation {
 
     public void setPixel( int x, int y) {
     }
+
+	public void commitDMDchanges(DMD dmd) {
+	}
 
 }
