@@ -53,6 +53,7 @@ import com.rinke.solutions.pinball.animation.EventHandler;
 import com.rinke.solutions.pinball.io.FileHelper;
 import com.rinke.solutions.pinball.io.SmartDMDImporter;
 import com.rinke.solutions.pinball.io.UsbTool;
+import com.rinke.solutions.pinball.model.FrameSeq;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.PaletteType;
@@ -168,35 +169,6 @@ public class PinDmdEditor {
             }
 		}
     }
-	
-	private static class PaletteViewerLabelProvider extends LabelProvider {
-		public Image getImage(Object element) {
-			return super.getImage(element);
-		}
-		public String getText(Object element) {
-			Palette pal = ((Palette)element);
-			return pal.index + " - " + pal.name;
-		}
-	}
-	
-	private static class ViewerLabelProvider extends LabelProvider {
-		public Image getImage(Object element) {
-			return super.getImage(element);
-		}
-		public String getText(Object element) {
-			return ((PalMapping) element).name;
-		}
-	}
-
-	private static class AniViewerLabelProvider extends LabelProvider {
-		public Image getImage(Object element) {
-			return super.getImage(element);
-		}
-		public String getText(Object element) {
-			return ((Animation) element).getDesc();
-		}
-	}
-
 
 	/**
 	 * Launch the application.
@@ -564,7 +536,7 @@ public class PinDmdEditor {
 		gd_aniList.widthHint = 189;
 		aniList.setLayoutData(gd_aniList);
 		aniListViewer.setContentProvider(ArrayContentProvider.getInstance());
-		aniListViewer.setLabelProvider(new AniViewerLabelProvider());
+		aniListViewer.setLabelProvider(new LabelProviderAdapter(o->((Animation)o).getDesc()));
 		aniListViewer.setInput(animations);
 		aniListViewer.addSelectionChangedListener(event -> {
             IStructuredSelection selection = (IStructuredSelection) event.getSelection();
@@ -587,7 +559,7 @@ public class PinDmdEditor {
 		GridData gd_keyframeList = new GridData(SWT.LEFT, SWT.FILL, false, false, 1, 1);
 		gd_keyframeList.widthHint = 137;
 		keyframeList.setLayoutData(gd_keyframeList);
-		keyframeListViewer.setLabelProvider(new ViewerLabelProvider());
+		keyframeListViewer.setLabelProvider(new LabelProviderAdapter(o->((PalMapping)o).name));
 		keyframeListViewer.setContentProvider(ArrayContentProvider.getInstance());
 		keyframeListViewer.addSelectionChangedListener(event -> {
             IStructuredSelection selection = (IStructuredSelection) event.getSelection();
@@ -629,18 +601,33 @@ public class PinDmdEditor {
         scale.addListener(SWT.Selection, e -> animationHandler.setPos(scale.getSelection()));
         
         Group grpKeyframe = new Group(shell, SWT.NONE);
-        grpKeyframe.setLayout(new GridLayout(3, false));
+        grpKeyframe.setLayout(new GridLayout(4, false));
         GridData gd_grpKeyframe = new GridData(SWT.FILL, SWT.FILL, false, false, 2, 3);
         gd_grpKeyframe.widthHint = 350;
         grpKeyframe.setLayoutData(gd_grpKeyframe);
         grpKeyframe.setText("Animations / KeyFrame");
         
         Composite composite_hash = new Composite(grpKeyframe, SWT.NONE);
-        GridData gd_composite_hash = new GridData(SWT.FILL, SWT.CENTER, false, false, 3, 1);
+        GridData gd_composite_hash = new GridData(SWT.FILL, SWT.CENTER, false, false, 4, 1);
         gd_composite_hash.widthHint = 341;
         composite_hash.setLayoutData(gd_composite_hash);
 
         createHashButtons(composite_hash, 10, 20);
+        
+        btnRemoveAni = new Button(grpKeyframe, SWT.NONE);
+        btnRemoveAni.setText("Remove Ani");
+        btnRemoveAni.setEnabled(false);
+        btnRemoveAni.addListener(SWT.Selection, e->{
+            if( selectedAnimation != null ) {
+                animations.remove(selectedAnimation);
+                aniListViewer.refresh();
+                playingAnis.clear();
+                animationHandler.setAnimations(playingAnis);
+                animationHandler.setClockActive(true);
+            }
+        });
+        new Label(grpKeyframe, SWT.NONE);
+        new Label(grpKeyframe, SWT.NONE);
         new Label(grpKeyframe, SWT.NONE);
         
         Label lblDuration = new Label(grpKeyframe, SWT.NONE);
@@ -658,24 +645,11 @@ public class PinDmdEditor {
                 selectedPalMapping.durationInFrames = (int)selectedPalMapping.durationInMillis / 40;
             }
         });
-        
-        btnRemoveAni = new Button(grpKeyframe, SWT.NONE);
-        btnRemoveAni.setText("Remove Ani");
-        btnRemoveAni.setEnabled(false);
-        btnRemoveAni.addListener(SWT.Selection, e->{
-            if( selectedAnimation != null ) {
-                animations.remove(selectedAnimation);
-                aniListViewer.refresh();
-                playingAnis.clear();
-                animationHandler.setAnimations(playingAnis);
-                animationHandler.setClockActive(true);
-            }
-        });
         new Label(grpKeyframe, SWT.NONE);
         
         btnAddKeyframe = new Button(grpKeyframe, SWT.NONE);
         btnAddKeyframe.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
-        btnAddKeyframe.setText("Add KeyFrame");
+        btnAddKeyframe.setText("Add PalSwitch");
         btnAddKeyframe.setEnabled(false);
         btnAddKeyframe.addListener(SWT.Selection, e->{
         	PalMapping palMapping = new PalMapping(activePalette.index);
@@ -693,6 +667,7 @@ public class PinDmdEditor {
         });
         new Label(grpKeyframe, SWT.NONE);
         new Label(grpKeyframe, SWT.NONE);
+        new Label(grpKeyframe, SWT.NONE);
         
         btnFetchDuration = new Button(grpKeyframe, SWT.NONE);
         btnFetchDuration.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
@@ -707,11 +682,27 @@ public class PinDmdEditor {
         });
         new Label(grpKeyframe, SWT.NONE);
         new Label(grpKeyframe, SWT.NONE);
+        new Label(grpKeyframe, SWT.NONE);
         
         btnDeleteKeyframe = new Button(grpKeyframe, SWT.NONE);
         btnDeleteKeyframe.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
         btnDeleteKeyframe.setText("Del KeyFrame");
         btnDeleteKeyframe.setEnabled(false);
+        
+        Label lblNewLabel = new Label(grpKeyframe, SWT.NONE);
+        lblNewLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+        lblNewLabel.setText("FrameSeq");
+        
+        ComboViewer frameSeqViewer = new ComboViewer(grpKeyframe, SWT.NONE);
+        Combo frameSeqCombo = frameSeqViewer.getCombo();
+        frameSeqCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+        frameSeqViewer.setLabelProvider(new LabelProviderAdapter(o->((FrameSeq)o).getName()));
+        
+        new Label(grpKeyframe, SWT.NONE);
+        
+        Button btnNewButton = new Button(grpKeyframe, SWT.NONE);
+        btnNewButton.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
+        btnNewButton.setText("Add FrameSeq");
         btnDeleteKeyframe.addListener(SWT.Selection, e->{
         	if( selectedPalMapping!=null) {
         		project.palMappings.remove(selectedPalMapping);
@@ -846,7 +837,8 @@ public class PinDmdEditor {
         Combo combo = paletteComboViewer.getCombo();
         combo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
         paletteComboViewer.setContentProvider(ArrayContentProvider.getInstance());
-        paletteComboViewer.setLabelProvider(new PaletteViewerLabelProvider());
+        paletteComboViewer.setLabelProvider(new LabelProviderAdapter(o->((Palette)o).name));
+
         paletteComboViewer.addSelectionChangedListener(event -> {
             IStructuredSelection selection = (IStructuredSelection) event.getSelection();
             if (selection.size() > 0) {

@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FrameSequence implements Model {
+public class NamedFrameSeq implements Model {
 
 	public String name;
 	public List<Frame> frames = new ArrayList<>();
@@ -24,7 +24,7 @@ public class FrameSequence implements Model {
 		return "FrameSequence [name=" + name + ", frames=" + frames + "]";
 	}
 
-	public FrameSequence(String name, List<Frame> frames) {
+	public NamedFrameSeq(String name, List<Frame> frames) {
 		super();
 		this.name = name;
 		this.frames = frames;

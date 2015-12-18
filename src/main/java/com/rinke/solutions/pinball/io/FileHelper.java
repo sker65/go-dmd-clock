@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import com.rinke.solutions.pinball.model.Format;
 import com.rinke.solutions.pinball.model.Frame;
-import com.rinke.solutions.pinball.model.FrameSequence;
+import com.rinke.solutions.pinball.model.NamedFrameSeq;
 import com.rinke.solutions.pinball.model.Model;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.Palette;
@@ -50,7 +50,7 @@ public class FileHelper {
         bstream.alias("project", Project.class);
         bstream.alias("palMapping", PalMapping.class);
         bstream.alias("scene", Scene.class);
-        bstream.alias("frameSeq", FrameSequence.class);
+        bstream.alias("frameSeq", NamedFrameSeq.class);
         bstream.alias("frame", Frame.class);
         
         bstream.setMode(XStream.NO_REFERENCES);
@@ -60,7 +60,7 @@ public class FileHelper {
         xstream.alias("project", Project.class);
         xstream.alias("palMapping", PalMapping.class);
         xstream.alias("scene", Scene.class);
-        xstream.alias("frameSeq", FrameSequence.class);
+        xstream.alias("frameSeq", NamedFrameSeq.class);
         xstream.alias("frame", Frame.class);
         
         xstream.setMode(XStream.NO_REFERENCES);
@@ -69,7 +69,7 @@ public class FileHelper {
         jstream.alias("project", Project.class);
         jstream.alias("palMapping", PalMapping.class);
         jstream.alias("scene", Scene.class);
-        jstream.alias("frameSeq", FrameSequence.class);
+        jstream.alias("frameSeq", NamedFrameSeq.class);
         jstream.alias("frame", Frame.class);
         
         jstream.setMode(XStream.NO_REFERENCES);

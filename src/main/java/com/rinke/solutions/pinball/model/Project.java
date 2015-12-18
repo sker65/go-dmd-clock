@@ -11,7 +11,7 @@ public class Project implements Model {
 	public List<Palette> palettes;
 	public List<PalMapping> palMappings;
 	public List<Scene> scenes;
-	public List<FrameSequence> frameSequences;
+	public List<NamedFrameSeq> frameSequences;
 	
 	public boolean dirty;
 	
@@ -23,7 +23,7 @@ public class Project implements Model {
 		inputFiles.add(inputFile);
 		this.palettes = palettes;
 		this.palMappings = palMappings;
-		this.frameSequences = new ArrayList<FrameSequence>();
+		this.frameSequences = new ArrayList<NamedFrameSeq>();
 	}
 	
 	public Project() {
@@ -54,7 +54,7 @@ public class Project implements Model {
 			p.writeTo(os);
 		}
 		os.writeShort(frameSequences.size());
-		for(FrameSequence fs:frameSequences) {
+		for(NamedFrameSeq fs:frameSequences) {
 			fs.writeTo(os);
 		}
 	}
