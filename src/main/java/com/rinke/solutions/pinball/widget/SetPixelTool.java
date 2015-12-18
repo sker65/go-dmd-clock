@@ -17,6 +17,7 @@ public class SetPixelTool extends DrawTool {
 
 	@Override
 	public boolean mouseDown(int x, int y) {
+		dmd.addUndoBuffer();
 		dmd.setPixel(x, y, actualColor);
 		return true;
 	}

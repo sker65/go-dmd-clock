@@ -20,8 +20,6 @@ import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.ListViewer;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.GridData;
@@ -51,10 +49,7 @@ import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.AnimationCompiler;
 import com.rinke.solutions.pinball.animation.AnimationFactory;
 import com.rinke.solutions.pinball.animation.AnimationType;
-import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.animation.EventHandler;
-import com.rinke.solutions.pinball.animation.Frame;
-import com.rinke.solutions.pinball.animation.Plane;
 import com.rinke.solutions.pinball.io.FileHelper;
 import com.rinke.solutions.pinball.io.SmartDMDImporter;
 import com.rinke.solutions.pinball.io.UsbTool;
@@ -749,7 +744,7 @@ public class PinDmdEditor {
     		btnStart.setEnabled(false);
         	btnPrev.setEnabled(false);
         	btnNext.setEnabled(false);
-        	commitDrawingChanges();
+        	selectedAnimation.commitDMDchanges(dmd);
         	display.timerExec(animationHandler.getRefreshDelay(), cyclicRedraw);
         });
         btnStart.setEnabled(false);
@@ -767,7 +762,7 @@ public class PinDmdEditor {
         btnPrev.setEnabled(false);
         btnPrev.addListener(SWT.Selection, e-> {
         	animationHandler.prev();
-        	commitDrawingChanges();
+        	selectedAnimation.commitDMDchanges(dmd);
         });
         
         btnNext = new Button(composite, SWT.NONE);
@@ -775,7 +770,7 @@ public class PinDmdEditor {
         btnNext.setEnabled(false);
         btnNext.addListener(SWT.Selection, e-> { 
         	animationHandler.next(); 
-        	commitDrawingChanges();
+        	selectedAnimation.commitDMDchanges(dmd);
         });
         
         Button btnMarkStart = new Button(composite, SWT.NONE);
@@ -820,7 +815,11 @@ public class PinDmdEditor {
         
         Button btnUndo = new Button(composite, SWT.NONE);
         btnUndo.setText("Undo");        
-        btnUndo.addListener(SWT.Selection, e->undo());
+        btnUndo.addListener(SWT.Selection, e->{
+        	dmd.undo();
+			dmdWidget.redraw();
+        });
+        ObserverManager.bind(dmd, e -> btnUndo.setEnabled(e), ()->dmd.canUndo() );
         
         Group grpPalettes = new Group(shell, SWT.NONE);
         grpPalettes.setLayout(new GridLayout(8, false));
@@ -977,10 +976,6 @@ public class PinDmdEditor {
         new Label(grpPalettes, SWT.NONE);
 
     }
-	
-	private void commitDrawingChanges() {
-		selectedAnimation.commitDMDchanges(dmd);
-	}
 
 
 	/**
@@ -1048,11 +1043,19 @@ public class PinDmdEditor {
 		
 		MenuItem mntmUndo = new MenuItem(menu_5, SWT.NONE);
 		mntmUndo.setText("Undo");
-		mntmUndo.addListener(SWT.Selection, e->undo());
+		mntmUndo.addListener(SWT.Selection, e-> {
+			dmd.undo();
+			dmdWidget.redraw();
+		});
+		ObserverManager.bind(dmd, e->mntmUndo.setEnabled(e), () -> dmd.canUndo());
 		
 		MenuItem mntmRedo = new MenuItem(menu_5, SWT.NONE);
 		mntmRedo.setText("Redo");
-		mntmRedo.addListener(SWT.Selection, e->redo());
+		mntmRedo.addListener(SWT.Selection, e->{
+			dmd.redo();
+			dmdWidget.redraw();
+		});
+		ObserverManager.bind(dmd, e->mntmRedo.setEnabled(e), ()->dmd.canRedo() );
 		
 		MenuItem mntmAnimations = new MenuItem(menu, SWT.CASCADE);
 		mntmAnimations.setText("&Animations");
@@ -1097,19 +1100,6 @@ public class PinDmdEditor {
 		MenuItem mntmAbout = new MenuItem(menu_4, SWT.NONE);
 		mntmAbout.setText("About");
 		mntmAbout.addListener(SWT.Selection, e->new About(shell).open());
-	}
-
-	/**
-	 * redo last (drawing) operation
-	 */
-	void redo() {
-	}
-
-
-	/**
-	 * undo last (drawing) operation
-	 */
-	void undo() {
 	}
 
 	public String getPrintableHashes(byte[] p) {

@@ -9,7 +9,7 @@ public class RectTool extends DrawTool {
 	@Override
 	public boolean mouseMove(int x, int y) {
 		if( pressedButton >0 ) {
-			dmd.copyTemp();
+			dmd.copyLastBuffer();
 			drawRect(x1,y1,x,y);
 			return true;
 		}
@@ -18,7 +18,7 @@ public class RectTool extends DrawTool {
 
 	@Override
 	public boolean mouseDown(int x, int y) {
-		dmd.createTemp();
+		dmd.addUndoBuffer();
 		drawRect(x1,y1,x,y);
 		return true;
 	}

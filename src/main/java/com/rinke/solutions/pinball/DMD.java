@@ -8,10 +8,11 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Observable;
 
 import com.rinke.solutions.pinball.animation.Frame;
 
-public class DMD {
+public class DMD extends Observable {
 
     private int width;
     private int height;
@@ -56,15 +57,17 @@ public class DMD {
         return bytesPerRow;
     }
 
-    public void copyTemp() {
-    	List<byte[]> target = buffers.get(actualBuffer);
-    	List<byte[]> source = buffers.get(actualBuffer-1);
-    	for(int i = 0; i < source.size(); i++) {
-    		System.arraycopy(source.get(i), 0, target.get(i), 0, source.get(i).length);
+    public void copyLastBuffer() {
+    	if( actualBuffer>0) {
+        	List<byte[]> target = buffers.get(actualBuffer);
+        	List<byte[]> source = buffers.get(actualBuffer-1);
+        	for(int i = 0; i < source.size(); i++) {
+        		System.arraycopy(source.get(i), 0, target.get(i), 0, source.get(i).length);
+        	}
     	}
     }
     
-    public void createTemp() {
+    public void addUndoBuffer() {
     	List<byte[]> newframes = new ArrayList<byte[]>();
     	for( byte[] frame : frames) {
     		newframes.add(Arrays.copyOf(frame, frame.length));
@@ -72,10 +75,34 @@ public class DMD {
     	actualBuffer++;
     	buffers.put(actualBuffer, newframes);
     	this.frames = newframes;
+    	setChanged();
+    	notifyObservers();
+    }
+    
+    public void undo() {
+    	if(canUndo()) {
+    		actualBuffer--;
+    		frames = buffers.get(actualBuffer);
+    		setChanged();
+    		notifyObservers();
+    	}
     }
 
-    public void commit() {
-    	
+    public void redo() {
+    	if( canRedo() ) {
+    		actualBuffer++;
+    		frames = buffers.get(actualBuffer);
+    		setChanged();
+    		notifyObservers();
+    	}
+    }
+    
+    public boolean canRedo() {
+    	return buffers.size()-1>actualBuffer;
+    }
+    
+    public boolean canUndo() {
+    	return  actualBuffer>0;
     }
 
     public DMD(int w, int h) {
@@ -101,9 +128,6 @@ public class DMD {
 
     public DMD() {
         this(128, 32);
-    }
-
-    public void copyInto(DMD src, int xsrc, int ysrc, int w, int h, int destx, int desty) {
     }
 
     public void setPixel(int x, int y, int v) {

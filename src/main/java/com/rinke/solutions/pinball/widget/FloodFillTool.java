@@ -10,6 +10,7 @@ public class FloodFillTool extends DrawTool {
 	public boolean mouseUp(int x, int y) {
 		int oldColor = dmd.getPixel(x, y);
 		if( oldColor != actualColor ) {
+			dmd.addUndoBuffer();
 			fill( oldColor, x, y);
 			return true;
 		}
