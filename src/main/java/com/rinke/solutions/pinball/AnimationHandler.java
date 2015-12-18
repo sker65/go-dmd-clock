@@ -4,6 +4,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Observable;
 
 import javax.imageio.stream.FileImageOutputStream;
 import javax.imageio.stream.ImageOutputStream;
@@ -24,7 +25,7 @@ import com.rinke.solutions.pinball.io.GifSequenceWriter;
  * handles the sequence of animations and clock
  * @author sr
  */
-public class AnimationHandler implements Runnable {
+public class AnimationHandler extends Observable implements Runnable{
     
     private static Logger LOG = LoggerFactory.getLogger(AnimationHandler.class); 
 
@@ -59,6 +60,7 @@ public class AnimationHandler implements Runnable {
 				e.printStackTrace();
 			}
 		}
+		setChanged();
 	}
 
 	public void run() {
@@ -167,11 +169,17 @@ public class AnimationHandler implements Runnable {
 	}
 	
 	public void start() {
-		stop = false;
+		setStop(false);
 	}
 	
+	public void setStop(boolean b) {
+		this.stop = b;
+		setChanged();
+		notifyObservers();
+	}
+
 	public void stop() {
-		stop = true;
+		setStop(true);
 		try {
 			if( gifWriter != null ) gifWriter.close();
 		} catch (IOException e) {
