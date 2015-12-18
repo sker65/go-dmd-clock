@@ -24,6 +24,7 @@ public class DMDWidget extends ResourceManagedCanvas {
 	int pitch = 7;
 	int pressedButton = 0;
 	private DrawTool drawTool = null;//new RectTool();//new SetPixelTool();
+	private boolean drawingEnabled;
 
 	public DMDWidget(Composite parent, int style, DMD dmd) {
 		super(parent, style);
@@ -39,7 +40,7 @@ public class DMDWidget extends ResourceManagedCanvas {
 	}
 	
 	private void handleMouse(Event e) {
-		if( drawTool != null ) {
+		if( drawTool != null && drawingEnabled ) {
 			int x = (e.x-margin)/pitch;
 			int y = (e.y-margin)/pitch;
 			//System.out.println(x+ ":"+y);
@@ -138,6 +139,14 @@ public class DMDWidget extends ResourceManagedCanvas {
 	public void setDrawTool(DrawTool drawTool) {
 		this.drawTool = drawTool;
 		if(drawTool!= null) this.drawTool.setDMD(dmd);
+	}
+
+	public boolean isDrawingEnabled() {
+		return drawingEnabled;
+	}
+
+	public void setDrawingEnabled(boolean drawingEnabled) {
+		this.drawingEnabled = drawingEnabled;
 	}
 
 
