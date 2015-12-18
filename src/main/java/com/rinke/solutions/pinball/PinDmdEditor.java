@@ -282,7 +282,7 @@ public class PinDmdEditor {
 		display.timerExec(animationHandler.getRefreshDelay(), cyclicRedraw);
 		
 		loadAni("./src/test/resources/drwho-dump.txt.gz", false, true);
-		Animation cutScene = cutScene(animations.get(0), 0, 200);
+		Animation cutScene = animations.get(0).cutScene( 0, 200, actualNumberOfPlanes);
 		cutScene.setDesc("foo");
 		animations.add(cutScene);
 		aniListViewer.refresh();
@@ -383,7 +383,7 @@ public class PinDmdEditor {
         loadAni(filename, append, true);
     }
     
-    protected void loadAni(String filename, boolean append, boolean populateProject) {
+    public void loadAni(String filename, boolean append, boolean populateProject) {
         java.util.List<Animation> loadedList = new ArrayList<>();
         if (filename.endsWith(".ani")) {
             loadedList.addAll(AnimationCompiler.readFromCompiledFile(filename));
@@ -749,6 +749,7 @@ public class PinDmdEditor {
     		btnStart.setEnabled(false);
         	btnPrev.setEnabled(false);
         	btnNext.setEnabled(false);
+        	commitDrawingChanges();
         	display.timerExec(animationHandler.getRefreshDelay(), cyclicRedraw);
         });
         btnStart.setEnabled(false);
@@ -764,12 +765,18 @@ public class PinDmdEditor {
         btnPrev = new Button(composite, SWT.NONE);
         btnPrev.setText("<");
         btnPrev.setEnabled(false);
-        btnPrev.addListener(SWT.Selection, e->animationHandler.prev());
+        btnPrev.addListener(SWT.Selection, e-> {
+        	animationHandler.prev();
+        	commitDrawingChanges();
+        });
         
         btnNext = new Button(composite, SWT.NONE);
         btnNext.setText(">");
         btnNext.setEnabled(false);
-        btnNext.addListener(SWT.Selection, e->animationHandler.next());
+        btnNext.addListener(SWT.Selection, e-> { 
+        	animationHandler.next(); 
+        	commitDrawingChanges();
+        });
         
         Button btnMarkStart = new Button(composite, SWT.NONE);
         Button btnMarkEnd = new Button(composite, SWT.NONE);
@@ -792,7 +799,7 @@ public class PinDmdEditor {
         btnCut.setEnabled(false);
         btnCut.addListener(SWT.Selection, e -> {
         	// respect number of planes while cutting / copying
-            Animation ani = cutScene(selectedAnimation, cutStart, cutEnd);
+            Animation ani = selectedAnimation.cutScene(cutStart, cutEnd, actualNumberOfPlanes);
             LOG.info("cutting out scene from {} to {}", cutStart, cutEnd);
             cutStart = 0; cutEnd = 0;
             btnMarkEnd.setEnabled(false);
@@ -971,6 +978,11 @@ public class PinDmdEditor {
 
     }
 	
+	private void commitDrawingChanges() {
+		selectedAnimation.commitDMDchanges(dmd);
+	}
+
+
 	/**
 	 * check if dirty.
 	 * @return true, if not dirty or if user decides to ignore dirtyness
@@ -1098,24 +1110,6 @@ public class PinDmdEditor {
 	 * undo last (drawing) operation
 	 */
 	void undo() {
-	}
-
-	Animation cutScene(Animation src, int start, int end) {
-		// create a copy of the animation
-		DMD tmp = new DMD(128,32);
-		CompiledAnimation dest = new CompiledAnimation(
-				src.getType(), src.getName(),
-				0, end-start, src.skip, 1, 1);
-		// rerender and thereby copy all frames
-		src.actFrame = start;
-		for (int i = start; i <= end; i++) {
-			Frame frame = src.render(tmp, false);
-			while( frame.planes.size() < actualNumberOfPlanes ) {
-				frame.planes.add(new Plane(frame.planes.get(0).marker, frame.planes.get(0).plane));
-			}
-			dest.frames.add(new Frame(frame));
-		}
-		return dest;
 	}
 
 	public String getPrintableHashes(byte[] p) {
