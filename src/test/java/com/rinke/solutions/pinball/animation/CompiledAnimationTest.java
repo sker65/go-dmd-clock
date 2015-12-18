@@ -32,7 +32,6 @@ public class CompiledAnimationTest {
 			for(byte b : p.plane) sum +=b;
 		}
 		assertEquals(78,sum);
-		System.out.println(dmd.getPixel(0, 0));
 		
 		dmd.setPixel(0, 0, 1);
 		
