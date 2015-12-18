@@ -29,7 +29,8 @@ public class ObserverManager {
 			}
 			
 		};
-		observable.addObserver(observer);	
+		observable.addObserver(observer);
+		observable.notifyObservers();
 	}
 
 }
