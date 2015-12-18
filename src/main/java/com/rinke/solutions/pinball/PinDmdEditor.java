@@ -61,9 +61,11 @@ import com.rinke.solutions.pinball.model.Scene;
 import com.rinke.solutions.pinball.ui.About;
 import com.rinke.solutions.pinball.ui.FileChooser;
 import com.rinke.solutions.pinball.ui.FileDialogDelegate;
+import com.rinke.solutions.pinball.widget.CircleTool;
 import com.rinke.solutions.pinball.widget.DMDWidget;
 import com.rinke.solutions.pinball.widget.DrawTool;
 import com.rinke.solutions.pinball.widget.FloodFillTool;
+import com.rinke.solutions.pinball.widget.LineTool;
 import com.rinke.solutions.pinball.widget.PaletteTool;
 import com.rinke.solutions.pinball.widget.RectTool;
 import com.rinke.solutions.pinball.widget.SetPixelTool;
@@ -918,6 +920,8 @@ public class PinDmdEditor {
         drawTools.put("pencil", new SetPixelTool(paletteTool.getSelectedColor()));       
         drawTools.put("fill", new FloodFillTool(paletteTool.getSelectedColor()));       
         drawTools.put("rect", new RectTool(paletteTool.getSelectedColor()));
+        drawTools.put("line", new LineTool(paletteTool.getSelectedColor()));
+        drawTools.put("circle", new CircleTool(paletteTool.getSelectedColor()));
         drawTools.values().forEach(d->paletteTool.addListener(d));
         
         btnChangeColor = new Button(grpPalettes, SWT.NONE);
@@ -950,9 +954,17 @@ public class PinDmdEditor {
         tltmRect.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/rect.png")));
         tltmRect.addListener(SWT.Selection, e->dmdWidget.setDrawTool(drawTools.get("rect")));
         
-        ToolItem tltmEraser = new ToolItem(toolBar, SWT.RADIO);
-        tltmEraser.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/eraser.png")));
-        tltmEraser.addListener(SWT.Selection, e->dmdWidget.setDrawTool(null));
+        ToolItem tltmLine = new ToolItem(toolBar, SWT.RADIO);
+        tltmLine.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/line.png")));
+        tltmLine.addListener(SWT.Selection, e->dmdWidget.setDrawTool(drawTools.get("line")));
+
+        ToolItem tltmCircle = new ToolItem(toolBar, SWT.RADIO);
+        tltmCircle.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/oval.png")));
+        tltmCircle.addListener(SWT.Selection, e->dmdWidget.setDrawTool(drawTools.get("circle")));
+
+//        ToolItem tltmEraser = new ToolItem(toolBar, SWT.RADIO);
+//        tltmEraser.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/eraser.png")));
+//        tltmEraser.addListener(SWT.Selection, e->dmdWidget.setDrawTool(null));
         
         Button btnUploadFrame = new Button(grpPalettes, SWT.NONE);
         btnUploadFrame.setText("Upload Frame");
