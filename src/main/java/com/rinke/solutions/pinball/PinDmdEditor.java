@@ -144,6 +144,8 @@ public class PinDmdEditor {
 	private int[] numberOfPlanes = { 2 , 4 };
 
 	private int actualNumberOfPlanes = 4;
+
+	private ToolBar toolBar;
     
 	public PinDmdEditor() {
 		super();
@@ -234,6 +236,7 @@ public class PinDmdEditor {
 		paletteTool.setPalette(activePalette);
 		
 		animationHandler = new AnimationHandler(playingAnis, clock, dmd, dmdWidget, false);
+		
         animationHandler.setScale(scale);
 		animationHandler.setLabelHandler(new EventHandler() {
 		    
@@ -261,6 +264,10 @@ public class PinDmdEditor {
             }
 
         });
+		
+		// do some bindings
+        ObserverManager.bind(animationHandler, e->toolBar.setEnabled(e), ()->animationHandler.isStopped());
+        ObserverManager.bind(animationHandler, e->dmdWidget.setDrawingEnabled(e), ()->animationHandler.isStopped());
 		
 		SplashScreen splashScreen = SplashScreen.getSplashScreen();
 		if( splashScreen!=null) {
@@ -741,12 +748,12 @@ public class PinDmdEditor {
         Button btnStop = new Button(composite, SWT.NONE);
         btnStart.setText("Start");
         btnStart.addListener(SWT.Selection, e-> {
+        	selectedAnimation.commitDMDchanges(dmd);
         	animationHandler.start();
     		btnStop.setEnabled(true);
     		btnStart.setEnabled(false);
         	btnPrev.setEnabled(false);
         	btnNext.setEnabled(false);
-        	selectedAnimation.commitDMDchanges(dmd);
         	display.timerExec(animationHandler.getRefreshDelay(), cyclicRedraw);
         });
         btnStart.setEnabled(false);
@@ -763,16 +770,16 @@ public class PinDmdEditor {
         btnPrev.setText("<");
         btnPrev.setEnabled(false);
         btnPrev.addListener(SWT.Selection, e-> {
-        	animationHandler.prev();
         	selectedAnimation.commitDMDchanges(dmd);
+        	animationHandler.prev();
         });
         
         btnNext = new Button(composite, SWT.NONE);
         btnNext.setText(">");
         btnNext.setEnabled(false);
         btnNext.addListener(SWT.Selection, e-> { 
-        	animationHandler.next(); 
         	selectedAnimation.commitDMDchanges(dmd);
+        	animationHandler.next(); 
         });
         
         Button btnMarkStart = new Button(composite, SWT.NONE);
@@ -939,7 +946,7 @@ public class PinDmdEditor {
 			paletteTool.setPalette(activePalette);
 		});
 
-        ToolBar toolBar = new ToolBar(grpPalettes, SWT.FLAT | SWT.RIGHT);
+        toolBar = new ToolBar(grpPalettes, SWT.FLAT | SWT.RIGHT);
         toolBar.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 3, 1));
         
         ToolItem tltmPen = new ToolItem(toolBar, SWT.RADIO);
