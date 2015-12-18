@@ -1,5 +1,7 @@
 package com.rinke.solutions.pinball;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.function.BooleanSupplier;
@@ -30,6 +32,16 @@ public class ObserverManager {
 			
 		};
 		observable.addObserver(observer);
+		
+		// force calling
+		try {
+            Method method = Observable.class.getDeclaredMethod("setChanged");
+            method.setAccessible(true);
+            method.invoke(observable);
+        } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+            LOG.error("problem calling setChanged",e);
+        }
+		
 		observable.notifyObservers();
 	}
 

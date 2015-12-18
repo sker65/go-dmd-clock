@@ -16,11 +16,9 @@ import org.eclipse.jface.resource.ResourceManager;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ComboViewer;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.ListViewer;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -41,6 +39,10 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
+import org.kohsuke.args4j.Argument;
+import org.kohsuke.args4j.CmdLineException;
+import org.kohsuke.args4j.CmdLineParser;
+import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,6 +51,7 @@ import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.AnimationCompiler;
 import com.rinke.solutions.pinball.animation.AnimationFactory;
 import com.rinke.solutions.pinball.animation.AnimationType;
+import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.animation.EventHandler;
 import com.rinke.solutions.pinball.io.FileHelper;
 import com.rinke.solutions.pinball.io.SmartDMDImporter;
@@ -92,6 +95,16 @@ public class PinDmdEditor {
 
 	protected long lastTimeCode;
 
+	@Option(name="-ani", usage="animation file to load", required=false)
+	private String aniToLoad;
+	
+	@Option(name="-cut", usage="<name>,<start>,<end>", required=false)
+	private String cut;
+	
+    @Argument
+    private java.util.List<String> arguments = new ArrayList<String>();
+
+	
     //private Canvas previewCanvas;
 	private Label lblTcval;
 	private Label lblFrameNo;
@@ -140,12 +153,26 @@ public class PinDmdEditor {
 	int selectedHashIndex;
 	PalMapping selectedPalMapping;
 	long saveTimeCode;
-    int cutStart;
-    int cutEnd;
+	
+	CutInfo cutInfo = new CutInfo();
+    int cutxStart;
+    int cutxEnd;
 
 	private int[] numberOfPlanes = { 2 , 4 };
 
 	private int actualNumberOfPlanes = 4;
+
+    private ComboViewer frameSeqViewer;
+
+    private Button btnMarkStart;
+
+    private Button btnMarkEnd;
+
+    private Button btnCut;
+
+    private Button btnStart;
+
+    private Button btnStop;
 
     
 	public PinDmdEditor() {
@@ -177,7 +204,7 @@ public class PinDmdEditor {
 	public static void main(String[] args) {
 		try {
 			PinDmdEditor window = new PinDmdEditor();
-			window.open();
+			window.open(args);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -197,13 +224,38 @@ public class PinDmdEditor {
 		// do some bindings
         ObserverManager.bind(animationHandler, e->toolBar.setEnabled(e), ()->animationHandler.isStopped());
         ObserverManager.bind(animationHandler, e->dmdWidget.setDrawingEnabled(e), ()->animationHandler.isStopped());
+
+        ObserverManager.bind(animationHandler, e->btnStop.setEnabled(e), ()->!animationHandler.isStopped());
+        ObserverManager.bind(animationHandler, e->btnStart.setEnabled(e), ()->animationHandler.isStopped());
+
+        ObserverManager.bind(animationHandler, e->btnPrev.setEnabled(e), ()->animationHandler.isStopped());
+        ObserverManager.bind(animationHandler, e->btnNext.setEnabled(e), ()->animationHandler.isStopped());
+
+        ObserverManager.bind(cutInfo, e->btnCut.setEnabled(e),
+                ()-> ( cutInfo.getStart()>0 && cutInfo.getEnd()>0 ));
+
+        ObserverManager.bind(cutInfo, e->btnMarkEnd.setEnabled(e),
+                ()-> ( cutInfo.getStart()>0  ));
     }
 
 	/**
 	 * Open the window.
+	 * @param args 
 	 */
-	public void open() {
-		display = Display.getDefault();
+	public void open(String[] args) {
+	    
+	    CmdLineParser parser = new CmdLineParser(this);
+	    try{
+	        parser.parseArgument(args);
+	    } catch( CmdLineException e) {
+	        System.err.println(e.getMessage());
+            // print the list of available options
+            parser.printUsage(System.err);
+            System.err.println();
+            System.exit(1);
+	    }
+	    
+	    display = Display.getDefault();
 		shell = new Shell();
 		
 		createContents(shell);
@@ -261,12 +313,15 @@ public class PinDmdEditor {
 
 		display.timerExec(animationHandler.getRefreshDelay(), cyclicRedraw);
 		
-		loadAni("./src/test/resources/drwho-dump.txt.gz", false, true);
-		Animation cutScene = animations.get(0).cutScene( 0, 200, actualNumberOfPlanes);
-		cutScene.setDesc("foo");
-		animations.add(cutScene);
-		aniListViewer.refresh();
-		aniListViewer.setSelection(new StructuredSelection(cutScene));
+		if( aniToLoad != null ) {
+		    loadAni(aniToLoad, false, true);
+		}
+		if( cut != null && !animations.isEmpty() ) {
+		    String[] cuts = cut.split(",");
+		    if( cuts.length >=3 ) {
+		        cutScene(animations.get(0),Integer.parseInt(cuts[1]), Integer.parseInt(cuts[2]), cuts[0]);
+		    }
+		}
 		
         int retry = 0;
         while (true ) {
@@ -288,6 +343,25 @@ public class PinDmdEditor {
 
 	}
 	
+    private Animation cutScene(Animation animation, int start, int end, String name) {
+        Animation cutScene = animation.cutScene( 
+                start,
+                end, actualNumberOfPlanes);
+        cutScene.setDesc(name);
+        animations.add(cutScene);
+        aniListViewer.refresh();
+        aniListViewer.setSelection(new StructuredSelection(cutScene));
+
+        byte[] digest = new byte[16];
+        project.frameSeqMap.put(name, new FrameSeq(digest , activePalette, 
+                null, name));
+        frameSeqViewer.setInput(project.frameSeqMap.values());
+        frameSeqViewer.setSelection(new StructuredSelection(project.frameSeqMap.get(name)));
+        
+        return cutScene;
+    }
+
+
     void createNewProject() {
 	    project = new Project();
 	    activePalette = project.palettes.get(0);
@@ -513,7 +587,7 @@ public class PinDmdEditor {
 	 * Create contents of the window.
 	 */
 	 void createContents(Shell shell) {
-		shell.setSize(1167, 553);
+		shell.setSize(1167, 580);
 		shell.setText("Pin2dmd - Editor");
 		shell.setLayout(new GridLayout(3, false));
 		
@@ -693,10 +767,12 @@ public class PinDmdEditor {
         lblNewLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
         lblNewLabel.setText("FrameSeq");
         
-        ComboViewer frameSeqViewer = new ComboViewer(grpKeyframe, SWT.NONE);
+        frameSeqViewer = new ComboViewer(grpKeyframe, SWT.NONE);
         Combo frameSeqCombo = frameSeqViewer.getCombo();
         frameSeqCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
         frameSeqViewer.setLabelProvider(new LabelProviderAdapter(o->((FrameSeq)o).getName()));
+        frameSeqViewer.setContentProvider(ArrayContentProvider.getInstance());
+        frameSeqViewer.setInput(project.frameSeqMap.values());
         
         new Label(grpKeyframe, SWT.NONE);
         
@@ -740,31 +816,22 @@ public class PinDmdEditor {
         composite.setLayout(new GridLayout(9, false));
         composite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
         
-        Button btnStart = new Button(composite, SWT.NONE);
-        Button btnStop = new Button(composite, SWT.NONE);
+        btnStart = new Button(composite, SWT.NONE);
+        btnStop = new Button(composite, SWT.NONE);
         btnStart.setText("Start");
         btnStart.addListener(SWT.Selection, e-> {
         	selectedAnimation.commitDMDchanges(dmd);
         	animationHandler.start();
-    		btnStop.setEnabled(true);
-    		btnStart.setEnabled(false);
-        	btnPrev.setEnabled(false);
-        	btnNext.setEnabled(false);
         	display.timerExec(animationHandler.getRefreshDelay(), cyclicRedraw);
         });
-        btnStart.setEnabled(false);
+
         btnStop.setText("Stop");
         btnStop.addListener(SWT.Selection, e->{
         	animationHandler.stop();
-        	btnStop.setEnabled(false);
-        	btnStart.setEnabled(true);
-        	btnPrev.setEnabled(true);
-        	btnNext.setEnabled(true);
         });
         
         btnPrev = new Button(composite, SWT.NONE);
         btnPrev.setText("<");
-        btnPrev.setEnabled(false);
         btnPrev.addListener(SWT.Selection, e-> {
         	selectedAnimation.commitDMDchanges(dmd);
         	animationHandler.prev();
@@ -772,42 +839,32 @@ public class PinDmdEditor {
         
         btnNext = new Button(composite, SWT.NONE);
         btnNext.setText(">");
-        btnNext.setEnabled(false);
         btnNext.addListener(SWT.Selection, e-> { 
         	selectedAnimation.commitDMDchanges(dmd);
         	animationHandler.next(); 
         });
         
-        Button btnMarkStart = new Button(composite, SWT.NONE);
-        Button btnMarkEnd = new Button(composite, SWT.NONE);
-        Button btnCut = new Button(composite, SWT.NONE);
+        btnMarkStart = new Button(composite, SWT.NONE);
+        btnMarkEnd = new Button(composite, SWT.NONE);
+        btnCut = new Button(composite, SWT.NONE);
 
         btnMarkStart.setText("Mark Start");
         btnMarkStart.addListener(SWT.Selection, e->{
-            cutStart = selectedAnimation.actFrame; 
-            btnMarkEnd.setEnabled(true);
+            cutInfo.setStart(selectedAnimation.actFrame); 
             });
         
         btnMarkEnd.setText("Mark End");
         btnMarkEnd.addListener(SWT.Selection, e->{
-            cutEnd = selectedAnimation.actFrame;
-            btnCut.setEnabled(true);
-            });
-        btnMarkEnd.setEnabled(false);
+            cutInfo.setEnd(selectedAnimation.actFrame);
+        });
         
         btnCut.setText("Cut");
-        btnCut.setEnabled(false);
         btnCut.addListener(SWT.Selection, e -> {
         	// respect number of planes while cutting / copying
-            Animation ani = selectedAnimation.cutScene(cutStart, cutEnd, actualNumberOfPlanes);
-            LOG.info("cutting out scene from {} to {}", cutStart, cutEnd);
-            cutStart = 0; cutEnd = 0;
-            btnMarkEnd.setEnabled(false);
-            btnCut.setEnabled(false);
-            ani.setDesc("Scene "+animations.size());
-            animations.add(ani);
-            aniListViewer.refresh();
-            
+            Animation ani = cutScene(selectedAnimation, cutInfo.getStart(), cutInfo.getEnd(), "Scene "+animations.size());
+            LOG.info("cutting out scene from {} to {}", cutInfo );
+            cutInfo.reset();
+
             // TODO mark such a scene somehow, to copy it to the projects frames sequence for later export
             // alternatively introduce a dedicated flag for scenes that should be exported
             // also define a way that a keyframe triggers a replacement sequence instead of switching 

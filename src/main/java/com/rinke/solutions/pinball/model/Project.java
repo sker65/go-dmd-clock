@@ -3,7 +3,9 @@ package com.rinke.solutions.pinball.model;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Project implements Model {
 	public byte version;
@@ -11,7 +13,7 @@ public class Project implements Model {
 	public List<Palette> palettes;
 	public List<PalMapping> palMappings;
 	public List<Scene> scenes;
-	public List<NamedFrameSeq> frameSequences;
+	public Map<String,FrameSeq> frameSeqMap;
 	
 	public boolean dirty;
 	
@@ -23,7 +25,7 @@ public class Project implements Model {
 		inputFiles.add(inputFile);
 		this.palettes = palettes;
 		this.palMappings = palMappings;
-		this.frameSequences = new ArrayList<NamedFrameSeq>();
+		this.frameSeqMap = new HashMap<String, FrameSeq>();
 	}
 	
 	public Project() {
@@ -33,7 +35,7 @@ public class Project implements Model {
         palMappings = new ArrayList<>();
         scenes = new ArrayList<>();
         inputFiles=new ArrayList<>();
-        frameSequences = new ArrayList<>();
+        frameSeqMap = new HashMap<>();
     }
 	
     @Override
@@ -53,8 +55,8 @@ public class Project implements Model {
 		for(PalMapping p : palMappings ) {
 			p.writeTo(os);
 		}
-		os.writeShort(frameSequences.size());
-		for(NamedFrameSeq fs:frameSequences) {
+		os.writeShort(frameSeqMap.size());
+		for(FrameSeq fs:frameSeqMap.values()) {
 			fs.writeTo(os);
 		}
 	}

@@ -60,7 +60,6 @@ public class AnimationHandler extends Observable implements Runnable{
 				e.printStackTrace();
 			}
 		}
-		setChanged();
 	}
 
 	public void run() {
