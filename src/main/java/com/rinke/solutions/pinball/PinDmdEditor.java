@@ -133,6 +133,7 @@ public class PinDmdEditor {
 	Button btnChangeColor;
 	Button btnNewPalette;
 	Button btnRenamePalette;
+	ToolBar toolBar;
 
 	PaletteTool paletteTool;
 	int selectedHashIndex;
@@ -145,7 +146,6 @@ public class PinDmdEditor {
 
 	private int actualNumberOfPlanes = 4;
 
-	private ToolBar toolBar;
     
 	public PinDmdEditor() {
 		super();
@@ -220,6 +220,12 @@ public class PinDmdEditor {
             }
         }
     }
+    
+    public void createBindings() {
+		// do some bindings
+        ObserverManager.bind(animationHandler, e->toolBar.setEnabled(e), ()->animationHandler.isStopped());
+        ObserverManager.bind(animationHandler, e->dmdWidget.setDrawingEnabled(e), ()->animationHandler.isStopped());
+    }
 
 	/**
 	 * Open the window.
@@ -265,9 +271,7 @@ public class PinDmdEditor {
 
         });
 		
-		// do some bindings
-        ObserverManager.bind(animationHandler, e->toolBar.setEnabled(e), ()->animationHandler.isStopped());
-        ObserverManager.bind(animationHandler, e->dmdWidget.setDrawingEnabled(e), ()->animationHandler.isStopped());
+		createBindings();
 		
 		SplashScreen splashScreen = SplashScreen.getSplashScreen();
 		if( splashScreen!=null) {
