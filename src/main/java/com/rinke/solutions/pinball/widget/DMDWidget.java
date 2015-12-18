@@ -1,5 +1,7 @@
 package com.rinke.solutions.pinball.widget;
 
+import java.util.List;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.graphics.Color;
@@ -69,7 +71,7 @@ public class DMDWidget extends ResourceManagedCanvas {
         GC gcImage = new GC(image);
 
         // int colIdx[] = {0,1,4,15};
-    	int numberOfSubframes = dmd.frames.size();
+    	int numberOfSubframes = dmd.getNumberOfSubframes();
 
         // hell ffae3a
         // 2/3 ca8a2e
@@ -97,9 +99,9 @@ public class DMDWidget extends ResourceManagedCanvas {
                 // hsb first
                 byte mask = (byte) (128 >> (col % 8));
                 int v = 0;
-
+                List<byte[]> buffers = dmd.getActualBuffers();
                 for(int i = 0; i < numberOfSubframes;i++) {
-                    v += (dmd.frames.get(i)[col / 8 + row * bytesPerRow] & mask) != 0 ? (1<<i) : 0;
+                    v += (buffers.get(i)[col / 8 + row * bytesPerRow] & mask) != 0 ? (1<<i) : 0;
                 }
 
                 gcImage.setBackground(cols[v]);

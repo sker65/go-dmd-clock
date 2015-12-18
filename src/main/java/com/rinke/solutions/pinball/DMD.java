@@ -14,8 +14,7 @@ public class DMD extends Observable {
     private int width;
     private int height;
     
-    // TODO remove public reference to ensure the actual buffer are accessed
-    public List<byte[]> frames = new ArrayList<byte[]>();
+    List<byte[]> frames = new ArrayList<byte[]>();
     
     public Map<Integer,List<byte[]>> buffers = new HashMap<Integer,List<byte[]>>();
 
@@ -123,14 +122,8 @@ public class DMD extends Observable {
     }
 
     public void setPixel(int x, int y, int v) {
+        if( x<0 || y<0 || x>=width || y >= height ) return;
     	int numberOfPlanes = frames.size();
-//    	if( v >= (1<<numberOfPlanes)) {
-//    		// extend
-//    		if( numberOfPlanes == 2) {
-//    			frames.add(new byte[frameSizeInByte]);
-//    			frames.add(Arrays.copyOf(frames.get(1), frameSizeInByte)); 	// must be a copy of plane 1		
-//    		}
-//    	}
     	byte mask = (byte) (128 >> (x % 8));
     	for(int plane = 0; plane < numberOfPlanes; plane++) {
     		if( (v & 0x01) != 0) {
@@ -151,11 +144,6 @@ public class DMD extends Observable {
     	return v;
     }
    
-    public void setFrames(byte[] f1, byte[] f2) {
-        this.frame1 = f1;
-        this.frame2 = f2;
-    }
-
     public void clear() {
     	updateActualBuffer(0);
         for (byte[] p : frames) {
@@ -293,5 +281,9 @@ public class DMD extends Observable {
 				+ ", numberOfSubframes=" + numberOfSubframes
 				+ ", actualBuffer=" + actualBuffer + "]";
 	}
+
+    public int getNumberOfSubframes() {
+        return numberOfSubframes;
+    }
 
 }
