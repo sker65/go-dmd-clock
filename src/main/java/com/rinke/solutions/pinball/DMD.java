@@ -1,8 +1,5 @@
 package com.rinke.solutions.pinball;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -27,7 +24,7 @@ public class DMD extends Observable {
     public byte[] frame2 = null;
     
     int numberOfSubframes = 2;
-    public int actualBuffer = 0;
+    int actualBuffer = 0;
 
     private int frameSizeInByte;
 
@@ -74,26 +71,20 @@ public class DMD extends Observable {
     	}
     	actualBuffer++;
     	buffers.put(actualBuffer, newframes);
-    	this.frames = newframes;
-    	setChanged();
-    	notifyObservers();
+    	updateActualBuffer(actualBuffer);
     }
     
     public void undo() {
     	if(canUndo()) {
     		actualBuffer--;
-    		frames = buffers.get(actualBuffer);
-    		setChanged();
-    		notifyObservers();
+    		updateActualBuffer(actualBuffer);
     	}
     }
 
     public void redo() {
     	if( canRedo() ) {
     		actualBuffer++;
-    		frames = buffers.get(actualBuffer);
-    		setChanged();
-    		notifyObservers();
+    		updateActualBuffer(actualBuffer);
     	}
     }
     
@@ -114,6 +105,7 @@ public class DMD extends Observable {
         frameSizeInByte = bytesPerRow * height;
         setNumberOfSubframes(2);
         buffers.put(actualBuffer, frames);
+        setChanged();
     }
     
     public void setNumberOfSubframes(int n) {
@@ -158,20 +150,14 @@ public class DMD extends Observable {
     	}
     	return v;
     }
-    
-//    int pitch = 7;
-//    int offset = 20;
-//
-//    public Point transformCoord( int x, int y) {
-//        return new Point((x-offset)/pitch,(y-offset)/pitch);   
-//    }
-//    
+   
     public void setFrames(byte[] f1, byte[] f2) {
         this.frame1 = f1;
         this.frame2 = f2;
     }
 
     public void clear() {
+    	updateActualBuffer(0);
         for (byte[] p : frames) {
 			Arrays.fill(p, (byte)0);
 		}
@@ -286,48 +272,26 @@ public class DMD extends Observable {
         return t;
     }
 
-    public String dumpAsCode() {
-        StringBuilder builder = new StringBuilder();
-        builder.append(" { ");
-        byte[] f = transformFrame(frame1);
-        for (int i = 0; i < f.length; i++) {
-            builder.append(String.format("0x%02X , ", f[i]));
-        }
-        builder.append(" }, \n");
-        // builder.append("byte[] f2 = new byte { \n");
-        // for(int i = 0; i<frame2.length;i++) {
-        // builder.append(String.format("0x%02X , ", frame2[i]));
-        // }
-        // builder.append("}; \n");
-        return builder.toString();
-    }
-
-    public void writeTo(DataOutputStream os) throws IOException {
-        os.writeShort(width);
-        os.writeShort(height);
-        os.writeShort(frameSizeInByte);
-        os.write(frame1);
-        os.write(frame2);
-    }
-
-    public static DMD read(DataInputStream is) throws IOException {
-        int w = is.readShort();
-        int h = is.readShort();
-        DMD dmd = new DMD(w, h);
-        int sizeInByte = is.readShort();
-        assert (sizeInByte == dmd.getFrameSizeInByte());
-        is.read(dmd.frame1);
-        is.read(dmd.frame2);
-        return dmd;
-    }
-
     public Frame getFrame() {
         return new Frame(width, height, frame1, frame2);
     }
 
-    @Override
-    public String toString() {
-        return "DMD [width=" + width + ", height=" + height + "]";
-    }
+	public void updateActualBuffer(int i) {
+		this.actualBuffer = i;
+		frames = buffers.get(actualBuffer);
+    	setChanged();
+    	notifyObservers();
+	}
+
+	public List<byte[]> getActualBuffers() {
+		return buffers.get(actualBuffer);
+	}
+
+	@Override
+	public String toString() {
+		return "DMD [width=" + width + ", height=" + height
+				+ ", numberOfSubframes=" + numberOfSubframes
+				+ ", actualBuffer=" + actualBuffer + "]";
+	}
 
 }
