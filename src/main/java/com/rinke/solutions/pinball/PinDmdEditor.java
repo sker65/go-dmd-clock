@@ -615,9 +615,10 @@ public class PinDmdEditor {
 		});
 		
         dmdWidget = new DMDWidget(shell, SWT.DOUBLE_BUFFERED, this.dmd);
-        dmdWidget.setBounds(0, 0, 600, 200);
+        //dmdWidget.setBounds(0, 0, 700, 240);
         GridData gd_dmdWidget = new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1);
-        gd_dmdWidget.heightHint = 200;
+        gd_dmdWidget.heightHint = 210;
+        gd_dmdWidget.widthHint = 790;
         dmdWidget.setLayoutData(gd_dmdWidget);
         
         new Label(shell, SWT.NONE);
