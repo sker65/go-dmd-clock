@@ -63,6 +63,7 @@ import com.rinke.solutions.pinball.model.PaletteType;
 import com.rinke.solutions.pinball.model.Project;
 import com.rinke.solutions.pinball.model.Scene;
 import com.rinke.solutions.pinball.ui.About;
+import com.rinke.solutions.pinball.ui.DeviceConfig;
 import com.rinke.solutions.pinball.ui.FileChooser;
 import com.rinke.solutions.pinball.ui.FileDialogDelegate;
 import com.rinke.solutions.pinball.widget.CircleTool;
@@ -1153,7 +1154,7 @@ public class PinDmdEditor {
 		mntmAddAnimation.addListener(SWT.Selection, e->loadAniWithFC(true));
 		
 		MenuItem mntmpalettes = new MenuItem(menu, SWT.CASCADE);
-		mntmpalettes.setText("&Palettes");
+		mntmpalettes.setText("&Palettes / Mode");
 		
 		Menu menu_3 = new Menu(mntmpalettes);
 		mntmpalettes.setMenu(menu_3);
@@ -1166,7 +1167,13 @@ public class PinDmdEditor {
 		mntmSavePalette.setText("Save Palette");
 		mntmSavePalette.addListener(SWT.Selection, e->savePalette());
 		
-		MenuItem mntmhelp = new MenuItem(menu, SWT.CASCADE);
+        new MenuItem(menu_3, SWT.SEPARATOR);
+
+        MenuItem mntmDevice = new MenuItem(menu_3, SWT.NONE);
+        mntmDevice.setText("Configure Device");
+        mntmDevice.addListener(SWT.Selection, e->new DeviceConfig(shell).open());
+        
+        MenuItem mntmhelp = new MenuItem(menu, SWT.CASCADE);
 		mntmhelp.setText("&Help");
 		
 		Menu menu_4 = new Menu(mntmhelp);
@@ -1183,7 +1190,13 @@ public class PinDmdEditor {
 		mntmAbout.addListener(SWT.Selection, e->new About(shell).open());
 	}
 
-	public String getPrintableHashes(byte[] p) {
+	private Object configureDevice() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+
+    public String getPrintableHashes(byte[] p) {
 		StringBuffer hexString = new StringBuffer();
 		for (int j = 0; j < p.length; j++)
 			hexString.append(String.format("%02X", p[j]));
