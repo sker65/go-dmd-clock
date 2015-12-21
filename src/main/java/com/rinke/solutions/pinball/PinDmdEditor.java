@@ -101,6 +101,9 @@ public class PinDmdEditor {
 	
 	@Option(name="-cut", usage="<name>,<start>,<end>", required=false)
 	private String cut;
+
+	@Option(name="-nodirty", usage="dont check dirty flag on close", required=false)
+	private boolean nodirty=false;
 	
     @Argument
     private java.util.List<String> arguments = new ArrayList<String>();
@@ -1065,7 +1068,7 @@ public class PinDmdEditor {
 	 * @return true, if not dirty or if user decides to ignore dirtyness
 	 */
 	boolean dirtyCheck() {
-		if( project.dirty ) {
+		if( project.dirty && !nodirty ) {
 			MessageBox messageBox = new MessageBox(shell,
                     SWT.ICON_WARNING | SWT.OK | SWT.CANCEL  );
             
