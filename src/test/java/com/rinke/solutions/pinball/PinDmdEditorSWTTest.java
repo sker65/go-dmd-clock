@@ -1,8 +1,8 @@
 package com.rinke.solutions.pinball;
 
 import static com.fappel.swt.SWTEventHelper.trigger;
-
-import java.util.ArrayList;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Shell;
@@ -10,14 +10,9 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import com.fappel.swt.DisplayHelper;
-
-import static org.hamcrest.Matchers.*;
-import static org.hamcrest.MatcherAssert.*;
-import static org.junit.Assert.assertTrue;
 
 
 @RunWith(MockitoJUnitRunner.class)

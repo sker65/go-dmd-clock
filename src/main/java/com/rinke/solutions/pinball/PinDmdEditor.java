@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.JFaceResources;
@@ -100,10 +101,13 @@ public class PinDmdEditor {
 	private String aniToLoad;
 	
 	@Option(name="-cut", usage="<name>,<start>,<end>", required=false)
-	private String cut;
+	private String cutCmd;
 
 	@Option(name="-nodirty", usage="dont check dirty flag on close", required=false)
 	private boolean nodirty=false;
+
+	@Option(name="-save", usage="if set, project is saved right away", required=false)
+	private String saveFile;
 	
     @Argument
     private java.util.List<String> arguments = new ArrayList<String>();
@@ -152,6 +156,12 @@ public class PinDmdEditor {
 	Button btnNewPalette;
 	Button btnRenamePalette;
 	ToolBar toolBar;
+    ComboViewer frameSeqViewer;
+    Button btnMarkStart;
+    Button btnMarkEnd;
+    Button btnCut;
+    Button btnStart;
+    Button btnStop;
 
 	PaletteTool paletteTool;
 	int selectedHashIndex;
@@ -159,25 +169,9 @@ public class PinDmdEditor {
 	long saveTimeCode;
 	
 	CutInfo cutInfo = new CutInfo();
-    int cutxStart;
-    int cutxEnd;
 
 	private int[] numberOfPlanes = { 2 , 4 };
-
 	private int actualNumberOfPlanes = 4;
-
-    private ComboViewer frameSeqViewer;
-
-    private Button btnMarkStart;
-
-    private Button btnMarkEnd;
-
-    private Button btnCut;
-
-    private Button btnStart;
-
-    private Button btnStop;
-
     
 	public PinDmdEditor() {
 		super();
@@ -317,14 +311,18 @@ public class PinDmdEditor {
 
 		display.timerExec(animationHandler.getRefreshDelay(), cyclicRedraw);
 		
+		// cmd line processing
 		if( aniToLoad != null ) {
 		    loadAni(aniToLoad, false, true);
 		}
-		if( cut != null && !animations.isEmpty() ) {
-		    String[] cuts = cut.split(",");
+		if( cutCmd != null && !animations.isEmpty() ) {
+		    String[] cuts = cutCmd.split(",");
 		    if( cuts.length >=3 ) {
 		        cutScene(animations.get(0),Integer.parseInt(cuts[1]), Integer.parseInt(cuts[2]), cuts[0]);
 		    }
+		}
+		if( saveFile != null ) {
+			saveProject(saveFile);
 		}
 		
         int retry = 0;
@@ -355,16 +353,13 @@ public class PinDmdEditor {
         animations.add(cutScene);
         aniListViewer.refresh();
         aniListViewer.setSelection(new StructuredSelection(cutScene));
-
-        byte[] digest = new byte[16];
-        project.frameSeqMap.put(name, new FrameSeq(digest , activePalette, 
-                null, name));
+        
+        project.frameSeqMap.put(name, new FrameSeq(null, name));
         frameSeqViewer.setInput(project.frameSeqMap.values());
         frameSeqViewer.setSelection(new StructuredSelection(project.frameSeqMap.get(name)));
         
         return cutScene;
     }
-
 
     void createNewProject() {
 	    project = new Project();
@@ -378,13 +373,10 @@ public class PinDmdEditor {
 	}
 
 	private void loadProject() {
-		FileChooser fileChooser = createFileChooser(shell, SWT.OPEN);
-        if (lastPath != null)
-            fileChooser.setFilterPath(lastPath);
-        fileChooser.setFilterExtensions(new String[] { "*.xml;*.json;" });
-        fileChooser.setFilterNames(new String[] { "Project XML", "Project JSON" });
-        String filename = fileChooser.open();
-        lastPath = fileChooser.getFilterPath();
+        String filename = fileChooserHelper(SWT.OPEN, null, 
+        		new String[] { "*.xml;*.json;" },
+        		new String[] { "Project XML", "Project JSON" });
+
         if (filename != null) {
             LOG.info("load project from {}",filename);
             Project projectToLoad  = (Project) fileHelper.loadObject(filename);
@@ -393,11 +385,13 @@ public class PinDmdEditor {
             	shell.setText(frameTextPrefix+" - "+new File(filename).getName());
                 project = projectToLoad;
                 
-                if( project.inputFiles.size() >0 ) loadAni(project.inputFiles.get(0), false, false);
+                for( String file : project.inputFiles) loadAni(file, false, false);
+                
                 for( int i = 1; i < project.scenes.size(); i++) {
                 	//cutOutNewAnimation(project.scenes.get(i).start, project.scenes.get(i).end, animations.get(0));
                 	LOG.info("cutting out "+project.scenes.get(i));
                 }
+                
                 aniListViewer.refresh();
                 paletteComboViewer.setInput(project.palettes);
                 keyframeListViewer.setInput(project.palMappings);
@@ -409,36 +403,59 @@ public class PinDmdEditor {
         // scenes and populate source list
 
     }
+	
+	private void exportProject() {
+        String filename = fileChooserHelper(SWT.SAVE, project.name, 
+        		new String[] { "*.dat" },
+        		new String[] { "Export dat" });	
+        if( filename != null ) exportProject(filename);
+	}
 
     private void saveProject() {
-    	FileChooser fileChooser = createFileChooser(shell, SWT.SAVE);
-        fileChooser.setOverwrite(true);
-        //fileChooser.setFileName(project.name);
-        if (lastPath != null)
-            fileChooser.setFilterPath(lastPath);
-        fileChooser.setFilterExtensions(new String[] { "*.xml", "*.json", "*.dat" });
-        fileChooser.setFilterNames(new String[] { "Project XML", "Project JSON", "Export dat" });
-        String filename = fileChooser.open();
-        lastPath = fileChooser.getFilterPath();        
-        if (filename != null) {
-            LOG.info("write project to {}",filename);
-            fileHelper.storeObject(project, filename);
+        String filename = fileChooserHelper(SWT.SAVE, project.name, 
+        		new String[] { "*.xml", "*.json"},
+        		new String[] { "Project XML", "Project JSON" });
+        if (filename != null) saveProject(filename);
+    }
+    
+    private void exportProject(String filename) {
+    	//TODO create addtional files for frame sequences
+    	fileHelper.storeObject(project, filename);
+	}
+
+	private void saveProject(String filename) {
+        LOG.info("write project to {}",filename);
+        String aniFilename = replaceExtensionTo("ani", filename);
+        int numberOfStoredAnis = storeAnimations(animations, aniFilename);
+        if( numberOfStoredAnis > 0 ) {
+        	project.inputFiles.add(aniFilename);
         }
+        fileHelper.storeObject(project, filename);
         project.dirty = false;
     }
 
-    protected void loadAniWithFC(boolean append) {
-        FileChooser fileChooser = createFileChooser(shell, SWT.OPEN);
-        if (lastPath != null)
-            fileChooser.setFilterPath(lastPath);
-        fileChooser.setFilterExtensions(new String[] { "*.properties;*.ani;*.txt.gz;*.pcap;*.pcap.gz" });
-        fileChooser.setFilterNames(new String[] { "Animationen", "properties, txt.gz, ani" });
-        String filename = fileChooser.open();
-        lastPath = fileChooser.getFilterPath();
-        if (filename == null)
-            return;
+    private int storeAnimations(java.util.List<Animation> anis, String filename) {
+		java.util.List<Animation> anisToSave = anis.stream().filter(a->!a.isLoadedFromFile()).collect(Collectors.toList());
+		AnimationCompiler.writeToCompiledFile(anisToSave, filename);
+		return anisToSave.size();
+    }
 
-        loadAni(filename, append, true);
+
+	String replaceExtensionTo(String newExt, String filename) {
+		int p = filename.lastIndexOf(".");
+		if( p!=-1) return filename.substring(0,p)+"."+newExt;
+		return filename;
+	}
+
+
+	protected void loadAniWithFC(boolean append) {
+        String filename = fileChooserHelper(SWT.OPEN, null, 
+        		new String[] { "*.properties;*.ani;*.txt.gz;*.pcap;*.pcap.gz" },
+        		new String[] { "Animationen", "properties, txt.gz, ani" });
+
+        if (filename != null) {
+            loadAni(filename, append, true);
+        }
     }
     
     public void loadAni(String filename, boolean append, boolean populateProject) {
@@ -474,18 +491,24 @@ public class PinDmdEditor {
         aniListViewer.refresh();
         project.dirty = true;
     }
+    
+    String fileChooserHelper(int type, String filename, String[] exts, String[] desc ) {
+        FileChooser fileChooser = createFileChooser(shell, type);
+        fileChooser.setOverwrite(true);
+        fileChooser.setFileName(filename);
+        if (lastPath != null)
+            fileChooser.setFilterPath(lastPath);
+        fileChooser.setFilterExtensions(exts);
+        fileChooser.setFilterNames(desc);
+        String returnedFilename = fileChooser.open();
+        lastPath = fileChooser.getFilterPath();
+    	return returnedFilename;
+    }
 
     private void savePalette()
     {
-        FileChooser fileChooser = createFileChooser(shell, SWT.SAVE);
-        fileChooser.setOverwrite(true);
-        fileChooser.setFileName(activePalette.name);
-        if (lastPath != null)
-            fileChooser.setFilterPath(lastPath);
-        fileChooser.setFilterExtensions(new String[] { "*.xml", "*.json" });
-        fileChooser.setFilterNames(new String[] { "Paletten XML", "Paletten JSON" });
-        String filename = fileChooser.open();
-        lastPath = fileChooser.getFilterPath();
+        String filename = fileChooserHelper(SWT.SAVE, activePalette.name, 
+        		new String[] { "*.xml", "*.json" }, new String[] { "Paletten XML", "Paletten JSON" });
         if (filename != null) {
             LOG.info("store palette to {}",filename);
             fileHelper.storeObject(activePalette, filename);
@@ -493,13 +516,8 @@ public class PinDmdEditor {
     }
     
     private void loadPalette() {
-        FileChooser fileChooser = createFileChooser(shell, SWT.OPEN);
-        if (lastPath != null)
-            fileChooser.setFilterPath(lastPath);
-        fileChooser.setFilterExtensions(new String[] { "*.xml","*.json,", "*.txt" });
-        fileChooser.setFilterNames(new String[] { "Palette XML", "Palette JSON", "smartdmd" });
-        String filename = fileChooser.open();
-        lastPath = fileChooser.getFilterPath();
+        String filename = fileChooserHelper(SWT.OPEN, null, 
+        		new String[] { "*.xml","*.json,", "*.txt" }, new String[] { "Palette XML", "Palette JSON", "smartdmd" });
         if (filename != null) {
             if( filename.toLowerCase().endsWith(".txt") ) {
                 java.util.List<Palette> palettesImported = smartDMDImporter.importFromFile(filename);
@@ -1065,7 +1083,7 @@ public class PinDmdEditor {
 
 	/**
 	 * check if dirty.
-	 * @return true, if not dirty or if user decides to ignore dirtyness
+	 * @return true, if not dirty or if user decides to ignore dirtyness (or global ignore flag is set via cmdline)
 	 */
 	boolean dirtyCheck() {
 		if( project.dirty && !nodirty ) {
@@ -1109,6 +1127,12 @@ public class PinDmdEditor {
 		MenuItem mntmSaveProject = new MenuItem(menu_1, SWT.NONE);
 		mntmSaveProject.setText("Save Project");
 		mntmSaveProject.addListener(SWT.Selection, e->saveProject());
+		
+		new MenuItem(menu_1, SWT.SEPARATOR);
+		
+		MenuItem mntmExportProject = new MenuItem(menu_1, SWT.NONE);
+		mntmExportProject.setText("Export Project");
+		mntmExportProject.addListener(SWT.Selection, e->exportProject());
 		
 		new MenuItem(menu_1, SWT.SEPARATOR);
 		

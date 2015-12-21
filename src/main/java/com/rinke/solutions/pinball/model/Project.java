@@ -14,6 +14,7 @@ public class Project implements Model {
 	public List<PalMapping> palMappings;
 	public List<Scene> scenes;
 	public Map<String,FrameSeq> frameSeqMap;
+	public String name;
 	
 	public boolean dirty;
 	
