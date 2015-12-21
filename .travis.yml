@@ -8,4 +8,5 @@ branches:
   only:
     - feature/pin2dmd
 
+install: "mvn install -Pwin_64 -DskipTests=true -Dmaven.javadoc.skip=true -B -V"
 script: "mvn -Pwin_64 clean package assembly:single"
