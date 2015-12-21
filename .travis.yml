@@ -6,5 +6,5 @@ jdk:
 # whitelist
 branches:
   only:
-    - feature/pim2dmd
+    - feature/pin2dmd
   
