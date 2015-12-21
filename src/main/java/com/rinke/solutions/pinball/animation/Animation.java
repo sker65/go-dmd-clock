@@ -49,6 +49,7 @@ public class Animation {
 	private String transitionName = null;
 	private int transitionCount = 1;
 	private int transitionDelay = 50;
+	private boolean loadedFromFile = false;
 	
 	public int getFsk() {
 		return fsk;
@@ -80,6 +81,7 @@ public class Animation {
 		CompiledAnimation dest = new CompiledAnimation(
 				this.getType(), this.getName(),
 				0, end-start, this.skip, 1, 1);
+		dest.setLoadedFromFile(false);
 		// rerender and thereby copy all frames
 		this.actFrame = start;
 		for (int i = start; i <= end; i++) {
@@ -92,8 +94,6 @@ public class Animation {
 		return dest;
 	}
 
-
-
     public static Animation buildAnimationFromFile(String filename, AnimationType type) {
         File file = new File(filename);
         if( !file.canRead() ) {
@@ -103,6 +103,7 @@ public class Animation {
         Animation ani = new Animation(type, base, 0, 0, 1, 1, 0);
         ani.setBasePath(file.getParent() + "/");
         ani.setDesc(base.substring(0, base.indexOf('.')));
+        ani.setLoadedFromFile(true);
         return ani;
     }
 
@@ -424,6 +425,14 @@ public class Animation {
     }
 
 	public void commitDMDchanges(DMD dmd) {
+	}
+
+	public boolean isLoadedFromFile() {
+		return loadedFromFile;
+	}
+
+	public void setLoadedFromFile(boolean loadedFromFile) {
+		this.loadedFromFile = loadedFromFile;
 	}
 
 }
