@@ -8,5 +8,11 @@ branches:
   only:
     - feature/pin2dmd
 
+before_script:
+  - pip install --user codecov
+
+after_success:
+  - codecov
+
 install: "mvn install -Pwin_64 -DskipTests=true -Dmaven.javadoc.skip=true -B -V"
 script: "mvn -Pwin_64 clean package assembly:single"
