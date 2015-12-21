@@ -8,3 +8,4 @@ branches:
   only:
     - feature/pin2dmd
 
+script: "mvn -Pwin_64 clean package assembly:single"
