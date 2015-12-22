@@ -669,6 +669,7 @@ public class PinDmdEditor {
 		keyframeList.setLayoutData(gd_keyframeList);
 		keyframeListViewer.setLabelProvider(new LabelProviderAdapter(o->((PalMapping)o).name));
 		keyframeListViewer.setContentProvider(ArrayContentProvider.getInstance());
+		keyframeListViewer.setInput(project.palMappings);
 		keyframeListViewer.addSelectionChangedListener(event -> {
             IStructuredSelection selection = (IStructuredSelection) event.getSelection();
             if (selection.size() > 0) {

@@ -78,5 +78,14 @@ public class PinDmdEditorSWTTest {
 		uut.animationHandler.start();
 		assertThat(uut.toolBar.getEnabled(), equalTo(false));
 	}
+	
+	@Test
+	public void testAddPalSwitch() {
+		uut.hashes.add(new byte[16]);
+		trigger(SWT.Selection).on(uut.btnAddKeyframe);
+		assertThat(uut.project.palMappings.size(), equalTo(1));
+		assertThat(uut.project.palMappings.get(0).name, equalTo("KeyFrame 1"));
+	}
+
 
 }
