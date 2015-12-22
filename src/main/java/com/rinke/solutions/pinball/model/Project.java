@@ -7,13 +7,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.rinke.solutions.pinball.util.ObservableList;
+import com.rinke.solutions.pinball.util.ObservableMap;
+
 public class Project implements Model {
 	public byte version;
 	public List<String> inputFiles;
 	public List<Palette> palettes;
 	public List<PalMapping> palMappings;
 	public List<Scene> scenes;
-	public Map<String,FrameSeq> frameSeqMap;
+	public ObservableMap<String,FrameSeq> frameSeqMap;
 	public String name;
 	
 	public boolean dirty;
@@ -26,7 +29,7 @@ public class Project implements Model {
 		inputFiles.add(inputFile);
 		this.palettes = palettes;
 		this.palMappings = palMappings;
-		this.frameSeqMap = new HashMap<String, FrameSeq>();
+		this.frameSeqMap = new ObservableMap<>(new HashMap<String, FrameSeq>());
 	}
 	
 	public Project() {
@@ -36,7 +39,7 @@ public class Project implements Model {
         palMappings = new ArrayList<>();
         scenes = new ArrayList<>();
         inputFiles=new ArrayList<>();
-        frameSeqMap = new HashMap<>();
+        frameSeqMap = new ObservableMap<>(new HashMap<String, FrameSeq>());
     }
 	
     @Override
@@ -52,13 +55,27 @@ public class Project implements Model {
 		for(Palette p: palettes) {
 			p.writeTo(os);
 		}
+
+		// for each pal mapping with replacement frames create and calculate
+		
+		
 		os.writeShort(palMappings.size());
 		for(PalMapping p : palMappings ) {
 			p.writeTo(os);
 		}
+		
 		os.writeShort(frameSeqMap.size());
 		for(FrameSeq fs:frameSeqMap.values()) {
 			fs.writeTo(os);
 		}
+	}
+
+	public void clear() {
+	    this.palettes.clear();
+	    this.frameSeqMap.clear();
+	    this.inputFiles.clear();
+	    this.dirty = false;
+	    this.palMappings.clear();
+	    this.scenes.clear();
 	}
 }
