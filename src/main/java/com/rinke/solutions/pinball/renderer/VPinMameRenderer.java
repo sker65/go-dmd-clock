@@ -22,21 +22,12 @@ public class VPinMameRenderer extends Renderer {
     
     private static Logger LOG = LoggerFactory.getLogger(VPinMameRenderer.class); 
 
-	List<Frame> frames = new ArrayList<>();
-
-	@Override
-	public Frame convert(String filename, DMD dmd, int frameNo) {
-		if (frames.isEmpty())
-			readImage(filename, dmd);
-		return frames.get(frameNo);
-	}
-	
-    @Override
+   @Override
     public long getTimeCode(int actFrame) {
         return actFrame< frames.size() ? frames.get(actFrame).timecode:0;
     }
 
-	private void readImage(String filename, DMD dmd) {
+   void readImage(String filename, DMD dmd) {
 		BufferedReader stream = null;
 		int frameNo = 0;
 		long timecode = 0L;
@@ -101,14 +92,5 @@ public class VPinMameRenderer extends Renderer {
 		}
 		this.maxFrame = frameNo;
 	}
-
-	public static void main(String[] args) {
-		Renderer renderer = new VPinMameRenderer();
-		String base = "/home/sr/Downloads/Pinball/DMDpaint/";
-		DMD dmd = new DMD(128, 32);
-		renderer.convert(base + "ezgif-645182047.gif", dmd, 0);
-	}
-
-
 
 }

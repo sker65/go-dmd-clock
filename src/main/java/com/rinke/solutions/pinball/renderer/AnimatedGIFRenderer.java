@@ -29,18 +29,8 @@ public class AnimatedGIFRenderer extends Renderer {
     
     private static Logger LOG = LoggerFactory.getLogger(AnimatedGIFRenderer.class); 
 	
-	List<Frame> frames = new ArrayList<>();
-
-	@Override
-	public Frame convert(String filename, DMD dmd, int frameNo) {
-
-		if( frames.isEmpty() ) readImage(filename, dmd);
-		return frames.get(frameNo);
-	}
-	
-	private void readImage(String filename, DMD dmd) {
+	protected void readImage(String filename, DMD dmd) {
 		
-
 		String[] imageatt = new String[]{
                 "imageLeftPosition",
                 "imageTopPosition",

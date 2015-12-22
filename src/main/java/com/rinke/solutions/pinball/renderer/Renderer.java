@@ -1,5 +1,8 @@
 package com.rinke.solutions.pinball.renderer;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.animation.Frame;
 
@@ -10,10 +13,20 @@ public abstract class Renderer {
 	protected int highThreshold = 200;
 	protected int maxFrame = 0;
 
-	public abstract Frame convert(String filename, DMD dmd, int frameNo);
+	List<Frame> frames = new ArrayList<>();
 
-	public int getMaxFrame() {
+	public Frame convert(String filename, DMD dmd, int frameNo) {
+		if (frames.isEmpty()) readImage(filename, dmd);
+		return frames.get(frameNo);
+	}
+
+	public int getMaxFrame(String filename, DMD dmd) {
+		if (frames.isEmpty()) readImage(filename, dmd);
 		return maxFrame;
+	}
+	
+	void readImage(String filename, DMD dmd){
+		
 	}
 	
 	public long getTimeCode(int actFrame) {
@@ -30,6 +43,10 @@ public abstract class Renderer {
 
 	public void setHighThreshold(int highThreshold) {
 		this.highThreshold = highThreshold;
+	}
+
+	public List<Frame> getFrames() {
+		return frames;
 	}
 
 }

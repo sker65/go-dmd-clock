@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.renderer.AnimatedGIFRenderer;
 import com.rinke.solutions.pinball.renderer.DMDFRenderer;
+import com.rinke.solutions.pinball.renderer.DummyRenderer;
 import com.rinke.solutions.pinball.renderer.PcapRenderer;
 import com.rinke.solutions.pinball.renderer.PngRenderer;
 import com.rinke.solutions.pinball.renderer.Renderer;
@@ -79,7 +80,7 @@ public class Animation {
 		// create a copy of the animation
 		DMD tmp = new DMD(128,32);
 		CompiledAnimation dest = new CompiledAnimation(
-				this.getType(), this.getName(),
+				AnimationType.COMPILED, this.getName(),
 				0, end-start, this.skip, 1, 1);
 		dest.setLoadedFromFile(false);
 		// rerender and thereby copy all frames
@@ -100,7 +101,7 @@ public class Animation {
             throw new RuntimeException("Could not read '"+filename+"' to load animation");
         }
         String base = file.getName();
-        Animation ani = new Animation(type, base, 0, 100000, 1, 1, 0);
+        Animation ani = new Animation(type, base, 0, 0, 1, 1, 0);
         ani.setBasePath(file.getParent() + "/");
         ani.setDesc(base.substring(0, base.indexOf('.')));
         ani.setLoadedFromFile(true);
@@ -220,11 +221,13 @@ public class Animation {
 		
 		Frame frame = null;
 		if( renderer == null ) init();
+		
+		int maxFrame = renderer.getMaxFrame(basePath+name, dmd);
+		if(  maxFrame > 0 && end == 0) end = maxFrame-1;
 		if (actFrame <= end) {
 			ended = false;
 			last = renderFrame(basePath+name, dmd, actFrame);
 			if( !stop) actFrame += skip;
-			if( renderer.getMaxFrame() > 0 && end == 0) end = renderer.getMaxFrame()-1;
 		} else if (++actCycle < cycles) {
 			actFrame = start;
 		} else {
@@ -274,7 +277,7 @@ public class Animation {
 		return actFrame>clockFrom | (transitionFrom>0 && actFrame>=transitionFrom);
 	}
 
-	private void init() {
+	protected void init() {
 		switch (type) {
 		case PNG:
 			renderer = new PngRenderer(pattern,autoMerge);
@@ -290,6 +293,9 @@ public class Animation {
 			break;
 		case PCAP:
 			renderer = new PcapRenderer();
+			break;
+		case COMPILED:
+			renderer = new DummyRenderer();
 			break;
 		default:
 			break;

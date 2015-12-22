@@ -2,7 +2,6 @@
   <version>1</version>
   <inputFiles>
     <string>./src/test/resources/drwho-dump.txt.gz</string>
-    <string>test.ani</string>
   </inputFiles>
   <palettes>
     <palette>
