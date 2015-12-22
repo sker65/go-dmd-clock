@@ -42,6 +42,16 @@ public class Project implements Model {
         frameSeqMap = new ObservableMap<>(new HashMap<String, FrameSeq>());
     }
 	
+	public void clear() {
+	    palettes.clear();
+	    palettes.add(new Palette(Palette.defaultColors(), 0, "default"));
+	    frameSeqMap.clear();
+	    inputFiles.clear();
+	    dirty = false;
+	    palMappings.clear();
+	    scenes.clear();
+	}
+
     @Override
 	public String toString() {
 		return "Project [version=" + version + ", inputFiles=" + inputFiles
@@ -71,12 +81,4 @@ public class Project implements Model {
 		}
 	}
 
-	public void clear() {
-	    this.palettes.clear();
-	    this.frameSeqMap.clear();
-	    this.inputFiles.clear();
-	    this.dirty = false;
-	    this.palMappings.clear();
-	    this.scenes.clear();
-	}
 }

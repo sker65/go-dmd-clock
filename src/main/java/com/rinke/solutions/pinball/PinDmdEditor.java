@@ -384,9 +384,7 @@ public class PinDmdEditor {
 
     void createNewProject() {
     	project.clear();
-	    activePalette = new Palette(Palette.defaultColors(), 0, "default");
-	    project.palettes.add(activePalette);
-
+	    activePalette = project.palettes.get(0);
 	    paletteComboViewer.refresh();
     	keyframeListViewer.refresh();
 	    animations.clear();
@@ -946,8 +944,9 @@ public class PinDmdEditor {
         Combo combo = paletteComboViewer.getCombo();
         combo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
         paletteComboViewer.setContentProvider(ArrayContentProvider.getInstance());
-        paletteComboViewer.setLabelProvider(new LabelProviderAdapter(o->((Palette)o).name));
-
+        paletteComboViewer.setLabelProvider(new LabelProviderAdapter(o->((Palette)o).index + " - " + ((Palette)o).name));
+        paletteComboViewer.setInput(project.palettes);
+        
         paletteComboViewer.addSelectionChangedListener(event -> {
             IStructuredSelection selection = (IStructuredSelection) event.getSelection();
             if (selection.size() > 0) {
@@ -991,8 +990,8 @@ public class PinDmdEditor {
             activePalette = new Palette(activePalette.colors, project.palettes.size(), name);
             project.palettes.add(activePalette);
             paletteTool.setPalette(activePalette);
-            paletteComboViewer.setSelection(new StructuredSelection(activePalette));
             paletteComboViewer.refresh();
+            paletteComboViewer.setSelection(new StructuredSelection(activePalette), true);
         });
 
         btnRenamePalette = new Button(grpPalettes, SWT.NONE);
