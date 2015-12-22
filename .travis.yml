@@ -14,5 +14,5 @@ before_script:
 after_success:
   - codecov
 
-install: "mvn install -Pwin_64 -DskipTests=true -Dmaven.javadoc.skip=true -B -V"
-script: "mvn -Pwin_64 clean package assembly:single"
+install: "mvn install -Plinux_x86_64 -DskipTests=true -Dmaven.javadoc.skip=true -B -V"
+script: "mvn -Plinux_x86_64 clean package assembly:single"
