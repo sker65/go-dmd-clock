@@ -2,7 +2,10 @@ package com.rinke.solutions.pinball.model;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
+
+import com.rinke.solutions.pinball.animation.Plane;
 
 public class Frame implements Model {
 	public long timecode;
@@ -12,6 +15,13 @@ public class Frame implements Model {
 		super();
 		this.timecode = timecode;
 		this.planes = planes;
+	}
+
+	//TODO remove different models
+	public Frame(com.rinke.solutions.pinball.animation.Frame frame) {
+		for(Plane p: frame.planes) {
+			planes.add(Arrays.copyOf(p.plane, p.plane.length));
+		}
 	}
 
 	@Override

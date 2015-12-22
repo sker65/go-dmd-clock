@@ -1,9 +1,14 @@
 package com.rinke.solutions.pinball;
 
 import java.awt.SplashScreen;
+import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Observable;
@@ -11,6 +16,8 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import javax.management.RuntimeErrorException;
 
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.JFaceResources;
@@ -57,6 +64,8 @@ import com.rinke.solutions.pinball.animation.AnimationFactory;
 import com.rinke.solutions.pinball.animation.AnimationType;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.animation.EventHandler;
+import com.rinke.solutions.pinball.animation.Frame;
+import com.rinke.solutions.pinball.animation.Plane;
 import com.rinke.solutions.pinball.io.FileHelper;
 import com.rinke.solutions.pinball.io.SmartDMDImporter;
 import com.rinke.solutions.pinball.io.UsbTool;
@@ -71,6 +80,7 @@ import com.rinke.solutions.pinball.ui.DeviceConfig;
 import com.rinke.solutions.pinball.ui.FileChooser;
 import com.rinke.solutions.pinball.ui.FileDialogDelegate;
 import com.rinke.solutions.pinball.util.ObservableList;
+import com.rinke.solutions.pinball.util.ObservableMap;
 import com.rinke.solutions.pinball.widget.CircleTool;
 import com.rinke.solutions.pinball.widget.DMDWidget;
 import com.rinke.solutions.pinball.widget.DrawTool;
@@ -95,7 +105,7 @@ public class PinDmdEditor {
 	
 	CyclicRedraw cyclicRedraw = new CyclicRedraw();
 	
-	ObservableList<Animation> animations = new ObservableList<Animation>(new ArrayList<>());
+	ObservableMap<String,Animation> animations = new ObservableMap<String,Animation>(new HashMap<>());
     Map<String,DrawTool> drawTools = new HashMap<>();
 
     Display display;
@@ -257,7 +267,7 @@ public class PinDmdEditor {
     
     protected void buildFrameSeqList() {
     	frameSeqList.clear();
-    	frameSeqList.addAll( animations.stream().filter(a->!a.isLoadedFromFile()).collect(Collectors.toList()));
+    	frameSeqList.addAll( animations.values().stream().filter(a->!a.isLoadedFromFile()).collect(Collectors.toList()));
     	frameSeqViewer.refresh();
     }
 
@@ -375,7 +385,7 @@ public class PinDmdEditor {
                 start,
                 end, actualNumberOfPlanes);
         cutScene.setDesc(name);
-        animations.add(cutScene);
+        animations.put(name,cutScene);
         aniListViewer.setSelection(new StructuredSelection(cutScene));
         
         return cutScene;
@@ -416,7 +426,11 @@ public class PinDmdEditor {
             
             paletteComboViewer.setInput(project.palettes);
             keyframeListViewer.setInput(project.palMappings);
-            selectedAnimation = Optional.of(animations.isEmpty() ? defaultAnimation : animations.get(0));
+            for( Animation ani : animations.values()) {
+            	selectedAnimation = Optional.of(animations.isEmpty() ? defaultAnimation : ani);
+            	break;
+            }
+            
         }
     
     
@@ -440,15 +454,42 @@ public class PinDmdEditor {
         if (filename != null) saveProject(filename);
     }
     
-    private void exportProject(String filename) {
-    	//TODO create addtional files for frame sequences
-    	fileHelper.storeObject(project, filename);
+    void exportProject(String filename) {
+    	
+    	// for all referenced frame mapping we must also copy the frame data as there are two models
+    	for( FrameSeq p: project.frameSeqMap.values() ) {
+    		Animation ani = animations.get(p.name);
+    		ani.actFrame = 0;
+    		DMD tmp = new DMD(128,32);
+    		for (int i = 0; i <= ani.end; i++) {
+    			Frame frame = ani.render(tmp, false);
+    			p.frames.add(new com.rinke.solutions.pinball.model.Frame(frame));
+    		}
+
+    	}
+    	
+    	// create addtional files for frame sequences
+    	try {
+    		Map<String, Integer> map = new HashMap<String, Integer>();
+    		if( !project.frameSeqMap.isEmpty() ) {
+        		DataOutputStream dos = new DataOutputStream(new FileOutputStream(replaceExtensionTo("fsq",filename)));
+        		map = project.writeFrameSeqTo(dos);
+        		dos.close();
+    		}
+    		
+            DataOutputStream dos2 = new DataOutputStream(new FileOutputStream(filename));
+            project.writeTo(dos2, map);
+            dos2.close();
+        	//fileHelper.storeObject(project, filename);
+		} catch (IOException e) {
+			throw new RuntimeException("error writing "+filename,e);
+		}
 	}
 
 	private void saveProject(String filename) {
         LOG.info("write project to {}",filename);
         String aniFilename = replaceExtensionTo("ani", filename);
-        int numberOfStoredAnis = storeAnimations(animations, aniFilename);
+        int numberOfStoredAnis = storeAnimations(animations.values(), aniFilename);
         if( numberOfStoredAnis > 0 ) {
         	project.inputFiles.add(aniFilename);
         }
@@ -456,7 +497,7 @@ public class PinDmdEditor {
         project.dirty = false;
     }
 
-    private int storeAnimations(java.util.List<Animation> anis, String filename) {
+    private int storeAnimations(Collection<Animation> anis, String filename) {
 		java.util.List<Animation> anisToSave = anis.stream().filter(a->!a.isLoadedFromFile()).collect(Collectors.toList());
 		AnimationCompiler.writeToCompiledFile(anisToSave, filename);
 		return anisToSave.size();
@@ -502,7 +543,10 @@ public class PinDmdEditor {
             animations.clear();
             playingAnis.clear();
         }
-        animations.addAll(loadedList);
+        for( Animation ani : loadedList) {
+        	animations.put(ani.getDesc(), ani);
+        }
+        
         project.dirty = true;
     }
     
@@ -647,7 +691,7 @@ public class PinDmdEditor {
 		aniList.setLayoutData(gd_aniList);
 		aniListViewer.setContentProvider(ArrayContentProvider.getInstance());
 		aniListViewer.setLabelProvider(new LabelProviderAdapter(o->((Animation)o).getDesc()));
-		aniListViewer.setInput(animations);
+		aniListViewer.setInput(animations.values());
 		aniListViewer.addSelectionChangedListener(event -> {
             IStructuredSelection selection = (IStructuredSelection) event.getSelection();
             if (selection.size() > 0){
