@@ -57,6 +57,7 @@ public class Project implements Model {
 		}
 
 		// for each pal mapping with replacement frames create and calculate
+		// frames data object and offset
 		
 		
 		os.writeShort(palMappings.size());
