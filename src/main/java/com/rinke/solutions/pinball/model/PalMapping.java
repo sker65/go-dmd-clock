@@ -13,6 +13,7 @@ public class PalMapping implements Model {
     public String name;
     public int animationIndex;
     public int frameIndex;
+    public String frameSeqName;
     
     public PalMapping(byte[] digest, int palIndex, long durationInMillis, int durationInFrames) {
         super();
@@ -26,8 +27,9 @@ public class PalMapping implements Model {
         this.durationInFrames = durationInFrames;
     }
 
-	public PalMapping(int palIndex) {
+	public PalMapping(int palIndex, String name) {
 		this.palIndex = palIndex;
+		this.name = name;
 	}
 
 	public void writeTo(DataOutputStream os) throws IOException {
