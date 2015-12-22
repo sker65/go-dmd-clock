@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Observable;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -16,6 +18,7 @@ import org.eclipse.jface.resource.LocalResourceManager;
 import org.eclipse.jface.resource.ResourceManager;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ComboViewer;
+import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ListViewer;
 import org.eclipse.jface.viewers.StructuredSelection;
@@ -67,6 +70,7 @@ import com.rinke.solutions.pinball.ui.About;
 import com.rinke.solutions.pinball.ui.DeviceConfig;
 import com.rinke.solutions.pinball.ui.FileChooser;
 import com.rinke.solutions.pinball.ui.FileDialogDelegate;
+import com.rinke.solutions.pinball.util.ObservableList;
 import com.rinke.solutions.pinball.widget.CircleTool;
 import com.rinke.solutions.pinball.widget.DMDWidget;
 import com.rinke.solutions.pinball.widget.DrawTool;
@@ -86,10 +90,12 @@ public class PinDmdEditor {
 	private static final String HELP_URL = "http://go-dmd.de/2015/11/24/pin2dmd-editor/";
 
 	DMD dmd = new DMD(128,32);
+	
 	AnimationHandler animationHandler = null;
 	
 	CyclicRedraw cyclicRedraw = new CyclicRedraw();
-	java.util.List<Animation> animations = new ArrayList<>();
+	
+	ObservableList<Animation> animations = new ObservableList<Animation>(new ArrayList<>());
     Map<String,DrawTool> drawTools = new HashMap<>();
 
     Display display;
@@ -112,15 +118,14 @@ public class PinDmdEditor {
     @Argument
     private java.util.List<String> arguments = new ArrayList<String>();
 
-	
-    //private Canvas previewCanvas;
-	private Label lblTcval;
+    private Label lblTcval;
 	private Label lblFrameNo;
 	private Scale scale;
 	
 	private String lastPath;
 	private String frameTextPrefix = "Pin2dmd Editor ";
-	private Animation selectedAnimation = null;
+	private Animation defaultAnimation = new Animation(null, "", 0, 0, 1, 1, 1);
+	private Optional<Animation> selectedAnimation = Optional.of(defaultAnimation);
 	private int selectedAnimationIndex = 0;
 	private java.util.List<Animation> playingAnis = new ArrayList<Animation>();
 	Palette activePalette;
@@ -172,6 +177,8 @@ public class PinDmdEditor {
 
 	private int[] numberOfPlanes = { 2 , 4 };
 	private int actualNumberOfPlanes = 4;
+
+	private Button btnAddFrameSeq;
     
 	public PinDmdEditor() {
 		super();
@@ -234,6 +241,25 @@ public class PinDmdEditor {
 
         ObserverManager.bind(cutInfo, e->btnMarkEnd.setEnabled(e),
                 ()-> ( cutInfo.getStart()>0  ));
+        
+        ObserverManager.bind(animations, e->btnStart.setEnabled(e), 
+        		()->!this.animations.isEmpty()&&animationHandler.isStopped());
+        ObserverManager.bind(animations, e->btnPrev.setEnabled(e), ()->!this.animations.isEmpty());
+        ObserverManager.bind(animations, e->btnNext.setEnabled(e), ()->!this.animations.isEmpty());
+        ObserverManager.bind(animations, e->btnMarkStart.setEnabled(e), ()->!this.animations.isEmpty());
+
+        ObserverManager.bind(animations, e->aniListViewer.refresh(), ()->true);
+        ObserverManager.bind(animations, e->buildFrameSeqList(), ()->true);
+        
+        //ObserverManager.bind(animations, e->btnAddFrameSeq.setEnabled(e), ()->!frameSeqList.isEmpty());
+    }
+    
+    ObservableList<Animation> frameSeqList = new  ObservableList<>(new ArrayList<>());
+    
+    protected void buildFrameSeqList() {
+    	frameSeqList.clear();
+    	frameSeqList.addAll( animations.stream().filter(a->!a.isLoadedFromFile()).collect(Collectors.toList()));
+    	frameSeqViewer.refresh();
     }
 
 	/**
@@ -351,25 +377,21 @@ public class PinDmdEditor {
                 end, actualNumberOfPlanes);
         cutScene.setDesc(name);
         animations.add(cutScene);
-        aniListViewer.refresh();
         aniListViewer.setSelection(new StructuredSelection(cutScene));
-        
-        project.frameSeqMap.put(name, new FrameSeq(null, name));
-        frameSeqViewer.setInput(project.frameSeqMap.values());
-        frameSeqViewer.setSelection(new StructuredSelection(project.frameSeqMap.get(name)));
         
         return cutScene;
     }
 
     void createNewProject() {
-	    project = new Project();
-	    activePalette = project.palettes.get(0);
-    	paletteComboViewer.setInput(project.palettes);
-    	keyframeListViewer.setInput(project.palMappings);
+    	project.clear();
+	    activePalette = new Palette(Palette.defaultColors(), 0, "default");
+	    project.palettes.add(activePalette);
+
+	    paletteComboViewer.refresh();
+    	keyframeListViewer.refresh();
 	    animations.clear();
-	    aniListViewer.refresh();
 	    playingAnis.clear();
-	    selectedAnimation = null;
+	    selectedAnimation = Optional.of(defaultAnimation);
 	}
 
 	private void loadProject() {
@@ -385,16 +407,16 @@ public class PinDmdEditor {
             	shell.setText(frameTextPrefix+" - "+new File(filename).getName());
                 project = projectToLoad;
                 
-                for( String file : project.inputFiles) loadAni(file, false, false);
+                for( String file : project.inputFiles) loadAni(file, true, false);
                 
                 for( int i = 1; i < project.scenes.size(); i++) {
                 	//cutOutNewAnimation(project.scenes.get(i).start, project.scenes.get(i).end, animations.get(0));
                 	LOG.info("cutting out "+project.scenes.get(i));
                 }
                 
-                aniListViewer.refresh();
                 paletteComboViewer.setInput(project.palettes);
                 keyframeListViewer.setInput(project.palMappings);
+                selectedAnimation = Optional.of(animations.isEmpty() ? defaultAnimation : animations.get(0));
             }
         }
         
@@ -473,22 +495,14 @@ public class PinDmdEditor {
         if( populateProject ) {
             if( !append ) project.inputFiles.clear();
             project.inputFiles.add(filename);
-            //DMD dmd = new DMD(128, 32);
-//            for (Animation ani : loadedList) {
-//    			project.scenes.add(new Scene(ani.getDesc(),0,/*ani.getFrameCount(dmd)*/100000,0));
-//    			//project.palMappings.add(new PalMapping(-1));
-//    		}
         }
         
         // animationHandler.setAnimations(sourceAnis);
         if (!append) {
             animations.clear();
-            selectedAnimation = null;
-            selectedAnimationIndex = 0;
             playingAnis.clear();
         }
         animations.addAll(loadedList);
-        aniListViewer.refresh();
         project.dirty = true;
     }
     
@@ -637,14 +651,14 @@ public class PinDmdEditor {
 		aniListViewer.addSelectionChangedListener(event -> {
             IStructuredSelection selection = (IStructuredSelection) event.getSelection();
             if (selection.size() > 0){
-            	selectedAnimation = (Animation)selection.getFirstElement();
+            	selectedAnimation = Optional.of((Animation)selection.getFirstElement());
             	selectedAnimationIndex = aniList.getSelectionIndex();
                 playingAnis.clear();
-                playingAnis.add(selectedAnimation);
+                playingAnis.add(selectedAnimation.get());
                 animationHandler.setAnimations(playingAnis);
                 dmdWidget.redraw();
             } else {
-            	selectedAnimation = null;
+            	selectedAnimation = Optional.of(defaultAnimation);
             }
             btnRemoveAni.setEnabled(selection.size()>0);
             btnAddKeyframe.setEnabled(selection.size()>0);
@@ -670,11 +684,11 @@ public class PinDmdEditor {
                     btnHash[j].setSelection(j == selectedHashIndex);
                 }
                 selectedAnimationIndex = selectedPalMapping.animationIndex;
-                selectedAnimation = animations.get(selectedAnimationIndex);
-                aniListViewer.setSelection(new StructuredSelection(selectedAnimation));
+                selectedAnimation = Optional.of(animations.get(selectedAnimationIndex));
+                aniListViewer.setSelection(new StructuredSelection(selectedAnimation.get()));
                 
                 animationHandler.setPos(selectedPalMapping.frameIndex);
-                saveTimeCode = selectedAnimation.getTimeCode(selectedPalMapping.frameIndex);
+                saveTimeCode = selectedAnimation.get().getTimeCode(selectedPalMapping.frameIndex);
             } else {
                 selectedPalMapping = null;
             }
@@ -714,9 +728,8 @@ public class PinDmdEditor {
         btnRemoveAni.setText("Remove Ani");
         btnRemoveAni.setEnabled(false);
         btnRemoveAni.addListener(SWT.Selection, e->{
-            if( selectedAnimation != null ) {
-                animations.remove(selectedAnimation);
-                aniListViewer.refresh();
+            if( selectedAnimation.isPresent() ) {
+                animations.remove(selectedAnimation.get());
                 playingAnis.clear();
                 animationHandler.setAnimations(playingAnis);
                 animationHandler.setClockActive(true);
@@ -748,15 +761,12 @@ public class PinDmdEditor {
         btnAddKeyframe.setText("Add PalSwitch");
         btnAddKeyframe.setEnabled(false);
         btnAddKeyframe.addListener(SWT.Selection, e->{
-        	PalMapping palMapping = new PalMapping(activePalette.index);
-        	if( selectedHashIndex == -1 ) {
-        		
-        	} else {
+        	PalMapping palMapping = new PalMapping(activePalette.index, "KeyFrame "+(project.palMappings.size()+1));
+        	if( selectedHashIndex != -1 ) {
         		palMapping.setDigest(hashes.get(selectedHashIndex));
         	}
-        	palMapping.name = "KeyFrame "+(project.palMappings.size()+1);
         	palMapping.animationIndex = selectedAnimationIndex;
-        	palMapping.frameIndex = selectedAnimation.actFrame;
+        	palMapping.frameIndex = selectedAnimation.get().actFrame;
         	project.palMappings.add(palMapping);
         	saveTimeCode = lastTimeCode;
         	keyframeListViewer.refresh();
@@ -784,6 +794,12 @@ public class PinDmdEditor {
         btnDeleteKeyframe.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
         btnDeleteKeyframe.setText("Del KeyFrame");
         btnDeleteKeyframe.setEnabled(false);
+        btnDeleteKeyframe.addListener(SWT.Selection, e->{
+        	if( selectedPalMapping!=null) {
+        		project.palMappings.remove(selectedPalMapping);
+        		keyframeListViewer.refresh();
+        	}
+        });
         
         Label lblNewLabel = new Label(grpKeyframe, SWT.NONE);
         lblNewLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
@@ -792,22 +808,28 @@ public class PinDmdEditor {
         frameSeqViewer = new ComboViewer(grpKeyframe, SWT.NONE);
         Combo frameSeqCombo = frameSeqViewer.getCombo();
         frameSeqCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-        frameSeqViewer.setLabelProvider(new LabelProviderAdapter(o->((FrameSeq)o).getName()));
+        frameSeqViewer.setLabelProvider(new LabelProviderAdapter(o->((Animation)o).getDesc()));
         frameSeqViewer.setContentProvider(ArrayContentProvider.getInstance());
-        frameSeqViewer.setInput(project.frameSeqMap.values());
+        frameSeqViewer.setInput(frameSeqList);
         
         new Label(grpKeyframe, SWT.NONE);
         
-        Button btnNewButton = new Button(grpKeyframe, SWT.NONE);
-        btnNewButton.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
-        btnNewButton.setText("Add FrameSeq");
-        btnDeleteKeyframe.addListener(SWT.Selection, e->{
-        	if( selectedPalMapping!=null) {
-        		project.palMappings.remove(selectedPalMapping);
+        btnAddFrameSeq = new Button(grpKeyframe, SWT.NONE);
+        btnAddFrameSeq.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
+        btnAddFrameSeq.setText("Add FrameSeq");
+        btnAddFrameSeq.addListener(SWT.Selection, e->{
+        	if( !frameSeqViewer.getSelection().isEmpty()) {
+        		Animation ani = (Animation) ((IStructuredSelection) frameSeqViewer.getSelection()).getFirstElement();
+        		// TODO add index, add ref to framesSeq
+        		PalMapping palMapping = new PalMapping(0, "KeyFrame "+ani.getDesc());
+        		palMapping.palIndex = activePalette.index;
+        		palMapping.frameSeqName = ani.getDesc();
+        		palMapping.frameIndex = selectedAnimation.get().actFrame;
+        		project.palMappings.add(palMapping);
         		keyframeListViewer.refresh();
         	}
         });
-        
+
         Group grpDetails = new Group(shell, SWT.NONE);
         grpDetails.setLayout(new GridLayout(4, false));
         GridData gd_grpDetails = new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1);
@@ -842,7 +864,7 @@ public class PinDmdEditor {
         btnStop = new Button(composite, SWT.NONE);
         btnStart.setText("Start");
         btnStart.addListener(SWT.Selection, e-> {
-        	selectedAnimation.commitDMDchanges(dmd);
+        	selectedAnimation.orElse(defaultAnimation).commitDMDchanges(dmd);
         	animationHandler.start();
         	display.timerExec(animationHandler.getRefreshDelay(), cyclicRedraw);
         });
@@ -855,14 +877,14 @@ public class PinDmdEditor {
         btnPrev = new Button(composite, SWT.NONE);
         btnPrev.setText("<");
         btnPrev.addListener(SWT.Selection, e-> {
-        	selectedAnimation.commitDMDchanges(dmd);
+        	selectedAnimation.orElse(defaultAnimation).commitDMDchanges(dmd);
         	animationHandler.prev();
         });
         
         btnNext = new Button(composite, SWT.NONE);
         btnNext.setText(">");
         btnNext.addListener(SWT.Selection, e-> { 
-        	selectedAnimation.commitDMDchanges(dmd);
+        	selectedAnimation.orElse(defaultAnimation).commitDMDchanges(dmd);
         	animationHandler.next(); 
         });
         
@@ -872,18 +894,18 @@ public class PinDmdEditor {
 
         btnMarkStart.setText("Mark Start");
         btnMarkStart.addListener(SWT.Selection, e->{
-            cutInfo.setStart(selectedAnimation.actFrame); 
+            cutInfo.setStart(selectedAnimation.get().actFrame); 
             });
         
         btnMarkEnd.setText("Mark End");
         btnMarkEnd.addListener(SWT.Selection, e->{
-            cutInfo.setEnd(selectedAnimation.actFrame);
+            cutInfo.setEnd(selectedAnimation.get().actFrame);
         });
         
         btnCut.setText("Cut");
         btnCut.addListener(SWT.Selection, e -> {
         	// respect number of planes while cutting / copying
-            Animation ani = cutScene(selectedAnimation, cutInfo.getStart(), cutInfo.getEnd(), "Scene "+animations.size());
+            Animation ani = cutScene(selectedAnimation.get(), cutInfo.getStart(), cutInfo.getEnd(), "Scene "+animations.size());
             LOG.info("cutting out scene from {} to {}", cutInfo );
             cutInfo.reset();
 
@@ -1180,9 +1202,9 @@ public class PinDmdEditor {
 		mntmAddAnimation.setText("Add Animation");
 		mntmAddAnimation.addListener(SWT.Selection, e->loadAniWithFC(true));
 		
+		
 		MenuItem mntmpalettes = new MenuItem(menu, SWT.CASCADE);
 		mntmpalettes.setText("&Palettes / Mode");
-		
 		Menu menu_3 = new Menu(mntmpalettes);
 		mntmpalettes.setMenu(menu_3);
 		
@@ -1216,12 +1238,6 @@ public class PinDmdEditor {
 		mntmAbout.setText("About");
 		mntmAbout.addListener(SWT.Selection, e->new About(shell).open());
 	}
-
-	private Object configureDevice() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
 
     public String getPrintableHashes(byte[] p) {
 		StringBuffer hexString = new StringBuffer();

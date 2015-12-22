@@ -100,7 +100,7 @@ public class Animation {
             throw new RuntimeException("Could not read '"+filename+"' to load animation");
         }
         String base = file.getName();
-        Animation ani = new Animation(type, base, 0, 0, 1, 1, 0);
+        Animation ani = new Animation(type, base, 0, 100000, 1, 1, 0);
         ani.setBasePath(file.getParent() + "/");
         ani.setDesc(base.substring(0, base.indexOf('.')));
         ani.setLoadedFromFile(true);
