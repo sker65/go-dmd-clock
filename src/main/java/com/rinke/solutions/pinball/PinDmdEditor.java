@@ -167,7 +167,8 @@ public class PinDmdEditor {
     Button btnCut;
     Button btnStart;
     Button btnStop;
-
+	Button btnAddFrameSeq;
+    
 	PaletteTool paletteTool;
 	int selectedHashIndex;
 	PalMapping selectedPalMapping;
@@ -178,8 +179,6 @@ public class PinDmdEditor {
 	private int[] numberOfPlanes = { 2 , 4 };
 	private int actualNumberOfPlanes = 4;
 
-	private Button btnAddFrameSeq;
-    
 	public PinDmdEditor() {
 		super();
 	    activePalette = project.palettes.get(0);
@@ -397,32 +396,35 @@ public class PinDmdEditor {
         		new String[] { "*.xml;*.json;" },
         		new String[] { "Project XML", "Project JSON" });
 
-        if (filename != null) {
-            LOG.info("load project from {}",filename);
-            Project projectToLoad  = (Project) fileHelper.loadObject(filename);
-
-            if( projectToLoad != null ) {
-            	shell.setText(frameTextPrefix+" - "+new File(filename).getName());
-                project = projectToLoad;
-                
-                for( String file : project.inputFiles) loadAni(file, true, false);
-                
-                for( int i = 1; i < project.scenes.size(); i++) {
-                	//cutOutNewAnimation(project.scenes.get(i).start, project.scenes.get(i).end, animations.get(0));
-                	LOG.info("cutting out "+project.scenes.get(i));
-                }
-                
-                paletteComboViewer.setInput(project.palettes);
-                keyframeListViewer.setInput(project.palMappings);
-                selectedAnimation = Optional.of(animations.isEmpty() ? defaultAnimation : animations.get(0));
-            }
-        }
-        
-        // TODO recreate animation list on load of project
-        // which means reload initial source file and recreate
-        // scenes and populate source list
-
+        if (filename != null)  loadProject(filename);
     }
+	
+	void loadProject(String filename) {
+        LOG.info("load project from {}",filename);
+        Project projectToLoad  = (Project) fileHelper.loadObject(filename);
+
+        if( projectToLoad != null ) {
+        	shell.setText(frameTextPrefix+" - "+new File(filename).getName());
+            project = projectToLoad;
+            
+            for( String file : project.inputFiles) loadAni(file, true, false);
+            
+            for( int i = 1; i < project.scenes.size(); i++) {
+            	//cutOutNewAnimation(project.scenes.get(i).start, project.scenes.get(i).end, animations.get(0));
+            	LOG.info("cutting out "+project.scenes.get(i));
+            }
+            
+            paletteComboViewer.setInput(project.palettes);
+            keyframeListViewer.setInput(project.palMappings);
+            selectedAnimation = Optional.of(animations.isEmpty() ? defaultAnimation : animations.get(0));
+        }
+    
+    
+	    // TODO recreate animation list on load of project
+	    // which means reload initial source file and recreate
+	    // scenes and populate source list
+		
+	}
 	
 	private void exportProject() {
         String filename = fileChooserHelper(SWT.SAVE, project.name, 
@@ -821,6 +823,9 @@ public class PinDmdEditor {
         		Animation ani = (Animation) ((IStructuredSelection) frameSeqViewer.getSelection()).getFirstElement();
         		// TODO add index, add ref to framesSeq
         		PalMapping palMapping = new PalMapping(0, "KeyFrame "+ani.getDesc());
+            	if( selectedHashIndex != -1 ) {
+            		palMapping.setDigest(hashes.get(selectedHashIndex));
+            	}
         		palMapping.palIndex = activePalette.index;
         		palMapping.frameSeqName = ani.getDesc();
         		palMapping.frameIndex = selectedAnimation.get().actFrame;

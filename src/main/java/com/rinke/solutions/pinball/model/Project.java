@@ -16,7 +16,7 @@ public class Project implements Model {
 	public List<Palette> palettes;
 	public List<PalMapping> palMappings;
 	public List<Scene> scenes;
-	public ObservableMap<String,FrameSeq> frameSeqMap;
+	public Map<String,FrameSeq> frameSeqMap;
 	public String name;
 	
 	public boolean dirty;
@@ -29,7 +29,7 @@ public class Project implements Model {
 		inputFiles.add(inputFile);
 		this.palettes = palettes;
 		this.palMappings = palMappings;
-		this.frameSeqMap = new ObservableMap<>(new HashMap<String, FrameSeq>());
+		this.frameSeqMap = new HashMap<String, FrameSeq>();
 	}
 	
 	public Project() {
