@@ -30,8 +30,8 @@ public class VPinMameRenderer extends Renderer {
    void readImage(String filename, DMD dmd) {
 		BufferedReader stream = null;
 		int frameNo = 0;
-		long timecode = 0L;
-		long lastTimeStamp=0L;
+		int timecode = 0;
+		int lastTimeStamp=0;
 		try {
 			stream = new BufferedReader( new InputStreamReader(
 					new GZIPInputStream(new FileInputStream(new File(filename)))));
@@ -42,7 +42,7 @@ public class VPinMameRenderer extends Renderer {
 			int j=0;
 			while(line!=null) {
 				if( line.startsWith("0x")) {
-					long newTs = Long.parseLong(line.substring(2), 16);
+					int newTs = Integer.parseInt(line.substring(2), 16);
 					if( frameNo>0 && lastTimeStamp >0) {
 					    frames.get(frameNo-1).delay = (int) (newTs - lastTimeStamp);
 	                    timecode += (newTs - lastTimeStamp);

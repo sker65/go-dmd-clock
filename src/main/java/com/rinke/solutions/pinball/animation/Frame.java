@@ -10,7 +10,7 @@ public class Frame {
     public int width;
     public int height;
     public int delay;
-    public long timecode;
+    public int timecode;
     public List<Plane> planes = new ArrayList<>();
 
     public Frame(int delay,int w, int h) {
