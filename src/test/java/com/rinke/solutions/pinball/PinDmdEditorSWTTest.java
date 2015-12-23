@@ -37,7 +37,7 @@ public class PinDmdEditorSWTTest {
 		uut.createContents(shell);	
 		uut.createNewProject();
 		
-		uut.animationHandler = new  AnimationHandler(null,null,null,null,false);
+		uut.animationHandler = new  AnimationHandler(null,null,null,false);
 		
 		uut.createBindings();
 		
