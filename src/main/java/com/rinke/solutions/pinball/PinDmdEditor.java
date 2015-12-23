@@ -116,7 +116,7 @@ public class PinDmdEditor {
 	@Option(name="-ani", usage="animation file to load", required=false)
 	private String aniToLoad;
 	
-	@Option(name="-cut", usage="<name>,<start>,<end>", required=false)
+	@Option(name="-cut", usage="<src name>,<new name>,<start>,<end>", required=false)
 	private String cutCmd;
 
 	@Option(name="-nodirty", usage="dont check dirty flag on close", required=false)
@@ -353,7 +353,7 @@ public class PinDmdEditor {
 		if( cutCmd != null && !animations.isEmpty() ) {
 		    String[] cuts = cutCmd.split(",");
 		    if( cuts.length >=3 ) {
-		        cutScene(animations.get(0),Integer.parseInt(cuts[1]), Integer.parseInt(cuts[2]), cuts[0]);
+		        cutScene(animations.get(cuts[0]),Integer.parseInt(cuts[2]), Integer.parseInt(cuts[3]), cuts[1]);
 		    }
 		}
 		if( saveFile != null ) {
