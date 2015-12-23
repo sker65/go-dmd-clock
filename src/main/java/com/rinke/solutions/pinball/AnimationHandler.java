@@ -34,7 +34,6 @@ public class AnimationHandler extends Observable implements Runnable{
 	private DMDClock clock;
 	private boolean clockActive;
 	private int clockCycles;
-	private Canvas canvas;
 	private EventHandler eventHandler;
 	private DMD dmd;
 	private volatile boolean stop = false;
@@ -45,10 +44,9 @@ public class AnimationHandler extends Observable implements Runnable{
 	//private int transitionFrame= 0;
 	private int lastRenderedFrame = 0;
 	
-	public AnimationHandler(List<Animation> anis, DMDClock clock, DMD dmd, Canvas canvas, boolean export) {
+	public AnimationHandler(List<Animation> anis, DMDClock clock, DMD dmd, boolean export) {
 		this.anis = anis;
 		this.clock = clock;
-		this.canvas = canvas;
 		this.dmd = dmd;
 		this.export = export;
 		if( export ) {
@@ -68,7 +66,7 @@ public class AnimationHandler extends Observable implements Runnable{
 	    } catch( Exception e) {
 	        GlobalExceptionHandler.getInstance().setException(e);
 	        anis.clear();
-	        canvas.update();
+	        eventHandler.notifyAni(new AniEvent(Type.CLEAR, 0, null, null, 0));
 	        LOG.error("unexpected exception caught: {}", e.getMessage(), e);
 	    }
 	}
@@ -149,7 +147,6 @@ public class AnimationHandler extends Observable implements Runnable{
 //				e.printStackTrace();
 //			}
 //		}
-		canvas.redraw();
 	}
 
 	public int getRefreshDelay() {
@@ -191,13 +188,11 @@ public class AnimationHandler extends Observable implements Runnable{
 	public void prev() {
 		anis.get(index).prev();
 		run();
-		canvas.redraw();
 	}
 
 	public void next() {
 		anis.get(index).next();
 		run();
-		canvas.redraw();
 	}
 
 	public void setScale(Scale scale) {
@@ -208,7 +203,6 @@ public class AnimationHandler extends Observable implements Runnable{
 		if( !anis.isEmpty() ) {
 		    anis.get(index).setPos(pos);
 	        run();
-	        canvas.redraw();
 		}
 	}
 
