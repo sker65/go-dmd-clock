@@ -178,6 +178,8 @@ public class PinDmdEditor {
     Button btnStart;
     Button btnStop;
 	Button btnAddFrameSeq;
+	DMDWidget previewDmd;
+    ObservableList<Animation> frameSeqList = new  ObservableList<>(new ArrayList<>());
     
 	PaletteTool paletteTool;
 	int selectedHashIndex;
@@ -189,10 +191,90 @@ public class PinDmdEditor {
 	private int[] numberOfPlanes = { 2 , 4 };
 	private int actualNumberOfPlanes = 4;
 
+	java.util.List<Palette> previewPalettes = new ArrayList<>();
+	
 	public PinDmdEditor() {
 		super();
 	    activePalette = project.palettes.get(0);
+	    RGB[] rgbPlane0 = { 
+	    		new RGB(0,0,0), 
+	    		new RGB(255,255,255),
+	    		new RGB(0,0,0), 
+	    		new RGB(255,255,255),
+	    		new RGB(0,0,0), 
+	    		new RGB(255,255,255),
+	    		new RGB(0,0,0), 
+	    		new RGB(255,255,255),
+	    		new RGB(0,0,0), 
+	    		new RGB(255,255,255),
+	    		new RGB(0,0,0), 
+	    		new RGB(255,255,255),
+	    		new RGB(0,0,0), 
+	    		new RGB(255,255,255),
+	    		new RGB(0,0,0), 
+	    		new RGB(255,255,255),
+	    		};
+		previewPalettes.add( new Palette(rgbPlane0) );
+	    RGB[] rgbPlane1 = { 
+	    		new RGB(0,0,0), 
+	    		new RGB(0,0,0), 
+	    		new RGB(255,255,255),
+	    		new RGB(255,255,255),
+	    		new RGB(0,0,0), 
+	    		new RGB(0,0,0), 
+	    		new RGB(255,255,255),
+	    		new RGB(255,255,255),
+	    		new RGB(0,0,0), 
+	    		new RGB(0,0,0), 
+	    		new RGB(255,255,255),
+	    		new RGB(255,255,255),
+	    		new RGB(0,0,0), 
+	    		new RGB(0,0,0), 
+	    		new RGB(255,255,255),
+	    		new RGB(255,255,255),
+	    		};
+		previewPalettes.add( new Palette(rgbPlane1) );
+	    RGB[] rgbPlane2 = { 
+	    		new RGB(0,0,0), 
+	    		new RGB(0,0,0), 
+	    		new RGB(0,0,0), 
+	    		new RGB(0,0,0), 
+	    		new RGB(255,255,255),
+	    		new RGB(255,255,255),
+	    		new RGB(255,255,255),
+	    		new RGB(255,255,255),
+	    		new RGB(0,0,0), 
+	    		new RGB(0,0,0), 
+	    		new RGB(0,0,0), 
+	    		new RGB(0,0,0), 
+	    		new RGB(255,255,255),
+	    		new RGB(255,255,255),
+	    		new RGB(255,255,255),
+	    		new RGB(255,255,255),
+	    		};
+		previewPalettes.add( new Palette(rgbPlane2) );
+	    RGB[] rgbPlane3 = { 
+	    		new RGB(0,0,0), 
+	    		new RGB(0,0,0), 
+	    		new RGB(0,0,0), 
+	    		new RGB(0,0,0), 
+	    		new RGB(0,0,0), 
+	    		new RGB(0,0,0), 
+	    		new RGB(0,0,0), 
+	    		new RGB(0,0,0), 
+	    		new RGB(255,255,255),
+	    		new RGB(255,255,255),
+	    		new RGB(255,255,255),
+	    		new RGB(255,255,255),
+	    		new RGB(255,255,255),
+	    		new RGB(255,255,255),
+	    		new RGB(255,255,255),
+	    		new RGB(255,255,255),
+	    		};
+		previewPalettes.add( new Palette(rgbPlane3) );
 	}
+	
+	
 
 	/**
 	 * handles redraw of animations
@@ -204,6 +286,7 @@ public class PinDmdEditor {
 		public void run() {
 			//if( !previewCanvas.isDisposed()) previewCanvas.redraw();
 			if( dmdWidget!=null && !dmdWidget.isDisposed() ) dmdWidget.redraw();
+			if( previewDmd!=null && !previewDmd.isDisposed() ) previewDmd.redraw();
             if (animationHandler != null && !animationHandler.isStopped()) {
             	animationHandler.run();
                 display.timerExec(animationHandler.getRefreshDelay(), cyclicRedraw);
@@ -263,8 +346,6 @@ public class PinDmdEditor {
         //ObserverManager.bind(animations, e->btnAddFrameSeq.setEnabled(e), ()->!frameSeqList.isEmpty());
     }
     
-    ObservableList<Animation> frameSeqList = new  ObservableList<>(new ArrayList<>());
-    
     protected void buildFrameSeqList() {
     	frameSeqList.clear();
     	frameSeqList.addAll( animations.values().stream().filter(a->!a.isLoadedFromFile()).collect(Collectors.toList()));
@@ -298,7 +379,7 @@ public class PinDmdEditor {
 		paletteComboViewer.getCombo().select(0);
 		paletteTool.setPalette(activePalette);
 		
-		animationHandler = new AnimationHandler(playingAnis, clock, dmd, dmdWidget, false);
+		animationHandler = new AnimationHandler(playingAnis, clock, dmd, false);
 		
         animationHandler.setScale(scale);
 		animationHandler.setLabelHandler(new EventHandler() {
@@ -322,8 +403,14 @@ public class PinDmdEditor {
                     lblFrameNo.setText("");
                     lblTcval.setText("");
                     // sourceList.deselectAll();
+                    for(int j=0; j<4; j++) btnHash[j++].setText(""); // clear hashes
                     break;
+                case CLEAR:
+                	for(int j=0; j<4; j++) btnHash[j++].setText(""); // clear hashes
+                	break;
                 }
+                dmdWidget.redraw();
+                previewDmd.redraw();
             }
 
         });
@@ -658,6 +745,8 @@ public class PinDmdEditor {
             	for(int j = 0; j < numberOfHashes; j++) {
             		if( j != selectedHashIndex ) btnHash[j].setSelection(false);
             	}
+            	// switch palettes in preview
+            	previewDmd.setPalette(previewPalettes.get(selectedHashIndex));
             });
     	}
     }
@@ -748,28 +837,7 @@ public class PinDmdEditor {
         gd_dmdWidget.widthHint = 790;
         dmdWidget.setLayoutData(gd_dmdWidget);
         
-        new Label(shell, SWT.NONE);
-        new Label(shell, SWT.NONE);
-        
-        scale = new Scale(shell, SWT.NONE);
-        scale.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
-        scale.addListener(SWT.Selection, e -> animationHandler.setPos(scale.getSelection()));
-        
-        Group grpKeyframe = new Group(shell, SWT.NONE);
-        grpKeyframe.setLayout(new GridLayout(4, false));
-        GridData gd_grpKeyframe = new GridData(SWT.FILL, SWT.FILL, false, false, 2, 3);
-        gd_grpKeyframe.widthHint = 350;
-        grpKeyframe.setLayoutData(gd_grpKeyframe);
-        grpKeyframe.setText("Animations / KeyFrame");
-        
-        Composite composite_hash = new Composite(grpKeyframe, SWT.NONE);
-        GridData gd_composite_hash = new GridData(SWT.FILL, SWT.CENTER, false, false, 4, 1);
-        gd_composite_hash.widthHint = 341;
-        composite_hash.setLayoutData(gd_composite_hash);
-
-        createHashButtons(composite_hash, 10, 20);
-        
-        btnRemoveAni = new Button(grpKeyframe, SWT.NONE);
+        btnRemoveAni = new Button(shell, SWT.NONE);
         btnRemoveAni.setText("Remove Ani");
         btnRemoveAni.setEnabled(false);
         btnRemoveAni.addListener(SWT.Selection, e->{
@@ -780,9 +848,67 @@ public class PinDmdEditor {
                 animationHandler.setClockActive(true);
             }
         });
+        new Label(shell, SWT.NONE);
+        
+        scale = new Scale(shell, SWT.NONE);
+        scale.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
+        scale.addListener(SWT.Selection, e -> animationHandler.setPos(scale.getSelection()));
+        
+        Group grpKeyframe = new Group(shell, SWT.NONE);
+        grpKeyframe.setLayout(new GridLayout(3, false));
+        GridData gd_grpKeyframe = new GridData(SWT.FILL, SWT.FILL, false, false, 2, 3);
+        gd_grpKeyframe.widthHint = 350;
+        grpKeyframe.setLayoutData(gd_grpKeyframe);
+        grpKeyframe.setText("Animations / KeyFrame");
+        
+        Composite composite_hash = new Composite(grpKeyframe, SWT.NONE);
+        GridData gd_composite_hash = new GridData(SWT.FILL, SWT.CENTER, false, false, 3, 1);
+        gd_composite_hash.widthHint = 341;
+        composite_hash.setLayoutData(gd_composite_hash);
+
+        createHashButtons(composite_hash, 10, 20);
+        
+        previewDmd = new DMDWidget(grpKeyframe, SWT.DOUBLE_BUFFERED, dmd);
+        GridData gd_dmdPreWidget = new GridData(SWT.LEFT, SWT.TOP, false, false, 2, 2);
+        gd_dmdPreWidget.heightHint = 40;
+        //gd_dmdPreWidget.heightHint = 40;
+        gd_dmdPreWidget.widthHint = 199;
+        previewDmd.setLayoutData(gd_dmdPreWidget);
+        previewDmd.setDrawingEnabled(false);
+		previewDmd.setPalette(previewPalettes.get(0));
+
+        new Label(grpKeyframe, SWT.NONE);
+        
+        btnAddKeyframe = new Button(grpKeyframe, SWT.NONE);
+        btnAddKeyframe.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, false, false, 1, 1));
+        btnAddKeyframe.setText("Add PalSwitch");
+        btnAddKeyframe.setEnabled(false);
+        btnAddKeyframe.addListener(SWT.Selection, e->{
+        	PalMapping palMapping = new PalMapping(activePalette.index, "KeyFrame "+(project.palMappings.size()+1));
+        	if( selectedHashIndex != -1 ) {
+        		palMapping.setDigest(hashes.get(selectedHashIndex));
+        	}
+        	palMapping.animationIndex = selectedAnimationIndex;
+        	palMapping.frameIndex = selectedAnimation.get().actFrame;
+        	project.palMappings.add(palMapping);
+        	saveTimeCode = lastTimeCode;
+        	keyframeListViewer.refresh();
+        });
         new Label(grpKeyframe, SWT.NONE);
         new Label(grpKeyframe, SWT.NONE);
-        new Label(grpKeyframe, SWT.NONE);
+        
+        btnDeleteKeyframe = new Button(grpKeyframe, SWT.NONE);
+        GridData gd_btnDeleteKeyframe = new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1);
+        gd_btnDeleteKeyframe.widthHint = 104;
+        btnDeleteKeyframe.setLayoutData(gd_btnDeleteKeyframe);
+        btnDeleteKeyframe.setText("Del KeyFrame");
+        btnDeleteKeyframe.setEnabled(false);
+        btnDeleteKeyframe.addListener(SWT.Selection, e->{
+        	if( selectedPalMapping!=null) {
+        		project.palMappings.remove(selectedPalMapping);
+        		keyframeListViewer.refresh();
+        	}
+        });
         
         Label lblDuration = new Label(grpKeyframe, SWT.NONE);
         lblDuration.setText("Duration:");
@@ -799,26 +925,6 @@ public class PinDmdEditor {
                 selectedPalMapping.durationInFrames = (int)selectedPalMapping.durationInMillis / 40;
             }
         });
-        new Label(grpKeyframe, SWT.NONE);
-        
-        btnAddKeyframe = new Button(grpKeyframe, SWT.NONE);
-        btnAddKeyframe.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
-        btnAddKeyframe.setText("Add PalSwitch");
-        btnAddKeyframe.setEnabled(false);
-        btnAddKeyframe.addListener(SWT.Selection, e->{
-        	PalMapping palMapping = new PalMapping(activePalette.index, "KeyFrame "+(project.palMappings.size()+1));
-        	if( selectedHashIndex != -1 ) {
-        		palMapping.setDigest(hashes.get(selectedHashIndex));
-        	}
-        	palMapping.animationIndex = selectedAnimationIndex;
-        	palMapping.frameIndex = selectedAnimation.get().actFrame;
-        	project.palMappings.add(palMapping);
-        	saveTimeCode = lastTimeCode;
-        	keyframeListViewer.refresh();
-        });
-        new Label(grpKeyframe, SWT.NONE);
-        new Label(grpKeyframe, SWT.NONE);
-        new Label(grpKeyframe, SWT.NONE);
         
         btnFetchDuration = new Button(grpKeyframe, SWT.NONE);
         btnFetchDuration.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
@@ -829,20 +935,6 @@ public class PinDmdEditor {
         		selectedPalMapping.durationInMillis = lastTimeCode - saveTimeCode;
                 selectedPalMapping.durationInFrames = (int)selectedPalMapping.durationInMillis / FRAME_RATE;
         		txtDuration.setText(selectedPalMapping.durationInMillis+"");
-        	}
-        });
-        new Label(grpKeyframe, SWT.NONE);
-        new Label(grpKeyframe, SWT.NONE);
-        new Label(grpKeyframe, SWT.NONE);
-        
-        btnDeleteKeyframe = new Button(grpKeyframe, SWT.NONE);
-        btnDeleteKeyframe.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
-        btnDeleteKeyframe.setText("Del KeyFrame");
-        btnDeleteKeyframe.setEnabled(false);
-        btnDeleteKeyframe.addListener(SWT.Selection, e->{
-        	if( selectedPalMapping!=null) {
-        		project.palMappings.remove(selectedPalMapping);
-        		keyframeListViewer.refresh();
         	}
         });
         
@@ -856,8 +948,6 @@ public class PinDmdEditor {
         frameSeqViewer.setLabelProvider(new LabelProviderAdapter(o->((Animation)o).getDesc()));
         frameSeqViewer.setContentProvider(ArrayContentProvider.getInstance());
         frameSeqViewer.setInput(frameSeqList);
-        
-        new Label(grpKeyframe, SWT.NONE);
         
         btnAddFrameSeq = new Button(grpKeyframe, SWT.NONE);
         btnAddFrameSeq.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
