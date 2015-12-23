@@ -393,7 +393,15 @@ public class PinDmdEditor {
                     //hashLabel.setText(
                     int i = 0;
                     for( byte[] p : evt.hashes) {
-						btnHash[i++].setText(getPrintableHashes(p));
+                    	String hash = getPrintableHashes(p);
+                    	if( hash.startsWith("BF619EAC0CDF3F68D496EA9344137E8B")) {
+                    		btnHash[i].setText("");
+                    		btnHash[i].setEnabled(false);
+                    	} else {
+                    		btnHash[i].setText(hash);
+                    		btnHash[i].setEnabled(true);
+                    	}
+                    	i++;
 					}
 
                     saveHashes(evt.hashes);
