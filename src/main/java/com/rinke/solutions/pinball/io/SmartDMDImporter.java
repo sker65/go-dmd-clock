@@ -54,7 +54,7 @@ public class SmartDMDImporter {
 			} else {
 				palette.type = PaletteType.NORMAL;
 			}
-			LOG.info("loaded palette: {}", palette);
+			LOG.debug("loaded palette: {}", palette);
 		}
         return res;
     }
