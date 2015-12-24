@@ -4,6 +4,7 @@ import static com.fappel.swt.SWTEventHelper.trigger;
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
 
+import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ListViewer;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
@@ -28,6 +29,7 @@ import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.animation.EventHandler;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.Palette;
+import com.rinke.solutions.pinball.model.PaletteType;
 
 import static com.fappel.swt.JFaceViewerHelper.fireSelectionChanged;
 
@@ -101,6 +103,39 @@ public class PinDmdEditorSWTTest {
 	public void testLoadProjectString() throws Exception {
 		uut.shell = shell;
 		uut.loadProject("./src/test/resources/test.xml");
+	}
+	
+	@Test
+	public void testPaletteTypeChanged() throws Exception {
+		ISelection s = new StructuredSelection(PaletteType.DEFAULT);
+		SelectionChangedEvent e = new SelectionChangedEvent(uut.paletteTypeComboViewer, s );
+		uut.paletteTypeChanged(e);
+	}
+	
+	@Test
+	public void testRemoveAni() throws Exception {
+		trigger(SWT.Selection).on(uut.btnRemoveAni);
+	}
+	
+	@Test
+	public void testDeleteKeyframe() throws Exception {
+		trigger(SWT.Selection).on(uut.btnDeleteKeyframe);
+		PalMapping palMapping = new PalMapping(0,"foo");
+		palMapping.animationName = "drwho-dump";
+		palMapping.frameIndex = 0;
+
+		uut.selectedPalMapping = palMapping; 
+		trigger(SWT.Selection).on(uut.btnDeleteKeyframe);
+	}
+	
+	@Test
+	public void testFetchDuration() throws Exception {
+		PalMapping palMapping = new PalMapping(0,"foo");
+		palMapping.animationName = "drwho-dump";
+		palMapping.frameIndex = 0;
+
+		uut.selectedPalMapping = palMapping; 
+		trigger(SWT.Selection).on(uut.btnFetchDuration);
 	}
 
 	
