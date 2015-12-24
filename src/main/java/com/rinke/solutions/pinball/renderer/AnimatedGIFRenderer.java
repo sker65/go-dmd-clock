@@ -140,12 +140,4 @@ public class AnimatedGIFRenderer extends Renderer {
 		
 	}
 
-	public static void main(String[] args) {
-		Renderer renderer = new AnimatedGIFRenderer();
-		String base = "/home/sr/Downloads/Pinball/DMDpaint/";
-		DMD dmd = new DMD(128, 32);
-		renderer.convert(base + "ezgif-645182047.gif", dmd, 0);
-	}
-
-
 }
