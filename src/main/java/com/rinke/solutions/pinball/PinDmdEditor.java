@@ -712,10 +712,12 @@ public class PinDmdEditor implements EventHandler{
             IStructuredSelection selection = (IStructuredSelection) event.getSelection();
             if (selection.size() > 0){
             	selectedAnimation = Optional.of((Animation)selection.getFirstElement());
+            	int numberOfPlanes = selectedAnimation.get().getRenderer().getNumberOfPlanes();
+            	dmd.setNumberOfSubframes(numberOfPlanes);
                 playingAnis.clear();
                 playingAnis.add(selectedAnimation.get());
                 animationHandler.setAnimations(playingAnis);
-                dmdWidget.redraw();
+                dmdRedraw(); 
             } else {
             	selectedAnimation = Optional.of(defaultAnimation);
             }
@@ -964,7 +966,7 @@ public class PinDmdEditor implements EventHandler{
         btnUndo.setText("Undo");        
         btnUndo.addListener(SWT.Selection, e->{
         	dmd.undo();
-			dmdWidget.redraw();
+			dmdRedraw();
         });
         ObserverManager.bind(dmd, e -> btnUndo.setEnabled(e), ()->dmd.canUndo() );
 
@@ -972,7 +974,7 @@ public class PinDmdEditor implements EventHandler{
         btnRedo.setText("Redo");
         btnRedo.addListener(SWT.Selection, e->{
             dmd.redo();
-            dmdWidget.redraw();
+            dmdRedraw();
         });
         ObserverManager.bind(dmd, e -> btnRedo.setEnabled(e), ()->dmd.canRedo() );
         
@@ -1131,6 +1133,12 @@ public class PinDmdEditor implements EventHandler{
 
     }
 
+	private void dmdRedraw() {
+		dmdWidget.redraw();
+		previewDmd.redraw();
+	}
+
+
 	void keyFrameChanged(SelectionChangedEvent event) {
 		IStructuredSelection selection = (IStructuredSelection) event
 				.getSelection();
@@ -1253,7 +1261,7 @@ public class PinDmdEditor implements EventHandler{
 		mntmUndo.setText("Undo");
 		mntmUndo.addListener(SWT.Selection, e-> {
 			dmd.undo();
-			dmdWidget.redraw();
+			dmdRedraw();
 		});
 		ObserverManager.bind(dmd, e->mntmUndo.setEnabled(e), () -> dmd.canUndo());
 		
@@ -1261,7 +1269,7 @@ public class PinDmdEditor implements EventHandler{
 		mntmRedo.setText("Redo");
 		mntmRedo.addListener(SWT.Selection, e->{
 			dmd.redo();
-			dmdWidget.redraw();
+			dmdRedraw();
 		});
 		ObserverManager.bind(dmd, e->mntmRedo.setEnabled(e), ()->dmd.canRedo() );
 		
@@ -1370,7 +1378,6 @@ public class PinDmdEditor implements EventHandler{
         	for(int j=0; j<4; j++) btnHash[j++].setText(""); // clear hashes
         	break;
         }
-        dmdWidget.redraw();
-        previewDmd.redraw();
+        dmdRedraw();
     }
 }
