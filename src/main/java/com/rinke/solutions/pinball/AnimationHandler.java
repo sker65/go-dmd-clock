@@ -160,8 +160,8 @@ public class AnimationHandler extends Observable implements Runnable{
 	 * sets the shell used to set ani text
 	 * @param shell2
 	 */
-	public void setLabelHandler(EventHandler shell2) {
-		this.eventHandler = shell2;
+	public void setEventHandler(EventHandler handler) {
+		this.eventHandler = handler;
 	}
 	
 	public void start() {
