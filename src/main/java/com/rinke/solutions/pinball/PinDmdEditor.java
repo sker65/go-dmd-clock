@@ -584,37 +584,41 @@ public class PinDmdEditor implements EventHandler{
     }
     
     private void loadPalette() {
-        String filename = fileChooserHelper(SWT.OPEN, null, 
+    	String filename = fileChooserHelper(SWT.OPEN, null, 
         		new String[] { "*.xml","*.json,", "*.txt" }, new String[] { "Palette XML", "Palette JSON", "smartdmd" });
-        if (filename != null) {
-            if( filename.toLowerCase().endsWith(".txt") ) {
-                java.util.List<Palette> palettesImported = smartDMDImporter.importFromFile(filename);
-                String override = checkOverride(project.palettes, palettesImported);
-                if( !override.isEmpty() ) {
-                    MessageBox messageBox = new MessageBox(shell,
-                            SWT.ICON_WARNING | SWT.OK | SWT.IGNORE | SWT.ABORT  );
-                    
-                    messageBox.setText("Override warning");
-                    messageBox.setMessage("importing these palettes will override palettes: "+override+
-                            "\n");
-                    int res = messageBox.open();
-                    if( res != SWT.ABORT ) {
-                        importPalettes(palettesImported,res==SWT.OK);
-                    }
-                } else {
-                    importPalettes(palettesImported,true);
-                }
-            } else {
-                Palette pal = (Palette) fileHelper.loadObject(filename);
-                LOG.info("load palette from {}",filename);
-                project.palettes.add(pal);
-                activePalette = pal;
-            }
-            paletteComboViewer.setSelection(new StructuredSelection(activePalette));
-            paletteComboViewer.refresh();
-        }
+        if (filename != null) loadPalette(filename);
     }
     
+    void loadPalette(String filename) {
+		if (filename.toLowerCase().endsWith(".txt")) {
+			java.util.List<Palette> palettesImported = smartDMDImporter
+					.importFromFile(filename);
+			String override = checkOverride(project.palettes, palettesImported);
+			if (!override.isEmpty()) {
+				MessageBox messageBox = new MessageBox(shell, SWT.ICON_WARNING
+						| SWT.OK | SWT.IGNORE | SWT.ABORT);
+
+				messageBox.setText("Override warning");
+				messageBox
+						.setMessage("importing these palettes will override palettes: "
+								+ override + "\n");
+				int res = messageBox.open();
+				if (res != SWT.ABORT) {
+					importPalettes(palettesImported, res == SWT.OK);
+				}
+			} else {
+				importPalettes(palettesImported, true);
+			}
+		} else {
+			Palette pal = (Palette) fileHelper.loadObject(filename);
+			LOG.info("load palette from {}", filename);
+			project.palettes.add(pal);
+			activePalette = pal;
+		}
+		paletteComboViewer.setSelection(new StructuredSelection(activePalette));
+		paletteComboViewer.refresh();
+	}
+   
     // testability overridden by tests
     protected FileChooser createFileChooser(Shell shell, int flags) {	
 		return new FileDialogDelegate(shell, flags);
@@ -628,7 +632,7 @@ public class PinDmdEditor implements EventHandler{
         return res;
     }
     
-    private void importPalettes(java.util.List<Palette> palettesImported, boolean override) {
+    void importPalettes(java.util.List<Palette> palettesImported, boolean override) {
         Map<Integer, Palette> map = getMap(project.palettes);
         for (Palette p : palettesImported) {
             if( map.containsKey(p.index) ) {
@@ -641,7 +645,7 @@ public class PinDmdEditor implements EventHandler{
         project.palettes.addAll(map.values());
     }
 
-    private String checkOverride(java.util.List<Palette> palettes2, java.util.List<Palette> palettesImported) {
+    String checkOverride(java.util.List<Palette> palettes2, java.util.List<Palette> palettesImported) {
         StringBuilder sb = new StringBuilder();
         Map<Integer, Palette> map = getMap(palettes2);
         for (Palette pi : palettesImported) {
