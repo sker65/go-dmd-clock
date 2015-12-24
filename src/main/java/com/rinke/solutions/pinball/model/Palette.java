@@ -2,7 +2,10 @@ package com.rinke.solutions.pinball.model;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 import org.eclipse.swt.graphics.RGB;
 
@@ -48,6 +51,87 @@ public class Palette implements Model {
 
 	public static Palette getDefaultPalette() {
 		return new Palette(defaultColors());
+	}
+	
+	public static List<Palette> previewPalettes() {
+		List<Palette> previewPalettes = new ArrayList<>();
+	    RGB[] rgbPlane0 = { 
+	    		new RGB(0,0,0), 
+	    		new RGB(255,255,255),
+	    		new RGB(0,0,0), 
+	    		new RGB(255,255,255),
+	    		new RGB(0,0,0), 
+	    		new RGB(255,255,255),
+	    		new RGB(0,0,0), 
+	    		new RGB(255,255,255),
+	    		new RGB(0,0,0), 
+	    		new RGB(255,255,255),
+	    		new RGB(0,0,0), 
+	    		new RGB(255,255,255),
+	    		new RGB(0,0,0), 
+	    		new RGB(255,255,255),
+	    		new RGB(0,0,0), 
+	    		new RGB(255,255,255),
+	    		};
+		previewPalettes.add( new Palette(rgbPlane0) );
+	    RGB[] rgbPlane1 = { 
+	    		new RGB(0,0,0), 
+	    		new RGB(0,0,0), 
+	    		new RGB(255,255,255),
+	    		new RGB(255,255,255),
+	    		new RGB(0,0,0), 
+	    		new RGB(0,0,0), 
+	    		new RGB(255,255,255),
+	    		new RGB(255,255,255),
+	    		new RGB(0,0,0), 
+	    		new RGB(0,0,0), 
+	    		new RGB(255,255,255),
+	    		new RGB(255,255,255),
+	    		new RGB(0,0,0), 
+	    		new RGB(0,0,0), 
+	    		new RGB(255,255,255),
+	    		new RGB(255,255,255),
+	    		};
+		previewPalettes.add( new Palette(rgbPlane1) );
+	    RGB[] rgbPlane2 = { 
+	    		new RGB(0,0,0), 
+	    		new RGB(0,0,0), 
+	    		new RGB(0,0,0), 
+	    		new RGB(0,0,0), 
+	    		new RGB(255,255,255),
+	    		new RGB(255,255,255),
+	    		new RGB(255,255,255),
+	    		new RGB(255,255,255),
+	    		new RGB(0,0,0), 
+	    		new RGB(0,0,0), 
+	    		new RGB(0,0,0), 
+	    		new RGB(0,0,0), 
+	    		new RGB(255,255,255),
+	    		new RGB(255,255,255),
+	    		new RGB(255,255,255),
+	    		new RGB(255,255,255),
+	    		};
+		previewPalettes.add( new Palette(rgbPlane2) );
+	    RGB[] rgbPlane3 = { 
+	    		new RGB(0,0,0), 
+	    		new RGB(0,0,0), 
+	    		new RGB(0,0,0), 
+	    		new RGB(0,0,0), 
+	    		new RGB(0,0,0), 
+	    		new RGB(0,0,0), 
+	    		new RGB(0,0,0), 
+	    		new RGB(0,0,0), 
+	    		new RGB(255,255,255),
+	    		new RGB(255,255,255),
+	    		new RGB(255,255,255),
+	    		new RGB(255,255,255),
+	    		new RGB(255,255,255),
+	    		new RGB(255,255,255),
+	    		new RGB(255,255,255),
+	    		new RGB(255,255,255),
+	    		};
+		previewPalettes.add( new Palette(rgbPlane3) );
+		return Collections.unmodifiableList(previewPalettes);
 	}
 
 	public static RGB[] defaultColors() {

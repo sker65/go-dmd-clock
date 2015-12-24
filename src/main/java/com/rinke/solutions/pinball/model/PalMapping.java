@@ -11,7 +11,10 @@ public class PalMapping implements Model {
     public int durationInFrames;
     public int hashIndex; // which hash (from which frame)
     public String name;
-    public int animationIndex;
+    // just for backward comp
+    @Deprecated
+    public int animatisonIndex;
+    public String animationName;
     public int frameIndex;
     public String frameSeqName;
     
