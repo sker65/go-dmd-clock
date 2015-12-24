@@ -68,6 +68,7 @@ import com.rinke.solutions.pinball.model.FrameSeq;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.PaletteType;
+import com.rinke.solutions.pinball.model.PlaneNumber;
 import com.rinke.solutions.pinball.model.Project;
 import com.rinke.solutions.pinball.model.Scene;
 import com.rinke.solutions.pinball.ui.About;
@@ -174,6 +175,7 @@ public class PinDmdEditor implements EventHandler{
 	Button btnAddFrameSeq;
 	DMDWidget previewDmd;
     ObservableList<Animation> frameSeqList = new  ObservableList<>(new ArrayList<>());
+	private ComboViewer planesComboViewer;
     
 	PaletteTool paletteTool;
 	int selectedHashIndex;
@@ -182,11 +184,10 @@ public class PinDmdEditor implements EventHandler{
 	
 	CutInfo cutInfo = new CutInfo();
 
-	private int[] numberOfPlanes = { 2 , 4 };
-	private int actualNumberOfPlanes = 4;
-
 	java.util.List<Palette> previewPalettes = new ArrayList<>();
-	
+
+	PlaneNumber planeNumer;
+
 	public PinDmdEditor() {
 		super();
 	    activePalette = project.palettes.get(0);
@@ -358,7 +359,7 @@ public class PinDmdEditor implements EventHandler{
     private Animation cutScene(Animation animation, int start, int end, String name) {
         Animation cutScene = animation.cutScene( 
                 start,
-                end, actualNumberOfPlanes);
+                end, planeNumer.numberOfPlanes);
         cutScene.setDesc(name);
         animations.put(name,cutScene);
         aniListViewer.setSelection(new StructuredSelection(cutScene));
@@ -714,6 +715,7 @@ public class PinDmdEditor implements EventHandler{
             	selectedAnimation = Optional.of((Animation)selection.getFirstElement());
             	int numberOfPlanes = selectedAnimation.get().getRenderer().getNumberOfPlanes();
             	dmd.setNumberOfSubframes(numberOfPlanes);
+            	planesComboViewer.setSelection(new StructuredSelection(PlaneNumber.valueOf(numberOfPlanes)));
                 playingAnis.clear();
                 playingAnis.add(selectedAnimation.get());
                 animationHandler.setAnimations(playingAnis);
@@ -1045,18 +1047,18 @@ public class PinDmdEditor implements EventHandler{
         Label lblPlanes = new Label(grpPalettes, SWT.NONE);
         lblPlanes.setText("Planes");
 
-        ComboViewer planesComboViewer = new ComboViewer(grpPalettes, SWT.NONE);
+        planesComboViewer = new ComboViewer(grpPalettes, SWT.NONE);
         Combo planes = planesComboViewer.getCombo();
         GridData gd_planes = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
         gd_planes.widthHint = 60;
         planes.setLayoutData(gd_planes);
-        planes.setItems(new String[] { "2", "4" });
-        planes.setToolTipText("Number of planes");
-        planes.select(1);
-        planes.addListener(SWT.Selection, e -> {
-        	actualNumberOfPlanes = numberOfPlanes [planes.getSelectionIndex()];
-        	paletteTool.setNumberOfPlanes(actualNumberOfPlanes);
+        planesComboViewer.setContentProvider(ArrayContentProvider.getInstance());
+        planesComboViewer.setInput(PlaneNumber.values());
+        planesComboViewer.addSelectionChangedListener(e -> {
+        	planeNumer = (PlaneNumber) ((IStructuredSelection) e.getSelection()).getFirstElement();
+        	paletteTool.setNumberOfPlanes(planeNumer.numberOfPlanes);
         });
+
         new Label(grpPalettes, SWT.NONE);
 
         paletteTool = new PaletteTool(grpPalettes, SWT.FLAT | SWT.RIGHT, activePalette);
