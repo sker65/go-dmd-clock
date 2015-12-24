@@ -23,6 +23,7 @@ import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.FrameSeq;
 import com.rinke.solutions.pinball.model.PalMapping;
+import com.rinke.solutions.pinball.model.Palette;
 
 public class PinDmdEditorTest {
 	
@@ -124,6 +125,32 @@ public class PinDmdEditorTest {
 	@Test
 	public void testImportProjectString() throws Exception {
 		uut.importProject("./src/test/resources/test.xml");
+	}
+
+	@Test
+	public void testCheckOverride() throws Exception {
+		List<Palette> palettes = new ArrayList<>();
+		List<Palette> palettesImported = new ArrayList<>();
+		String override = uut.checkOverride(palettes , palettesImported );
+		assertThat(override,equalTo(""));
+		
+		palettes.add( new Palette(Palette.defaultColors(), 0, "foo"));
+		palettesImported.add( new Palette(Palette.defaultColors(), 1, "foo"));
+		override = uut.checkOverride(palettes , palettesImported );
+		assertThat(override,equalTo(""));
+
+		palettes.add( new Palette(Palette.defaultColors(), 2, "foo2"));
+		palettesImported.add( new Palette(Palette.defaultColors(), 2, "foo2"));
+		override = uut.checkOverride(palettes , palettesImported );
+		assertThat(override,equalTo("2, "));
+	}
+
+	@Test
+	public void testImportPalettes() throws Exception {
+		List<Palette> palettesImported = new ArrayList<Palette>();
+		palettesImported.add( new Palette(Palette.defaultColors(), 0, "foo"));
+		uut.importPalettes(palettesImported , false);
+		uut.importPalettes(palettesImported , true);
 	}
 
 }

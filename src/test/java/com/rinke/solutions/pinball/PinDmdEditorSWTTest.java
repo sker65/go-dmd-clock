@@ -235,4 +235,18 @@ public class PinDmdEditorSWTTest {
 		assertThat(mapping.frameSeqName, equalTo("foo"));
 	}
 
+	
+	@Test
+	public void testLoadPaletteString() throws Exception {
+		uut.loadPalette("./src/test/resources/smartdmd.txt");
+	}
+	
+	@Test
+	public void testLoadPaletteXml() throws Exception {
+		uut.loadPalette("./src/test/resources/defaultPalette.xml");
+	}
+
+
+
+
 }
