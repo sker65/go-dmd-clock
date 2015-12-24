@@ -91,7 +91,7 @@ import com.rinke.solutions.pinball.widget.RectTool;
 import com.rinke.solutions.pinball.widget.SetPixelTool;
 
 
-public class PinDmdEditor {
+public class PinDmdEditor implements EventHandler{
 
 	private static final Logger LOG = LoggerFactory.getLogger(PinDmdEditor.class);
 	
@@ -136,7 +136,6 @@ public class PinDmdEditor {
 	private String frameTextPrefix = "Pin2dmd Editor ";
 	private Animation defaultAnimation = new Animation(null, "", 0, 0, 1, 1, 1);
 	private Optional<Animation> selectedAnimation = Optional.of(defaultAnimation);
-	private int selectedAnimationIndex = 0;
 	private java.util.List<Animation> playingAnis = new ArrayList<Animation>();
 	Palette activePalette;
 
@@ -196,82 +195,7 @@ public class PinDmdEditor {
 	public PinDmdEditor() {
 		super();
 	    activePalette = project.palettes.get(0);
-	    RGB[] rgbPlane0 = { 
-	    		new RGB(0,0,0), 
-	    		new RGB(255,255,255),
-	    		new RGB(0,0,0), 
-	    		new RGB(255,255,255),
-	    		new RGB(0,0,0), 
-	    		new RGB(255,255,255),
-	    		new RGB(0,0,0), 
-	    		new RGB(255,255,255),
-	    		new RGB(0,0,0), 
-	    		new RGB(255,255,255),
-	    		new RGB(0,0,0), 
-	    		new RGB(255,255,255),
-	    		new RGB(0,0,0), 
-	    		new RGB(255,255,255),
-	    		new RGB(0,0,0), 
-	    		new RGB(255,255,255),
-	    		};
-		previewPalettes.add( new Palette(rgbPlane0) );
-	    RGB[] rgbPlane1 = { 
-	    		new RGB(0,0,0), 
-	    		new RGB(0,0,0), 
-	    		new RGB(255,255,255),
-	    		new RGB(255,255,255),
-	    		new RGB(0,0,0), 
-	    		new RGB(0,0,0), 
-	    		new RGB(255,255,255),
-	    		new RGB(255,255,255),
-	    		new RGB(0,0,0), 
-	    		new RGB(0,0,0), 
-	    		new RGB(255,255,255),
-	    		new RGB(255,255,255),
-	    		new RGB(0,0,0), 
-	    		new RGB(0,0,0), 
-	    		new RGB(255,255,255),
-	    		new RGB(255,255,255),
-	    		};
-		previewPalettes.add( new Palette(rgbPlane1) );
-	    RGB[] rgbPlane2 = { 
-	    		new RGB(0,0,0), 
-	    		new RGB(0,0,0), 
-	    		new RGB(0,0,0), 
-	    		new RGB(0,0,0), 
-	    		new RGB(255,255,255),
-	    		new RGB(255,255,255),
-	    		new RGB(255,255,255),
-	    		new RGB(255,255,255),
-	    		new RGB(0,0,0), 
-	    		new RGB(0,0,0), 
-	    		new RGB(0,0,0), 
-	    		new RGB(0,0,0), 
-	    		new RGB(255,255,255),
-	    		new RGB(255,255,255),
-	    		new RGB(255,255,255),
-	    		new RGB(255,255,255),
-	    		};
-		previewPalettes.add( new Palette(rgbPlane2) );
-	    RGB[] rgbPlane3 = { 
-	    		new RGB(0,0,0), 
-	    		new RGB(0,0,0), 
-	    		new RGB(0,0,0), 
-	    		new RGB(0,0,0), 
-	    		new RGB(0,0,0), 
-	    		new RGB(0,0,0), 
-	    		new RGB(0,0,0), 
-	    		new RGB(0,0,0), 
-	    		new RGB(255,255,255),
-	    		new RGB(255,255,255),
-	    		new RGB(255,255,255),
-	    		new RGB(255,255,255),
-	    		new RGB(255,255,255),
-	    		new RGB(255,255,255),
-	    		new RGB(255,255,255),
-	    		new RGB(255,255,255),
-	    		};
-		previewPalettes.add( new Palette(rgbPlane3) );
+	    previewPalettes = Palette.previewPalettes();
 	}
 	
 	
@@ -382,47 +306,8 @@ public class PinDmdEditor {
 		animationHandler = new AnimationHandler(playingAnis, clock, dmd, false);
 		
         animationHandler.setScale(scale);
-		animationHandler.setLabelHandler(new EventHandler() {
+		animationHandler.setLabelHandler(this);
 		    
-            @Override
-            public void notifyAni(AniEvent evt) {
-                switch (evt.evtType) {
-                case ANI:
-                    lblFrameNo.setText(""+ evt.actFrame);
-                    lblTcval.setText( ""+evt.timecode);
-                    //hashLabel.setText(
-                    int i = 0;
-                    for( byte[] p : evt.hashes) {
-                    	String hash = getPrintableHashes(p);
-                    	if( hash.startsWith("BF619EAC0CDF3F68D496EA9344137E8B")) {
-                    		btnHash[i].setText("");
-                    		btnHash[i].setEnabled(false);
-                    	} else {
-                    		btnHash[i].setText(hash);
-                    		btnHash[i].setEnabled(true);
-                    	}
-                    	i++;
-					}
-
-                    saveHashes(evt.hashes);
-                    lastTimeCode = evt.timecode;
-                    break;
-                case CLOCK:
-                    lblFrameNo.setText("");
-                    lblTcval.setText("");
-                    // sourceList.deselectAll();
-                    for(int j=0; j<4; j++) btnHash[j++].setText(""); // clear hashes
-                    break;
-                case CLEAR:
-                	for(int j=0; j<4; j++) btnHash[j++].setText(""); // clear hashes
-                	break;
-                }
-                dmdWidget.redraw();
-                previewDmd.redraw();
-            }
-
-        });
-		
 		createBindings();
 		
 		SplashScreen splashScreen = SplashScreen.getSplashScreen();
@@ -793,7 +678,6 @@ public class PinDmdEditor {
             IStructuredSelection selection = (IStructuredSelection) event.getSelection();
             if (selection.size() > 0){
             	selectedAnimation = Optional.of((Animation)selection.getFirstElement());
-            	selectedAnimationIndex = aniList.getSelectionIndex();
                 playingAnis.clear();
                 playingAnis.add(selectedAnimation.get());
                 animationHandler.setAnimations(playingAnis);
@@ -825,8 +709,7 @@ public class PinDmdEditor {
                 for(int j = 0; j < numberOfHashes; j++) {
                     btnHash[j].setSelection(j == selectedHashIndex);
                 }
-                selectedAnimationIndex = selectedPalMapping.animationIndex;
-                selectedAnimation = Optional.of(animations.get(selectedAnimationIndex));
+                selectedAnimation = Optional.of(animations.get(selectedPalMapping.animationName));
                 aniListViewer.setSelection(new StructuredSelection(selectedAnimation.get()));
                 
                 animationHandler.setPos(selectedPalMapping.frameIndex);
@@ -896,7 +779,7 @@ public class PinDmdEditor {
         	if( selectedHashIndex != -1 ) {
         		palMapping.setDigest(hashes.get(selectedHashIndex));
         	}
-        	palMapping.animationIndex = selectedAnimationIndex;
+        	palMapping.animationName = selectedAnimation.get().getDesc();
         	palMapping.frameIndex = selectedAnimation.get().actFrame;
         	project.palMappings.add(palMapping);
         	saveTimeCode = lastTimeCode;
@@ -1400,4 +1283,48 @@ public class PinDmdEditor {
 		}
 		return true;
 	}
+
+
+    @Override
+    public void notifyAni(AniEvent evt) {
+        switch (evt.evtType) {
+        case ANI:
+            lblFrameNo.setText(""+ evt.actFrame);
+            lblTcval.setText( ""+evt.timecode);
+            //hashLabel.setText(
+            int i = 0;
+            for( byte[] p : evt.hashes) {
+            	String hash = getPrintableHashes(p);
+            	if( hash.startsWith("BF619EAC0CDF3F68D496EA9344137E8B")) { // disable for empty frame
+            		btnHash[i].setText("");
+            		btnHash[i].setEnabled(false);
+            	} else {
+            		btnHash[i].setText(hash);
+            		btnHash[i].setEnabled(true);
+            	}
+            	i++;
+			}
+            while(i<4) {
+        		btnHash[i].setText("");
+        		btnHash[i].setEnabled(false);
+        		i++;
+            }
+
+            saveHashes(evt.hashes);
+            lastTimeCode = evt.timecode;
+            break;
+        case CLOCK:
+            lblFrameNo.setText("");
+            lblTcval.setText("");
+            // sourceList.deselectAll();
+            for(int j=0; j<4; j++) btnHash[j++].setText(""); // clear hashes
+            break;
+        case CLEAR:
+        	for(int j=0; j<4; j++) btnHash[j++].setText(""); // clear hashes
+        	break;
+        }
+        dmdWidget.redraw();
+        previewDmd.redraw();
+    }
+
 }
