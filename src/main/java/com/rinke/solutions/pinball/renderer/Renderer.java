@@ -2,6 +2,7 @@ package com.rinke.solutions.pinball.renderer;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.OptionalInt;
 
 import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.animation.Frame;
@@ -50,7 +51,8 @@ public abstract class Renderer {
 	}
 
 	public int getNumberOfPlanes() {
-		return 2;
+		OptionalInt optionalInt = frames.stream().mapToInt(f->f.planes.size()).max();
+		return optionalInt.orElse(2);
 	}
 
 }
