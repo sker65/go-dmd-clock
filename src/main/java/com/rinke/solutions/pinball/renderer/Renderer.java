@@ -49,4 +49,8 @@ public abstract class Renderer {
 		return frames;
 	}
 
+	public int getNumberOfPlanes() {
+		return 2;
+	}
+
 }
