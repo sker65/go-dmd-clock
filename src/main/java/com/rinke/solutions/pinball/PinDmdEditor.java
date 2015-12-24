@@ -691,29 +691,7 @@ public class PinDmdEditor implements EventHandler{
 		keyframeListViewer.setLabelProvider(new LabelProviderAdapter(o->((PalMapping)o).name));
 		keyframeListViewer.setContentProvider(ArrayContentProvider.getInstance());
 		keyframeListViewer.setInput(project.palMappings);
-		keyframeListViewer.addSelectionChangedListener(event -> {
-            IStructuredSelection selection = (IStructuredSelection) event.getSelection();
-            if (selection.size() > 0) {
-            	// set new mapping
-                selectedPalMapping = (PalMapping)selection.getFirstElement();
-                selectedHashIndex = selectedPalMapping.hashIndex;
-                
-                txtDuration.setText(selectedPalMapping.durationInMillis+"");
-                paletteComboViewer.setSelection(new StructuredSelection(project.palettes.get(selectedPalMapping.palIndex)));
-                for(int j = 0; j < numberOfHashes; j++) {
-                    btnHash[j].setSelection(j == selectedHashIndex);
-                }
-                selectedAnimation = Optional.of(animations.get(selectedPalMapping.animationName));
-                aniListViewer.setSelection(new StructuredSelection(selectedAnimation.get()));
-                
-                animationHandler.setPos(selectedPalMapping.frameIndex);
-                saveTimeCode = selectedAnimation.get().getTimeCode(selectedPalMapping.frameIndex);
-            } else {
-                selectedPalMapping = null;
-            }
-            btnDeleteKeyframe.setEnabled(selection.size()>0);
-            btnFetchDuration.setEnabled(selection.size()>0);
-		});
+		keyframeListViewer.addSelectionChangedListener(event -> keyFrameChanged(event));
 		
         dmdWidget = new DMDWidget(shell, SWT.DOUBLE_BUFFERED, this.dmd);
         //dmdWidget.setBounds(0, 0, 700, 240);
@@ -1113,7 +1091,36 @@ public class PinDmdEditor implements EventHandler{
 
     }
 
-	 void paletteTypeChanged(SelectionChangedEvent e) {
+	void keyFrameChanged(SelectionChangedEvent event) {
+		IStructuredSelection selection = (IStructuredSelection) event
+				.getSelection();
+		if (selection.size() > 0) {
+			// set new mapping
+			selectedPalMapping = (PalMapping) selection.getFirstElement();
+			selectedHashIndex = selectedPalMapping.hashIndex;
+
+			txtDuration.setText(selectedPalMapping.durationInMillis + "");
+			paletteComboViewer.setSelection(new StructuredSelection(
+					project.palettes.get(selectedPalMapping.palIndex)));
+			for (int j = 0; j < numberOfHashes; j++) {
+				btnHash[j].setSelection(j == selectedHashIndex);
+			}
+			selectedAnimation = Optional.of(animations
+					.get(selectedPalMapping.animationName));
+			aniListViewer.setSelection(new StructuredSelection(
+					selectedAnimation.get()));
+
+			animationHandler.setPos(selectedPalMapping.frameIndex);
+			saveTimeCode = selectedAnimation.get().getTimeCode(
+					selectedPalMapping.frameIndex);
+		} else {
+			selectedPalMapping = null;
+		}
+		btnDeleteKeyframe.setEnabled(selection.size() > 0);
+		btnFetchDuration.setEnabled(selection.size() > 0);
+	}
+
+	void paletteTypeChanged(SelectionChangedEvent e) {
         IStructuredSelection selection = (IStructuredSelection) e.getSelection();
         PaletteType palType = (PaletteType) selection.getFirstElement();
         activePalette.type = palType;
