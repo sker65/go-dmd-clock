@@ -23,6 +23,7 @@ import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ComboViewer;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ListViewer;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.RGB;
@@ -989,20 +990,7 @@ public class PinDmdEditor implements EventHandler{
         paletteTypeComboViewer.setContentProvider(ArrayContentProvider.getInstance());
         paletteTypeComboViewer.setInput(PaletteType.values());
         paletteTypeComboViewer.setSelection(new StructuredSelection(PaletteType.NORMAL));
-        paletteTypeComboViewer.addSelectionChangedListener(e -> {
-            IStructuredSelection selection = (IStructuredSelection) e.getSelection();
-            PaletteType palType = (PaletteType) selection.getFirstElement();
-            activePalette.type = palType;
-            if (PaletteType.DEFAULT.equals(palType)) {
-                for (int i = 0; i < project.palettes.size(); i++) {
-                    if (i != activePalette.index) { // set previous default to normal
-                        if( project.palettes.get(i).type.equals(PaletteType.DEFAULT )) {
-                        	project.palettes.get(i).type = PaletteType.NORMAL;
-                        };
-                    }
-                }
-            }
-        })  ;
+        paletteTypeComboViewer.addSelectionChangedListener(e->paletteTypeChanged(e));
 
         btnNewPalette = new Button(grpPalettes, SWT.NONE);
         btnNewPalette.setText("New");
@@ -1125,6 +1113,20 @@ public class PinDmdEditor implements EventHandler{
 
     }
 
+	 void paletteTypeChanged(SelectionChangedEvent e) {
+        IStructuredSelection selection = (IStructuredSelection) e.getSelection();
+        PaletteType palType = (PaletteType) selection.getFirstElement();
+        activePalette.type = palType;
+        if (PaletteType.DEFAULT.equals(palType)) {
+            for (int i = 0; i < project.palettes.size(); i++) {
+                if (i != activePalette.index) { // set previous default to normal
+                    if( project.palettes.get(i).type.equals(PaletteType.DEFAULT )) {
+                    	project.palettes.get(i).type = PaletteType.NORMAL;
+                    };
+                }
+            }
+        }
+    }
 
 	/**
 	 * check if dirty.
