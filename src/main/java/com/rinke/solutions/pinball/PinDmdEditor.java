@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -383,6 +384,41 @@ public class PinDmdEditor implements EventHandler{
         if (filename != null)  loadProject(filename);
     }
 	
+	/** 
+	 * imports a secondary project to implement a merge functionality
+	 */
+	void importProject() {
+        String filename = fileChooserHelper(SWT.OPEN, null, 
+        		new String[] { "*.xml;*.json;" },
+        		new String[] { "Project XML", "Project JSON" });
+
+        if (filename != null)  importProject(filename);
+	}
+	
+	void importProject(String filename) {
+        LOG.info("importing project from {}",filename);
+        Project projectToImport  = (Project) fileHelper.loadObject(filename);
+		// merge into existing Project
+        HashSet<String> collisions = new HashSet<>();
+        for( String key: projectToImport.frameSeqMap.keySet()) {
+        	if( project.frameSeqMap.containsKey(key)) {
+        		collisions.add(key);
+        	} else {
+        		project.frameSeqMap.put(key, projectToImport.frameSeqMap.get(key));
+        	}
+        }
+        if( !collisions.isEmpty() ) {
+            MessageBox messageBox = new MessageBox(shell,
+                    SWT.ICON_WARNING | SWT.OK | SWT.IGNORE | SWT.ABORT  );
+            
+            messageBox.setText("Override warning");
+            messageBox.setMessage("the following frame seq have NOT been \nimported due to name collisions: "+collisions+
+                    "\n");
+            messageBox.open();
+        }
+	}
+
+
 	void loadProject(String filename) {
         LOG.info("load project from {}",filename);
         Project projectToLoad  = (Project) fileHelper.loadObject(filename);
@@ -1184,6 +1220,10 @@ public class PinDmdEditor implements EventHandler{
 		
 		new MenuItem(menu_1, SWT.SEPARATOR);
 		
+		MenuItem mntmImportProject = new MenuItem(menu_1, SWT.NONE);
+		mntmImportProject.setText("Import Project");
+		mntmImportProject.addListener(SWT.Selection, e->importProject());
+		
 		MenuItem mntmExportProject = new MenuItem(menu_1, SWT.NONE);
 		mntmExportProject.setText("Export Project");
 		mntmExportProject.addListener(SWT.Selection, e->exportProject());
@@ -1193,9 +1233,10 @@ public class PinDmdEditor implements EventHandler{
 		MenuItem mntmExit = new MenuItem(menu_1, SWT.NONE);
 		mntmExit.setText("Exit");
 		mntmExit.addListener(SWT.Selection, e->{
-			// TODO add dirty check
-			shell.close();
-            shell.dispose();
+			if( dirtyCheck() ) {
+				shell.close();
+				shell.dispose();
+			}
 		});
 		
 		MenuItem mntmedit = new MenuItem(menu, SWT.CASCADE);
@@ -1271,7 +1312,7 @@ public class PinDmdEditor implements EventHandler{
 		mntmAbout.addListener(SWT.Selection, e->new About(shell).open());
 	}
 
-    public String getPrintableHashes(byte[] p) {
+	public String getPrintableHashes(byte[] p) {
 		StringBuffer hexString = new StringBuffer();
 		for (int j = 0; j < p.length; j++)
 			hexString.append(String.format("%02X", p[j]));
@@ -1328,5 +1369,4 @@ public class PinDmdEditor implements EventHandler{
         dmdWidget.redraw();
         previewDmd.redraw();
     }
-
 }
