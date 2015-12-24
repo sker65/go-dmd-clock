@@ -199,13 +199,13 @@ public class PinDmdEditorSWTTest {
 	@Test
 	public void testAniStop() {
 		uut.animationHandler.stop();
-		assertThat(uut.toolBar.getEnabled(), equalTo(true));
+		assertThat(uut.drawToolBar.getEnabled(), equalTo(true));
 	}
 
 	@Test
 	public void testAniStart() {
 		uut.animationHandler.start();
-		assertThat(uut.toolBar.getEnabled(), equalTo(false));
+		assertThat(uut.drawToolBar.getEnabled(), equalTo(false));
 	}
 	
 	@Test

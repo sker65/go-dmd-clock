@@ -87,10 +87,11 @@ public class Animation {
 		this.actFrame = start;
 		for (int i = start; i <= end; i++) {
 			Frame frame = this.render(tmp, false);
-			while( frame.planes.size() < actualNumberOfPlanes ) {
-				frame.planes.add(new Plane(frame.planes.get(0).marker, frame.planes.get(0).plane));
+			Frame targetFrame = new Frame(frame);
+			while( targetFrame.planes.size() < actualNumberOfPlanes ) {
+				targetFrame.planes.add(new Plane(frame.planes.get(0).marker, frame.planes.get(0).plane));
 			}
-			dest.frames.add(new Frame(frame));
+			dest.frames.add(targetFrame);
 		}
 		return dest;
 	}

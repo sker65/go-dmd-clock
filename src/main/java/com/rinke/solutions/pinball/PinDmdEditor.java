@@ -165,7 +165,7 @@ public class PinDmdEditor implements EventHandler{
 	Button btnChangeColor;
 	Button btnNewPalette;
 	Button btnRenamePalette;
-	ToolBar toolBar;
+	ToolBar drawToolBar;
     ComboViewer frameSeqViewer;
     Button btnMarkStart;
     Button btnMarkEnd;
@@ -239,7 +239,7 @@ public class PinDmdEditor implements EventHandler{
     
     public void createBindings() {
 		// do some bindings
-        ObserverManager.bind(animationHandler, e->toolBar.setEnabled(e), ()->animationHandler.isStopped());
+        ObserverManager.bind(animationHandler, e->drawToolBar.setEnabled(e), ()->animationHandler.isStopped());
         ObserverManager.bind(animationHandler, e->dmdWidget.setDrawingEnabled(e), ()->animationHandler.isStopped());
 
         ObserverManager.bind(animationHandler, e->btnStop.setEnabled(e), ()->!animationHandler.isStopped());
@@ -359,7 +359,8 @@ public class PinDmdEditor implements EventHandler{
     private Animation cutScene(Animation animation, int start, int end, String name) {
         Animation cutScene = animation.cutScene( 
                 start,
-                end, planeNumer.numberOfPlanes);
+                end, 4);
+        //TODO improve to make it selectable how many planes
         cutScene.setDesc(name);
         animations.put(name,cutScene);
         aniListViewer.setSelection(new StructuredSelection(cutScene));
@@ -1085,26 +1086,26 @@ public class PinDmdEditor implements EventHandler{
 			paletteTool.setPalette(activePalette);
 		});
 
-        toolBar = new ToolBar(grpPalettes, SWT.FLAT | SWT.RIGHT);
-        toolBar.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 3, 1));
+        drawToolBar = new ToolBar(grpPalettes, SWT.FLAT | SWT.RIGHT);
+        drawToolBar.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 3, 1));
         
-        ToolItem tltmPen = new ToolItem(toolBar, SWT.RADIO);
+        ToolItem tltmPen = new ToolItem(drawToolBar, SWT.RADIO);
         tltmPen.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/pencil.png")));
         tltmPen.addListener(SWT.Selection, e->dmdWidget.setDrawTool(drawTools.get("pencil")));
         
-        ToolItem tltmFill = new ToolItem(toolBar, SWT.RADIO);
+        ToolItem tltmFill = new ToolItem(drawToolBar, SWT.RADIO);
         tltmFill.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/color-fill.png")));
         tltmFill.addListener(SWT.Selection, e->dmdWidget.setDrawTool(drawTools.get("fill")));
         
-        ToolItem tltmRect = new ToolItem(toolBar, SWT.RADIO);
+        ToolItem tltmRect = new ToolItem(drawToolBar, SWT.RADIO);
         tltmRect.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/rect.png")));
         tltmRect.addListener(SWT.Selection, e->dmdWidget.setDrawTool(drawTools.get("rect")));
         
-        ToolItem tltmLine = new ToolItem(toolBar, SWT.RADIO);
+        ToolItem tltmLine = new ToolItem(drawToolBar, SWT.RADIO);
         tltmLine.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/line.png")));
         tltmLine.addListener(SWT.Selection, e->dmdWidget.setDrawTool(drawTools.get("line")));
 
-        ToolItem tltmCircle = new ToolItem(toolBar, SWT.RADIO);
+        ToolItem tltmCircle = new ToolItem(drawToolBar, SWT.RADIO);
         tltmCircle.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/oval.png")));
         tltmCircle.addListener(SWT.Selection, e->dmdWidget.setDrawTool(drawTools.get("circle")));
 

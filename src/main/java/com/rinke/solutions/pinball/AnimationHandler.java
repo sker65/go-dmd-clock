@@ -42,7 +42,7 @@ public class AnimationHandler extends Observable implements Runnable{
 	private GifSequenceWriter gifWriter;
 	private boolean showClock = true;
 	//private int transitionFrame= 0;
-	private int lastRenderedFrame = 0;
+	private int lastRenderedFrame = -1;
 	
 	public AnimationHandler(List<Animation> anis, DMDClock clock, DMD dmd, boolean export) {
 		this.anis = anis;
@@ -212,6 +212,7 @@ public class AnimationHandler extends Observable implements Runnable{
 		index = 0;
 		if( !anis.isEmpty() ) {
 		    anis.get(index).restart();
+		    run();
 		}
 	}
 
