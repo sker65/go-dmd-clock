@@ -6,6 +6,8 @@ import static org.hamcrest.Matchers.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.OptionalInt;
 
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ListViewer;
@@ -141,7 +143,14 @@ public class PinDmdEditorSWTTest {
 	
 	@Test
 	public void testRemoveAni() throws Exception {
+		Animation animation = new Animation(AnimationType.PNG, "test", 0, 0, 0, 0, 0);
+		animation.setDesc("foo");
+		animation.setLoadedFromFile(false);
+		uut.animations.put("foo", animation );
+		uut.selectedAnimation = Optional.of(animation);
 		trigger(SWT.Selection).on(uut.btnRemoveAni);
+		
+		assertThat( uut.animations.isEmpty(), equalTo(true));
 	}
 	
 	@Test

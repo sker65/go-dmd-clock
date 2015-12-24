@@ -130,7 +130,7 @@ public class PinDmdEditor implements EventHandler{
 	private String lastPath;
 	private String frameTextPrefix = "Pin2dmd Editor ";
 	private Animation defaultAnimation = new Animation(null, "", 0, 0, 1, 1, 1);
-	private Optional<Animation> selectedAnimation = Optional.of(defaultAnimation);
+	Optional<Animation> selectedAnimation = Optional.of(defaultAnimation);
 	private java.util.List<Animation> playingAnis = new ArrayList<Animation>();
 	Palette activePalette;
 
@@ -417,6 +417,13 @@ public class PinDmdEditor implements EventHandler{
             messageBox.setMessage("the following frame seq have NOT been \nimported due to name collisions: "+collisions+
                     "\n");
             messageBox.open();
+        }
+        
+        for( String inputFile : projectToImport.inputFiles ) {
+        	loadAni(inputFile, true, true);
+        }
+        for( PalMapping palMapping : projectToImport.palMappings) {
+        	project.palMappings.add(palMapping);
         }
 	}
 
@@ -750,7 +757,8 @@ public class PinDmdEditor implements EventHandler{
         btnRemoveAni.setEnabled(false);
         btnRemoveAni.addListener(SWT.Selection, e->{
             if( selectedAnimation.isPresent() ) {
-                animations.remove(selectedAnimation.get());
+            	String key = selectedAnimation.get().getDesc();
+                animations.remove(key);
                 playingAnis.clear();
                 animationHandler.setAnimations(playingAnis);
                 animationHandler.setClockActive(true);
