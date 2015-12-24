@@ -15,8 +15,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import com.rinke.solutions.pinball.animation.AniEvent;
+import com.rinke.solutions.pinball.animation.AniEvent.Type;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.AnimationType;
+import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.FrameSeq;
 import com.rinke.solutions.pinball.model.PalMapping;
@@ -116,6 +119,11 @@ public class PinDmdEditorTest {
 			if( b1[i] != b2[i] ) return String.format("files differ at %d", i);
 		}
 		return null;
+	}
+
+	@Test
+	public void testImportProjectString() throws Exception {
+		uut.importProject("./src/test/resources/test.xml");
 	}
 
 }

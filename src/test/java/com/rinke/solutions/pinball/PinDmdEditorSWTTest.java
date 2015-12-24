@@ -4,6 +4,9 @@ import static com.fappel.swt.SWTEventHelper.trigger;
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ListViewer;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
@@ -27,6 +30,7 @@ import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.AnimationType;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.animation.EventHandler;
+import com.rinke.solutions.pinball.animation.AniEvent.Type;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.PaletteType;
@@ -67,7 +71,9 @@ public class PinDmdEditorSWTTest {
 		
 		byte[] digest = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
 		uut.hashes.add(digest);
-
+		byte[] emptyFrameDigest = { (byte)0xBF, 0x61, (byte)0x9E, (byte)0xAC, 0x0C, (byte)0xDF, 0x3F, 0x68,
+				(byte)0xD4, (byte)0x96, (byte)0xEA, (byte)0x93, 0x44, 0x13, 0x7E, (byte)0x8B };
+		uut.hashes.add(emptyFrameDigest);
 	}
 	
 	@Rule
@@ -97,6 +103,27 @@ public class PinDmdEditorSWTTest {
 		SelectionChangedEvent e = new SelectionChangedEvent(uut.keyframeListViewer, 
 				new StructuredSelection(palMapping));
 		fireSelectionChanged(uut.keyframeListViewer, e);
+	}
+	
+	@Test
+	public void testNotifyAniClear() throws Exception {
+		Animation actAnimation = new CompiledAnimation(AnimationType.COMPILED,"foo",0,0,0,0,0);
+		AniEvent evt = new AniEvent(Type.CLEAR, 0, actAnimation, uut.hashes, 0);
+		uut.notifyAni(evt );
+	}
+
+	@Test
+	public void testNotifyAniAni() throws Exception {
+		Animation actAnimation = new CompiledAnimation(AnimationType.COMPILED,"foo",0,0,0,0,0);
+		AniEvent evt = new AniEvent(Type.ANI, 0, actAnimation, uut.hashes, 0);
+		uut.notifyAni(evt );
+	}
+
+	@Test
+	public void testNotifyAniClock() throws Exception {
+		Animation actAnimation = new CompiledAnimation(AnimationType.COMPILED,"foo",0,0,0,0,0);
+		AniEvent evt = new AniEvent(Type.CLOCK, 0, actAnimation, uut.hashes, 0);
+		uut.notifyAni(evt );
 	}
 	
 	@Test
