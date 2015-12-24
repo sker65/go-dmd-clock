@@ -3,7 +3,6 @@ package com.rinke.solutions.pinball;
 import java.awt.SplashScreen;
 import java.io.DataOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -11,13 +10,10 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Observable;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import javax.management.RuntimeErrorException;
 
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.JFaceResources;
@@ -25,7 +21,6 @@ import org.eclipse.jface.resource.LocalResourceManager;
 import org.eclipse.jface.resource.ResourceManager;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ComboViewer;
-import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ListViewer;
 import org.eclipse.jface.viewers.StructuredSelection;
@@ -62,10 +57,8 @@ import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.AnimationCompiler;
 import com.rinke.solutions.pinball.animation.AnimationFactory;
 import com.rinke.solutions.pinball.animation.AnimationType;
-import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.animation.EventHandler;
 import com.rinke.solutions.pinball.animation.Frame;
-import com.rinke.solutions.pinball.animation.Plane;
 import com.rinke.solutions.pinball.io.FileHelper;
 import com.rinke.solutions.pinball.io.SmartDMDImporter;
 import com.rinke.solutions.pinball.io.UsbTool;
@@ -130,7 +123,6 @@ public class PinDmdEditor implements EventHandler{
 
     private Label lblTcval;
 	private Label lblFrameNo;
-	private Scale scale;
 	
 	private String lastPath;
 	private String frameTextPrefix = "Pin2dmd Editor ";
@@ -153,6 +145,7 @@ public class PinDmdEditor implements EventHandler{
 	/** instance level SWT widgets */
 	Button btnHash[] = new Button[numberOfHashes];
 	Text txtDuration;
+	Scale scale;
 	ComboViewer paletteComboViewer;
 	ListViewer aniListViewer;
 	ListViewer keyframeListViewer;
@@ -306,7 +299,7 @@ public class PinDmdEditor implements EventHandler{
 		animationHandler = new AnimationHandler(playingAnis, clock, dmd, false);
 		
         animationHandler.setScale(scale);
-		animationHandler.setLabelHandler(this);
+		animationHandler.setEventHandler(this);
 		    
 		createBindings();
 		
