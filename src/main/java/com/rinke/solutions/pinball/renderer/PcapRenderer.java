@@ -21,7 +21,7 @@ public class PcapRenderer extends Renderer {
 
     private static Logger LOG = LoggerFactory.getLogger(PcapRenderer.class); 
 
-    protected void readImage(String filename, DMD dmd) {
+    void readImage(String filename, DMD dmd) {
     	LittleEndianDataInputStream stream = null;
     	long bufSize = new File(filename).length();
     	try {
