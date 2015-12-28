@@ -15,7 +15,7 @@ import org.junit.rules.TemporaryFolder;
 
 import com.fappel.swt.DisplayHelper;
 
-public class DeviceConfigTest {
+public class DeviceConfigSWTTest {
 
 	@Rule
     public TemporaryFolder testFolder = new TemporaryFolder();
