@@ -16,6 +16,7 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Shell;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestWatcher;
@@ -135,6 +136,7 @@ public class PinDmdEditorSWTTest {
 	}
 	
 	@Test
+	@Ignore
 	public void testOpen() throws Exception {
 		uut.shell = shell;
 		uut.loadProject("./src/test/resources/test.xml");
