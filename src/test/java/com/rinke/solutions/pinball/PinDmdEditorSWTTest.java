@@ -135,6 +135,17 @@ public class PinDmdEditorSWTTest {
 	}
 	
 	@Test
+	public void testOpen() throws Exception {
+		uut.shell = shell;
+		uut.loadProject("./src/test/resources/test.xml");
+		displayHelper.getDisplay().timerExec(1000,()->{
+			trigger(SWT.Close).on(shell);
+		});
+		//uut.open(new String[]{});
+	}
+
+	
+	@Test
 	public void testPaletteTypeChanged() throws Exception {
 		ISelection s = new StructuredSelection(PaletteType.DEFAULT);
 		SelectionChangedEvent e = new SelectionChangedEvent(uut.paletteTypeComboViewer, s );
