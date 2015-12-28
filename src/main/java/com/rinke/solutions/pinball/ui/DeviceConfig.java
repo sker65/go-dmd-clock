@@ -62,12 +62,12 @@ public class DeviceConfig extends Dialog {
         String filename = fileChooser.open();
         lastPath = fileChooser.getFilterPath();        
         if (filename != null) {
-            writeDeviceConfig(filename, deviceModeCombo.getSelectionIndex(), deviceModeCombo.getSelectionIndex());
+            writeDeviceConfig(filename, deviceModeCombo.getSelectionIndex(), comboDefaultPalette.getSelectionIndex());
         }
         shell.close();
     }
 
-    private void writeDeviceConfig(String filename, int mode, int defPalette) {
+    void writeDeviceConfig(String filename, int mode, int defPalette) {
         byte[] dummy = {0x0F,0x0A,0x0F,0x0C,0x0F,0x00,0x0F,0x0F,0,0};
         try(FileOutputStream 
             fos = new FileOutputStream(filename) ) {
