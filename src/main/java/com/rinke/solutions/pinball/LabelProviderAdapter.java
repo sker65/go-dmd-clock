@@ -2,6 +2,10 @@ package com.rinke.solutions.pinball;
 
 import org.eclipse.jface.viewers.LabelProvider;
 
+/**
+ * adapter for jface label providers to use them with lamba's extracting text for labels from objects
+ * @author stefanri
+ */
 public class LabelProviderAdapter extends LabelProvider {
     
     @FunctionalInterface

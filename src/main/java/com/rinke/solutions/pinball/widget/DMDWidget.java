@@ -63,6 +63,7 @@ public class DMDWidget extends ResourceManagedCanvas {
 		int pitchx = (width -2*margin) / resolutionX;
 		int pitchy = (height -2*margin) / resolutionY;
 		pitch = pitchx<pitchy?pitchx:pitchy;
+		if( pitch <= 0) pitch = 1;
 	}
 
 	@Override

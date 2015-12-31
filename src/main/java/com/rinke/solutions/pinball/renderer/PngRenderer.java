@@ -124,22 +124,6 @@ public class PngRenderer extends Renderer {
 		return filename;
 	}
 
-	public static void main(String[] args) {
-		Renderer renderer = new PngRenderer();
-		String base = "/home/sr/Downloads/Pinball/";
-		DMD dmd = new DMD(16, 32);
-		for (int j = 0x329; j <= 0x0333; j++) {
-			String number = String.format("%04X",
-					new Object[] { Integer.valueOf(j) });
-			renderer.convert(base + "Getaway/Image-0x"+number+".png", dmd,1);
-			for (int i = 0; i < 30; i++) {
-				int b = dmd.frame1[0 + i * dmd.getBytesPerRow()];
-				String n = "00000000000" + Integer.toBinaryString(b);
-				LOG.debug("0b0"+n.substring(n.length() - 8, n.length()));
-			}
-		}
-	}
-
 	public void setOverrideDMD(boolean override) {
 		this.override = override;
 	}

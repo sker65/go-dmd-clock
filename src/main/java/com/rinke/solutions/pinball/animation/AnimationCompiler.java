@@ -102,14 +102,6 @@ public class AnimationCompiler {
 		LOG.info("successful read {} anis", anis.size());
 		return anis;
 	}
-	
-	public static void main(String[] args)  {
-//		List<Animation> anis = AnimationFactory.buildAnimations("logo.properties");
-//		String filename = "logo.ani";
-		List<Animation> anis = AnimationFactory.buildAnimations("animations.properties");
-		String filename = "foo.ani";
-		writeToCompiledFile(anis, filename);
-	}
 
 	public static void writeToCompiledFile(List<Animation> anis, String filename) {
 		DataOutputStream os = null;

@@ -62,12 +62,12 @@ public class DeviceConfig extends Dialog {
         String filename = fileChooser.open();
         lastPath = fileChooser.getFilterPath();        
         if (filename != null) {
-            writeDeviceConfig(filename, deviceModeCombo.getSelectionIndex(), deviceModeCombo.getSelectionIndex());
+            writeDeviceConfig(filename, deviceModeCombo.getSelectionIndex(), comboDefaultPalette.getSelectionIndex());
         }
         shell.close();
     }
 
-    private void writeDeviceConfig(String filename, int mode, int defPalette) {
+    void writeDeviceConfig(String filename, int mode, int defPalette) {
         byte[] dummy = {0x0F,0x0A,0x0F,0x0C,0x0F,0x00,0x0F,0x0F,0,0};
         try(FileOutputStream 
             fos = new FileOutputStream(filename) ) {
@@ -102,7 +102,7 @@ public class DeviceConfig extends Dialog {
      */
     private void createContents() {
         shell = new Shell(getParent(), getStyle());
-        shell.setSize(448, 212);
+        shell.setSize(448, 162);
         shell.setText("Device Configuration");
         shell.setLayout(new FormLayout());
         
@@ -110,30 +110,14 @@ public class DeviceConfig extends Dialog {
         FormData fd_grpConfig = new FormData();
         fd_grpConfig.top = new FormAttachment(0, 10);
         fd_grpConfig.left = new FormAttachment(0, 10);
-        fd_grpConfig.bottom = new FormAttachment(0, 176);
+        fd_grpConfig.bottom = new FormAttachment(0, 129);
         fd_grpConfig.right = new FormAttachment(0, 440);
         grpConfig.setLayoutData(fd_grpConfig);
         grpConfig.setText("Config");
-        grpConfig.setLayout(new GridLayout(7, false));
-        new Label(grpConfig, SWT.NONE);
-        new Label(grpConfig, SWT.NONE);
-        new Label(grpConfig, SWT.NONE);
-        new Label(grpConfig, SWT.NONE);
-        new Label(grpConfig, SWT.NONE);
-        new Label(grpConfig, SWT.NONE);
-        new Label(grpConfig, SWT.NONE);
-        new Label(grpConfig, SWT.NONE);
-        new Label(grpConfig, SWT.NONE);
-        new Label(grpConfig, SWT.NONE);
-        new Label(grpConfig, SWT.NONE);
-        new Label(grpConfig, SWT.NONE);
-        new Label(grpConfig, SWT.NONE);
-        new Label(grpConfig, SWT.NONE);
-        new Label(grpConfig, SWT.NONE);
+        grpConfig.setLayout(new GridLayout(3, false));
         
         Label lblNewLabel = new Label(grpConfig, SWT.NONE);
         lblNewLabel.setText("Device Mode");
-        new Label(grpConfig, SWT.NONE);
         
         deviceModecomboViewer = new ComboViewer(grpConfig, SWT.NONE);
         deviceModeCombo = deviceModecomboViewer.getCombo();
@@ -141,19 +125,14 @@ public class DeviceConfig extends Dialog {
         deviceModecomboViewer.setContentProvider(ArrayContentProvider.getInstance());
         deviceModecomboViewer.setInput(DeviceMode.values());
         deviceModeCombo.select(0);
-        new Label(grpConfig, SWT.NONE);
-        new Label(grpConfig, SWT.NONE);
         
         Button btnSave = new Button(grpConfig, SWT.NONE);
         btnSave.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
         btnSave.setText("Save");
         btnSave.addListener(SWT.Selection, e->save());
-        new Label(grpConfig, SWT.NONE);
         
         Label lblNewLabel_1 = new Label(grpConfig, SWT.NONE);
-        lblNewLabel_1.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
         lblNewLabel_1.setText("Default Palette");
-        new Label(grpConfig, SWT.NONE);
         
         comboViewerDefaultPalette = new ComboViewer(grpConfig, SWT.NONE);
         comboDefaultPalette = comboViewerDefaultPalette.getCombo();
@@ -161,8 +140,6 @@ public class DeviceConfig extends Dialog {
         comboViewerDefaultPalette.setContentProvider(ArrayContentProvider.getInstance());
         comboViewerDefaultPalette.setInput(DefaultPalette.values());
         comboDefaultPalette.select(0);
-        new Label(grpConfig, SWT.NONE);
-        new Label(grpConfig, SWT.NONE);
         
         Button btnCancel = new Button(grpConfig, SWT.NONE);
         btnCancel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));

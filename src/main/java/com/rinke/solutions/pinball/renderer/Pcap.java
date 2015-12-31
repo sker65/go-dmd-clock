@@ -65,7 +65,7 @@ public class Pcap {
             return "Paket [sec=" + sec + ", usec=" + usec + ", incLen=" + incLen + ", orgLen=" + orgLen + "]";
         }
 
-        public long getTimestampInMillis() {
+        public int getTimestampInMillis() {
             return sec * 1000 + usec / 1000;
         }
 

@@ -4,7 +4,7 @@ import java.util.List;
 
 public class AniEvent {
     public enum Type {
-        ANI, CLOCK
+        ANI, CLOCK, CLEAR
     };
 
     public Type evtType;

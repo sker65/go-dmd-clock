@@ -22,25 +22,16 @@ public class VPinMameRenderer extends Renderer {
     
     private static Logger LOG = LoggerFactory.getLogger(VPinMameRenderer.class); 
 
-	List<Frame> frames = new ArrayList<>();
-
-	@Override
-	public Frame convert(String filename, DMD dmd, int frameNo) {
-		if (frames.isEmpty())
-			readImage(filename, dmd);
-		return frames.get(frameNo);
-	}
-	
-    @Override
+   @Override
     public long getTimeCode(int actFrame) {
         return actFrame< frames.size() ? frames.get(actFrame).timecode:0;
     }
 
-	private void readImage(String filename, DMD dmd) {
+   void readImage(String filename, DMD dmd) {
 		BufferedReader stream = null;
 		int frameNo = 0;
-		long timecode = 0L;
-		long lastTimeStamp=0L;
+		int timecode = 0;
+		int lastTimeStamp=0;
 		try {
 			stream = new BufferedReader( new InputStreamReader(
 					new GZIPInputStream(new FileInputStream(new File(filename)))));
@@ -51,7 +42,7 @@ public class VPinMameRenderer extends Renderer {
 			int j=0;
 			while(line!=null) {
 				if( line.startsWith("0x")) {
-					long newTs = Long.parseLong(line.substring(2), 16);
+					int newTs = Integer.parseInt(line.substring(2), 16);
 					if( frameNo>0 && lastTimeStamp >0) {
 					    frames.get(frameNo-1).delay = (int) (newTs - lastTimeStamp);
 	                    timecode += (newTs - lastTimeStamp);
@@ -101,14 +92,5 @@ public class VPinMameRenderer extends Renderer {
 		}
 		this.maxFrame = frameNo;
 	}
-
-	public static void main(String[] args) {
-		Renderer renderer = new VPinMameRenderer();
-		String base = "/home/sr/Downloads/Pinball/DMDpaint/";
-		DMD dmd = new DMD(128, 32);
-		renderer.convert(base + "ezgif-645182047.gif", dmd, 0);
-	}
-
-
 
 }

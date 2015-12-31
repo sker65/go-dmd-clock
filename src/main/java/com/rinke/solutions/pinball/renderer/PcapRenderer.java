@@ -21,16 +21,7 @@ public class PcapRenderer extends Renderer {
 
     private static Logger LOG = LoggerFactory.getLogger(PcapRenderer.class); 
 
-	List<Frame> frames = new ArrayList<>();
-
-	@Override
-	public Frame convert(String filename, DMD dmd, int frameNo) {
-		if (frames.isEmpty())
-			readImage(filename, dmd);
-		return frames.get(frameNo);
-	}
-	
-    private void readImage(String filename, DMD dmd) {
+    void readImage(String filename, DMD dmd) {
     	LittleEndianDataInputStream stream = null;
     	long bufSize = new File(filename).length();
     	try {
@@ -48,8 +39,8 @@ public class PcapRenderer extends Renderer {
     		Header header = pcap.readHeader();
     		System.out.println(header);
     		Paket p;
-    		long lastTimestamp = 0;
-    		long tc = 0;
+    		int lastTimestamp = 0;
+    		int tc = 0;
     		while( ( p = pcap.readPaket()) != null ) {
     			byte[] data = new byte[p.incLen];
     			stream.read(data);

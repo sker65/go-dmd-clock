@@ -115,6 +115,14 @@ public class GlobalExceptionHandler {
         this.shell = shell;
     }
 
+	public Exception getLastException() {
+		return lastException;
+	}
+
+	public void setLastException(Exception lastException) {
+		this.lastException = lastException;
+	}
+
 
 
 }

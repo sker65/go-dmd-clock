@@ -1,18 +1,19 @@
 package com.rinke.solutions.pinball.animation;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import com.rinke.solutions.pinball.DMD;
 
 public class CompiledAnimation extends Animation {
 
-	public List<Frame> frames = new ArrayList<>();
+	public List<Frame> frames;
 	Frame last = null;
 	
 	public CompiledAnimation(AnimationType type, String name, int start,
 			int end, int skip, int cycles, int holdCycles) {
 		super(type, name, start, end, skip, cycles, holdCycles);
+		init();
+		frames = renderer.getFrames();
 	}
 
 	@Override
@@ -61,9 +62,6 @@ public class CompiledAnimation extends Animation {
 		List<byte[]> dmdPlanes = dmd.getActualBuffers();
 		for(int i=0; i<planes.size(); i++) {
 			int len = min(dmdPlanes.get(i).length,planes.get(i).plane.length);
-//			for(int b=0; b<len;b++) {
-//				planes.get(i).plane[b] = dmdPlanes.get(i)[b];
-//			}
 			System.arraycopy(dmdPlanes.get(i), 0, planes.get(i).plane, 0, len );
 		}
 	}
@@ -71,4 +69,5 @@ public class CompiledAnimation extends Animation {
 	private int min(int l, int l2) {
 		return l<l2?l:l2;
 	}
+	
 }

@@ -11,8 +11,12 @@ public class PalMapping implements Model {
     public int durationInFrames;
     public int hashIndex; // which hash (from which frame)
     public String name;
-    public int animationIndex;
+    // just for backward comp
+    @Deprecated
+    public int animatisonIndex;
+    public String animationName;
     public int frameIndex;
+    public String frameSeqName;
     
     public PalMapping(byte[] digest, int palIndex, long durationInMillis, int durationInFrames) {
         super();
@@ -26,8 +30,9 @@ public class PalMapping implements Model {
         this.durationInFrames = durationInFrames;
     }
 
-	public PalMapping(int palIndex) {
+	public PalMapping(int palIndex, String name) {
 		this.palIndex = palIndex;
+		this.name = name;
 	}
 
 	public void writeTo(DataOutputStream os) throws IOException {

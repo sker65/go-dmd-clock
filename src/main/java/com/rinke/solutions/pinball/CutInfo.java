@@ -2,6 +2,10 @@ package com.rinke.solutions.pinball;
 
 import java.util.Observable;
 
+/**
+ * simple dto for holding cut marks (start & end). Implements observable which is used from UI
+ * @author stefanri
+ */
 public class CutInfo extends Observable {
     
     public CutInfo() {

@@ -1,11 +1,9 @@
 package com.rinke.solutions.pinball.animation;
 
 import java.io.File;
-import java.io.FilenameFilter;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.rinke.solutions.pinball.renderer.AnimatedGIFRenderer;
 import com.rinke.solutions.pinball.renderer.Renderer;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
@@ -114,63 +112,6 @@ public class AnimationFactory {
 			result.add(animation);
 		}
 		return result;
-	}
-	
-    private static void addAllDDMF(List<Animation> anis, String dir) {
-    	File[] files = new File(dir).listFiles(new FilenameFilter() {
-			
-			public boolean accept(File dir, String name) {
-				return name.endsWith(".dmdf");
-			}
-		});
-    	
-    	if( files != null ) for (File file : files) {
-    		Animation animation = new Animation(AnimationType.DMDF, "DMDpaint/"+file.getName(), 
-        			0, 94, 1, 1, 6);
-    		animation.setRefreshDelay(10);
-            anis.add( animation );
-		}
-		
-	}
-	
-	public static List<Animation> buildAnimations(String filename) {
-		List<Animation> anis = new ArrayList<Animation>();
-        if( filename != null ) {
-        	anis.addAll(AnimationFactory.createAnimationsFromProperties(filename));
-        }
-
-//        addAllDDMF(anis,"/home/sr/Downloads/Pinball/DMDpaint");
-        
-//        anis.add( new Animation(AnimationType.GIF, "DMDpaint/ezgif-645182047.gif",
-//        		0, 42, 1, 1, 6));
-//        anis.add( new Animation(AnimationType.GIF, "DMDpaint/ezgif-8946320.gif",
-//        		0, 110, 1, 1, 6));
-        
-        
-        if( false ) {
-	        anis.add( new Animation(AnimationType.PNG,GETAWAY,0x5a,0x70, 2, 1, 0 ));
-	        anis.add( new Animation(AnimationType.PNG,GETAWAY,0x05,0x11, 2, 1, 6) );
-	        anis.add( new Animation(AnimationType.PNG,GETAWAY,0x36, 0x52, 2, 1, 3));
-	        // multi
-	        anis.add( new Animation(AnimationType.PNG,GETAWAY,0x73, 0x81, 2, 4, 0));
-	        // schaltung
-	        anis.add( new Animation(AnimationType.PNG,GETAWAY,0x104, 0x110, 2, 1, 0));
-	        // kickback
-	        anis.add( new Animation(AnimationType.PNG,GETAWAY,0x114, 0x157, 2, 1, 0));
-	        
-	        anis.add( new Animation(AnimationType.PNG,GETAWAY,0x158, 0x165, 1, 1, 5));
-	        // free ride
-	        anis.add( new Animation(AnimationType.PNG,GETAWAY,0x166, 0x181, 2, 1, 4));
-	        
-	        anis.add( new Animation(AnimationType.PNG,"DrWho",0x0Ed, 0x107, 2, 1, 0));
-	
-	        anis.add( new Animation(AnimationType.PNG,"DrWho",0x0DF, 0x0EC, 1, 1, 5));
-	
-	        anis.add( new Animation(AnimationType.PNG,"DrWho",0x000, 0x040, 1, 1, 0));
-	
-	        anis.add( new Animation(AnimationType.PNG,"T2",0x3DA, 0x3E3, 1, 1, 3));
-        }
-        return anis;
 	}
 
 	private static int getInt(Config conf, String key) {

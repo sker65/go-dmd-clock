@@ -29,18 +29,8 @@ public class AnimatedGIFRenderer extends Renderer {
     
     private static Logger LOG = LoggerFactory.getLogger(AnimatedGIFRenderer.class); 
 	
-	List<Frame> frames = new ArrayList<>();
-
-	@Override
-	public Frame convert(String filename, DMD dmd, int frameNo) {
-
-		if( frames.isEmpty() ) readImage(filename, dmd);
-		return frames.get(frameNo);
-	}
-	
-	private void readImage(String filename, DMD dmd) {
+	protected void readImage(String filename, DMD dmd) {
 		
-
 		String[] imageatt = new String[]{
                 "imageLeftPosition",
                 "imageTopPosition",
@@ -149,13 +139,5 @@ public class AnimatedGIFRenderer extends Renderer {
 		}
 		
 	}
-
-	public static void main(String[] args) {
-		Renderer renderer = new AnimatedGIFRenderer();
-		String base = "/home/sr/Downloads/Pinball/DMDpaint/";
-		DMD dmd = new DMD(128, 32);
-		renderer.convert(base + "ezgif-645182047.gif", dmd, 0);
-	}
-
 
 }

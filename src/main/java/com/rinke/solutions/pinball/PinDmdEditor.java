@@ -1,13 +1,20 @@
 package com.rinke.solutions.pinball;
 
 import java.awt.SplashScreen;
+import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.JFaceResources;
@@ -17,6 +24,7 @@ import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ComboViewer;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ListViewer;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.RGB;
@@ -51,8 +59,8 @@ import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.AnimationCompiler;
 import com.rinke.solutions.pinball.animation.AnimationFactory;
 import com.rinke.solutions.pinball.animation.AnimationType;
-import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.animation.EventHandler;
+import com.rinke.solutions.pinball.animation.Frame;
 import com.rinke.solutions.pinball.io.FileHelper;
 import com.rinke.solutions.pinball.io.SmartDMDImporter;
 import com.rinke.solutions.pinball.io.UsbTool;
@@ -60,12 +68,15 @@ import com.rinke.solutions.pinball.model.FrameSeq;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.PaletteType;
+import com.rinke.solutions.pinball.model.PlaneNumber;
 import com.rinke.solutions.pinball.model.Project;
 import com.rinke.solutions.pinball.model.Scene;
 import com.rinke.solutions.pinball.ui.About;
 import com.rinke.solutions.pinball.ui.DeviceConfig;
 import com.rinke.solutions.pinball.ui.FileChooser;
 import com.rinke.solutions.pinball.ui.FileDialogDelegate;
+import com.rinke.solutions.pinball.util.ObservableList;
+import com.rinke.solutions.pinball.util.ObservableMap;
 import com.rinke.solutions.pinball.widget.CircleTool;
 import com.rinke.solutions.pinball.widget.DMDWidget;
 import com.rinke.solutions.pinball.widget.DrawTool;
@@ -76,7 +87,7 @@ import com.rinke.solutions.pinball.widget.RectTool;
 import com.rinke.solutions.pinball.widget.SetPixelTool;
 
 
-public class PinDmdEditor {
+public class PinDmdEditor implements EventHandler{
 
 	private static final Logger LOG = LoggerFactory.getLogger(PinDmdEditor.class);
 	
@@ -85,10 +96,12 @@ public class PinDmdEditor {
 	private static final String HELP_URL = "http://go-dmd.de/2015/11/24/pin2dmd-editor/";
 
 	DMD dmd = new DMD(128,32);
+	
 	AnimationHandler animationHandler = null;
 	
 	CyclicRedraw cyclicRedraw = new CyclicRedraw();
-	java.util.List<Animation> animations = new ArrayList<>();
+	
+	ObservableMap<String,Animation> animations = new ObservableMap<String,Animation>(new HashMap<>());
     Map<String,DrawTool> drawTools = new HashMap<>();
 
     Display display;
@@ -99,22 +112,25 @@ public class PinDmdEditor {
 	@Option(name="-ani", usage="animation file to load", required=false)
 	private String aniToLoad;
 	
-	@Option(name="-cut", usage="<name>,<start>,<end>", required=false)
-	private String cut;
+	@Option(name="-cut", usage="<src name>,<new name>,<start>,<end>", required=false)
+	private String cutCmd;
+
+	@Option(name="-nodirty", usage="dont check dirty flag on close", required=false)
+	private boolean nodirty=false;
+
+	@Option(name="-save", usage="if set, project is saved right away", required=false)
+	private String saveFile;
 	
     @Argument
     private java.util.List<String> arguments = new ArrayList<String>();
 
-	
-    //private Canvas previewCanvas;
-	private Label lblTcval;
+    private Label lblTcval;
 	private Label lblFrameNo;
-	private Scale scale;
 	
 	private String lastPath;
 	private String frameTextPrefix = "Pin2dmd Editor ";
-	private Animation selectedAnimation = null;
-	private int selectedAnimationIndex = 0;
+	private Animation defaultAnimation = new Animation(null, "", 0, 0, 1, 1, 1);
+	Optional<Animation> selectedAnimation = Optional.of(defaultAnimation);
 	private java.util.List<Animation> playingAnis = new ArrayList<Animation>();
 	Palette activePalette;
 
@@ -132,6 +148,7 @@ public class PinDmdEditor {
 	/** instance level SWT widgets */
 	Button btnHash[] = new Button[numberOfHashes];
 	Text txtDuration;
+	Scale scale;
 	ComboViewer paletteComboViewer;
 	ListViewer aniListViewer;
 	ListViewer keyframeListViewer;
@@ -148,38 +165,36 @@ public class PinDmdEditor {
 	Button btnChangeColor;
 	Button btnNewPalette;
 	Button btnRenamePalette;
-	ToolBar toolBar;
-
+	ToolBar drawToolBar;
+    ComboViewer frameSeqViewer;
+    Button btnMarkStart;
+    Button btnMarkEnd;
+    Button btnCut;
+    Button btnStart;
+    Button btnStop;
+	Button btnAddFrameSeq;
+	DMDWidget previewDmd;
+    ObservableList<Animation> frameSeqList = new  ObservableList<>(new ArrayList<>());
+	private ComboViewer planesComboViewer;
+    
 	PaletteTool paletteTool;
 	int selectedHashIndex;
 	PalMapping selectedPalMapping;
 	long saveTimeCode;
 	
 	CutInfo cutInfo = new CutInfo();
-    int cutxStart;
-    int cutxEnd;
 
-	private int[] numberOfPlanes = { 2 , 4 };
+	java.util.List<Palette> previewPalettes = new ArrayList<>();
 
-	private int actualNumberOfPlanes = 4;
+	PlaneNumber planeNumer;
 
-    private ComboViewer frameSeqViewer;
-
-    private Button btnMarkStart;
-
-    private Button btnMarkEnd;
-
-    private Button btnCut;
-
-    private Button btnStart;
-
-    private Button btnStop;
-
-    
 	public PinDmdEditor() {
 		super();
 	    activePalette = project.palettes.get(0);
+	    previewPalettes = Palette.previewPalettes();
 	}
+	
+	
 
 	/**
 	 * handles redraw of animations
@@ -191,6 +206,7 @@ public class PinDmdEditor {
 		public void run() {
 			//if( !previewCanvas.isDisposed()) previewCanvas.redraw();
 			if( dmdWidget!=null && !dmdWidget.isDisposed() ) dmdWidget.redraw();
+			if( previewDmd!=null && !previewDmd.isDisposed() ) previewDmd.redraw();
             if (animationHandler != null && !animationHandler.isStopped()) {
             	animationHandler.run();
                 display.timerExec(animationHandler.getRefreshDelay(), cyclicRedraw);
@@ -223,7 +239,7 @@ public class PinDmdEditor {
     
     public void createBindings() {
 		// do some bindings
-        ObserverManager.bind(animationHandler, e->toolBar.setEnabled(e), ()->animationHandler.isStopped());
+        ObserverManager.bind(animationHandler, e->drawToolBar.setEnabled(e), ()->animationHandler.isStopped());
         ObserverManager.bind(animationHandler, e->dmdWidget.setDrawingEnabled(e), ()->animationHandler.isStopped());
 
         ObserverManager.bind(animationHandler, e->btnStop.setEnabled(e), ()->!animationHandler.isStopped());
@@ -237,6 +253,23 @@ public class PinDmdEditor {
 
         ObserverManager.bind(cutInfo, e->btnMarkEnd.setEnabled(e),
                 ()-> ( cutInfo.getStart()>0  ));
+        
+        ObserverManager.bind(animations, e->btnStart.setEnabled(e), 
+        		()->!this.animations.isEmpty()&&animationHandler.isStopped());
+        ObserverManager.bind(animations, e->btnPrev.setEnabled(e), ()->!this.animations.isEmpty());
+        ObserverManager.bind(animations, e->btnNext.setEnabled(e), ()->!this.animations.isEmpty());
+        ObserverManager.bind(animations, e->btnMarkStart.setEnabled(e), ()->!this.animations.isEmpty());
+
+        ObserverManager.bind(animations, e->aniListViewer.refresh(), ()->true);
+        ObserverManager.bind(animations, e->buildFrameSeqList(), ()->true);
+        
+        //ObserverManager.bind(animations, e->btnAddFrameSeq.setEnabled(e), ()->!frameSeqList.isEmpty());
+    }
+    
+    protected void buildFrameSeqList() {
+    	frameSeqList.clear();
+    	frameSeqList.addAll( animations.values().stream().filter(a->!a.isLoadedFromFile()).collect(Collectors.toList()));
+    	frameSeqViewer.refresh();
     }
 
 	/**
@@ -266,36 +299,11 @@ public class PinDmdEditor {
 		paletteComboViewer.getCombo().select(0);
 		paletteTool.setPalette(activePalette);
 		
-		animationHandler = new AnimationHandler(playingAnis, clock, dmd, dmdWidget, false);
+		animationHandler = new AnimationHandler(playingAnis, clock, dmd, false);
 		
         animationHandler.setScale(scale);
-		animationHandler.setLabelHandler(new EventHandler() {
+		animationHandler.setEventHandler(this);
 		    
-            @Override
-            public void notifyAni(AniEvent evt) {
-                switch (evt.evtType) {
-                case ANI:
-                    lblFrameNo.setText(""+ evt.actFrame);
-                    lblTcval.setText( ""+evt.timecode);
-                    //hashLabel.setText(
-                    int i = 0;
-                    for( byte[] p : evt.hashes) {
-						btnHash[i++].setText(getPrintableHashes(p));
-					}
-
-                    saveHashes(evt.hashes);
-                    lastTimeCode = evt.timecode;
-                    break;
-                case CLOCK:
-                    lblFrameNo.setText("");
-                    lblTcval.setText("");
-                    // sourceList.deselectAll();
-                    break;
-                }
-            }
-
-        });
-		
 		createBindings();
 		
 		SplashScreen splashScreen = SplashScreen.getSplashScreen();
@@ -314,14 +322,18 @@ public class PinDmdEditor {
 
 		display.timerExec(animationHandler.getRefreshDelay(), cyclicRedraw);
 		
+		// cmd line processing
 		if( aniToLoad != null ) {
 		    loadAni(aniToLoad, false, true);
 		}
-		if( cut != null && !animations.isEmpty() ) {
-		    String[] cuts = cut.split(",");
+		if( cutCmd != null && !animations.isEmpty() ) {
+		    String[] cuts = cutCmd.split(",");
 		    if( cuts.length >=3 ) {
-		        cutScene(animations.get(0),Integer.parseInt(cuts[1]), Integer.parseInt(cuts[2]), cuts[0]);
+		        cutScene(animations.get(cuts[0]),Integer.parseInt(cuts[2]), Integer.parseInt(cuts[3]), cuts[1]);
 		    }
+		}
+		if( saveFile != null ) {
+			saveProject(saveFile);
 		}
 		
         int retry = 0;
@@ -347,95 +359,185 @@ public class PinDmdEditor {
     private Animation cutScene(Animation animation, int start, int end, String name) {
         Animation cutScene = animation.cutScene( 
                 start,
-                end, actualNumberOfPlanes);
+                end, 4);
+        //TODO improve to make it selectable how many planes
         cutScene.setDesc(name);
-        animations.add(cutScene);
-        aniListViewer.refresh();
+        animations.put(name,cutScene);
         aniListViewer.setSelection(new StructuredSelection(cutScene));
-
-        byte[] digest = new byte[16];
-        project.frameSeqMap.put(name, new FrameSeq(digest , activePalette, 
-                null, name));
-        frameSeqViewer.setInput(project.frameSeqMap.values());
-        frameSeqViewer.setSelection(new StructuredSelection(project.frameSeqMap.get(name)));
         
         return cutScene;
     }
 
-
     void createNewProject() {
-	    project = new Project();
+    	project.clear();
 	    activePalette = project.palettes.get(0);
-    	paletteComboViewer.setInput(project.palettes);
-    	keyframeListViewer.setInput(project.palMappings);
+	    paletteComboViewer.refresh();
+    	keyframeListViewer.refresh();
 	    animations.clear();
-	    aniListViewer.refresh();
 	    playingAnis.clear();
-	    selectedAnimation = null;
+	    selectedAnimation = Optional.of(defaultAnimation);
 	}
 
 	private void loadProject() {
-		FileChooser fileChooser = createFileChooser(shell, SWT.OPEN);
-        if (lastPath != null)
-            fileChooser.setFilterPath(lastPath);
-        fileChooser.setFilterExtensions(new String[] { "*.xml;*.json;" });
-        fileChooser.setFilterNames(new String[] { "Project XML", "Project JSON" });
-        String filename = fileChooser.open();
-        lastPath = fileChooser.getFilterPath();
-        if (filename != null) {
-            LOG.info("load project from {}",filename);
-            Project projectToLoad  = (Project) fileHelper.loadObject(filename);
+        String filename = fileChooserHelper(SWT.OPEN, null, 
+        		new String[] { "*.xml;*.json;" },
+        		new String[] { "Project XML", "Project JSON" });
 
-            if( projectToLoad != null ) {
-            	shell.setText(frameTextPrefix+" - "+new File(filename).getName());
-                project = projectToLoad;
-                
-                if( project.inputFiles.size() >0 ) loadAni(project.inputFiles.get(0), false, false);
-                for( int i = 1; i < project.scenes.size(); i++) {
-                	//cutOutNewAnimation(project.scenes.get(i).start, project.scenes.get(i).end, animations.get(0));
-                	LOG.info("cutting out "+project.scenes.get(i));
-                }
-                aniListViewer.refresh();
-                paletteComboViewer.setInput(project.palettes);
-                keyframeListViewer.setInput(project.palMappings);
-            }
+        if (filename != null)  loadProject(filename);
+    }
+	
+	/** 
+	 * imports a secondary project to implement a merge functionality
+	 */
+	void importProject() {
+        String filename = fileChooserHelper(SWT.OPEN, null, 
+        		new String[] { "*.xml;*.json;" },
+        		new String[] { "Project XML", "Project JSON" });
+
+        if (filename != null)  importProject(filename);
+	}
+	
+	void importProject(String filename) {
+        LOG.info("importing project from {}",filename);
+        Project projectToImport  = (Project) fileHelper.loadObject(filename);
+		// merge into existing Project
+        HashSet<String> collisions = new HashSet<>();
+        for( String key: projectToImport.frameSeqMap.keySet()) {
+        	if( project.frameSeqMap.containsKey(key)) {
+        		collisions.add(key);
+        	} else {
+        		project.frameSeqMap.put(key, projectToImport.frameSeqMap.get(key));
+        	}
+        }
+        if( !collisions.isEmpty() ) {
+            MessageBox messageBox = new MessageBox(shell,
+                    SWT.ICON_WARNING | SWT.OK | SWT.IGNORE | SWT.ABORT  );
+            
+            messageBox.setText("Override warning");
+            messageBox.setMessage("the following frame seq have NOT been \nimported due to name collisions: "+collisions+
+                    "\n");
+            messageBox.open();
         }
         
-        // TODO recreate animation list on load of project
-        // which means reload initial source file and recreate
-        // scenes and populate source list
+        for( String inputFile : projectToImport.inputFiles ) {
+        	loadAni(inputFile, true, true);
+        }
+        for( PalMapping palMapping : projectToImport.palMappings) {
+        	project.palMappings.add(palMapping);
+        }
+	}
 
-    }
+
+	void loadProject(String filename) {
+        LOG.info("load project from {}",filename);
+        Project projectToLoad  = (Project) fileHelper.loadObject(filename);
+
+        if( projectToLoad != null ) {
+        	shell.setText(frameTextPrefix+" - "+new File(filename).getName());
+            project = projectToLoad;
+            
+            for( String file : project.inputFiles) loadAni(file, true, false);
+            
+            for( int i = 1; i < project.scenes.size(); i++) {
+            	//cutOutNewAnimation(project.scenes.get(i).start, project.scenes.get(i).end, animations.get(0));
+            	LOG.info("cutting out "+project.scenes.get(i));
+            }
+            
+            paletteComboViewer.setInput(project.palettes);
+            keyframeListViewer.setInput(project.palMappings);
+            for( Animation ani : animations.values()) {
+            	selectedAnimation = Optional.of(animations.isEmpty() ? defaultAnimation : ani);
+            	break;
+            }
+            
+        }
+    
+    
+	    // TODO recreate animation list on load of project
+	    // which means reload initial source file and recreate
+	    // scenes and populate source list
+		
+	}
+	
+	private void exportProject() {
+        String filename = fileChooserHelper(SWT.SAVE, project.name, 
+        		new String[] { "*.dat" },
+        		new String[] { "Export dat" });	
+        if( filename != null ) exportProject(filename);
+	}
 
     private void saveProject() {
-    	FileChooser fileChooser = createFileChooser(shell, SWT.SAVE);
-        fileChooser.setOverwrite(true);
-        //fileChooser.setFileName(project.name);
-        if (lastPath != null)
-            fileChooser.setFilterPath(lastPath);
-        fileChooser.setFilterExtensions(new String[] { "*.xml", "*.json", "*.dat" });
-        fileChooser.setFilterNames(new String[] { "Project XML", "Project JSON", "Export dat" });
-        String filename = fileChooser.open();
-        lastPath = fileChooser.getFilterPath();        
-        if (filename != null) {
-            LOG.info("write project to {}",filename);
-            fileHelper.storeObject(project, filename);
+        String filename = fileChooserHelper(SWT.SAVE, project.name, 
+        		new String[] { "*.xml", "*.json"},
+        		new String[] { "Project XML", "Project JSON" });
+        if (filename != null) saveProject(filename);
+    }
+    
+    void exportProject(String filename) {
+    	
+    	// for all referenced frame mapping we must also copy the frame data as there are two models
+    	for( FrameSeq p: project.frameSeqMap.values() ) {
+    		Animation ani = animations.get(p.name);
+    		ani.actFrame = 0;
+    		DMD tmp = new DMD(128,32);
+    		for (int i = 0; i <= ani.end; i++) {
+    			Frame frame = ani.render(tmp, false);
+    			p.frames.add(new com.rinke.solutions.pinball.model.Frame(frame));
+    		}
+
+    	}
+    	
+    	// create addtional files for frame sequences
+    	try {
+    		Map<String, Integer> map = new HashMap<String, Integer>();
+    		if( !project.frameSeqMap.isEmpty() ) {
+        		DataOutputStream dos = new DataOutputStream(new FileOutputStream(replaceExtensionTo("fsq",filename)));
+        		map = project.writeFrameSeqTo(dos);
+        		dos.close();
+    		}
+    		
+            DataOutputStream dos2 = new DataOutputStream(new FileOutputStream(filename));
+            project.writeTo(dos2, map);
+            dos2.close();
+        	//fileHelper.storeObject(project, filename);
+		} catch (IOException e) {
+			throw new RuntimeException("error writing "+filename,e);
+		}
+	}
+
+	private void saveProject(String filename) {
+        LOG.info("write project to {}",filename);
+        String aniFilename = replaceExtensionTo("ani", filename);
+        int numberOfStoredAnis = storeAnimations(animations.values(), aniFilename);
+        if( numberOfStoredAnis > 0 ) {
+        	project.inputFiles.add(aniFilename);
         }
+        fileHelper.storeObject(project, filename);
         project.dirty = false;
     }
 
-    protected void loadAniWithFC(boolean append) {
-        FileChooser fileChooser = createFileChooser(shell, SWT.OPEN);
-        if (lastPath != null)
-            fileChooser.setFilterPath(lastPath);
-        fileChooser.setFilterExtensions(new String[] { "*.properties;*.ani;*.txt.gz;*.pcap;*.pcap.gz" });
-        fileChooser.setFilterNames(new String[] { "Animationen", "properties, txt.gz, ani" });
-        String filename = fileChooser.open();
-        lastPath = fileChooser.getFilterPath();
-        if (filename == null)
-            return;
+    private int storeAnimations(Collection<Animation> anis, String filename) {
+		java.util.List<Animation> anisToSave = anis.stream().filter(a->!a.isLoadedFromFile()).collect(Collectors.toList());
+		AnimationCompiler.writeToCompiledFile(anisToSave, filename);
+		return anisToSave.size();
+    }
 
-        loadAni(filename, append, true);
+
+	String replaceExtensionTo(String newExt, String filename) {
+		int p = filename.lastIndexOf(".");
+		if( p!=-1) return filename.substring(0,p)+"."+newExt;
+		return filename;
+	}
+
+
+	protected void loadAniWithFC(boolean append) {
+        String filename = fileChooserHelper(SWT.OPEN, null, 
+        		new String[] { "*.properties;*.ani;*.txt.gz;*.pcap;*.pcap.gz" },
+        		new String[] { "Animationen", "properties, txt.gz, ani" });
+
+        if (filename != null) {
+            loadAni(filename, append, true);
+        }
     }
     
     public void loadAni(String filename, boolean append, boolean populateProject) {
@@ -453,36 +555,37 @@ public class PinDmdEditor {
         if( populateProject ) {
             if( !append ) project.inputFiles.clear();
             project.inputFiles.add(filename);
-            //DMD dmd = new DMD(128, 32);
-//            for (Animation ani : loadedList) {
-//    			project.scenes.add(new Scene(ani.getDesc(),0,/*ani.getFrameCount(dmd)*/100000,0));
-//    			//project.palMappings.add(new PalMapping(-1));
-//    		}
         }
         
         // animationHandler.setAnimations(sourceAnis);
         if (!append) {
             animations.clear();
-            selectedAnimation = null;
-            selectedAnimationIndex = 0;
             playingAnis.clear();
         }
-        animations.addAll(loadedList);
-        aniListViewer.refresh();
+        for( Animation ani : loadedList) {
+        	animations.put(ani.getDesc(), ani);
+        }
+        
         project.dirty = true;
+    }
+    
+    String fileChooserHelper(int type, String filename, String[] exts, String[] desc ) {
+        FileChooser fileChooser = createFileChooser(shell, type);
+        fileChooser.setOverwrite(true);
+        fileChooser.setFileName(filename);
+        if (lastPath != null)
+            fileChooser.setFilterPath(lastPath);
+        fileChooser.setFilterExtensions(exts);
+        fileChooser.setFilterNames(desc);
+        String returnedFilename = fileChooser.open();
+        lastPath = fileChooser.getFilterPath();
+    	return returnedFilename;
     }
 
     private void savePalette()
     {
-        FileChooser fileChooser = createFileChooser(shell, SWT.SAVE);
-        fileChooser.setOverwrite(true);
-        fileChooser.setFileName(activePalette.name);
-        if (lastPath != null)
-            fileChooser.setFilterPath(lastPath);
-        fileChooser.setFilterExtensions(new String[] { "*.xml", "*.json" });
-        fileChooser.setFilterNames(new String[] { "Paletten XML", "Paletten JSON" });
-        String filename = fileChooser.open();
-        lastPath = fileChooser.getFilterPath();
+        String filename = fileChooserHelper(SWT.SAVE, activePalette.name, 
+        		new String[] { "*.xml", "*.json" }, new String[] { "Paletten XML", "Paletten JSON" });
         if (filename != null) {
             LOG.info("store palette to {}",filename);
             fileHelper.storeObject(activePalette, filename);
@@ -490,42 +593,41 @@ public class PinDmdEditor {
     }
     
     private void loadPalette() {
-        FileChooser fileChooser = createFileChooser(shell, SWT.OPEN);
-        if (lastPath != null)
-            fileChooser.setFilterPath(lastPath);
-        fileChooser.setFilterExtensions(new String[] { "*.xml","*.json,", "*.txt" });
-        fileChooser.setFilterNames(new String[] { "Palette XML", "Palette JSON", "smartdmd" });
-        String filename = fileChooser.open();
-        lastPath = fileChooser.getFilterPath();
-        if (filename != null) {
-            if( filename.toLowerCase().endsWith(".txt") ) {
-                java.util.List<Palette> palettesImported = smartDMDImporter.importFromFile(filename);
-                String override = checkOverride(project.palettes, palettesImported);
-                if( !override.isEmpty() ) {
-                    MessageBox messageBox = new MessageBox(shell,
-                            SWT.ICON_WARNING | SWT.OK | SWT.IGNORE | SWT.ABORT  );
-                    
-                    messageBox.setText("Override warning");
-                    messageBox.setMessage("importing these palettes will override palettes: "+override+
-                            "\n");
-                    int res = messageBox.open();
-                    if( res != SWT.ABORT ) {
-                        importPalettes(palettesImported,res==SWT.OK);
-                    }
-                } else {
-                    importPalettes(palettesImported,true);
-                }
-            } else {
-                Palette pal = (Palette) fileHelper.loadObject(filename);
-                LOG.info("load palette from {}",filename);
-                project.palettes.add(pal);
-                activePalette = pal;
-            }
-            paletteComboViewer.setSelection(new StructuredSelection(activePalette));
-            paletteComboViewer.refresh();
-        }
+    	String filename = fileChooserHelper(SWT.OPEN, null, 
+        		new String[] { "*.xml","*.json,", "*.txt" }, new String[] { "Palette XML", "Palette JSON", "smartdmd" });
+        if (filename != null) loadPalette(filename);
     }
     
+    void loadPalette(String filename) {
+		if (filename.toLowerCase().endsWith(".txt")) {
+			java.util.List<Palette> palettesImported = smartDMDImporter
+					.importFromFile(filename);
+			String override = checkOverride(project.palettes, palettesImported);
+			if (!override.isEmpty()) {
+				MessageBox messageBox = new MessageBox(shell, SWT.ICON_WARNING
+						| SWT.OK | SWT.IGNORE | SWT.ABORT);
+
+				messageBox.setText("Override warning");
+				messageBox
+						.setMessage("importing these palettes will override palettes: "
+								+ override + "\n");
+				int res = messageBox.open();
+				if (res != SWT.ABORT) {
+					importPalettes(palettesImported, res == SWT.OK);
+				}
+			} else {
+				importPalettes(palettesImported, true);
+			}
+		} else {
+			Palette pal = (Palette) fileHelper.loadObject(filename);
+			LOG.info("load palette from {}", filename);
+			project.palettes.add(pal);
+			activePalette = pal;
+		}
+		paletteComboViewer.setSelection(new StructuredSelection(activePalette));
+		paletteComboViewer.refresh();
+	}
+   
     // testability overridden by tests
     protected FileChooser createFileChooser(Shell shell, int flags) {	
 		return new FileDialogDelegate(shell, flags);
@@ -539,7 +641,7 @@ public class PinDmdEditor {
         return res;
     }
     
-    private void importPalettes(java.util.List<Palette> palettesImported, boolean override) {
+    void importPalettes(java.util.List<Palette> palettesImported, boolean override) {
         Map<Integer, Palette> map = getMap(project.palettes);
         for (Palette p : palettesImported) {
             if( map.containsKey(p.index) ) {
@@ -552,7 +654,7 @@ public class PinDmdEditor {
         project.palettes.addAll(map.values());
     }
 
-    private String checkOverride(java.util.List<Palette> palettes2, java.util.List<Palette> palettesImported) {
+    String checkOverride(java.util.List<Palette> palettes2, java.util.List<Palette> palettesImported) {
         StringBuilder sb = new StringBuilder();
         Map<Integer, Palette> map = getMap(palettes2);
         for (Palette pi : palettesImported) {
@@ -579,6 +681,8 @@ public class PinDmdEditor {
             	for(int j = 0; j < numberOfHashes; j++) {
             		if( j != selectedHashIndex ) btnHash[j].setSelection(false);
             	}
+            	// switch palettes in preview
+            	previewDmd.setPalette(previewPalettes.get(selectedHashIndex));
             });
     	}
     }
@@ -612,18 +716,20 @@ public class PinDmdEditor {
 		aniList.setLayoutData(gd_aniList);
 		aniListViewer.setContentProvider(ArrayContentProvider.getInstance());
 		aniListViewer.setLabelProvider(new LabelProviderAdapter(o->((Animation)o).getDesc()));
-		aniListViewer.setInput(animations);
+		aniListViewer.setInput(animations.values());
 		aniListViewer.addSelectionChangedListener(event -> {
             IStructuredSelection selection = (IStructuredSelection) event.getSelection();
             if (selection.size() > 0){
-            	selectedAnimation = (Animation)selection.getFirstElement();
-            	selectedAnimationIndex = aniList.getSelectionIndex();
+            	selectedAnimation = Optional.of((Animation)selection.getFirstElement());
+            	int numberOfPlanes = selectedAnimation.get().getRenderer().getNumberOfPlanes();
+            	dmd.setNumberOfSubframes(numberOfPlanes);
+            	planesComboViewer.setSelection(new StructuredSelection(PlaneNumber.valueOf(numberOfPlanes)));
                 playingAnis.clear();
-                playingAnis.add(selectedAnimation);
+                playingAnis.add(selectedAnimation.get());
                 animationHandler.setAnimations(playingAnis);
-                dmdWidget.redraw();
+                dmdRedraw(); 
             } else {
-            	selectedAnimation = null;
+            	selectedAnimation = Optional.of(defaultAnimation);
             }
             btnRemoveAni.setEnabled(selection.size()>0);
             btnAddKeyframe.setEnabled(selection.size()>0);
@@ -636,30 +742,8 @@ public class PinDmdEditor {
 		keyframeList.setLayoutData(gd_keyframeList);
 		keyframeListViewer.setLabelProvider(new LabelProviderAdapter(o->((PalMapping)o).name));
 		keyframeListViewer.setContentProvider(ArrayContentProvider.getInstance());
-		keyframeListViewer.addSelectionChangedListener(event -> {
-            IStructuredSelection selection = (IStructuredSelection) event.getSelection();
-            if (selection.size() > 0) {
-            	// set new mapping
-                selectedPalMapping = (PalMapping)selection.getFirstElement();
-                selectedHashIndex = selectedPalMapping.hashIndex;
-                
-                txtDuration.setText(selectedPalMapping.durationInMillis+"");
-                paletteComboViewer.setSelection(new StructuredSelection(project.palettes.get(selectedPalMapping.palIndex)));
-                for(int j = 0; j < numberOfHashes; j++) {
-                    btnHash[j].setSelection(j == selectedHashIndex);
-                }
-                selectedAnimationIndex = selectedPalMapping.animationIndex;
-                selectedAnimation = animations.get(selectedAnimationIndex);
-                aniListViewer.setSelection(new StructuredSelection(selectedAnimation));
-                
-                animationHandler.setPos(selectedPalMapping.frameIndex);
-                saveTimeCode = selectedAnimation.getTimeCode(selectedPalMapping.frameIndex);
-            } else {
-                selectedPalMapping = null;
-            }
-            btnDeleteKeyframe.setEnabled(selection.size()>0);
-            btnFetchDuration.setEnabled(selection.size()>0);
-		});
+		keyframeListViewer.setInput(project.palMappings);
+		keyframeListViewer.addSelectionChangedListener(event -> keyFrameChanged(event));
 		
         dmdWidget = new DMDWidget(shell, SWT.DOUBLE_BUFFERED, this.dmd);
         //dmdWidget.setBounds(0, 0, 700, 240);
@@ -668,7 +752,18 @@ public class PinDmdEditor {
         gd_dmdWidget.widthHint = 790;
         dmdWidget.setLayoutData(gd_dmdWidget);
         
-        new Label(shell, SWT.NONE);
+        btnRemoveAni = new Button(shell, SWT.NONE);
+        btnRemoveAni.setText("Remove Ani");
+        btnRemoveAni.setEnabled(false);
+        btnRemoveAni.addListener(SWT.Selection, e->{
+            if( selectedAnimation.isPresent() ) {
+            	String key = selectedAnimation.get().getDesc();
+                animations.remove(key);
+                playingAnis.clear();
+                animationHandler.setAnimations(playingAnis);
+                animationHandler.setClockActive(true);
+            }
+        });
         new Label(shell, SWT.NONE);
         
         scale = new Scale(shell, SWT.NONE);
@@ -676,34 +771,60 @@ public class PinDmdEditor {
         scale.addListener(SWT.Selection, e -> animationHandler.setPos(scale.getSelection()));
         
         Group grpKeyframe = new Group(shell, SWT.NONE);
-        grpKeyframe.setLayout(new GridLayout(4, false));
+        grpKeyframe.setLayout(new GridLayout(3, false));
         GridData gd_grpKeyframe = new GridData(SWT.FILL, SWT.FILL, false, false, 2, 3);
         gd_grpKeyframe.widthHint = 350;
         grpKeyframe.setLayoutData(gd_grpKeyframe);
         grpKeyframe.setText("Animations / KeyFrame");
         
         Composite composite_hash = new Composite(grpKeyframe, SWT.NONE);
-        GridData gd_composite_hash = new GridData(SWT.FILL, SWT.CENTER, false, false, 4, 1);
+        GridData gd_composite_hash = new GridData(SWT.FILL, SWT.CENTER, false, false, 3, 1);
         gd_composite_hash.widthHint = 341;
         composite_hash.setLayoutData(gd_composite_hash);
 
         createHashButtons(composite_hash, 10, 20);
         
-        btnRemoveAni = new Button(grpKeyframe, SWT.NONE);
-        btnRemoveAni.setText("Remove Ani");
-        btnRemoveAni.setEnabled(false);
-        btnRemoveAni.addListener(SWT.Selection, e->{
-            if( selectedAnimation != null ) {
-                animations.remove(selectedAnimation);
-                aniListViewer.refresh();
-                playingAnis.clear();
-                animationHandler.setAnimations(playingAnis);
-                animationHandler.setClockActive(true);
-            }
+        previewDmd = new DMDWidget(grpKeyframe, SWT.DOUBLE_BUFFERED, dmd);
+        GridData gd_dmdPreWidget = new GridData(SWT.LEFT, SWT.TOP, false, false, 2, 2);
+        gd_dmdPreWidget.heightHint = 40;
+        //gd_dmdPreWidget.heightHint = 40;
+        gd_dmdPreWidget.widthHint = 199;
+        previewDmd.setLayoutData(gd_dmdPreWidget);
+        previewDmd.setDrawingEnabled(false);
+		previewDmd.setPalette(previewPalettes.get(0));
+
+        new Label(grpKeyframe, SWT.NONE);
+        
+        btnAddKeyframe = new Button(grpKeyframe, SWT.NONE);
+        btnAddKeyframe.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, false, false, 1, 1));
+        btnAddKeyframe.setText("Add PalSwitch");
+        btnAddKeyframe.setEnabled(false);
+        btnAddKeyframe.addListener(SWT.Selection, e->{
+        	PalMapping palMapping = new PalMapping(activePalette.index, "KeyFrame "+(project.palMappings.size()+1));
+        	if( selectedHashIndex != -1 ) {
+        		palMapping.setDigest(hashes.get(selectedHashIndex));
+        	}
+        	palMapping.animationName = selectedAnimation.get().getDesc();
+        	palMapping.frameIndex = selectedAnimation.get().actFrame;
+        	project.palMappings.add(palMapping);
+        	saveTimeCode = lastTimeCode;
+        	keyframeListViewer.refresh();
         });
         new Label(grpKeyframe, SWT.NONE);
         new Label(grpKeyframe, SWT.NONE);
-        new Label(grpKeyframe, SWT.NONE);
+        
+        btnDeleteKeyframe = new Button(grpKeyframe, SWT.NONE);
+        GridData gd_btnDeleteKeyframe = new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1);
+        gd_btnDeleteKeyframe.widthHint = 104;
+        btnDeleteKeyframe.setLayoutData(gd_btnDeleteKeyframe);
+        btnDeleteKeyframe.setText("Del KeyFrame");
+        btnDeleteKeyframe.setEnabled(false);
+        btnDeleteKeyframe.addListener(SWT.Selection, e->{
+        	if( selectedPalMapping!=null) {
+        		project.palMappings.remove(selectedPalMapping);
+        		keyframeListViewer.refresh();
+        	}
+        });
         
         Label lblDuration = new Label(grpKeyframe, SWT.NONE);
         lblDuration.setText("Duration:");
@@ -720,29 +841,6 @@ public class PinDmdEditor {
                 selectedPalMapping.durationInFrames = (int)selectedPalMapping.durationInMillis / 40;
             }
         });
-        new Label(grpKeyframe, SWT.NONE);
-        
-        btnAddKeyframe = new Button(grpKeyframe, SWT.NONE);
-        btnAddKeyframe.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
-        btnAddKeyframe.setText("Add PalSwitch");
-        btnAddKeyframe.setEnabled(false);
-        btnAddKeyframe.addListener(SWT.Selection, e->{
-        	PalMapping palMapping = new PalMapping(activePalette.index);
-        	if( selectedHashIndex == -1 ) {
-        		
-        	} else {
-        		palMapping.setDigest(hashes.get(selectedHashIndex));
-        	}
-        	palMapping.name = "KeyFrame "+(project.palMappings.size()+1);
-        	palMapping.animationIndex = selectedAnimationIndex;
-        	palMapping.frameIndex = selectedAnimation.actFrame;
-        	project.palMappings.add(palMapping);
-        	saveTimeCode = lastTimeCode;
-        	keyframeListViewer.refresh();
-        });
-        new Label(grpKeyframe, SWT.NONE);
-        new Label(grpKeyframe, SWT.NONE);
-        new Label(grpKeyframe, SWT.NONE);
         
         btnFetchDuration = new Button(grpKeyframe, SWT.NONE);
         btnFetchDuration.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
@@ -755,14 +853,6 @@ public class PinDmdEditor {
         		txtDuration.setText(selectedPalMapping.durationInMillis+"");
         	}
         });
-        new Label(grpKeyframe, SWT.NONE);
-        new Label(grpKeyframe, SWT.NONE);
-        new Label(grpKeyframe, SWT.NONE);
-        
-        btnDeleteKeyframe = new Button(grpKeyframe, SWT.NONE);
-        btnDeleteKeyframe.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
-        btnDeleteKeyframe.setText("Del KeyFrame");
-        btnDeleteKeyframe.setEnabled(false);
         
         Label lblNewLabel = new Label(grpKeyframe, SWT.NONE);
         lblNewLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
@@ -771,22 +861,29 @@ public class PinDmdEditor {
         frameSeqViewer = new ComboViewer(grpKeyframe, SWT.NONE);
         Combo frameSeqCombo = frameSeqViewer.getCombo();
         frameSeqCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-        frameSeqViewer.setLabelProvider(new LabelProviderAdapter(o->((FrameSeq)o).getName()));
+        frameSeqViewer.setLabelProvider(new LabelProviderAdapter(o->((Animation)o).getDesc()));
         frameSeqViewer.setContentProvider(ArrayContentProvider.getInstance());
-        frameSeqViewer.setInput(project.frameSeqMap.values());
+        frameSeqViewer.setInput(frameSeqList);
         
-        new Label(grpKeyframe, SWT.NONE);
-        
-        Button btnNewButton = new Button(grpKeyframe, SWT.NONE);
-        btnNewButton.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
-        btnNewButton.setText("Add FrameSeq");
-        btnDeleteKeyframe.addListener(SWT.Selection, e->{
-        	if( selectedPalMapping!=null) {
-        		project.palMappings.remove(selectedPalMapping);
+        btnAddFrameSeq = new Button(grpKeyframe, SWT.NONE);
+        btnAddFrameSeq.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
+        btnAddFrameSeq.setText("Add FrameSeq");
+        btnAddFrameSeq.addListener(SWT.Selection, e->{
+        	if( !frameSeqViewer.getSelection().isEmpty()) {
+        		Animation ani = (Animation) ((IStructuredSelection) frameSeqViewer.getSelection()).getFirstElement();
+        		// TODO add index, add ref to framesSeq
+        		PalMapping palMapping = new PalMapping(0, "KeyFrame "+ani.getDesc());
+            	if( selectedHashIndex != -1 ) {
+            		palMapping.setDigest(hashes.get(selectedHashIndex));
+            	}
+        		palMapping.palIndex = activePalette.index;
+        		palMapping.frameSeqName = ani.getDesc();
+        		palMapping.frameIndex = selectedAnimation.get().actFrame;
+        		project.palMappings.add(palMapping);
         		keyframeListViewer.refresh();
         	}
         });
-        
+
         Group grpDetails = new Group(shell, SWT.NONE);
         grpDetails.setLayout(new GridLayout(4, false));
         GridData gd_grpDetails = new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1);
@@ -821,7 +918,7 @@ public class PinDmdEditor {
         btnStop = new Button(composite, SWT.NONE);
         btnStart.setText("Start");
         btnStart.addListener(SWT.Selection, e-> {
-        	selectedAnimation.commitDMDchanges(dmd);
+        	selectedAnimation.orElse(defaultAnimation).commitDMDchanges(dmd);
         	animationHandler.start();
         	display.timerExec(animationHandler.getRefreshDelay(), cyclicRedraw);
         });
@@ -834,14 +931,14 @@ public class PinDmdEditor {
         btnPrev = new Button(composite, SWT.NONE);
         btnPrev.setText("<");
         btnPrev.addListener(SWT.Selection, e-> {
-        	selectedAnimation.commitDMDchanges(dmd);
+        	selectedAnimation.orElse(defaultAnimation).commitDMDchanges(dmd);
         	animationHandler.prev();
         });
         
         btnNext = new Button(composite, SWT.NONE);
         btnNext.setText(">");
         btnNext.addListener(SWT.Selection, e-> { 
-        	selectedAnimation.commitDMDchanges(dmd);
+        	selectedAnimation.orElse(defaultAnimation).commitDMDchanges(dmd);
         	animationHandler.next(); 
         });
         
@@ -851,18 +948,18 @@ public class PinDmdEditor {
 
         btnMarkStart.setText("Mark Start");
         btnMarkStart.addListener(SWT.Selection, e->{
-            cutInfo.setStart(selectedAnimation.actFrame); 
+            cutInfo.setStart(selectedAnimation.get().actFrame); 
             });
         
         btnMarkEnd.setText("Mark End");
         btnMarkEnd.addListener(SWT.Selection, e->{
-            cutInfo.setEnd(selectedAnimation.actFrame);
+            cutInfo.setEnd(selectedAnimation.get().actFrame);
         });
         
         btnCut.setText("Cut");
         btnCut.addListener(SWT.Selection, e -> {
         	// respect number of planes while cutting / copying
-            Animation ani = cutScene(selectedAnimation, cutInfo.getStart(), cutInfo.getEnd(), "Scene "+animations.size());
+            Animation ani = cutScene(selectedAnimation.get(), cutInfo.getStart(), cutInfo.getEnd(), "Scene "+animations.size());
             LOG.info("cutting out scene from {} to {}", cutInfo );
             cutInfo.reset();
 
@@ -880,7 +977,7 @@ public class PinDmdEditor {
         btnUndo.setText("Undo");        
         btnUndo.addListener(SWT.Selection, e->{
         	dmd.undo();
-			dmdWidget.redraw();
+			dmdRedraw();
         });
         ObserverManager.bind(dmd, e -> btnUndo.setEnabled(e), ()->dmd.canUndo() );
 
@@ -888,7 +985,7 @@ public class PinDmdEditor {
         btnRedo.setText("Redo");
         btnRedo.addListener(SWT.Selection, e->{
             dmd.redo();
-            dmdWidget.redraw();
+            dmdRedraw();
         });
         ObserverManager.bind(dmd, e -> btnRedo.setEnabled(e), ()->dmd.canRedo() );
         
@@ -903,8 +1000,9 @@ public class PinDmdEditor {
         Combo combo = paletteComboViewer.getCombo();
         combo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
         paletteComboViewer.setContentProvider(ArrayContentProvider.getInstance());
-        paletteComboViewer.setLabelProvider(new LabelProviderAdapter(o->((Palette)o).name));
-
+        paletteComboViewer.setLabelProvider(new LabelProviderAdapter(o->((Palette)o).index + " - " + ((Palette)o).name));
+        paletteComboViewer.setInput(project.palettes);
+        
         paletteComboViewer.addSelectionChangedListener(event -> {
             IStructuredSelection selection = (IStructuredSelection) event.getSelection();
             if (selection.size() > 0) {
@@ -923,20 +1021,7 @@ public class PinDmdEditor {
         paletteTypeComboViewer.setContentProvider(ArrayContentProvider.getInstance());
         paletteTypeComboViewer.setInput(PaletteType.values());
         paletteTypeComboViewer.setSelection(new StructuredSelection(PaletteType.NORMAL));
-        paletteTypeComboViewer.addSelectionChangedListener(e -> {
-            IStructuredSelection selection = (IStructuredSelection) e.getSelection();
-            PaletteType palType = (PaletteType) selection.getFirstElement();
-            activePalette.type = palType;
-            if (PaletteType.DEFAULT.equals(palType)) {
-                for (int i = 0; i < project.palettes.size(); i++) {
-                    if (i != activePalette.index) { // set previous default to normal
-                        if( project.palettes.get(i).type.equals(PaletteType.DEFAULT )) {
-                        	project.palettes.get(i).type = PaletteType.NORMAL;
-                        };
-                    }
-                }
-            }
-        })  ;
+        paletteTypeComboViewer.addSelectionChangedListener(e->paletteTypeChanged(e));
 
         btnNewPalette = new Button(grpPalettes, SWT.NONE);
         btnNewPalette.setText("New");
@@ -948,8 +1033,8 @@ public class PinDmdEditor {
             activePalette = new Palette(activePalette.colors, project.palettes.size(), name);
             project.palettes.add(activePalette);
             paletteTool.setPalette(activePalette);
-            paletteComboViewer.setSelection(new StructuredSelection(activePalette));
             paletteComboViewer.refresh();
+            paletteComboViewer.setSelection(new StructuredSelection(activePalette), true);
         });
 
         btnRenamePalette = new Button(grpPalettes, SWT.NONE);
@@ -971,18 +1056,18 @@ public class PinDmdEditor {
         Label lblPlanes = new Label(grpPalettes, SWT.NONE);
         lblPlanes.setText("Planes");
 
-        ComboViewer planesComboViewer = new ComboViewer(grpPalettes, SWT.NONE);
+        planesComboViewer = new ComboViewer(grpPalettes, SWT.NONE);
         Combo planes = planesComboViewer.getCombo();
         GridData gd_planes = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
         gd_planes.widthHint = 60;
         planes.setLayoutData(gd_planes);
-        planes.setItems(new String[] { "2", "4" });
-        planes.setToolTipText("Number of planes");
-        planes.select(1);
-        planes.addListener(SWT.Selection, e -> {
-        	actualNumberOfPlanes = numberOfPlanes [planes.getSelectionIndex()];
-        	paletteTool.setNumberOfPlanes(actualNumberOfPlanes);
+        planesComboViewer.setContentProvider(ArrayContentProvider.getInstance());
+        planesComboViewer.setInput(PlaneNumber.values());
+        planesComboViewer.addSelectionChangedListener(e -> {
+        	planeNumer = (PlaneNumber) ((IStructuredSelection) e.getSelection()).getFirstElement();
+        	paletteTool.setNumberOfPlanes(planeNumer.numberOfPlanes);
         });
+
         new Label(grpPalettes, SWT.NONE);
 
         paletteTool = new PaletteTool(grpPalettes, SWT.FLAT | SWT.RIGHT, activePalette);
@@ -1009,26 +1094,26 @@ public class PinDmdEditor {
 			paletteTool.setPalette(activePalette);
 		});
 
-        toolBar = new ToolBar(grpPalettes, SWT.FLAT | SWT.RIGHT);
-        toolBar.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 3, 1));
+        drawToolBar = new ToolBar(grpPalettes, SWT.FLAT | SWT.RIGHT);
+        drawToolBar.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 3, 1));
         
-        ToolItem tltmPen = new ToolItem(toolBar, SWT.RADIO);
+        ToolItem tltmPen = new ToolItem(drawToolBar, SWT.RADIO);
         tltmPen.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/pencil.png")));
         tltmPen.addListener(SWT.Selection, e->dmdWidget.setDrawTool(drawTools.get("pencil")));
         
-        ToolItem tltmFill = new ToolItem(toolBar, SWT.RADIO);
+        ToolItem tltmFill = new ToolItem(drawToolBar, SWT.RADIO);
         tltmFill.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/color-fill.png")));
         tltmFill.addListener(SWT.Selection, e->dmdWidget.setDrawTool(drawTools.get("fill")));
         
-        ToolItem tltmRect = new ToolItem(toolBar, SWT.RADIO);
+        ToolItem tltmRect = new ToolItem(drawToolBar, SWT.RADIO);
         tltmRect.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/rect.png")));
         tltmRect.addListener(SWT.Selection, e->dmdWidget.setDrawTool(drawTools.get("rect")));
         
-        ToolItem tltmLine = new ToolItem(toolBar, SWT.RADIO);
+        ToolItem tltmLine = new ToolItem(drawToolBar, SWT.RADIO);
         tltmLine.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/line.png")));
         tltmLine.addListener(SWT.Selection, e->dmdWidget.setDrawTool(drawTools.get("line")));
 
-        ToolItem tltmCircle = new ToolItem(toolBar, SWT.RADIO);
+        ToolItem tltmCircle = new ToolItem(drawToolBar, SWT.RADIO);
         tltmCircle.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/oval.png")));
         tltmCircle.addListener(SWT.Selection, e->dmdWidget.setDrawTool(drawTools.get("circle")));
 
@@ -1059,13 +1144,62 @@ public class PinDmdEditor {
 
     }
 
+	private void dmdRedraw() {
+		dmdWidget.redraw();
+		previewDmd.redraw();
+	}
+
+
+	void keyFrameChanged(SelectionChangedEvent event) {
+		IStructuredSelection selection = (IStructuredSelection) event
+				.getSelection();
+		if (selection.size() > 0) {
+			// set new mapping
+			selectedPalMapping = (PalMapping) selection.getFirstElement();
+			selectedHashIndex = selectedPalMapping.hashIndex;
+
+			txtDuration.setText(selectedPalMapping.durationInMillis + "");
+			paletteComboViewer.setSelection(new StructuredSelection(
+					project.palettes.get(selectedPalMapping.palIndex)));
+			for (int j = 0; j < numberOfHashes; j++) {
+				btnHash[j].setSelection(j == selectedHashIndex);
+			}
+			selectedAnimation = Optional.of(animations
+					.get(selectedPalMapping.animationName));
+			aniListViewer.setSelection(new StructuredSelection(
+					selectedAnimation.get()));
+
+			animationHandler.setPos(selectedPalMapping.frameIndex);
+			saveTimeCode = selectedAnimation.get().getTimeCode(
+					selectedPalMapping.frameIndex);
+		} else {
+			selectedPalMapping = null;
+		}
+		btnDeleteKeyframe.setEnabled(selection.size() > 0);
+		btnFetchDuration.setEnabled(selection.size() > 0);
+	}
+
+	void paletteTypeChanged(SelectionChangedEvent e) {
+        IStructuredSelection selection = (IStructuredSelection) e.getSelection();
+        PaletteType palType = (PaletteType) selection.getFirstElement();
+        activePalette.type = palType;
+        if (PaletteType.DEFAULT.equals(palType)) {
+            for (int i = 0; i < project.palettes.size(); i++) {
+                if (i != activePalette.index) { // set previous default to normal
+                    if( project.palettes.get(i).type.equals(PaletteType.DEFAULT )) {
+                    	project.palettes.get(i).type = PaletteType.NORMAL;
+                    };
+                }
+            }
+        }
+    }
 
 	/**
 	 * check if dirty.
-	 * @return true, if not dirty or if user decides to ignore dirtyness
+	 * @return true, if not dirty or if user decides to ignore dirtyness (or global ignore flag is set via cmdline)
 	 */
 	boolean dirtyCheck() {
-		if( project.dirty ) {
+		if( project.dirty && !nodirty ) {
 			MessageBox messageBox = new MessageBox(shell,
                     SWT.ICON_WARNING | SWT.OK | SWT.CANCEL  );
             
@@ -1109,12 +1243,23 @@ public class PinDmdEditor {
 		
 		new MenuItem(menu_1, SWT.SEPARATOR);
 		
+		MenuItem mntmImportProject = new MenuItem(menu_1, SWT.NONE);
+		mntmImportProject.setText("Import Project");
+		mntmImportProject.addListener(SWT.Selection, e->importProject());
+		
+		MenuItem mntmExportProject = new MenuItem(menu_1, SWT.NONE);
+		mntmExportProject.setText("Export Project");
+		mntmExportProject.addListener(SWT.Selection, e->exportProject());
+		
+		new MenuItem(menu_1, SWT.SEPARATOR);
+		
 		MenuItem mntmExit = new MenuItem(menu_1, SWT.NONE);
 		mntmExit.setText("Exit");
 		mntmExit.addListener(SWT.Selection, e->{
-			// TODO add dirty check
-			shell.close();
-            shell.dispose();
+			if( dirtyCheck() ) {
+				shell.close();
+				shell.dispose();
+			}
 		});
 		
 		MenuItem mntmedit = new MenuItem(menu, SWT.CASCADE);
@@ -1127,7 +1272,7 @@ public class PinDmdEditor {
 		mntmUndo.setText("Undo");
 		mntmUndo.addListener(SWT.Selection, e-> {
 			dmd.undo();
-			dmdWidget.redraw();
+			dmdRedraw();
 		});
 		ObserverManager.bind(dmd, e->mntmUndo.setEnabled(e), () -> dmd.canUndo());
 		
@@ -1135,7 +1280,7 @@ public class PinDmdEditor {
 		mntmRedo.setText("Redo");
 		mntmRedo.addListener(SWT.Selection, e->{
 			dmd.redo();
-			dmdWidget.redraw();
+			dmdRedraw();
 		});
 		ObserverManager.bind(dmd, e->mntmRedo.setEnabled(e), ()->dmd.canRedo() );
 		
@@ -1153,9 +1298,9 @@ public class PinDmdEditor {
 		mntmAddAnimation.setText("Add Animation");
 		mntmAddAnimation.addListener(SWT.Selection, e->loadAniWithFC(true));
 		
+		
 		MenuItem mntmpalettes = new MenuItem(menu, SWT.CASCADE);
 		mntmpalettes.setText("&Palettes / Mode");
-		
 		Menu menu_3 = new Menu(mntmpalettes);
 		mntmpalettes.setMenu(menu_3);
 		
@@ -1190,13 +1335,7 @@ public class PinDmdEditor {
 		mntmAbout.addListener(SWT.Selection, e->new About(shell).open());
 	}
 
-	private Object configureDevice() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-
-    public String getPrintableHashes(byte[] p) {
+	public String getPrintableHashes(byte[] p) {
 		StringBuffer hexString = new StringBuffer();
 		for (int j = 0; j < p.length; j++)
 			hexString.append(String.format("%02X", p[j]));
@@ -1210,4 +1349,46 @@ public class PinDmdEditor {
 		}
 		return true;
 	}
+
+
+    @Override
+    public void notifyAni(AniEvent evt) {
+        switch (evt.evtType) {
+        case ANI:
+            lblFrameNo.setText(""+ evt.actFrame);
+            lblTcval.setText( ""+evt.timecode);
+            //hashLabel.setText(
+            int i = 0;
+            for( byte[] p : evt.hashes) {
+            	String hash = getPrintableHashes(p);
+            	if( hash.startsWith("BF619EAC0CDF3F68D496EA9344137E8B")) { // disable for empty frame
+            		btnHash[i].setText("");
+            		btnHash[i].setEnabled(false);
+            	} else {
+            		btnHash[i].setText(hash);
+            		btnHash[i].setEnabled(true);
+            	}
+            	i++;
+			}
+            while(i<4) {
+        		btnHash[i].setText("");
+        		btnHash[i].setEnabled(false);
+        		i++;
+            }
+
+            saveHashes(evt.hashes);
+            lastTimeCode = evt.timecode;
+            break;
+        case CLOCK:
+            lblFrameNo.setText("");
+            lblTcval.setText("");
+            // sourceList.deselectAll();
+            for(int j=0; j<4; j++) btnHash[j++].setText(""); // clear hashes
+            break;
+        case CLEAR:
+        	for(int j=0; j<4; j++) btnHash[j++].setText(""); // clear hashes
+        	break;
+        }
+        dmdRedraw();
+    }
 }
