@@ -70,4 +70,9 @@ public class ObservableList<T> extends ObservableCollection<T> implements List<T
 		return listDelegate.subList(fromIndex, toIndex);
 	}
 
+    @Override
+    public String toString() {
+        return "ObservableList [listDelegate=" + listDelegate + "]";
+    }
+
 }

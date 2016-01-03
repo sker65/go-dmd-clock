@@ -107,4 +107,9 @@ public class ObservableCollection<T> extends Observable implements Collection<T>
 	public Stream<T> parallelStream() {
 		return delegate.parallelStream();
 	}
+
+    @Override
+    public String toString() {
+        return "ObservableCollection [delegate=" + delegate + "]";
+    }
 }

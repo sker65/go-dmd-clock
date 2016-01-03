@@ -136,4 +136,9 @@ public class ObservableMap<K,V> extends Observable implements Map<K,V> {
 			BiFunction<? super V, ? super V, ? extends V> remappingFunction) {
 		return delegate.merge(key, value, remappingFunction);
 	}
+
+    @Override
+    public String toString() {
+        return "ObservableMap [delegate=" + delegate + "]";
+    }
 }
