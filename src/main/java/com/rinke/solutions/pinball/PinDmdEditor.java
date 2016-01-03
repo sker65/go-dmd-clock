@@ -474,6 +474,12 @@ public class PinDmdEditor implements EventHandler{
     }
     
     void exportProject(String filename) {
+        
+        for( PalMapping p : project.palMappings) {
+            if( p.frameSeqName != null ) {
+                project.frameSeqMap.put(p.frameSeqName, new FrameSeq(p.frameSeqName) );
+            }
+        }
     	
     	// for all referenced frame mapping we must also copy the frame data as there are two models
     	for( FrameSeq p: project.frameSeqMap.values() ) {
