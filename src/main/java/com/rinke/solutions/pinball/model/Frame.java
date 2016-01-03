@@ -22,7 +22,8 @@ public class Frame implements Model {
 	public Frame(com.rinke.solutions.pinball.animation.Frame frame) {
 		this.timecode = frame.timecode;
 		for(Plane p: frame.planes) {
-			planes.add(Arrays.copyOf(p.plane, p.plane.length));
+		    byte[] transformed = com.rinke.solutions.pinball.animation.Frame.transform(p.plane);
+			planes.add(transformed);
 		}
 	}
 
