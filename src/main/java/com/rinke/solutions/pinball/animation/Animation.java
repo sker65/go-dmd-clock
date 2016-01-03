@@ -85,9 +85,12 @@ public class Animation {
 		dest.setLoadedFromFile(false);
 		// rerender and thereby copy all frames
 		this.actFrame = start;
+        int tcOffset = 0;
 		for (int i = start; i <= end; i++) {
 			Frame frame = this.render(tmp, false);
+			if( i == start ) tcOffset = frame.timecode;
 			Frame targetFrame = new Frame(frame);
+            targetFrame.timecode -= tcOffset;
 			while( targetFrame.planes.size() < actualNumberOfPlanes ) {
 				targetFrame.planes.add(new Plane(frame.planes.get(0).marker, frame.planes.get(0).plane));
 			}
