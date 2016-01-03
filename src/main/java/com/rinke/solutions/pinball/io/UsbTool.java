@@ -43,12 +43,14 @@ public class UsbTool {
             throw new LibUsbException("Unable to open USB device", result);
         try {
             IntBuffer intBuffer = IntBuffer.allocate(1);
-            ByteBuffer buffer = ByteBuffer.wrap(data);
+            ByteBuffer buffer = ByteBuffer.allocateDirect(data.length);
+            buffer.put(data);
+            // Use device handle here
+            LibUsb.bulkTransfer(handle, (byte) 0x01, buffer, intBuffer, 4000);
             if( intBuffer.array()[0] != data.length ) {
                 LOG.error("unexpected length returned on bulk: {}", intBuffer.array()[0]);
             }
-            // Use device handle here
-            LibUsb.bulkTransfer(handle, (byte) 0, buffer, intBuffer, 4000);
+
         } finally {
             LibUsb.close(handle);
             LibUsb.exit(ctx);
@@ -56,10 +58,10 @@ public class UsbTool {
     }
     
     private byte[] fromMapping(PalMapping palMapping) {
-        byte[] res = new byte[24];
+        byte[] res = new byte[2052];
         res[0] = (byte)0x81;
         res[1] = (byte)0xc3;
-        res[2] = (byte)0xe8;
+        res[2] = (byte)0xe7; // used for small buffer 2052
         res[3] = (byte)0xFF; // do config
         res[4] = (byte)0x05; // upload mapping
         int j = 5;
@@ -72,10 +74,10 @@ public class UsbTool {
     }
 
     private byte[] fromPalette(Palette palette) {
-        byte[] res = new byte[55];
+        byte[] res = new byte[2052];
         res[0] = (byte)0x81;
         res[1] = (byte)0xc3;
-        res[2] = (byte)0xe8;
+        res[2] = (byte)0xe7;
         res[3] = (byte)0xFF; // do config
         res[4] = (byte)0x04; // upload pal
         //palette.writeTo(os);
