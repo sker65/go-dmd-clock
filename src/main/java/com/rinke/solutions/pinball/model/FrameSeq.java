@@ -2,6 +2,7 @@ package com.rinke.solutions.pinball.model;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -16,7 +17,12 @@ public class FrameSeq implements Model {
 		this.name = name;
 	}
 
-	public void writeTo(DataOutputStream os) throws IOException {
+	public FrameSeq(String name) {
+        this.name = name;
+        frames = new ArrayList<Frame>();
+    }
+
+    public void writeTo(DataOutputStream os) throws IOException {
         os.writeShort(frames.size());
         for (Frame frame : frames) {
             frame.writeTo(os);
