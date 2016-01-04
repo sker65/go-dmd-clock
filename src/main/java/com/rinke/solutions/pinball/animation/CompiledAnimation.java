@@ -35,7 +35,10 @@ public class CompiledAnimation extends Animation {
 
 	@Override
 	public int getRefreshDelay() {
-		int r = frames.get(actFrame<frames.size()?actFrame:frames.size()-1).delay;
+	    int frameNo = actFrame -1;
+	    if( frameNo<0 )frameNo = 0;
+	    if( frameNo > frames.size()-1 ) frameNo = frames.size()-1;
+		int r = frames.get(frameNo).delay;
 		return r==0?super.getRefreshDelay():r;
 	}
 
@@ -58,12 +61,14 @@ public class CompiledAnimation extends Animation {
 
 	@Override
 	public void commitDMDchanges(DMD dmd) {
-		List<Plane> planes = frames.get(actFrame).planes;
-		List<byte[]> dmdPlanes = dmd.getActualBuffers();
-		for(int i=0; i<planes.size(); i++) {
-			int len = min(dmdPlanes.get(i).length,planes.get(i).plane.length);
-			System.arraycopy(dmdPlanes.get(i), 0, planes.get(i).plane, 0, len );
-		}
+	    if( actFrame >= 0 && actFrame < frames.size()) {
+	        List<Plane> planes = frames.get(actFrame).planes;
+	        List<byte[]> dmdPlanes = dmd.getActualBuffers();
+	        for(int i=0; i<planes.size(); i++) {
+	            int len = min(dmdPlanes.get(i).length,planes.get(i).plane.length);
+	            System.arraycopy(dmdPlanes.get(i), 0, planes.get(i).plane, 0, len );
+	        }
+	    }
 	}
 
 	private int min(int l, int l2) {
