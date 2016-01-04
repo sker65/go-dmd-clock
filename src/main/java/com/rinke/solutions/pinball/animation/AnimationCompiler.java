@@ -65,16 +65,17 @@ public class AnimationCompiler {
 					int size = is.readShort(); // framesize in byte
 					int delay = is.readShort();
 					int numberOfPlanes = is.readByte();
+					int np = numberOfPlanes;
 					a.addFrame(new Frame(delay,128,32));
 					Plane mask = null;
-					while( numberOfPlanes>0) {
+					while( np>0) {
 						byte[] f1 = new byte[size];
 						byte marker = is.readByte(); // type of plane
 						is.readFully(f1);
 						Plane p = new Plane(marker, f1);
-						if( marker <=1 ) a.addPlane(i, p );
+						if( marker < numberOfPlanes ) a.addPlane(i, p );
 						else mask = p;
-						numberOfPlanes--;
+						np--;
 					}
 					// mask plane is the last in list but first in file
 					if( mask != null ) {
@@ -153,7 +154,7 @@ public class AnimationCompiler {
 					} else {
 						// delay is set per frame, equal delay is just one possibility
 						os.writeShort(r.delay);
-						os.writeByte(2);
+						os.writeByte(r.planes.size());
 					}
 					
 					// if mask, use plane type 0x6d
@@ -161,12 +162,11 @@ public class AnimationCompiler {
 					// transform in target format
 					//os.write(dmd.transformFrame1(frameSet.frame1));
 					//os.write(dmd.transformFrame1(frameSet.frame2));
-					// plane type (normal bit depth)
-					os.writeByte(0);
-					os.write(r.planes.get(0).plane);
-					// plane type (normal bit depth)
-					os.writeByte(1);
-					os.write(r.planes.get(1).plane);
+					for(int j = 0; j < r.planes.size(); j++) {
+	                    // plane type (normal bit depth)
+	                    os.writeByte(j);
+	                    os.write(r.planes.get(j).plane);
+					}
 				}
 			}
 			LOG.info("done");
