@@ -45,12 +45,6 @@ public class Frame {
         planes.add(new Plane((byte)3, plane4));
     }
     
-    
-    @Override
-    public String toString() {
-        return "Frame [delay=" + delay + ", planes=" + planes + "]";
-    }
-
     public void setPixel(int x, int y) {
         if( x>=0 && x< width && y>=0 && y<height) {
             int bytesPerRow = width / 8;
@@ -97,5 +91,11 @@ public class Frame {
         }
         return res;
 	}
+
+    @Override
+    public String toString() {
+        return "Frame [width=" + width + ", height=" + height + ", delay=" + delay + ", timecode=" + timecode + ", planes="
+                + planes + "]";
+    }
 
 }
