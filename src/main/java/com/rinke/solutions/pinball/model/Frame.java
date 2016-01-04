@@ -20,7 +20,7 @@ public class Frame implements Model {
 
 	//TODO remove different models
 	public Frame(com.rinke.solutions.pinball.animation.Frame frame) {
-		this.timecode = frame.timecode;
+		this.timecode = frame.delay;
 		for(Plane p: frame.planes) {
 		    byte[] transformed = com.rinke.solutions.pinball.animation.Frame.transform(p.plane);
 			planes.add(transformed);
@@ -36,8 +36,10 @@ public class Frame implements Model {
 	public void writeTo(DataOutputStream os) throws IOException {
 		os.writeInt(timecode);
 		os.writeShort(planes.size());
+		if( !planes.isEmpty() ) {
+            os.writeShort(planes.get(0).length);
+		}
 		for(byte[] data : planes) {
-			os.writeShort(data.length);
 			os.write(data);
 		}
 	}
