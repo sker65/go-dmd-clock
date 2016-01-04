@@ -7,41 +7,46 @@ For repeated structures there is a SeqOf... description given, which is always s
 
 This file contains just the default device mode, default palette, custom smart dmd signature (if any) and optional custom display timing parameters
 
-Offset     | Length | Description
----------- | ------ | :-----------
-0 | 1 byte | device mode. 0: pinmame rgb, 1: pinmame mono, 2: wpc, 3: stern
-1 | 1 byte | number (or index) of default palette
-2 | 8 bytes | custom smart dmd signature to use
-10 | 10 bytes | custom timing parameters. 5 x 16bit uints for timing, first overall period, 4x periods for 4 subframe brightnesses
+Name | Type | Description
+ :----- | --- | :-----------
+ DeviceMode | int8 | 0: pinmame rgb, 1: pinmame mono, 2: wpc, 3: stern
+ DefaultPaletteIndex | int8 | number (or index) of default palette
+ CustomSmartDMDSig | 8 bytes | custom smart dmd signature to use
+ Timing.Total | int16  |custom timing parameters: complete duty period
+ Timing.DutyPlane0 | int16  |custom timing parameters: duty period plane 0
+ Timing.DutyPlane1 | int16  |custom timing parameters: duty period plane 1
+ Timing.DutyPlane2 | int16  |custom timing parameters: duty period plane 2
+ Timing.DutyPlane3 | int16  |custom timing parameters: duty period plane 3
+ 
 
 ## palettes.dat
 This file contains custom palette definition and key frame definitions for palette switches or insertion of replacement frames.
 
-Name | Structure
-:---- | :-----------
-Version | int8 version of file (actually 1)
-SeqOfPalettes | int16 number of palettes contained in this file
-Palette.Index | int16 palette index
-Palette.NoOfColors | int16 number of colors contained in palette
-Palette.Type | int8 type of palette. 0: normal, 1: default (only one palette per file could be marked as default)
-Palette.SeqOfRGB | sequence rgb values (3 bytes) of colors in this palette
-SeqOfKeyFrameMappings |  int16 number of key frame mappings contained in this file
-KeyFrameMapping.Hash | 16 bytes md5 hash of key frame
-KeyFrameMapping.PaletteIndex | int16 palette index
-KeyFrameMapping.Offset | int64 offset in fsq file for replacement frames seq (or 0 if just palette switching)
-KeyFrameMapping.Duration | int16 duration until switch back to default palette (if 0 don't switch back at all)
+Name | Type | Description
+ :----- | --- | :-----------
+Version | int8 | version of file (actually 1)
+SeqOfPalettes | int16 | number of palettes contained in this file
+Palette.Index | int16 | palette index
+Palette.NoOfColors | int16 | number of colors contained in palette
+Palette.Type | int8 | type of palette. 0: normal, 1: default (only one palette per file could be marked as default)
+Palette.SeqOfRGB | n * 3 bytes | sequence rgb values (3 bytes) of colors in this palette
+SeqOfKeyFrameMappings |  int16 | number of key frame mappings contained in this file
+KeyFrameMapping.Hash | 16 bytes | md5 hash of key frame
+KeyFrameMapping.PaletteIndex | int16 | palette index
+KeyFrameMapping.Offset | int64 | offset in fsq file for replacement frames seq (or 0 if just palette switching)
+KeyFrameMapping.Duration | int16 | duration until switch back to default palette (if 0 don't switch back at all)
 
 ## pin2dmd.fsq
 This file holds all sets of replacement frames sequences that can be used in key frame mappings.
 
-Name | Description
------- | :-----------
-SeqOfFrameSequencenes | int16 number of frame sequences included in this file
-SeqOfFrames | int16 number of frames contained in this sequence
-Frame.Index | int32 delay in ms for this frame to be displayed
-Frame.NoOfPlanes | int16 number of planes (or subframes)
-Frame.SizeOfPlane | int16 size of each plane in bytes
-Frame.PlaneData | planes * sizeOfPlane bytes frame data for all planes HSB first, LS plane first (PPM format)
+Name | Type | Description
+ :----- | --- | :-----------
+SeqOfFrameSequencenes | int16 | number of frame sequences included in this file
+SeqOfFrames | int16 | number of frames contained in this sequence
+Frame.Index | int32 | delay in ms for this frame to be displayed
+Frame.NoOfPlanes | int16 | number of planes (or subframes)
+Frame.SizeOfPlane | int16 | size of each plane in bytes
+Frame.PlaneData | planes * sizeOfPlane bytes | frame data for all planes HSB first, LS plane first (PPM format)
 
 
 
