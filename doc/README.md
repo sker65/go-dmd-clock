@@ -16,15 +16,15 @@ Offset     | Length | Description
 ## palettes.dat
 This file contains custom palette definition and key frame definitions for palette switches or insertion of replacement frames.
 Name | Structure
----- | :-----------
+:---- | :-----------
 File | int8 version of file (actually 1)
 SeqOfPalettes | int16 number of palettes contained in this file
 Palette | int16 palette index
 - | int16 number of colors contained in palette
 - | int8 type of palette. 0: normal, 1: default (only one palette per file could be marked as default)
-- | rgb value (3 bytes) of colors in this palette
- SeqOfKeyFrameMappings |  int16 number of key frame mappings contained in this file
- KeyFrameMapping | 16 bytes md5 hash of key frame
+-  | rgb value (3 bytes) of colors in this palette
+SeqOfKeyFrameMappings |  int16 number of key frame mappings contained in this file
+KeyFrameMapping | 16 bytes md5 hash of key frame
 - | int16 palette index
 - | int64 offset in fsq file for replacement frames seq (or 0 if just palette switching)
 - | int16 duration until switch back to default palette (if 0 don't switch back at all)
