@@ -7,16 +7,19 @@ For repeated structures there is a SeqOf... description given, which is always s
 
 This file contains just the default device mode, default palette, custom smart dmd signature (if any) and optional custom display timing parameters
 
-Name | Type | Description
- :----- | --- | :-----------
+> pin2dmd.dat | Type | Description
+>  :----- | --- | :-----------
  DeviceMode | int8 | 0: pinmame rgb, 1: pinmame mono, 2: wpc, 3: stern
  DefaultPaletteIndex | int8 | number (or index) of default palette
  CustomSmartDMDSig | 8 bytes | custom smart dmd signature to use
- Timing.Total | int16  |custom timing parameters: complete duty period
- Timing.DutyPlane0 | int16  |custom timing parameters: duty period plane 0
- Timing.DutyPlane1 | int16  |custom timing parameters: duty period plane 1
- Timing.DutyPlane2 | int16  |custom timing parameters: duty period plane 2
- Timing.DutyPlane3 | int16  |custom timing parameters: duty period plane 3
+
+> > Timing | Type | Description
+> >  :----- | --- | :-----------
+> >  Total | int16  |custom timing parameters: complete duty period
+DutyPlane0 | int16  |custom timing parameters: duty period plane 0
+DutyPlane1 | int16  |custom timing parameters: duty period plane 1
+DutyPlane2 | int16  |custom timing parameters: duty period plane 2
+DutyPlane3 | int16  |custom timing parameters: duty period plane 3
  
 
 ## palettes.dat
