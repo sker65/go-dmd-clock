@@ -175,7 +175,7 @@ public class PinDmdEditor implements EventHandler{
 	Button btnAddFrameSeq;
 	DMDWidget previewDmd;
     ObservableList<Animation> frameSeqList = new  ObservableList<>(new ArrayList<>());
-	private ComboViewer planesComboViewer;
+	ComboViewer planesComboViewer;
     
 	PaletteTool paletteTool;
 	int selectedHashIndex;
@@ -187,6 +187,11 @@ public class PinDmdEditor implements EventHandler{
 	java.util.List<Palette> previewPalettes = new ArrayList<>();
 
 	PlaneNumber planeNumer;
+
+    Label lblPlanesVal;
+
+    Label lblDelayVal;
+
 
 	public PinDmdEditor() {
 		super();
@@ -891,7 +896,7 @@ public class PinDmdEditor implements EventHandler{
         });
 
         Group grpDetails = new Group(shell, SWT.NONE);
-        grpDetails.setLayout(new GridLayout(4, false));
+        grpDetails.setLayout(new GridLayout(8, false));
         GridData gd_grpDetails = new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1);
         gd_grpDetails.heightHint = 21;
         gd_grpDetails.widthHint = 231;
@@ -905,7 +910,7 @@ public class PinDmdEditor implements EventHandler{
         GridData gd_lblFrameNo = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
         gd_lblFrameNo.minimumWidth = 60;
         lblFrameNo.setLayoutData(gd_lblFrameNo);
-        lblFrameNo.setText("xxxxxxxx");
+        lblFrameNo.setText("xxxxx");
         
         Label lblTimecode = new Label(grpDetails, SWT.NONE);
         lblTimecode.setText("Timecode:");
@@ -914,8 +919,20 @@ public class PinDmdEditor implements EventHandler{
         GridData gd_lblTcval = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
         gd_lblTcval.minimumWidth = 80;
         lblTcval.setLayoutData(gd_lblTcval);
-        lblTcval.setText("xxxxxxxxxx");
+        lblTcval.setText("xxxxx");
         
+        Label lblDelay = new Label(grpDetails, SWT.NONE);
+        lblDelay.setText("Delay:");
+        
+        lblDelayVal = new Label(grpDetails, SWT.NONE);
+        lblDelayVal.setText("xxxxx");
+        
+        Label lblPlanes = new Label(grpDetails, SWT.NONE);
+        lblPlanes.setText("Planes:");
+        
+        lblPlanesVal = new Label(grpDetails, SWT.NONE);
+        lblPlanesVal.setText("xxxxxx");
+
         Composite composite = new Composite(shell, SWT.NONE);
         composite.setLayout(new GridLayout(10, false));
         composite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
@@ -1059,8 +1076,8 @@ public class PinDmdEditor implements EventHandler{
             dmdWidget.setPalette(activePalette);
         });
 
-        Label lblPlanes = new Label(grpPalettes, SWT.NONE);
-        lblPlanes.setText("Planes");
+        Label lblPlanes1 = new Label(grpPalettes, SWT.NONE);
+        lblPlanes1.setText("Planes");
 
         planesComboViewer = new ComboViewer(grpPalettes, SWT.NONE);
         Combo planes = planesComboViewer.getCombo();
@@ -1363,6 +1380,8 @@ public class PinDmdEditor implements EventHandler{
         case ANI:
             lblFrameNo.setText(""+ evt.actFrame);
             lblTcval.setText( ""+evt.timecode);
+            lblDelayVal.setText(""+evt.delay);
+            lblPlanesVal.setText(""+evt.nPlanes);
             //hashLabel.setText(
             int i = 0;
             for( byte[] p : evt.hashes) {
