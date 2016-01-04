@@ -110,22 +110,22 @@ public class PinDmdEditorSWTTest {
 	
 	@Test
 	public void testNotifyAniClear() throws Exception {
-		Animation actAnimation = new CompiledAnimation(AnimationType.COMPILED,"foo",0,0,0,0,0);
-		AniEvent evt = new AniEvent(Type.CLEAR, 0, actAnimation, uut.hashes, 0);
+		//Animation actAnimation = new CompiledAnimation(AnimationType.COMPILED,"foo",0,0,0,0,0);
+		AniEvent evt = new AniEvent(Type.CLEAR);
 		uut.notifyAni(evt );
 	}
 
 	@Test
 	public void testNotifyAniAni() throws Exception {
 		Animation actAnimation = new CompiledAnimation(AnimationType.COMPILED,"foo",0,0,0,0,0);
-		AniEvent evt = new AniEvent(Type.ANI, 0, actAnimation, uut.hashes, 0);
+		AniEvent evt = new AniEvent(Type.ANI, 0, actAnimation, uut.hashes, 0,0,0);
 		uut.notifyAni(evt );
 	}
 
 	@Test
 	public void testNotifyAniClock() throws Exception {
-		Animation actAnimation = new CompiledAnimation(AnimationType.COMPILED,"foo",0,0,0,0,0);
-		AniEvent evt = new AniEvent(Type.CLOCK, 0, actAnimation, uut.hashes, 0);
+		//Animation actAnimation = new CompiledAnimation(AnimationType.COMPILED,"foo",0,0,0,0,0);
+		AniEvent evt = new AniEvent(Type.CLOCK);
 		uut.notifyAni(evt );
 	}
 	
