@@ -81,21 +81,25 @@ public class Animation {
 		DMD tmp = new DMD(128,32);
 		CompiledAnimation dest = new CompiledAnimation(
 				AnimationType.COMPILED, this.getName(),
-				0, end-start, this.skip, 1, 1);
+				0, end-start, this.skip, 1, 0);
 		dest.setLoadedFromFile(false);
 		// rerender and thereby copy all frames
 		this.actFrame = start;
         int tcOffset = 0;
 		for (int i = start; i <= end; i++) {
 			Frame frame = this.render(tmp, false);
+            LOG.debug("source frame {}",frame);
 			if( i == start ) tcOffset = frame.timecode;
 			Frame targetFrame = new Frame(frame);
             targetFrame.timecode -= tcOffset;
 			while( targetFrame.planes.size() < actualNumberOfPlanes ) {
 				targetFrame.planes.add(new Plane(frame.planes.get(0).marker, frame.planes.get(0).plane));
 			}
+			LOG.debug("target frame {}",targetFrame);
 			dest.frames.add(targetFrame);
 		}
+		LOG.debug("copied {} frames",dest.frames.size());
+		LOG.debug("target ani {}",dest);
 		return dest;
 	}
 
@@ -355,7 +359,7 @@ public class Animation {
 	}
 
 	public void next() {
-		if (actFrame <= end) {
+		if (actFrame < end) {
 			actFrame += skip;
 		}
 	}
