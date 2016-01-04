@@ -1,5 +1,6 @@
 # File Formats
-All binary number are written in **big endian** format, which means most significant bytes first. For hierarchical structures offsets are given in a dotted notation. Each dot refers to a "level" and offsets are relative to the parent level. e.g. offset 2.2 means an offset of 4 (or 2 + n times structure size of lev 1 + 2) 
+All binary number are written in **big endian** format, which means most significant bytes first. Basic data types are binary numbers like int8, int16 and int32 or just raw byte data.
+For colors 3 byte rgb values are used. Frames stored are raw uncompressed pixel map, plane by plane, lowest significant plane first, left pixel is HSB (like PPM image format).
 
 ## pin2dmd.dat
 
@@ -14,8 +15,16 @@ Offset     | Length | Description
 
 ## palettes.dat
 This file contains custom palette definition and key frame definitions for palette switches or insertion of replacement frames.
-
-As there are a couple of sections in that file, each section is described separately.
+ Name | Structure
+ ------ | :-----------
+ File | int8 version of file (actually 1)
+ SeqOfPalettes | int16 number of palettes contained in this file
+ Palette | int16 palette index
+ - | int16 number of colors contained in palette
+ - | int8 type of palette. 0: normal, 1: default (only one palette per file could be marked as default)
+ - | rgb value (3 bytes) of colors in this palette
+ SeqOfKeyFrameMappings |  int16 number of key frame mappings contained in this file
+ 
 
 ## pin2dmd.fsq
 This file holds all sets of replacement frames sequences that can be used in key frame mappings.
