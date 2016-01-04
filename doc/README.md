@@ -35,7 +35,13 @@ This file contains custom palette definition and key frame definitions for palet
 > > Index | int16 | palette index
 > > NoOfColors | int16 | number of colors contained in palette
 > > Type | int8 | type of palette. 0: normal, 1: default (only one palette per file could be marked as default)
-> > SeqOfRGB | n * 3 bytes | sequence rgb values (3 bytes) of colors in this palette
+> > SeqOfRGB | n * 3 bytes | sequence of rgb values (3 bytes) of colors in this palette (see NoOfColors)
+
+> > > RGB | Type | Description
+> > > :----- | --- | :-----------
+Red | int8 | value of red
+Green | int8 | value of green
+Blue | int8 | value of blue
 
 > &nbsp; | &nbsp; | &nbsp; 
 >  :----- | --- | :-----------
