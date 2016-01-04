@@ -39,15 +39,21 @@ KeyFrameMapping.Duration | int16 | duration until switch back to default palette
 ## pin2dmd.fsq
 This file holds all sets of replacement frames sequences that can be used in key frame mappings.
 
-Name | Type | Description
- :----- | --- | :-----------
-SeqOfFrameSequencenes | int16 | number of frame sequences included in this file
-SeqOfFrames | int16 | number of frames contained in this sequence
-Frame.Index | int32 | delay in ms for this frame to be displayed
-Frame.NoOfPlanes | int16 | number of planes (or subframes)
-Frame.SizeOfPlane | int16 | size of each plane in bytes
-Frame.PlaneData | planes * sizeOfPlane bytes | frame data for all planes HSB first, LS plane first (PPM format)
+> pin2dmd.fsq | Type | Description
+> :----- | --- | :-----------
+> SeqOfFrameSequencenes | int16 | number of frame sequences included in this file
 
+> > FrameSequence | Type | Description
+> > :----- | --- | :-----------
+> > SeqOfFrames | int16 | number of frames contained in this sequence
 
+> > > Frame | Type | Description
+> > > :----- | --- | :-----------
+> > > Index | int32 | delay in ms for this frame to be displayed
+NoOfPlanes | int16 | number of planes (or subframes)
+SizeOfPlane | int16 | size of each plane in bytes
+PlaneData | planes * sizeOfPlane bytes | frame data for all planes HSB first, LS plane first (PPM format)
+
+--- 
 
 > Written with [StackEdit](https://stackedit.io/).
