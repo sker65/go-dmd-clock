@@ -1,6 +1,7 @@
 # File Formats
 All binary number are written in **big endian** format, which means most significant bytes first. Basic data types are binary numbers like int8, int16, int32 and int64 or just raw byte data.
 For colors 3 byte rgb values are used. Frames stored are raw uncompressed pixel map, plane by plane, lowest significant plane first, left pixel is HSB (like PPM image format).
+For repeated structures there is a SeqOf... description given, which is always started by the number of data strutures that follows.
 
 ## pin2dmd.dat
 
