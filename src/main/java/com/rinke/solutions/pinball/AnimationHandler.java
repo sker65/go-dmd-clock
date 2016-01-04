@@ -66,7 +66,7 @@ public class AnimationHandler extends Observable implements Runnable{
 	    } catch( Exception e) {
 	        GlobalExceptionHandler.getInstance().setException(e);
 	        anis.clear();
-	        eventHandler.notifyAni(new AniEvent(Type.CLEAR, 0, null, null, 0));
+	        eventHandler.notifyAni(new AniEvent(Type.CLEAR));
 	        LOG.error("unexpected exception caught: {}", e.getMessage(), e);
 	    }
 	}
@@ -82,7 +82,7 @@ public class AnimationHandler extends Observable implements Runnable{
 				//not used transitionFrame=0;
 			}
 			if( scale.isDisposed() ) return;
-			eventHandler.notifyAni(new AniEvent(Type.CLOCK, 0, null, null,0));
+			eventHandler.notifyAni(new AniEvent(Type.CLOCK));
 		} else {
 			if( anis.isEmpty() ) {
 				clockActive = true;
@@ -107,7 +107,8 @@ public class AnimationHandler extends Observable implements Runnable{
 				Frame res = ani.render(dmd,stop);
                 scale.setSelection(ani.actFrame);
                 eventHandler.notifyAni(
-                        new AniEvent(Type.ANI, ani.actFrame, ani, res.getHashes(), res.timecode));
+                        new AniEvent(Type.ANI, ani.actFrame, ani, res.getHashes(), 
+                                res.timecode, res.delay, res.planes.size() ));
                 
                 lastRenderedFrame = ani.actFrame;
                 
