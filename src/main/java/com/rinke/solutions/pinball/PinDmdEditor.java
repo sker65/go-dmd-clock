@@ -889,6 +889,7 @@ public class PinDmdEditor implements EventHandler{
             	}
         		palMapping.palIndex = activePalette.index;
         		palMapping.frameSeqName = ani.getDesc();
+        		palMapping.animationName = ani.getDesc();
         		palMapping.frameIndex = selectedAnimation.get().actFrame;
         		project.palMappings.add(palMapping);
         		keyframeListViewer.refresh();
