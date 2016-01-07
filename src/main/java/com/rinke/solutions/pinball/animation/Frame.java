@@ -45,7 +45,12 @@ public class Frame {
         planes.add(new Plane((byte)3, plane4));
     }
     
-    public void setPixel(int x, int y) {
+    public Frame(int w, int h) {
+        width = w;
+        height = h;
+	}
+
+	public void setPixel(int x, int y) {
         if( x>=0 && x< width && y>=0 && y<height) {
             int bytesPerRow = width / 8;
             //System.out.println("setPixel("+x+","+y+")");
