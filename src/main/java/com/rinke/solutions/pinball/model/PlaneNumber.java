@@ -1,7 +1,7 @@
 package com.rinke.solutions.pinball.model;
 
 public enum PlaneNumber {
-	two(2), four(4);
+	two(2), four(4), TW(12);
 	
 	PlaneNumber(int i) {
 		this.numberOfPlanes = i;
