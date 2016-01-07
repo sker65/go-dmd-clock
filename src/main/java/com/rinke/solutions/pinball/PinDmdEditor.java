@@ -772,6 +772,7 @@ public class PinDmdEditor implements EventHandler{
         gd_dmdWidget.heightHint = 210;
         gd_dmdWidget.widthHint = 790;
         dmdWidget.setLayoutData(gd_dmdWidget);
+        dmdWidget.setPalette(activePalette);
         
         btnRemoveAni = new Button(shell, SWT.NONE);
         btnRemoveAni.setText("Remove Ani");
@@ -919,6 +920,7 @@ public class PinDmdEditor implements EventHandler{
         
         lblFrameNo = new Label(grpDetails, SWT.NONE);
         GridData gd_lblFrameNo = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+        gd_lblFrameNo.widthHint = 66;
         gd_lblFrameNo.minimumWidth = 60;
         lblFrameNo.setLayoutData(gd_lblFrameNo);
         lblFrameNo.setText("xxxxx");
@@ -1105,7 +1107,7 @@ public class PinDmdEditor implements EventHandler{
 
         new Label(grpPalettes, SWT.NONE);
 
-        paletteTool = new PaletteTool(grpPalettes, SWT.FLAT | SWT.RIGHT, activePalette);
+        paletteTool = new PaletteTool(shell, grpPalettes, SWT.FLAT | SWT.RIGHT, activePalette);
         
         drawTools.put("pencil", new SetPixelTool(paletteTool.getSelectedColor()));       
         drawTools.put("fill", new FloodFillTool(paletteTool.getSelectedColor()));       
@@ -1114,20 +1116,11 @@ public class PinDmdEditor implements EventHandler{
         drawTools.put("circle", new CircleTool(paletteTool.getSelectedColor()));
         drawTools.values().forEach(d->paletteTool.addListener(d));
         
+        paletteTool.addListener(dmdWidget);
+        
         btnChangeColor = new Button(grpPalettes, SWT.NONE);
         btnChangeColor.setText("Color");
-		btnChangeColor.addListener(SWT.Selection, e -> {
-			ColorDialog cd = new ColorDialog(shell);
-			cd.setText("Select new color");
-			cd.setRGB(paletteTool.getSelectedRGB());
-			RGB rgb = cd.open();
-			if (rgb == null) {
-				return;
-			}
-			activePalette.colors[paletteTool.getSelectedColor()] = new RGB(rgb.red, rgb.green, rgb.blue);
-			dmdWidget.setPalette(activePalette);
-			paletteTool.setPalette(activePalette);
-		});
+		btnChangeColor.addListener(SWT.Selection, e -> paletteTool.changeColor() );
 
         drawToolBar = new ToolBar(grpPalettes, SWT.FLAT | SWT.RIGHT);
         drawToolBar.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 3, 1));
@@ -1191,6 +1184,9 @@ public class PinDmdEditor implements EventHandler{
 		if (selection.size() > 0) {
 			// set new mapping
 			selectedPalMapping = (PalMapping) selection.getFirstElement();
+
+			LOG.debug("selected new palMapping {}", selectedPalMapping);
+
 			selectedHashIndex = selectedPalMapping.hashIndex;
 
 			txtDuration.setText(selectedPalMapping.durationInMillis + "");
