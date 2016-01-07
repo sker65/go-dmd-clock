@@ -15,6 +15,7 @@ import com.rinke.solutions.pinball.renderer.PcapRenderer;
 import com.rinke.solutions.pinball.renderer.PngRenderer;
 import com.rinke.solutions.pinball.renderer.Renderer;
 import com.rinke.solutions.pinball.renderer.VPinMameRenderer;
+import com.rinke.solutions.pinball.renderer.VideoCapRenderer;
 
 
 public class Animation {
@@ -304,6 +305,9 @@ public class Animation {
 			break;
 		case COMPILED:
 			renderer = new DummyRenderer();
+			break;
+		case VIDEO:
+			renderer = new VideoCapRenderer(start,end);
 			break;
 		default:
 			break;
