@@ -9,16 +9,15 @@ import java.util.Observable;
 import javax.imageio.stream.FileImageOutputStream;
 import javax.imageio.stream.ImageOutputStream;
 
-import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Scale;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.rinke.solutions.pinball.animation.AniEvent;
-import com.rinke.solutions.pinball.animation.EventHandler;
-import com.rinke.solutions.pinball.animation.Frame;
 import com.rinke.solutions.pinball.animation.AniEvent.Type;
 import com.rinke.solutions.pinball.animation.Animation;
+import com.rinke.solutions.pinball.animation.EventHandler;
+import com.rinke.solutions.pinball.animation.Frame;
 import com.rinke.solutions.pinball.io.GifSequenceWriter;
 
 /**
