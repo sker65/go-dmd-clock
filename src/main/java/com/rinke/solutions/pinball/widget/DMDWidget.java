@@ -73,22 +73,23 @@ public class DMDWidget extends ResourceManagedCanvas {
 
         // int colIdx[] = {0,1,4,15};
     	int numberOfSubframes = dmd.getNumberOfSubframes();
-
-        // hell ffae3a
-        // 2/3 ca8a2e
-        // 1/3 7f561d
-        // schwarz: 191106
-        Color cols[] = new Color[1<<numberOfSubframes];
-        if( numberOfSubframes == 2) {
-            cols[0] = resourceManager.createColor(palette.colors[0]);
-            cols[1] = resourceManager.createColor(palette.colors[1]);
-            cols[2] = resourceManager.createColor(palette.colors[4]);
-            cols[3] = resourceManager.createColor(palette.colors[15]);
-        } else {
-            for(int i = 0; i < (1 << numberOfSubframes);i++) {
-                cols[i] = resourceManager.createColor(palette.colors[i]);
+    	boolean useColorIndex = numberOfSubframes < 8;
+        Color cols[] = {};
+        if( useColorIndex ) {
+            cols = new Color[1<<numberOfSubframes];
+            
+            if( numberOfSubframes == 2) {
+                cols[0] = resourceManager.createColor(palette.colors[0]);
+                cols[1] = resourceManager.createColor(palette.colors[1]);
+                cols[2] = resourceManager.createColor(palette.colors[4]);
+                cols[3] = resourceManager.createColor(palette.colors[15]);
+            } else {
+                for(int i = 0; i < (1 << numberOfSubframes);i++) {
+                    cols[i] = resourceManager.createColor(palette.colors[i]);
+                }
             }
         }
+
         Color bg = resourceManager.createColor(new RGB(10, 10, 10));
         gcImage.setBackground(bg);
         gcImage.fillRectangle(0, 0, ev.width, ev.height);
@@ -105,7 +106,16 @@ public class DMDWidget extends ResourceManagedCanvas {
                     v += (buffers.get(i)[col / 8 + row * bytesPerRow] & mask) != 0 ? (1<<i) : 0;
                 }
 
-                gcImage.setBackground(cols[v]);
+                if( useColorIndex ) {
+                	gcImage.setBackground(cols[v]);
+                } else {
+                	// v is rgb directly
+                	int r = (v >> 8) << 4;
+                    int g = ( ( v >> 4 ) & 0xF ) << 4;
+                    int b = ( v & 0x0F ) << 4;
+                	Color c = resourceManager.createColor(new RGB(r,g,b));
+                	gcImage.setBackground(c);
+                }
                 gcImage.fillOval(margin + col * pitch, margin + row * pitch, pitch, pitch);
             }
         }
