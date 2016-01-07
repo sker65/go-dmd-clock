@@ -14,8 +14,9 @@ import org.eclipse.swt.widgets.Event;
 
 import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.model.Palette;
+import com.rinke.solutions.pinball.widget.PaletteTool.ColorChangedListerner;
 
-public class DMDWidget extends ResourceManagedCanvas {
+public class DMDWidget extends ResourceManagedCanvas implements ColorChangedListerner {
 	
 	private Palette palette;	// color palette
 	private DMD dmd; 			// the model holding buffers etc.
@@ -30,7 +31,7 @@ public class DMDWidget extends ResourceManagedCanvas {
 
 	public DMDWidget(Composite parent, int style, DMD dmd) {
 		super(parent, style);
-		palette = Palette.getDefaultPalette();
+		//palette = Palette.getDefaultPalette();
 		resolutionX = dmd.getWidth();
 		resolutionY = dmd.getHeight();
 		bytesPerRow = dmd.getBytesPerRow();
@@ -160,6 +161,16 @@ public class DMDWidget extends ResourceManagedCanvas {
 
 	public void setDrawingEnabled(boolean drawingEnabled) {
 		this.drawingEnabled = drawingEnabled;
+	}
+
+	@Override
+	public void setActualColorIndex(int actualColorIndex) {
+		
+	}
+
+	@Override
+	public void paletteChanged(Palette pal) {
+		setPalette(pal);
 	}
 
 
