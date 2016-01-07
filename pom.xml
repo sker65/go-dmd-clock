@@ -10,7 +10,39 @@
 			<url>https://swt-repo.googlecode.com/svn/repo/</url>
 		</repository>
 	</repositories>
+	<properties>
+    	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  	</properties>
 	<profiles>
+		<profile>
+			<id>video</id>
+			<dependencies>
+				<!-- for video capturing -->
+				<dependency>
+					<groupId>org.bytedeco</groupId>
+					<artifactId>javacv</artifactId>
+					<version>1.1</version>
+				</dependency>	
+			</dependencies>
+		</profile>
+		<profile>
+			<id>novideo</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+				<property><name>!video</name></property>
+			</activation>
+			<build>
+			    <plugins>
+			        <plugin>
+				        <groupId>org.apache.maven.plugins</groupId>
+				        <artifactId>maven-compiler-plugin</artifactId>
+				        <configuration>
+							<generatedSourcesDirectory>src/add/java</generatedSourcesDirectory>
+				        </configuration>
+			        </plugin>
+			    </plugins>
+			</build>
+		</profile>
 		<profile>
 			<id>linux_x86_64</id>
 			<dependencies>
@@ -147,6 +179,7 @@
 					<plugin>
 						<groupId>com.akathist.maven.plugins.launch4j</groupId>
 						<artifactId>launch4j-maven-plugin</artifactId>
+						<version>1.7.8</version>
 						<configuration>
 							<dontWrapJar>false</dontWrapJar>
 							<headerType>gui</headerType>
@@ -348,12 +381,6 @@
 			<version>2.4</version>
 		</dependency>
 		
-		<!-- for video capturing -->
-		<dependency>
-    		<groupId>org.bytedeco</groupId>
-    		<artifactId>javacv</artifactId>
-    		<version>1.1</version>
-		</dependency>
 	</dependencies>
 	<build>
 		<plugins>
