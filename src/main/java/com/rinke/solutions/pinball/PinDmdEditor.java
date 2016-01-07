@@ -543,13 +543,20 @@ public class PinDmdEditor implements EventHandler{
 
 	protected void loadAniWithFC(boolean append) {
         String filename = fileChooserHelper(SWT.OPEN, null, 
-        		new String[] { "*.properties;*.ani;*.txt.gz;*.pcap;*.pcap.gz" },
-        		new String[] { "Animationen", "properties, txt.gz, ani" });
+        		new String[] { "*.properties;*.ani;*.txt.gz;*.pcap;*.pcap.gz;*.*" },
+        		new String[] { "Animationen", "properties, txt.gz, ani, mov" });
 
         if (filename != null) {
             loadAni(filename, append, true);
         }
     }
+	
+	boolean extensionIs( String name, String ... args ) {
+		for( String ext : args) {
+			if(name.endsWith(ext)) return true;
+		}
+		return false;
+	}
     
     public void loadAni(String filename, boolean append, boolean populateProject) {
         java.util.List<Animation> loadedList = new ArrayList<>();
@@ -559,8 +566,10 @@ public class PinDmdEditor implements EventHandler{
             loadedList.add(Animation.buildAnimationFromFile(filename, AnimationType.MAME));
         } else if (filename.endsWith(".properties")) {
             loadedList.addAll(AnimationFactory.createAnimationsFromProperties(filename));
-        } else if (filename.endsWith(".pcap") || filename.endsWith(".pcap.gz") ) {
+        } else if (extensionIs(filename, ".pcap",".pcap.gz") ) {
         	loadedList.add(Animation.buildAnimationFromFile(filename, AnimationType.PCAP));
+        } else if ( extensionIs(filename, ".mp4", ".3gp", ".avi" ) ) {
+        	loadedList.add(Animation.buildAnimationFromFile(filename, AnimationType.VIDEO));
         }
         
         if( populateProject ) {
@@ -918,6 +927,7 @@ public class PinDmdEditor implements EventHandler{
         
         lblTcval = new Label(grpDetails, SWT.NONE);
         GridData gd_lblTcval = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+        gd_lblTcval.widthHint = 62;
         gd_lblTcval.minimumWidth = 80;
         lblTcval.setLayoutData(gd_lblTcval);
         lblTcval.setText("xxxxx");
@@ -1395,6 +1405,7 @@ public class PinDmdEditor implements EventHandler{
             		btnHash[i].setEnabled(true);
             	}
             	i++;
+            	if( i>= btnHash.length) break;
 			}
             while(i<4) {
         		btnHash[i].setText("");
