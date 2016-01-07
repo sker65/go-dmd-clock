@@ -42,8 +42,11 @@ public class VideoCapRenderer extends Renderer {
 				org.bytedeco.javacv.Frame frame;
 				do {
 					frame = g.grab();
+					if( frame == null ) break;
 				} while( frame.image == null );
 
+				if( frame == null ) break;
+				
 				BufferedImage image = converter.convert(frame);
 				int sh = image.getHeight();
 				int sw = image.getWidth();
