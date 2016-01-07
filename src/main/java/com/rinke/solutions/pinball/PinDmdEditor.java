@@ -571,10 +571,11 @@ public class PinDmdEditor implements EventHandler{
         } else if ( extensionIs(filename, ".mp4", ".3gp", ".avi" ) ) {
         	loadedList.add(Animation.buildAnimationFromFile(filename, AnimationType.VIDEO));
         }
+        LOG.info("loaded {} animations from {}", loadedList.size(), filename);
         
         if( populateProject ) {
             if( !append ) project.inputFiles.clear();
-            project.inputFiles.add(filename);
+            if( !project.inputFiles.contains(filename) ) project.inputFiles.add(filename);
         }
         
         // animationHandler.setAnimations(sourceAnis);
