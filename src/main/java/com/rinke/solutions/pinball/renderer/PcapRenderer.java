@@ -4,8 +4,6 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.zip.GZIPInputStream;
 
 import org.slf4j.Logger;
@@ -13,7 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.io.LittleEndianDataInputStream;
 import com.rinke.solutions.pinball.DMD;
-import com.rinke.solutions.pinball.animation.Frame;
+import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.renderer.Pcap.Header;
 import com.rinke.solutions.pinball.renderer.Pcap.Paket;
 
@@ -45,7 +43,7 @@ public class PcapRenderer extends Renderer {
     			byte[] data = new byte[p.incLen];
     			stream.read(data);
     			int offset = findPinDmdMagicOffset(data);
-    			Frame res = new Frame(dmd.getWidth(), dmd.getHeight(), 
+    			Frame res = new Frame( 
     					Frame.transform(data, offset+4, dmd.getFrameSizeInByte()),
     					Frame.transform(data, offset+4+512, dmd.getFrameSizeInByte()),
     					Frame.transform(data, offset+4+1024, dmd.getFrameSizeInByte()),

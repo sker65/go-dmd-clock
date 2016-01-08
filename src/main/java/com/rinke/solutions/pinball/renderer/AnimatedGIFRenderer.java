@@ -3,9 +3,7 @@ package com.rinke.solutions.pinball.renderer;
 import java.awt.image.BufferedImage;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.imageio.ImageIO;
@@ -20,7 +18,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.rinke.solutions.pinball.DMD;
-import com.rinke.solutions.pinball.animation.Frame;
+import com.rinke.solutions.pinball.model.Frame;
 
 // als parameter in der Steuerdatei sollten
 // die helligkeits schwellen angebbar sein
@@ -60,7 +58,7 @@ public class AnimatedGIFRenderer extends Renderer {
 				byte[] f1 = new byte[dmd.getFrameSizeInByte()];
 				byte[] f2 = new byte[dmd.getFrameSizeInByte()];
 
-				Frame res = new Frame(dmd.getWidth(), dmd.getHeight(), f1, f2);
+				Frame res = new Frame(f1, f2);
 
 				BufferedImage image = reader.read(frameNo);
 	            IIOMetadata metadata = reader.getImageMetadata(frameNo);

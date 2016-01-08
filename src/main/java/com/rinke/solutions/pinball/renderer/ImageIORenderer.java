@@ -14,7 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.rinke.solutions.pinball.DMD;
-import com.rinke.solutions.pinball.animation.Frame;
+import com.rinke.solutions.pinball.model.Frame;
 
 public class ImageIORenderer extends Renderer {
     
@@ -57,7 +57,7 @@ public class ImageIORenderer extends Renderer {
 				byte[] f1 = new byte[dmd.getFrameSizeInByte()];
 				byte[] f2 = new byte[dmd.getFrameSizeInByte()];
 
-				Frame res = new Frame(dmd.getWidth(), dmd.getHeight(), f1, f2);
+				Frame res = new Frame(f1, f2);
 
 				BufferedImage image = reader.read(0);
                 master = new BufferedImage(image.getWidth(),image.getHeight(), BufferedImage.TYPE_INT_ARGB);

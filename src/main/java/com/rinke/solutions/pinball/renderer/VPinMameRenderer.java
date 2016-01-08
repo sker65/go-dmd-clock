@@ -13,7 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.rinke.solutions.pinball.DMD;
-import com.rinke.solutions.pinball.animation.Frame;
+import com.rinke.solutions.pinball.model.Frame;
 
 // als parameter in der Steuerdatei sollten
 // die helligkeits schwellen angebbar sein
@@ -37,7 +37,7 @@ public class VPinMameRenderer extends Renderer {
 					new InputStreamReader(new GZIPInputStream(
 							new FileInputStream(new File(filename)))));
 			String line = stream.readLine();
-			Frame res = new Frame(dmd.getWidth(), dmd.getHeight(),
+			Frame res = new Frame(
 					new byte[dmd.getFrameSizeInByte()],
 					new byte[dmd.getFrameSizeInByte()]);
 
@@ -57,7 +57,7 @@ public class VPinMameRenderer extends Renderer {
 				if (line.length() == 0) {
 					frames.add(res);
 					frameNo++;
-					res = new Frame(dmd.getWidth(), dmd.getHeight(),
+					res = new Frame(
 							new byte[dmd.getFrameSizeInByte()],
 							new byte[dmd.getFrameSizeInByte()]);
 					LOG.debug("reading frame: " + frameNo);

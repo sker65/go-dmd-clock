@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.OptionalInt;
 
 import com.rinke.solutions.pinball.DMD;
-import com.rinke.solutions.pinball.animation.Frame;
+import com.rinke.solutions.pinball.model.Frame;
 
 public abstract class Renderer {
 

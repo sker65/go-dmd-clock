@@ -5,12 +5,6 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferByte;
 import java.awt.image.DataBufferInt;
-import java.io.File;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.imageio.ImageIO;
 
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.Java2DFrameConverter;
@@ -18,8 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.rinke.solutions.pinball.DMD;
-import com.rinke.solutions.pinball.animation.Frame;
-import com.rinke.solutions.pinball.animation.Plane;
+import com.rinke.solutions.pinball.model.Frame;
+import com.rinke.solutions.pinball.model.Plane;
 
 public class VideoCapRenderer extends Renderer {
 
@@ -78,7 +72,7 @@ public class VideoCapRenderer extends Renderer {
 				// int[] palette = Quantize.quantizeImage(image2d, 255);
 
 				// create 
-				Frame res = new Frame(w,h);
+				Frame res = new Frame();
 				for( int j = 0; j < 12 ; j++) {
 					res.planes.add(new Plane((byte)j, new byte[dmd.getFrameSizeInByte()]));
 				}

@@ -9,7 +9,7 @@ import ar.com.hjg.pngj.ImageLineInt;
 import ar.com.hjg.pngj.PngReader;
 
 import com.rinke.solutions.pinball.DMD;
-import com.rinke.solutions.pinball.animation.Frame;
+import com.rinke.solutions.pinball.model.Frame;
 
 public class PngRenderer extends Renderer {
     
@@ -115,7 +115,7 @@ public class PngRenderer extends Renderer {
 		pngr.end(); // it's recommended to end the reader first, in case there
 					// are trailing chunks to read
 		if( autoMerge ) pngrMerge.end();
-		return new Frame(dmd.getWidth(), dmd.getHeight(), f1, f2);
+		return new Frame(f1, f2);
 	}
 
 	private String getFilename(String name, int frameNo) {
