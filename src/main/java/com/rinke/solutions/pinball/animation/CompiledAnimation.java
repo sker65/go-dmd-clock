@@ -3,6 +3,8 @@ package com.rinke.solutions.pinball.animation;
 import java.util.List;
 
 import com.rinke.solutions.pinball.DMD;
+import com.rinke.solutions.pinball.model.Frame;
+import com.rinke.solutions.pinball.model.Plane;
 
 public class CompiledAnimation extends Animation {
 
@@ -47,13 +49,6 @@ public class CompiledAnimation extends Animation {
         return frames.size();
     }
 
-    @Override
-    public void setPixel( int x, int y) {
-        if( last != null ) {
-            last.setPixel(x,y);
-        }
-    }
-    
     @Override
     protected Frame addTransitionFrame(Frame in) {
         return in;
