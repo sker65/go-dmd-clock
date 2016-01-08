@@ -8,6 +8,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.rinke.solutions.pinball.DMD;
+import com.rinke.solutions.pinball.model.Frame;
+import com.rinke.solutions.pinball.model.Plane;
 import com.rinke.solutions.pinball.renderer.AnimatedGIFRenderer;
 import com.rinke.solutions.pinball.renderer.DMDFRenderer;
 import com.rinke.solutions.pinball.renderer.DummyRenderer;
@@ -258,7 +260,7 @@ public class Animation {
 	
     protected Frame addTransitionFrame(Frame in) {
         Frame tframe = transitions.get(transitionCount < transitions.size() ? transitionCount : transitions.size() - 1);
-        Frame r = new Frame(in.width, in.height, in.planes.get(0).plane, in.planes.get(1).plane);//
+        Frame r = new Frame(in.planes.get(0).plane, in.planes.get(1).plane);//
         r.delay = in.delay;
         r.planes.add(tframe.planes.get(0));
         return r;
@@ -437,9 +439,6 @@ public class Animation {
                 + clockFrom + ", clockSmall=" + clockSmall + ", clockXOffset=" + clockXOffset + ", clockYOffset="
                 + clockYOffset + ", clockInFront=" + clockInFront + ", fsk=" + fsk + ", transitionFrom=" + transitionFrom
                 + ", transitionName=" + transitionName + ", transitionDelay=" + transitionDelay + ", desc=" + desc + "]";
-    }
-
-    public void setPixel( int x, int y) {
     }
 
 	public void commitDMDchanges(DMD dmd) {
