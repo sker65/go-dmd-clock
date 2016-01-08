@@ -17,18 +17,6 @@ public class PalMapping implements Model {
     public String animationName;
     public int frameIndex;
     public String frameSeqName;
-    
-    public PalMapping(byte[] digest, int palIndex, long durationInMillis, int durationInFrames) {
-        super();
-        if( digest.length != 16 ) {
-            throw new IllegalArgumentException("digest length must be 16");
-        }
-        this.digest = new byte[digest.length];
-        System.arraycopy(digest, 0, this.digest, 0, 16);
-        this.palIndex = palIndex;
-        this.durationInMillis = durationInMillis;
-        this.durationInFrames = durationInFrames;
-    }
 
 	public PalMapping(int palIndex, String name) {
 		this.palIndex = palIndex;
@@ -55,31 +43,5 @@ public class PalMapping implements Model {
 				+ hashIndex + ", name=" + name + "]";
 	}
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
-		return result;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		PalMapping other = (PalMapping) obj;
-		if (name == null) {
-			if (other.name != null)
-				return false;
-		} else if (!name.equals(other.name))
-			return false;
-		return true;
-	}
-
-    
     
 }
