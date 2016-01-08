@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Observable;
 
-import com.rinke.solutions.pinball.animation.Frame;
+import com.rinke.solutions.pinball.model.Frame;
 
 public class DMD extends Observable {
 
@@ -200,6 +200,29 @@ public class DMD extends Observable {
             target[i] = (byte) (target[i] | src[i]);
         }
     }
+    
+    public void copy(int yoffset, int xoffset, DMD src, boolean low, boolean mask) {
+        for (int row = 0; row < src.getHeight(); row++) {
+            for (int col = 0; col < src.getWidth() / 8; col++) {
+                if(mask) 
+                    frame1[(row + yoffset) * getBytesPerRow() + xoffset + col] &= 
+                        ~src.frame1[src.getBytesPerRow() * row + col];
+                else
+                    frame1[(row + yoffset) * getBytesPerRow() + xoffset + col] = 
+                        src.frame1[src.getBytesPerRow() * row + col];
+                if (!low) {
+                    if( mask )
+                        frame2[(row + yoffset) * getBytesPerRow() + xoffset + col] &= 
+                            ~src.frame1[src.getBytesPerRow() * row + col];
+                    else
+                        frame2[(row + yoffset) * getBytesPerRow() + xoffset + col] = 
+                            src.frame1[src.getBytesPerRow() * row + col];
+
+                }
+            }
+        }
+    }
+	
 
     // masken zum setzen von pixeln
     int[] mask = { 
@@ -261,7 +284,7 @@ public class DMD extends Observable {
     }
 
     public Frame getFrame() {
-        return new Frame(width, height, frame1, frame2);
+        return new Frame( frame1, frame2);
     }
 
 	public void updateActualBuffer(int i) {
