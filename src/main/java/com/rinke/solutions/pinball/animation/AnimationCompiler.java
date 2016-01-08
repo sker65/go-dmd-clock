@@ -12,6 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.rinke.solutions.pinball.DMD;
+import com.rinke.solutions.pinball.model.Frame;
+import com.rinke.solutions.pinball.model.Plane;
 
 /**
  * class that compiles an animation into a binary file 
@@ -66,7 +68,9 @@ public class AnimationCompiler {
 					int delay = is.readShort();
 					int numberOfPlanes = is.readByte();
 					int np = numberOfPlanes;
-					a.addFrame(new Frame(delay,128,32));
+					Frame f = new Frame();
+					f.delay = delay;
+					a.addFrame(f);
 					Plane mask = null;
 					while( np>0) {
 						byte[] f1 = new byte[size];
