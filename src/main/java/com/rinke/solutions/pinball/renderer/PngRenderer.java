@@ -9,7 +9,7 @@ import ar.com.hjg.pngj.ImageLineInt;
 import ar.com.hjg.pngj.PngReader;
 
 import com.rinke.solutions.pinball.DMD;
-import com.rinke.solutions.pinball.Frame;
+import com.rinke.solutions.pinball.model.Frame;
 
 public class PngRenderer extends Renderer {
     
@@ -115,29 +115,13 @@ public class PngRenderer extends Renderer {
 		pngr.end(); // it's recommended to end the reader first, in case there
 					// are trailing chunks to read
 		if( autoMerge ) pngrMerge.end();
-		return new Frame(dmd.getWidth(), dmd.getHeight(), f1, f2);
+		return new Frame(f1, f2);
 	}
 
 	private String getFilename(String name, int frameNo) {
 		String filename = name + "/"+ String.format(pattern,
 				new Object[] { Integer.valueOf(frameNo) })+".png";
 		return filename;
-	}
-
-	public static void main(String[] args) {
-		Renderer renderer = new PngRenderer();
-		String base = "/home/sr/Downloads/Pinball/";
-		DMD dmd = new DMD(16, 32);
-		for (int j = 0x329; j <= 0x0333; j++) {
-			String number = String.format("%04X",
-					new Object[] { Integer.valueOf(j) });
-			renderer.convert(base + "Getaway/Image-0x"+number+".png", dmd,1);
-			for (int i = 0; i < 30; i++) {
-				int b = dmd.frame1[0 + i * dmd.getBytesPerRow()];
-				String n = "00000000000" + Integer.toBinaryString(b);
-				LOG.debug("0b0"+n.substring(n.length() - 8, n.length()));
-			}
-		}
 	}
 
 	public void setOverrideDMD(boolean override) {

@@ -1,0 +1,1 @@
+java -XstartOnFirstThread -Dorg.slf4j.simpleLogger.logFile=go-dmd.log -Dorg.slf4j.simpleLogger.defaultLogLevel=debug -jar go-dmd-editor_mac_x86.jar

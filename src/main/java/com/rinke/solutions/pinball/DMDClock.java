@@ -9,12 +9,12 @@ import java.io.InputStream;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Properties;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.renderer.PngRenderer;
 
 public class DMDClock {
@@ -47,7 +47,7 @@ public class DMDClock {
 		// 352 - 35c fuer klein 6x9 
 		// alter big font 0x352; j <= 0x035C
 		for (int j = 0x013; j <= 0x021; j++) {
-			DMD dmd = new DMD(10, 13);
+			DMD dmd = (j == 0x1D || j == 0x1E ? new DMD(5, 13) : new DMD(10, 13));
 			Frame frame = renderer.convert(base + "fonts/"+small, dmd,j);
 			dmd.writeOr(frame);
 			charMapSmall.put(alpha.charAt(i), dmd);
@@ -55,7 +55,7 @@ public class DMDClock {
 		}
 		i = 0;
 		for (int j = 0x013; j <= 0x021; j++) {
-			DMD dmd = new DMD(10, 13);
+			DMD dmd = (j == 0x1D || j == 0x1E  ? new DMD(5, 13) : new DMD(10, 13));
 			renderer.setPattern("Image-0x%04X-mask");
 			Frame frame = renderer.convert(base + "fonts/"+small, dmd,j);
 			dmd.writeOr(frame);
@@ -67,8 +67,8 @@ public class DMDClock {
 			DMD dmd = new DMD(16, 32);
 			renderer.setOverrideDMD(true);
 			renderer.setPattern("Image-0x%04X");
-			Frame frame = renderer.convert(base + "fonts/"+fontname, dmd,j);
-			dmd = new DMD(frame.width, frame.height);
+			Frame frame = renderer.convert(base + "fonts/"+fontname, dmd, j);
+			dmd = new DMD(16, 32);
 			dmd.writeOr(frame);
 			charMapBig.put(alpha.charAt(i), dmd);
 			i++;
@@ -78,7 +78,7 @@ public class DMDClock {
 			DMD dmd = new DMD(16, 32);
 			renderer.setPattern("Image-0x%04X-mask");
 			Frame frame = renderer.convert(base + "fonts/"+fontname, dmd,j);
-			dmd = new DMD(frame.width, frame.height);
+			dmd = new DMD(16, 32);
 			dmd.writeOr(frame);
 			charMapBigMask.put(alpha.charAt(i), dmd);
 			i++;
@@ -196,49 +196,17 @@ public class DMDClock {
 			if( src != null ) {
 				boolean low = renderCycles < 1;
 				//copy(dmd, y, xoffset, small?emptySmall:emptyBig, low, small);
-				copy(dmd, y, xoffset, src, low, mask);
+				dmd.copy( y, xoffset, src, low, mask);
 				xoffset += src.getWidth()/8;
 			}
 		}
 		renderCycles++;
 	}
 
-    // TODO methode in DMD selbst
-    private void copy(DMD target, int yoffset, int xoffset, DMD src, boolean low, boolean mask) {
-        for (int row = 0; row < src.getHeight(); row++) {
-            for (int col = 0; col < src.getWidth() / 8; col++) {
-                if(mask) 
-                    target.frame1[(row + yoffset) * target.getBytesPerRow() + xoffset + col] &= 
-                        ~src.frame1[src.getBytesPerRow() * row + col];
-                else
-                    target.frame1[(row + yoffset) * target.getBytesPerRow() + xoffset + col] = 
-                        src.frame1[src.getBytesPerRow() * row + col];
-                if (!low) {
-                    if( mask )
-                        target.frame2[(row + yoffset) * target.getBytesPerRow() + xoffset + col] &= 
-                            ~src.frame1[src.getBytesPerRow() * row + col];
-                    else
-                        target.frame2[(row + yoffset) * target.getBytesPerRow() + xoffset + col] = 
-                            src.frame1[src.getBytesPerRow() * row + col];
-
-                }
-            }
-        }
-    }
-	
-	private String dumpAsCode() {
-		StringBuilder sb = new StringBuilder();
-		for(Entry<Character, DMD> c: charMapBig.entrySet() ) {
-			sb.append("// big " +c.getKey()+"\n");
-			sb.append(c.getValue().dumpAsCode());
-		}
-//		for(Entry<Character, DMD> c: charMapSmall.entrySet() ) {
-//			sb.append("// small " +c.getKey()+"\n");
-//			sb.append(c.getValue().dumpAsCode(5));
-//		}
-		return sb.toString();
-	}
-	
+	/** 
+	 * genutzt zum generieren der Fonts
+	 * @param args
+	 */
 	public static void main( String[] args ) {
 		DMDClock clock = new DMDClock(false);
 		//System.out.println(clock.dumpAsCode());

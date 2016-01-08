@@ -1,24 +1,29 @@
 package com.rinke.solutions.pinball;
 
-import java.awt.Graphics2D;
-import java.awt.image.BufferedImage;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Observable;
 
-import org.eclipse.swt.events.PaintEvent;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
+import com.rinke.solutions.pinball.model.Frame;
 
-public class DMD {
+public class DMD extends Observable {
 
     private int width;
     private int height;
+    
+    List<byte[]> frames = new ArrayList<byte[]>();
+    
+    public Map<Integer,List<byte[]>> buffers = new HashMap<Integer,List<byte[]>>();
 
+    // remove simple fixed frames completely
     public byte[] frame1 = null;
     public byte[] frame2 = null;
+    
+    int numberOfSubframes = 2;
+    int actualBuffer = 0;
 
     private int frameSizeInByte;
 
@@ -48,6 +53,48 @@ public class DMD {
         return bytesPerRow;
     }
 
+    public void copyLastBuffer() {
+    	if( actualBuffer>0) {
+        	List<byte[]> target = buffers.get(actualBuffer);
+        	List<byte[]> source = buffers.get(actualBuffer-1);
+        	for(int i = 0; i < source.size(); i++) {
+        		System.arraycopy(source.get(i), 0, target.get(i), 0, source.get(i).length);
+        	}
+    	}
+    }
+    
+    public void addUndoBuffer() {
+    	List<byte[]> newframes = new ArrayList<byte[]>();
+    	for( byte[] frame : frames) {
+    		newframes.add(Arrays.copyOf(frame, frame.length));
+    	}
+    	actualBuffer++;
+    	buffers.put(actualBuffer, newframes);
+    	updateActualBuffer(actualBuffer);
+    }
+    
+    public void undo() {
+    	if(canUndo()) {
+    		actualBuffer--;
+    		updateActualBuffer(actualBuffer);
+    	}
+    }
+
+    public void redo() {
+    	if( canRedo() ) {
+    		actualBuffer++;
+    		updateActualBuffer(actualBuffer);
+    	}
+    }
+    
+    public boolean canRedo() {
+    	return buffers.size()-1>actualBuffer;
+    }
+    
+    public boolean canUndo() {
+    	return  actualBuffer>0;
+    }
+
     public DMD(int w, int h) {
         this.width = w;
         this.height = h;
@@ -55,127 +102,69 @@ public class DMD {
         if (width % 8 > 0)
             bytesPerRow++;
         frameSizeInByte = bytesPerRow * height;
-        frame1 = new byte[frameSizeInByte];
-        frame2 = new byte[frameSizeInByte];
+        setNumberOfSubframes(2);
+        buffers.put(actualBuffer, frames);
+        setChanged();
+    }
+    
+    public void setNumberOfSubframes(int n) {
+        frames.clear();
+        for(int i = 0; i < n; i++) {
+            frames.add( new byte[frameSizeInByte]);
+        }
+        frame1 = frames.get(0);
+        frame2 = frames.get(1);
+        numberOfSubframes = n;
     }
 
     public DMD() {
         this(128, 32);
     }
 
-    public void copyInto(DMD src, int xsrc, int ysrc, int w, int h, int destx, int desty) {
+    public void setPixel(int x, int y, int v) {
+        if( x<0 || y<0 || x>=width || y >= height ) return;
+    	int numberOfPlanes = frames.size();
+    	byte mask = (byte) (128 >> (x % 8));
+    	for(int plane = 0; plane < numberOfPlanes; plane++) {
+    		if( (v & 0x01) != 0) {
+    			frames.get(plane)[y*bytesPerRow+x/8] |= mask;
+    		} else {
+    			frames.get(plane)[y*bytesPerRow+x/8] &= ~mask;
+    		}
+    		v >>= 1;
+    	}
     }
 
-    public void setPixel(int col, int row, int v) {
+    public int getPixel(int x, int y) {
+    	byte mask = (byte) (128 >> (x % 8));
+    	int v = 0;
+    	for(int plane = 0; plane <frames.size(); plane++) {
+    		v += (frames.get(plane)[x / 8 + y * bytesPerRow] & mask) != 0 ? (1<<plane) : 0;
+    	}
+    	return v;
     }
-    
-    int pitch = 7;
-    int offset = 20;
-
-
-    public BufferedImage draw() {
-        BufferedImage img = new BufferedImage(width * 8, height * 8, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g = (Graphics2D) img.getGraphics();
-        g.setPaint(new java.awt.Color(10, 10, 10));
-        g.fillRect(0, 0, width * 8, height * 8);
-
-        java.awt.Color[] cols = new java.awt.Color[4];
-        // hell ffae3a
-        // 2/3 ca8a2e
-        // 1/3 7f561d
-        // schwarz: 191106
-        cols[0] = new java.awt.Color(0x19, 0x00, 0x06);
-        cols[1] = new java.awt.Color(0x6f, 0x00, 0x00);
-        cols[2] = new java.awt.Color(0xca, 0x00, 0x00);
-        cols[3] = new java.awt.Color(0xff, 0x00, 0x00);
-
-        for (int row = 0; row < height; row++) {
-            for (int col = 0; col < width; col++) {
-                // lsb first
-                // byte mask = (byte) (1 << (col % 8));
-                // hsb first
-                byte mask = (byte) (128 >> (col % 8));
-                int v = 0;
-                v += (frame1[col / 8 + row * bytesPerRow] & mask) != 0 ? 1 : 0;
-                v += (frame2[col / 8 + row * bytesPerRow] & mask) != 0 ? 2 : 0;
-
-                g.setPaint(cols[v]);
-                g.fillOval(offset + col * pitch, offset + row * pitch, pitch, pitch);
-            }
-        }
-
-        g.dispose();
-        return img;
-    }
-    
-    public Point transformCoord( int x, int y) {
-        return new Point((x-offset)/pitch,(y-offset)/pitch);   
-    }
-
-    public void draw(PaintEvent ev) {
-
-        Image image = new Image(ev.display, ev.width, ev.height);
-        GC gcImage = new GC(image);
-
-        int pitch = 7;
-        int offset = 20;
-        Color[] cols = new Color[4];
-        // hell ffae3a
-        // 2/3 ca8a2e
-        // 1/3 7f561d
-        // schwarz: 191106
-        cols[0] = new Color(ev.display, 0x19, 0x00, 0x06);
-        cols[1] = new Color(ev.display, 0x6f, 0x00, 0x00);
-        cols[2] = new Color(ev.display, 0xca, 0x00, 0x00);
-        cols[3] = new Color(ev.display, 0xff, 0x00, 0x00);
-        Color bg = new Color(ev.display, 10, 10, 10);
-        gcImage.setBackground(bg);
-        gcImage.fillRectangle(0, 0, ev.width, ev.height);
-
-        for (int row = 0; row < height; row++) {
-            for (int col = 0; col < width; col++) {
-                // lsb first
-                // byte mask = (byte) (1 << (col % 8));
-                // hsb first
-                byte mask = (byte) (128 >> (col % 8));
-                int v = 0;
-                v += (frame1[col / 8 + row * bytesPerRow] & mask) != 0 ? 1 : 0;
-                v += (frame2[col / 8 + row * bytesPerRow] & mask) != 0 ? 2 : 0;
-
-                gcImage.setBackground(cols[v]);
-                gcImage.fillOval(offset + col * pitch, offset + row * pitch, pitch, pitch);
-            }
-        }
-
-        ev.gc.drawImage(image, 0, 0);
-
-        cols[0].dispose();
-        cols[1].dispose();
-        cols[2].dispose();
-        cols[3].dispose();
-        bg.dispose();
-
-        image.dispose();
-        gcImage.dispose();
-    }
-
-    public void setFrames(byte[] f1, byte[] f2) {
-        this.frame1 = f1;
-        this.frame2 = f2;
-    }
-
+   
     public void clear() {
-        for (int i = 0; i < frameSizeInByte; i++) {
-            frame1[i] = 0;
-            frame2[i] = 0;
-        }
-
+    	updateActualBuffer(0);
+        for (byte[] p : frames) {
+			Arrays.fill(p, (byte)0);
+		}
     }
 
     public void writeOr(Frame frame) {
         if (frame != null) {
-            copyOr(frame1, frame.planes.get(0).plane);
-            copyOr(frame2, frame.planes.get(1).plane);
+        	if( frame.planes.size()!=3) {
+        		while( frames.size()< frame.planes.size() ) {
+        			frames.add(new byte[bytesPerRow*height]);
+        		}
+        		numberOfSubframes = frames.size();
+        		for (int i = 0; i < frame.planes.size(); i++) {
+					copyOr(frames.get(i),frame.planes.get(i).plane);
+					
+				}
+        		//copyOr(frame1, frame.planes.get(0).plane);
+        		//copyOr(frame2, frame.planes.get(1).plane);
+        	}
         }
     }
 
@@ -211,12 +200,34 @@ public class DMD {
             target[i] = (byte) (target[i] | src[i]);
         }
     }
+    
+    public void copy(int yoffset, int xoffset, DMD src, boolean low, boolean mask) {
+        for (int row = 0; row < src.getHeight(); row++) {
+            for (int col = 0; col < src.getWidth() / 8; col++) {
+                if(mask) 
+                    frame1[(row + yoffset) * getBytesPerRow() + xoffset + col] &= 
+                        ~src.frame1[src.getBytesPerRow() * row + col];
+                else
+                    frame1[(row + yoffset) * getBytesPerRow() + xoffset + col] = 
+                        src.frame1[src.getBytesPerRow() * row + col];
+                if (!low) {
+                    if( mask )
+                        frame2[(row + yoffset) * getBytesPerRow() + xoffset + col] &= 
+                            ~src.frame1[src.getBytesPerRow() * row + col];
+                    else
+                        frame2[(row + yoffset) * getBytesPerRow() + xoffset + col] = 
+                            src.frame1[src.getBytesPerRow() * row + col];
+
+                }
+            }
+        }
+    }
+	
 
     // masken zum setzen von pixeln
-    int[] mask = { 0b01111111, 0b11011111, 0b11110111, 0b11111101,
-
-    0b10111111, 0b11101111, 0b11111011, 0b11111110
-
+    int[] mask = { 
+            0b01111111, 0b11011111, 0b11110111, 0b11111101,
+            0b10111111, 0b11101111, 0b11111011, 0b11111110
     };
 
     public boolean getPixel(byte[] buffer, int x, int y) {
@@ -272,48 +283,30 @@ public class DMD {
         return t;
     }
 
-    public String dumpAsCode() {
-        StringBuilder builder = new StringBuilder();
-        builder.append(" { ");
-        byte[] f = transformFrame(frame1);
-        for (int i = 0; i < f.length; i++) {
-            builder.append(String.format("0x%02X , ", f[i]));
-        }
-        builder.append(" }, \n");
-        // builder.append("byte[] f2 = new byte { \n");
-        // for(int i = 0; i<frame2.length;i++) {
-        // builder.append(String.format("0x%02X , ", frame2[i]));
-        // }
-        // builder.append("}; \n");
-        return builder.toString();
-    }
-
-    public void writeTo(DataOutputStream os) throws IOException {
-        os.writeShort(width);
-        os.writeShort(height);
-        os.writeShort(frameSizeInByte);
-        os.write(frame1);
-        os.write(frame2);
-    }
-
-    public static DMD read(DataInputStream is) throws IOException {
-        int w = is.readShort();
-        int h = is.readShort();
-        DMD dmd = new DMD(w, h);
-        int sizeInByte = is.readShort();
-        assert (sizeInByte == dmd.getFrameSizeInByte());
-        is.read(dmd.frame1);
-        is.read(dmd.frame2);
-        return dmd;
-    }
-
     public Frame getFrame() {
-        return new Frame(width, height, frame1, frame2);
+        return new Frame( frame1, frame2);
     }
 
-    @Override
-    public String toString() {
-        return "DMD [width=" + width + ", height=" + height + "]";
+	public void updateActualBuffer(int i) {
+		this.actualBuffer = i;
+		frames = buffers.get(actualBuffer);
+    	setChanged();
+    	notifyObservers();
+	}
+
+	public List<byte[]> getActualBuffers() {
+		return buffers.get(actualBuffer);
+	}
+
+	@Override
+	public String toString() {
+		return "DMD [width=" + width + ", height=" + height
+				+ ", numberOfSubframes=" + numberOfSubframes
+				+ ", actualBuffer=" + actualBuffer + "]";
+	}
+
+    public int getNumberOfSubframes() {
+        return numberOfSubframes;
     }
 
 }
