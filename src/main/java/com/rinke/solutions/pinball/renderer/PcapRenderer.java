@@ -56,7 +56,8 @@ public class PcapRenderer extends Renderer {
     			tc += res.delay;
     			res.timecode = tc;
     			if( res.delay > 1 ) {    			    
-    				System.out.println("frame"+frames.size()+", delay: "+res.delay + " "+p);
+    				//System.out.println("frame"+frames.size()+", delay: "+res.delay + " "+p);
+    				LOG.debug("Frame {}", res);
     				frames.add(res);
     			}
 				lastTimestamp = p.getTimestampInMillis();
