@@ -4,28 +4,35 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Observable;
 
 import javax.imageio.stream.FileImageOutputStream;
 import javax.imageio.stream.ImageOutputStream;
 
-import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Scale;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.rinke.solutions.pinball.AniEvent.Type;
-import com.rinke.solutions.pinball.renderer.GifSequenceWriter;
+import com.rinke.solutions.pinball.animation.AniEvent;
+import com.rinke.solutions.pinball.animation.AniEvent.Type;
+import com.rinke.solutions.pinball.animation.Animation;
+import com.rinke.solutions.pinball.animation.EventHandler;
+import com.rinke.solutions.pinball.model.Frame;
+import com.rinke.solutions.pinball.io.GifSequenceWriter;
 
 /**
  * handles the sequence of animations and clock
  * @author sr
  */
-public class AnimationHandler implements Runnable {
+public class AnimationHandler extends Observable implements Runnable{
+    
+    private static Logger LOG = LoggerFactory.getLogger(AnimationHandler.class); 
 
 	private List<Animation> anis;
 	private int index = 0; // index of the current animation
 	private DMDClock clock;
 	private boolean clockActive;
 	private int clockCycles;
-	private Canvas canvas;
 	private EventHandler eventHandler;
 	private DMD dmd;
 	private volatile boolean stop = false;
@@ -33,12 +40,12 @@ public class AnimationHandler implements Runnable {
 	private boolean export;
 	private GifSequenceWriter gifWriter;
 	private boolean showClock = true;
-	private int transitionFrame= 0;
+	//private int transitionFrame= 0;
+	private int lastRenderedFrame = -1;
 	
-	public AnimationHandler(List<Animation> anis, DMDClock clock, DMD dmd, Canvas canvas, boolean export) {
+	public AnimationHandler(List<Animation> anis, DMDClock clock, DMD dmd, boolean export) {
 		this.anis = anis;
 		this.clock = clock;
-		this.canvas = canvas;
 		this.dmd = dmd;
 		this.export = export;
 		if( export ) {
@@ -53,6 +60,17 @@ public class AnimationHandler implements Runnable {
 	}
 
 	public void run() {
+	    try {
+	        runInner();
+	    } catch( Exception e) {
+	        GlobalExceptionHandler.getInstance().setException(e);
+	        anis.clear();
+	        eventHandler.notifyAni(new AniEvent(Type.CLEAR));
+	        LOG.error("unexpected exception caught: {}", e.getMessage(), e);
+	    }
+	}
+	
+	public void runInner() {
 		if( clockActive ) {
 			if( clockCycles == 0 ) dmd.clear();
 			clock.renderTime(dmd,false);//,true,5,5);
@@ -60,10 +78,10 @@ public class AnimationHandler implements Runnable {
 				clockActive = false;
 				clockCycles = 0;
 				clock.restart();
-				transitionFrame=0;
+				//not used transitionFrame=0;
 			}
 			if( scale.isDisposed() ) return;
-			eventHandler.notifyAni(new AniEvent(Type.CLOCK, 0, null));
+			eventHandler.notifyAni(new AniEvent(Type.CLOCK));
 		} else {
 			if( anis.isEmpty() ) {
 				clockActive = true;
@@ -75,7 +93,8 @@ public class AnimationHandler implements Runnable {
 				scale.setMaximum(ani.end);
 				scale.setIncrement(ani.skip);
 				
-				eventHandler.notifyAni(new AniEvent(Type.ANI, ani.actFrame, ani));
+				if( stop && ani.actFrame == lastRenderedFrame ) return;
+				//System.out.println("rendering: "+ani.actFrame);
 				
 				dmd.clear();
 				if( ani.addClock() ) {
@@ -86,9 +105,13 @@ public class AnimationHandler implements Runnable {
 				}
 				Frame res = ani.render(dmd,stop);
                 scale.setSelection(ani.actFrame);
+                eventHandler.notifyAni(
+                        new AniEvent(Type.ANI, ani.actFrame, ani, res.getHashes(), 
+                                res.timecode, res.delay, res.planes.size() ));
                 
-
-                if( res.planes.size()>2 ) { // there is a mask
+                lastRenderedFrame = ani.actFrame;
+                
+                if( res.planes.size()==3 ) { // there is a mask
                     if( ani.getClockFrom()>ani.getTransitionFrom())
                         dmd.writeNotAnd(res.planes.get(2).plane); // mask out clock
                     DMD tmp = new DMD(dmd.getWidth(), dmd.getHeight());
@@ -117,14 +140,13 @@ public class AnimationHandler implements Runnable {
 				}
 			}
 		}
-		if( export ) {
-			try {
-				gifWriter.writeToSequence(dmd.draw(), getRefreshDelay());
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-		canvas.redraw();
+//		if( export ) {
+//			try {
+//				gifWriter.writeToSequence(dmd.draw(), getRefreshDelay());
+//			} catch (IOException e) {
+//				e.printStackTrace();
+//			}
+//		}
 	}
 
 	public int getRefreshDelay() {
@@ -138,16 +160,22 @@ public class AnimationHandler implements Runnable {
 	 * sets the shell used to set ani text
 	 * @param shell2
 	 */
-	public void setLabelHandler(EventHandler shell2) {
-		this.eventHandler = shell2;
+	public void setEventHandler(EventHandler handler) {
+		this.eventHandler = handler;
 	}
 	
 	public void start() {
-		stop = false;
+		setStop(false);
 	}
 	
+	public void setStop(boolean b) {
+		this.stop = b;
+		setChanged();
+		notifyObservers();
+	}
+
 	public void stop() {
-		stop = true;
+		setStop(true);
 		try {
 			if( gifWriter != null ) gifWriter.close();
 		} catch (IOException e) {
@@ -160,13 +188,11 @@ public class AnimationHandler implements Runnable {
 	public void prev() {
 		anis.get(index).prev();
 		run();
-		canvas.redraw();
 	}
 
 	public void next() {
 		anis.get(index).next();
 		run();
-		canvas.redraw();
 	}
 
 	public void setScale(Scale scale) {
@@ -174,9 +200,10 @@ public class AnimationHandler implements Runnable {
 	}
 
 	public void setPos(int pos) {
-		anis.get(index).setPos(pos);
-		run();
-		canvas.redraw();
+		if( !anis.isEmpty() ) {
+		    anis.get(index).setPos(pos);
+	        run();
+		}
 	}
 
 	public void setAnimations(java.util.List<Animation> anis2) {
@@ -185,6 +212,7 @@ public class AnimationHandler implements Runnable {
 		index = 0;
 		if( !anis.isEmpty() ) {
 		    anis.get(index).restart();
+		    run();
 		}
 	}
 
@@ -199,6 +227,14 @@ public class AnimationHandler implements Runnable {
     public boolean isStopped() {
         return stop;
     }
+
+	public boolean isClockActive() {
+		return clockActive;
+	}
+
+	public void setClockActive(boolean clockActive) {
+		this.clockActive = clockActive;
+	}
 
 }
 

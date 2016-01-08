@@ -5,7 +5,7 @@ import java.io.IOException;
 
 import com.google.common.io.LittleEndianDataInputStream;
 import com.rinke.solutions.pinball.DMD;
-import com.rinke.solutions.pinball.Frame;
+import com.rinke.solutions.pinball.model.Frame;
 
 public class DMDFRenderer extends Renderer {
 
@@ -43,7 +43,7 @@ public class DMDFRenderer extends Renderer {
 					}
 				}
 				//dmd.setFrames(f1, f2);
-				return new Frame(dmd.getWidth(), dmd.getHeight(), f1, f2);
+				return new Frame(f1, f2);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
