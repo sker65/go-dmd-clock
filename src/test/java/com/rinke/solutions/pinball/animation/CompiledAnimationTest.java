@@ -6,6 +6,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.rinke.solutions.pinball.DMD;
+import com.rinke.solutions.pinball.model.Frame;
+import com.rinke.solutions.pinball.model.Plane;
 
 
 public class CompiledAnimationTest {

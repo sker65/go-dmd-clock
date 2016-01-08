@@ -4,7 +4,7 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
-import com.rinke.solutions.pinball.animation.Frame;
+import com.rinke.solutions.pinball.model.Frame;
 
 public class FrameTest {
 
