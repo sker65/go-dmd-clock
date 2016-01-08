@@ -32,7 +32,6 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.ColorDialog;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
@@ -60,7 +59,7 @@ import com.rinke.solutions.pinball.animation.AnimationCompiler;
 import com.rinke.solutions.pinball.animation.AnimationFactory;
 import com.rinke.solutions.pinball.animation.AnimationType;
 import com.rinke.solutions.pinball.animation.EventHandler;
-import com.rinke.solutions.pinball.animation.Frame;
+import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.io.FileHelper;
 import com.rinke.solutions.pinball.io.SmartDMDImporter;
 import com.rinke.solutions.pinball.io.UsbTool;
@@ -493,11 +492,10 @@ public class PinDmdEditor implements EventHandler{
     		DMD tmp = new DMD(128,32);
     		for (int i = 0; i <= ani.end; i++) {
     			Frame frame = ani.render(tmp, false);
-    			p.frames.add(new com.rinke.solutions.pinball.model.Frame(frame));
+    			p.frames.add(frame);
     		}
-
     	}
-    	
+    
     	// create addtional files for frame sequences
     	try {
     		Map<String, Integer> map = new HashMap<String, Integer>();
