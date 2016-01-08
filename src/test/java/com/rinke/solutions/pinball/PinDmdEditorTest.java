@@ -24,6 +24,7 @@ import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.FrameSeq;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.Palette;
+import com.rinke.solutions.pinball.test.Util;
 
 public class PinDmdEditorTest {
 	
@@ -61,7 +62,7 @@ public class PinDmdEditorTest {
 		ani.setDesc("foo");
 		uut.animations.put("foo", ani);
 		// finally put some frame data into it
-		List<com.rinke.solutions.pinball.animation.Frame> aniFrames = ani.getRenderer().getFrames();
+		List<Frame> aniFrames = ani.getRenderer().getFrames();
 		byte[] plane2 = new byte[512];
 		byte[] plane1 = new byte[512];
 		for(int i = 0; i <512; i+=2) {
@@ -69,14 +70,13 @@ public class PinDmdEditorTest {
 			plane1[i+1] = (byte)i;
 			plane2[i] = (byte)0xFF;
 		}
-		com.rinke.solutions.pinball.animation.Frame frame = 
-				new com.rinke.solutions.pinball.animation.Frame(128, 32, plane1, plane2);
-		frame.timecode = 0x77ee77ee;
+		Frame frame = new Frame(plane1, plane2);
+		frame.delay = 0x77ee77ee;
 		aniFrames.add(frame);
 		uut.exportProject(filename);
 		//System.out.println(filename);
-		assertNull( isBinaryIdentical( filename, "./src/test/resources/mappingWithSeq.dat"));
-		assertNull( isBinaryIdentical( uut.replaceExtensionTo("fsq", filename), "./src/test/resources/testSeq.fsq"));
+		assertNull( Util.isBinaryIdentical( filename, "./src/test/resources/mappingWithSeq.dat"));
+		assertNull( Util.isBinaryIdentical( uut.replaceExtensionTo("fsq", filename), "./src/test/resources/testSeq.fsq"));
 		
 	}
 
@@ -96,7 +96,7 @@ public class PinDmdEditorTest {
 		//System.out.println(filename);
 
 		// create a reference file and compare against
-		assertNull( isBinaryIdentical( filename, "./src/test/resources/palettesOneMapping.dat"));
+		assertNull( Util.isBinaryIdentical( filename, "./src/test/resources/palettesOneMapping.dat"));
 	}
 
 	@Test
@@ -109,17 +109,7 @@ public class PinDmdEditorTest {
 		//System.out.println(filename);
 
 		// create a reference file and compare against
-		assertNull( isBinaryIdentical( filename, "./src/test/resources/defaultPalettes.dat"));
-	}
-
-	private String isBinaryIdentical(String filename, String filename2) throws IOException {
-		byte[] b1 = IOUtils.toByteArray(new FileInputStream(filename));
-		byte[] b2 = IOUtils.toByteArray(new FileInputStream(filename2));
-		if( b1.length != b2.length ) return String.format("different lenth %d : %d", b1.length, b2.length);
-		for( int i = 0; i < b1.length; i++) {
-			if( b1[i] != b2[i] ) return String.format("files differ at %d", i);
-		}
-		return null;
+		assertNull( Util.isBinaryIdentical( filename, "./src/test/resources/defaultPalettes.dat"));
 	}
 
 	@Test
