@@ -44,7 +44,6 @@ public class DeviceConfig extends Dialog {
     public DeviceConfig(Shell parent) {
         super(parent, SWT.CLOSE | SWT.TITLE | SWT.BORDER | SWT.OK | SWT.APPLICATION_MODAL);
         setText("Device Config");
-        this.shell = parent;
     }
 
     // testability overridden by tests
