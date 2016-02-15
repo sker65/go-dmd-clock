@@ -50,6 +50,7 @@ public class DeviceConfigSWTTest {
 	
 	@Test
 	public void testSave() throws Exception {
+		uut.createContents();
 		uut.save();
 	}
 	
