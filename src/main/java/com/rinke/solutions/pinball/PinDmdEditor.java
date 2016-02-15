@@ -57,6 +57,7 @@ import com.rinke.solutions.pinball.animation.AniEvent;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.AnimationCompiler;
 import com.rinke.solutions.pinball.animation.AnimationFactory;
+import com.rinke.solutions.pinball.animation.AnimationGifExporter;
 import com.rinke.solutions.pinball.animation.AnimationType;
 import com.rinke.solutions.pinball.animation.EventHandler;
 import com.rinke.solutions.pinball.model.Frame;
@@ -74,6 +75,7 @@ import com.rinke.solutions.pinball.ui.About;
 import com.rinke.solutions.pinball.ui.DeviceConfig;
 import com.rinke.solutions.pinball.ui.FileChooser;
 import com.rinke.solutions.pinball.ui.FileDialogDelegate;
+import com.rinke.solutions.pinball.ui.GifExporter;
 import com.rinke.solutions.pinball.util.ObservableList;
 import com.rinke.solutions.pinball.util.ObservableMap;
 import com.rinke.solutions.pinball.widget.CircleTool;
@@ -303,7 +305,7 @@ public class PinDmdEditor implements EventHandler{
 		paletteComboViewer.getCombo().select(0);
 		paletteTool.setPalette(activePalette);
 		
-		animationHandler = new AnimationHandler(playingAnis, clock, dmd, false);
+		animationHandler = new AnimationHandler(playingAnis, clock, dmd);
 		
         animationHandler.setScale(scale);
 		animationHandler.setEventHandler(this);
@@ -455,11 +457,6 @@ public class PinDmdEditor implements EventHandler{
             }
             
         }
-    
-    
-	    // TODO recreate animation list on load of project
-	    // which means reload initial source file and recreate
-	    // scenes and populate source list
 		
 	}
 	
@@ -1327,6 +1324,14 @@ public class PinDmdEditor implements EventHandler{
 		mntmAddAnimation.setText("Add Animation");
 		mntmAddAnimation.addListener(SWT.Selection, e->loadAniWithFC(true));
 		
+		new MenuItem(menu_2, SWT.SEPARATOR);
+		
+		MenuItem mntmExportAnimation = new MenuItem(menu_2, SWT.NONE);
+		mntmExportAnimation.setText("Export Animation");
+		mntmExportAnimation.addListener(SWT.Selection, e-> {
+			GifExporter exporter = new GifExporter(shell, activePalette, playingAnis.get(0));
+			exporter.open();	
+		});
 		
 		MenuItem mntmpalettes = new MenuItem(menu, SWT.CASCADE);
 		mntmpalettes.setText("&Palettes / Mode");
