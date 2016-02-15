@@ -521,6 +521,16 @@ public class PinDmdEditor implements EventHandler{
         fileHelper.storeObject(project, filename);
         project.dirty = false;
     }
+	
+    private void saveAniWithFC()
+    {
+        String filename = fileChooserHelper(SWT.SAVE, activePalette.name, 
+        		new String[] { "*.ani" }, new String[] { "Animations" });
+        if (filename != null) {
+            LOG.info("store animation to {}",filename);
+            storeAnimations(this.animations.values(), filename);
+        }
+    }
 
     private int storeAnimations(Collection<Animation> anis, String filename) {
 		java.util.List<Animation> anisToSave = anis.stream().filter(a->!a.isLoadedFromFile()).collect(Collectors.toList());
@@ -738,6 +748,7 @@ public class PinDmdEditor implements EventHandler{
             if (selection.size() > 0){
             	selectedAnimation = Optional.of((Animation)selection.getFirstElement());
             	int numberOfPlanes = selectedAnimation.get().getRenderer().getNumberOfPlanes();
+            	if( numberOfPlanes == 3 ) numberOfPlanes = 2;
             	dmd.setNumberOfSubframes(numberOfPlanes);
             	planesComboViewer.setSelection(new StructuredSelection(PlaneNumber.valueOf(numberOfPlanes)));
                 playingAnis.clear();
@@ -1326,8 +1337,12 @@ public class PinDmdEditor implements EventHandler{
 		
 		new MenuItem(menu_2, SWT.SEPARATOR);
 		
+		MenuItem mntmSaveAnimation = new MenuItem(menu_2, SWT.NONE);
+		mntmSaveAnimation.setText("Save Animation");
+		mntmSaveAnimation.addListener(SWT.Selection, e->saveAniWithFC() );
+
 		MenuItem mntmExportAnimation = new MenuItem(menu_2, SWT.NONE);
-		mntmExportAnimation.setText("Export Animation");
+		mntmExportAnimation.setText("Export Animation as GIF");
 		mntmExportAnimation.addListener(SWT.Selection, e-> {
 			GifExporter exporter = new GifExporter(shell, activePalette, playingAnis.get(0));
 			exporter.open();	
