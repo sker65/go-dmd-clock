@@ -10,6 +10,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 
 import com.rinke.solutions.pinball.DMD;
@@ -69,7 +70,14 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 
 	@Override
 	protected void paintWidget(PaintEvent ev) {
-		Image image =  new Image(ev.display, ev.width, ev.height);
+		Image image = drawImage(ev.display, ev.width, ev.height);
+        ev.gc.drawImage(image, 0, 0);
+        image.dispose();
+	}
+	
+	public Image drawImage(Display display,int w, int h) {
+		
+		Image image =  new Image(display, w, h);
         GC gcImage = new GC(image);
 
         // int colIdx[] = {0,1,4,15};
@@ -93,7 +101,7 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 
         Color bg = resourceManager.createColor(new RGB(10, 10, 10));
         gcImage.setBackground(bg);
-        gcImage.fillRectangle(0, 0, ev.width, ev.height);
+        gcImage.fillRectangle(0, 0, w, h);
 
         for (int row = 0; row < resolutionY; row++) {
             for (int col = 0; col < resolutionX; col++) {
@@ -121,14 +129,8 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
             }
         }
 
-        ev.gc.drawImage(image, 0, 0);
-        
-        // now draw mask marks if any
-        //deleteMasks.forEach(e -> e.drawMaskRects(ev));
-
-        image.dispose();
         gcImage.dispose();
-
+        return image;
 		
 	}
 
