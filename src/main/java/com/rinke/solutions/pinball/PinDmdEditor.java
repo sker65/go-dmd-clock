@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
@@ -108,7 +109,7 @@ public class PinDmdEditor implements EventHandler{
 	
 	CyclicRedraw cyclicRedraw = new CyclicRedraw();
 	
-	ObservableMap<String,Animation> animations = new ObservableMap<String,Animation>(new HashMap<>());
+	ObservableMap<String,Animation> animations = new ObservableMap<String,Animation>(new LinkedHashMap<>());
     Map<String,DrawTool> drawTools = new HashMap<>();
 
     Display display;
@@ -597,6 +598,18 @@ public class PinDmdEditor implements EventHandler{
             playingAnis.clear();
         }
         for( Animation ani : loadedList) {
+        	if( animations.containsKey(ani.getDesc()) ) {
+        		int i = 0;
+        		String desc = ani.getDesc();
+        		while(i<1000) {
+        			String newDesc = desc+"-"+i;
+        			if(!animations.containsKey(newDesc)) {
+        				ani.setDesc(newDesc);
+        				break;
+        			}
+        			i++;
+        		}
+        	}
         	animations.put(ani.getDesc(), ani);
         }
         
@@ -817,7 +830,7 @@ public class PinDmdEditor implements EventHandler{
         btnSortAni = new Button(composite_1, SWT.NONE);
         btnSortAni.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
         btnSortAni.setText("Sort");
-        btnRemoveAni.addListener(SWT.Selection, e->sortAnimations() );
+        btnSortAni.addListener(SWT.Selection, e->sortAnimations() );
         
         new Label(shell, SWT.NONE);
         
