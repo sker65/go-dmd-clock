@@ -20,7 +20,6 @@ public class VideoCapRenderer extends Renderer {
 	private static Logger LOG = LoggerFactory.getLogger(VideoCapRenderer.class);
 
 	public VideoCapRenderer(int start, int end) {
-		// TODO Auto-generated constructor stub
 	}
 
 	protected void readImage(String name, DMD dmd) {

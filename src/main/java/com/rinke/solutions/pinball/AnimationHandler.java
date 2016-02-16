@@ -37,26 +37,14 @@ public class AnimationHandler extends Observable implements Runnable{
 	private DMD dmd;
 	private volatile boolean stop = false;
 	private Scale scale;
-	private boolean export;
-	private GifSequenceWriter gifWriter;
 	private boolean showClock = true;
 	//private int transitionFrame= 0;
 	private int lastRenderedFrame = -1;
 	
-	public AnimationHandler(List<Animation> anis, DMDClock clock, DMD dmd, boolean export) {
+	public AnimationHandler(List<Animation> anis, DMDClock clock, DMD dmd) {
 		this.anis = anis;
 		this.clock = clock;
 		this.dmd = dmd;
-		this.export = export;
-		if( export ) {
-			ImageOutputStream outputStream;
-			try {
-				outputStream = new FileImageOutputStream(new File("export.gif"));
-				gifWriter = new GifSequenceWriter(outputStream, BufferedImage.TYPE_INT_ARGB, 1000, false);
-			} catch ( IOException e) {
-				e.printStackTrace();
-			}
-		}
 	}
 
 	public void run() {
@@ -140,13 +128,7 @@ public class AnimationHandler extends Observable implements Runnable{
 				}
 			}
 		}
-//		if( export ) {
-//			try {
-//				gifWriter.writeToSequence(dmd.draw(), getRefreshDelay());
-//			} catch (IOException e) {
-//				e.printStackTrace();
-//			}
-//		}
+
 	}
 
 	public int getRefreshDelay() {
@@ -176,13 +158,6 @@ public class AnimationHandler extends Observable implements Runnable{
 
 	public void stop() {
 		setStop(true);
-		try {
-			if( gifWriter != null ) gifWriter.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		export = false;
 	}
 
 	public void prev() {

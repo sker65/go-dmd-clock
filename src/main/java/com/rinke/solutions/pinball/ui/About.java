@@ -1,5 +1,9 @@
 package com.rinke.solutions.pinball.ui;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
+
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.resource.LocalResourceManager;
@@ -65,8 +69,45 @@ public class About extends Dialog {
 		
 		Label lblBySteve = new Label(shlAboutPindmdEditor, SWT.NONE);
 		lblBySteve.setBounds(211, 22, 144, 103);
-		lblBySteve.setText("by Steve\n(C) 2015\n\n\nhttp://github.com/\nsker65/go-dmd-clock");
-
+		lblBySteve.setText("by Steve\n(C) 2016\n\n\nhttp://github.com/\nsker65/go-dmd-clock");
+		
+		Label lblVersion = new Label(shlAboutPindmdEditor, SWT.NONE);
+		lblVersion.setBounds(211, 126, 89, 14);
+		lblVersion.setText(getVersion());
 
 	}
+	
+	public synchronized String getVersion() {
+	    String version = null;
+
+	    // try to load from maven properties first
+	    try {
+	        Properties p = new Properties();
+	        InputStream is = getClass().getResourceAsStream("/META-INF/maven/com.rinke.solutions.pinball/go-dmd-clock/pom.properties");
+	        if (is != null) {
+	            p.load(is);
+	            version = p.getProperty("version", "");
+	        }
+	    } catch (Exception e) {
+	        // ignore
+	    }
+
+	    // fallback to using Java API
+	    if (version == null) {
+	        Package aPackage = getClass().getPackage();
+	        if (aPackage != null) {
+	            version = aPackage.getImplementationVersion();
+	            if (version == null) {
+	                version = aPackage.getSpecificationVersion();
+	            }
+	        }
+	    }
+
+	    if (version == null) {
+	        // we could not compute the version so use a blank
+	        version = "";
+	    }
+
+	    return version;
+	} 
 }

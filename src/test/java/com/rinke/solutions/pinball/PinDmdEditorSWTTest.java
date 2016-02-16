@@ -66,7 +66,7 @@ public class PinDmdEditorSWTTest {
 		uut.createNewProject();
 		
 		DMD dmd = new DMD(128,32);
-		uut.animationHandler = new  AnimationHandler(null,null,dmd ,false);
+		uut.animationHandler = new  AnimationHandler(null,null,dmd);
 		uut.animationHandler.setScale(uut.scale);
 		uut.animationHandler.setEventHandler(eventHandler);
 		

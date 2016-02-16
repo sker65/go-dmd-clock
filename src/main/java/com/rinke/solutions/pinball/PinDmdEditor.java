@@ -8,9 +8,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -57,6 +61,7 @@ import com.rinke.solutions.pinball.animation.AniEvent;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.AnimationCompiler;
 import com.rinke.solutions.pinball.animation.AnimationFactory;
+import com.rinke.solutions.pinball.animation.AnimationGifExporter;
 import com.rinke.solutions.pinball.animation.AnimationType;
 import com.rinke.solutions.pinball.animation.EventHandler;
 import com.rinke.solutions.pinball.model.Frame;
@@ -74,6 +79,7 @@ import com.rinke.solutions.pinball.ui.About;
 import com.rinke.solutions.pinball.ui.DeviceConfig;
 import com.rinke.solutions.pinball.ui.FileChooser;
 import com.rinke.solutions.pinball.ui.FileDialogDelegate;
+import com.rinke.solutions.pinball.ui.GifExporter;
 import com.rinke.solutions.pinball.util.ObservableList;
 import com.rinke.solutions.pinball.util.ObservableMap;
 import com.rinke.solutions.pinball.widget.CircleTool;
@@ -84,6 +90,9 @@ import com.rinke.solutions.pinball.widget.LineTool;
 import com.rinke.solutions.pinball.widget.PaletteTool;
 import com.rinke.solutions.pinball.widget.RectTool;
 import com.rinke.solutions.pinball.widget.SetPixelTool;
+
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 
 
 public class PinDmdEditor implements EventHandler{
@@ -100,7 +109,7 @@ public class PinDmdEditor implements EventHandler{
 	
 	CyclicRedraw cyclicRedraw = new CyclicRedraw();
 	
-	ObservableMap<String,Animation> animations = new ObservableMap<String,Animation>(new HashMap<>());
+	ObservableMap<String,Animation> animations = new ObservableMap<String,Animation>(new LinkedHashMap<>());
     Map<String,DrawTool> drawTools = new HashMap<>();
 
     Display display;
@@ -190,6 +199,8 @@ public class PinDmdEditor implements EventHandler{
     Label lblPlanesVal;
 
     Label lblDelayVal;
+
+	private Button btnSortAni;
 
 
 	public PinDmdEditor() {
@@ -303,7 +314,7 @@ public class PinDmdEditor implements EventHandler{
 		paletteComboViewer.getCombo().select(0);
 		paletteTool.setPalette(activePalette);
 		
-		animationHandler = new AnimationHandler(playingAnis, clock, dmd, false);
+		animationHandler = new AnimationHandler(playingAnis, clock, dmd);
 		
         animationHandler.setScale(scale);
 		animationHandler.setEventHandler(this);
@@ -455,11 +466,6 @@ public class PinDmdEditor implements EventHandler{
             }
             
         }
-    
-    
-	    // TODO recreate animation list on load of project
-	    // which means reload initial source file and recreate
-	    // scenes and populate source list
 		
 	}
 	
@@ -524,6 +530,16 @@ public class PinDmdEditor implements EventHandler{
         fileHelper.storeObject(project, filename);
         project.dirty = false;
     }
+	
+    private void saveAniWithFC()
+    {
+        String filename = fileChooserHelper(SWT.SAVE, activePalette.name, 
+        		new String[] { "*.ani" }, new String[] { "Animations" });
+        if (filename != null) {
+            LOG.info("store animation to {}",filename);
+            storeAnimations(this.animations.values(), filename);
+        }
+    }
 
     private int storeAnimations(Collection<Animation> anis, String filename) {
 		java.util.List<Animation> anisToSave = anis.stream().filter(a->!a.isLoadedFromFile()).collect(Collectors.toList());
@@ -582,6 +598,18 @@ public class PinDmdEditor implements EventHandler{
             playingAnis.clear();
         }
         for( Animation ani : loadedList) {
+        	if( animations.containsKey(ani.getDesc()) ) {
+        		int i = 0;
+        		String desc = ani.getDesc();
+        		while(i<1000) {
+        			String newDesc = desc+"-"+i;
+        			if(!animations.containsKey(newDesc)) {
+        				ani.setDesc(newDesc);
+        				break;
+        			}
+        			i++;
+        		}
+        	}
         	animations.put(ani.getDesc(), ani);
         }
         
@@ -741,6 +769,7 @@ public class PinDmdEditor implements EventHandler{
             if (selection.size() > 0){
             	selectedAnimation = Optional.of((Animation)selection.getFirstElement());
             	int numberOfPlanes = selectedAnimation.get().getRenderer().getNumberOfPlanes();
+            	if( numberOfPlanes == 3 ) numberOfPlanes = 2;
             	dmd.setNumberOfSubframes(numberOfPlanes);
             	planesComboViewer.setSelection(new StructuredSelection(PlaneNumber.valueOf(numberOfPlanes)));
                 playingAnis.clear();
@@ -772,8 +801,21 @@ public class PinDmdEditor implements EventHandler{
         dmdWidget.setLayoutData(gd_dmdWidget);
         dmdWidget.setPalette(activePalette);
         
-        btnRemoveAni = new Button(shell, SWT.NONE);
-        btnRemoveAni.setText("Remove Ani");
+        Composite composite_1 = new Composite(shell, SWT.NONE);
+        composite_1.setLayout(new GridLayout(2, false));
+        GridData gd_composite_1 = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+        gd_composite_1.heightHint = 35;
+        gd_composite_1.widthHint = 206;
+        composite_1.setLayoutData(gd_composite_1);
+        
+        btnRemoveAni = new Button(composite_1, SWT.NONE);
+        btnRemoveAni.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
+        btnRemoveAni.addSelectionListener(new SelectionAdapter() {
+        	@Override
+        	public void widgetSelected(SelectionEvent e) {
+        	}
+        });
+        btnRemoveAni.setText("Remove");
         btnRemoveAni.setEnabled(false);
         btnRemoveAni.addListener(SWT.Selection, e->{
             if( selectedAnimation.isPresent() ) {
@@ -784,6 +826,12 @@ public class PinDmdEditor implements EventHandler{
                 animationHandler.setClockActive(true);
             }
         });
+        
+        btnSortAni = new Button(composite_1, SWT.NONE);
+        btnSortAni.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
+        btnSortAni.setText("Sort");
+        btnSortAni.addListener(SWT.Selection, e->sortAnimations() );
+        
         new Label(shell, SWT.NONE);
         
         scale = new Scale(shell, SWT.NONE);
@@ -1025,7 +1073,7 @@ public class PinDmdEditor implements EventHandler{
         ObserverManager.bind(dmd, e -> btnRedo.setEnabled(e), ()->dmd.canRedo() );
         
         Group grpPalettes = new Group(shell, SWT.NONE);
-        grpPalettes.setLayout(new GridLayout(8, false));
+        grpPalettes.setLayout(new GridLayout(7, false));
         GridData gd_grpPalettes = new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1);
         gd_grpPalettes.heightHint = 90;
         grpPalettes.setLayoutData(gd_grpPalettes);
@@ -1103,8 +1151,6 @@ public class PinDmdEditor implements EventHandler{
         	paletteTool.setNumberOfPlanes(planeNumer.numberOfPlanes);
         });
 
-        new Label(grpPalettes, SWT.NONE);
-
         paletteTool = new PaletteTool(shell, grpPalettes, SWT.FLAT | SWT.RIGHT, activePalette);
         
         drawTools.put("pencil", new SetPixelTool(paletteTool.getSelectedColor()));       
@@ -1157,18 +1203,24 @@ public class PinDmdEditor implements EventHandler{
         Button btnUploadMappings = new Button(grpPalettes, SWT.NONE);
         btnUploadMappings.setText("Upload KeyFrames");
         btnUploadMappings.addListener(SWT.Selection, e->usbTool.upload(project.palMappings));
-        
-        new Label(grpPalettes, SWT.NONE);
-        new Label(grpPalettes, SWT.NONE);
-        new Label(grpPalettes, SWT.NONE);
-        new Label(grpPalettes, SWT.NONE);
-        new Label(grpPalettes, SWT.NONE);
-        new Label(grpPalettes, SWT.NONE);
-        new Label(grpPalettes, SWT.NONE);
-        new Label(grpPalettes, SWT.NONE);
-        new Label(grpPalettes, SWT.NONE);
 
     }
+
+	private void sortAnimations() {
+		ArrayList<Entry<String,Animation>> list = new ArrayList<>( animations.entrySet() );
+		Collections.sort(list, new Comparator<Entry<String,Animation>>() {
+
+			@Override
+			public int compare(Entry<String, Animation> o1,
+					Entry<String, Animation> o2) {
+				return o1.getValue().getDesc().compareTo(o2.getValue().getDesc());
+			}
+		});
+		animations.clear();
+		for (Entry<String, Animation> entry : list) {
+			animations.put(entry.getKey(), entry.getValue());
+		}
+	}
 
 	private void dmdRedraw() {
 		dmdWidget.redraw();
@@ -1327,6 +1379,18 @@ public class PinDmdEditor implements EventHandler{
 		mntmAddAnimation.setText("Add Animation");
 		mntmAddAnimation.addListener(SWT.Selection, e->loadAniWithFC(true));
 		
+		new MenuItem(menu_2, SWT.SEPARATOR);
+		
+		MenuItem mntmSaveAnimation = new MenuItem(menu_2, SWT.NONE);
+		mntmSaveAnimation.setText("Save Animation");
+		mntmSaveAnimation.addListener(SWT.Selection, e->saveAniWithFC() );
+
+		MenuItem mntmExportAnimation = new MenuItem(menu_2, SWT.NONE);
+		mntmExportAnimation.setText("Export Animation as GIF");
+		mntmExportAnimation.addListener(SWT.Selection, e-> {
+			GifExporter exporter = new GifExporter(shell, activePalette, playingAnis.get(0));
+			exporter.open();	
+		});
 		
 		MenuItem mntmpalettes = new MenuItem(menu, SWT.CASCADE);
 		mntmpalettes.setText("&Palettes / Mode");
