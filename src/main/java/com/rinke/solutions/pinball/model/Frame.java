@@ -6,6 +6,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.zip.CRC32;
 
 import com.rinke.solutions.pinball.model.Model;
 
@@ -40,20 +41,26 @@ public class Frame implements Model {
 
 	public List<byte[]> getHashes() {
         List<byte[]> res = new ArrayList<>();
-        try {
-            int j = 0;
-            
-            StringBuilder sb = new StringBuilder();
+//        try {
             for (Plane plane : planes) {
-                MessageDigest md = MessageDigest.getInstance("MD5");
-                md.update(transform(plane.plane), 0, plane.plane.length);
-                res.add(md.digest());
+                CRC32 crc = new CRC32();
+                crc.update(transform(plane.plane), 0, plane.plane.length);
+                byte[] b = new byte[4];
+                long l = crc.getValue();
+                for( int i = 3; i>=0; i--) {
+                    b[i] = (byte) (l & 0xFF);
+                    l >>= 8;
+                }
+                res.add(b);
+//                MessageDigest md = MessageDigest.getInstance("MD5");
+//                md.update(transform(plane.plane), 0, plane.plane.length);
+//                res.add(md.digest());
             }
             return res;
-        } catch (NoSuchAlgorithmException e) {
-         
-        }
-        return res;
+//        } catch (NoSuchAlgorithmException e) {
+//         
+//        }
+//        return res;
     }
 
     public static byte[] transform(byte[] plane) {

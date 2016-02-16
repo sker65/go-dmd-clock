@@ -1456,7 +1456,7 @@ public class PinDmdEditor implements EventHandler{
             int i = 0;
             for( byte[] p : evt.hashes) {
             	String hash = getPrintableHashes(p);
-            	if( hash.startsWith("BF619EAC0CDF3F68D496EA9344137E8B")) { // disable for empty frame
+            	if( hash.startsWith("B2AA7578" /*"BF619EAC0CDF3F68D496EA9344137E8B" */ )) { // disable for empty frame
             		btnHash[i].setText("");
             		btnHash[i].setEnabled(false);
             	} else {
