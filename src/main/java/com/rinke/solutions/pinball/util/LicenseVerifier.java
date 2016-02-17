@@ -36,12 +36,6 @@ public class LicenseVerifier {
 		}
 	}
 
-	public static void main(String[] args) throws Exception {
-		LicenseVerifier verifier = new LicenseVerifier();
-		VerifyResult verify = verifier.verify("#38003C00085140.key");
-		System.out.println(verify);
-	}
-
 	public VerifyResult verify(String filename) throws Exception {
 
 		byte[] hash = new byte[32];
