@@ -316,6 +316,12 @@
 		</dependency>
 
 		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcprov-jdk15on</artifactId>
+			<version>1.54</version>
+		</dependency>
+
+		<dependency>
 			<groupId>org.codehaus.jettison</groupId>
 			<artifactId>jettison</artifactId>
 			<version>1.3.7</version>
@@ -423,7 +429,7 @@
 				<version>2.19</version>
 				<configuration>
 					<excludes>
-						<exclude>**/*ixSWTTest.java</exclude>
+						<exclude>**/*iiasdfSWTTest.java</exclude>
 					</excludes>
 				</configuration>
 			</plugin>
