@@ -1,6 +1,9 @@
 package com.rinke.solutions.pinball;
 
 import java.awt.SplashScreen;
+
+import static com.rinke.solutions.pinball.api.LicenseManager.Capability;
+
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -61,7 +64,6 @@ import com.rinke.solutions.pinball.animation.AniEvent;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.AnimationCompiler;
 import com.rinke.solutions.pinball.animation.AnimationFactory;
-import com.rinke.solutions.pinball.animation.AnimationGifExporter;
 import com.rinke.solutions.pinball.animation.AnimationType;
 import com.rinke.solutions.pinball.animation.EventHandler;
 import com.rinke.solutions.pinball.model.Frame;
@@ -80,6 +82,11 @@ import com.rinke.solutions.pinball.ui.DeviceConfig;
 import com.rinke.solutions.pinball.ui.FileChooser;
 import com.rinke.solutions.pinball.ui.FileDialogDelegate;
 import com.rinke.solutions.pinball.ui.GifExporter;
+import com.rinke.solutions.pinball.ui.RegisterLicense;
+import com.rinke.solutions.pinball.api.BinaryExporter;
+import com.rinke.solutions.pinball.api.BinaryExporterFactory;
+import com.rinke.solutions.pinball.api.LicenseManager;
+import com.rinke.solutions.pinball.api.LicenseManagerFactory;
 import com.rinke.solutions.pinball.util.ObservableList;
 import com.rinke.solutions.pinball.util.ObservableMap;
 import com.rinke.solutions.pinball.widget.CircleTool;
@@ -93,7 +100,6 @@ import com.rinke.solutions.pinball.widget.SetPixelTool;
 
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-
 
 public class PinDmdEditor implements EventHandler{
 
@@ -115,7 +121,7 @@ public class PinDmdEditor implements EventHandler{
     Display display;
 	protected Shell shell;
 
-	protected long lastTimeCode;
+	protected int lastTimeCode;
 
 	@Option(name="-ani", usage="animation file to load", required=false)
 	private String aniToLoad;
@@ -188,7 +194,7 @@ public class PinDmdEditor implements EventHandler{
 	PaletteTool paletteTool;
 	int selectedHashIndex;
 	PalMapping selectedPalMapping;
-	long saveTimeCode;
+	int saveTimeCode;
 	
 	CutInfo cutInfo = new CutInfo();
 
@@ -202,11 +208,14 @@ public class PinDmdEditor implements EventHandler{
 
 	private Button btnSortAni;
 
+	LicenseManager licManager;
+
 
 	public PinDmdEditor() {
 		super();
 	    activePalette = project.palettes.get(0);
 	    previewPalettes = Palette.previewPalettes();
+	    licManager = LicenseManagerFactory.getInstance();
 	}
 	
 	
@@ -485,6 +494,8 @@ public class PinDmdEditor implements EventHandler{
     
     void exportProject(String filename) {
         
+    	licManager.requireOneOf( Capability.VPIN, Capability.REALPIN );
+    	
         for( PalMapping p : project.palMappings) {
             if( p.frameSeqName != null ) {
                 project.frameSeqMap.put(p.frameSeqName, new FrameSeq(p.frameSeqName) );
@@ -505,14 +516,15 @@ public class PinDmdEditor implements EventHandler{
     	// create addtional files for frame sequences
     	try {
     		Map<String, Integer> map = new HashMap<String, Integer>();
+            BinaryExporter exporter = BinaryExporterFactory.getInstance();
     		if( !project.frameSeqMap.isEmpty() ) {
         		DataOutputStream dos = new DataOutputStream(new FileOutputStream(replaceExtensionTo("fsq",filename)));
-        		map = project.writeFrameSeqTo(dos);
+        		map = exporter.writeFrameSeqTo(dos, project);
         		dos.close();
     		}
     		
             DataOutputStream dos2 = new DataOutputStream(new FileOutputStream(filename));
-            project.writeTo(dos2, map);
+            exporter.writeTo(dos2, map, project);
             dos2.close();
         	//fileHelper.storeObject(project, filename);
 		} catch (IOException e) {
@@ -905,7 +917,7 @@ public class PinDmdEditor implements EventHandler{
         txtDuration.addListener(SWT.Verify, e-> e.doit = Pattern.matches("^[0-9]*$", e.text) );
         txtDuration.addListener(SWT.Modify, e-> {
             if( selectedPalMapping != null ) {
-                selectedPalMapping.durationInMillis = Long.parseLong(txtDuration.getText());
+                selectedPalMapping.durationInMillis = Integer.parseInt(txtDuration.getText());
                 selectedPalMapping.durationInFrames = (int)selectedPalMapping.durationInMillis / 40;
             }
         });
@@ -1251,7 +1263,7 @@ public class PinDmdEditor implements EventHandler{
 					selectedAnimation.get()));
 
 			animationHandler.setPos(selectedPalMapping.frameIndex);
-			saveTimeCode = selectedAnimation.get().getTimeCode(
+			saveTimeCode = (int) selectedAnimation.get().getTimeCode(
 					selectedPalMapping.frameIndex);
 		} else {
 			selectedPalMapping = null;
@@ -1420,6 +1432,10 @@ public class PinDmdEditor implements EventHandler{
 		MenuItem mntmGetHelp = new MenuItem(menu_4, SWT.NONE);
 		mntmGetHelp.setText("Get help");
 		mntmGetHelp.addListener(SWT.Selection, e->Program.launch(HELP_URL));
+		
+		MenuItem mntmRegister = new MenuItem(menu_4, SWT.NONE);
+		mntmRegister.setText("Register");
+		mntmRegister.addListener(SWT.Selection, e->new RegisterLicense(shell).open());
 		
 		new MenuItem(menu_4, SWT.SEPARATOR);
 		

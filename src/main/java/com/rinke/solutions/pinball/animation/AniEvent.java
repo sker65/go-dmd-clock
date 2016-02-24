@@ -11,7 +11,7 @@ public class AniEvent {
     public int actFrame;
     public int delay;
     public int nPlanes;
-    public long timecode;
+    public int timecode;
     public Animation actAnimation;
     public List<byte[]> hashes;
 
@@ -19,7 +19,7 @@ public class AniEvent {
         this( evtType,0,null,null,0,0,0);
     }
     
-    public AniEvent(Type evtType, int actFrame, Animation actAnimation, List<byte[]> hashes, long tc, int delay, int nPlanes) {
+    public AniEvent(Type evtType, int actFrame, Animation actAnimation, List<byte[]> hashes, int tc, int delay, int nPlanes) {
         super();
         this.evtType = evtType;
         this.actFrame = actFrame;

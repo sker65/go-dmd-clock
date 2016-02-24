@@ -10,13 +10,13 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
-import org.eclipse.swt.graphics.RGB;
 import org.junit.Before;
 import org.junit.Test;
 
 import com.rinke.solutions.pinball.io.SmartDMDImporter;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.PaletteType;
+import com.rinke.solutions.pinball.model.RGB;
 
 
 public class SmartDMDImporterTest {

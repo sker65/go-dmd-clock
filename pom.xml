@@ -316,12 +316,6 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.bouncycastle</groupId>
-			<artifactId>bcprov-jdk15on</artifactId>
-			<version>1.54</version>
-		</dependency>
-
-		<dependency>
 			<groupId>org.codehaus.jettison</groupId>
 			<artifactId>jettison</artifactId>
 			<version>1.3.7</version>
@@ -386,7 +380,16 @@
 			<artifactId>commons-io</artifactId>
 			<version>2.4</version>
 		</dependency>
-		
+		<dependency>
+	       <groupId>com.rinke.solutions.pinball</groupId>
+    	    <artifactId>license-api</artifactId>
+        	<version>0.1.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+	       <groupId>com.rinke.solutions.pinball</groupId>
+    	    <artifactId>pin2dmd-tools</artifactId>
+        	<version>0.0.1-SNAPSHOT</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<plugins>
@@ -429,7 +432,7 @@
 				<version>2.19</version>
 				<configuration>
 					<excludes>
-						<exclude>**/*iiasdfSWTTest.java</exclude>
+						<exclude>**/*SWTTest.java</exclude>
 					</excludes>
 				</configuration>
 			</plugin>

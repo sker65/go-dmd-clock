@@ -23,6 +23,7 @@ import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 
 import com.rinke.solutions.pinball.model.Palette;
+import static com.rinke.solutions.pinball.widget.SWTUtil.*;
 
 public class PaletteTool {
 
@@ -103,7 +104,7 @@ public class PaletteTool {
 		for (int i = 0; i < colBtn.length; i++) {
 			colBtn[i] = new ToolItem(toolBar, SWT.RADIO);
 			colBtn[i].setData(Integer.valueOf(i));
-			colBtn[i].setImage(getSquareImage(display, pal.colors[i]));
+			colBtn[i].setImage(getSquareImage(display, toSwtRGB(pal.colors[i])));
 			colBtn[i].addListener(SWT.Selection, e -> {
 				selectedColor = (Integer) e.widget.getData();
 				listeners.forEach(l -> l.setActualColorIndex(selectedColor));
@@ -120,13 +121,13 @@ public class PaletteTool {
 	}
 
 	public RGB getSelectedRGB() {
-		return palette.colors[selectedColor];
+		return toSwtRGB(palette.colors[selectedColor]);
 	}
 
 	public void setPalette(Palette palette) {
 		this.palette = palette;
 		for (int i = 0; i < colBtn.length; i++) {
-			colBtn[i].setImage(getSquareImage(display, palette.colors[i]));
+			colBtn[i].setImage(getSquareImage(display, toSwtRGB(palette.colors[i])));
 		}
 	}
 
@@ -138,7 +139,7 @@ public class PaletteTool {
 		if (rgb == null) {
 			return;
 		}
-		palette.colors[selectedColor] = rgb;
+		palette.colors[selectedColor] = toModelRGB(rgb);
 		colBtn[selectedColor].setImage(getSquareImage(display, rgb));
 		listeners.forEach(l -> l.paletteChanged(palette));
 	}

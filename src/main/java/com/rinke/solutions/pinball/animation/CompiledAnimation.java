@@ -58,10 +58,11 @@ public class CompiledAnimation extends Animation {
 	public void commitDMDchanges(DMD dmd) {
 	    if( actFrame >= 0 && actFrame < frames.size()) {
 	        List<Plane> planes = frames.get(actFrame).planes;
-	        List<byte[]> dmdPlanes = dmd.getActualBuffers();
+	        Frame frame = dmd.getFrame();
 	        for(int i=0; i<planes.size(); i++) {
-	            int len = min(dmdPlanes.get(i).length,planes.get(i).plane.length);
-	            System.arraycopy(dmdPlanes.get(i), 0, planes.get(i).plane, 0, len );
+	        	byte[] planeBytes = frame.getPlaneBytes(i);
+	            int len = min(planeBytes.length,planes.get(i).plane.length);
+	            System.arraycopy(planeBytes, 0, planes.get(i).plane, 0, len );
 	        }
 	    }
 	}

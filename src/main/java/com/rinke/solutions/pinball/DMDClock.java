@@ -133,7 +133,7 @@ public class DMDClock {
 			int h = is.readByte();
 			is.readShort();
 			DMD dmd = new DMD(w, h);
-			is.read(dmd.frame1);
+			is.read(dmd.getFrame().planes.get(0).plane);
 //			for( int i = 0; i < dmd.frame1.length; i++) {
 //				dmd.frame1[i] ^= 0x00;
 //			}
@@ -170,7 +170,7 @@ public class DMDClock {
 			os.writeByte(dmd.getHeight());
 			os.writeShort(dmd.getFrameSizeInByte());
 			//os.write(dmd.transformFrame1(dmd.frame1));
-			os.write(dmd.frame1);
+			os.write(dmd.getFrame().planes.get(0).plane);
 		}
 	}
 

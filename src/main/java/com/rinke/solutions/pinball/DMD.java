@@ -1,26 +1,21 @@
 package com.rinke.solutions.pinball;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Observable;
 
 import com.rinke.solutions.pinball.model.Frame;
+import com.rinke.solutions.pinball.model.Plane;
 
 public class DMD extends Observable {
 
     private int width;
     private int height;
     
-    List<byte[]> frames = new ArrayList<byte[]>();
+    Frame frame = new Frame();
     
-    public Map<Integer,List<byte[]>> buffers = new HashMap<Integer,List<byte[]>>();
-
-    // remove simple fixed frames completely
-    public byte[] frame1 = null;
-    public byte[] frame2 = null;
+    public Map<Integer,Frame> buffers = new HashMap<>();
     
     int numberOfSubframes = 2;
     int actualBuffer = 0;
@@ -55,21 +50,16 @@ public class DMD extends Observable {
 
     public void copyLastBuffer() {
     	if( actualBuffer>0) {
-        	List<byte[]> target = buffers.get(actualBuffer);
-        	List<byte[]> source = buffers.get(actualBuffer-1);
-        	for(int i = 0; i < source.size(); i++) {
-        		System.arraycopy(source.get(i), 0, target.get(i), 0, source.get(i).length);
-        	}
+        	//Frame target = buffers.get(actualBuffer);
+        	Frame source = new Frame(buffers.get(actualBuffer-1));
+        	buffers.put(actualBuffer, source);
     	}
     }
     
     public void addUndoBuffer() {
-    	List<byte[]> newframes = new ArrayList<byte[]>();
-    	for( byte[] frame : frames) {
-    		newframes.add(Arrays.copyOf(frame, frame.length));
-    	}
+    	Frame newframe = new Frame(frame);
     	actualBuffer++;
-    	buffers.put(actualBuffer, newframes);
+    	buffers.put(actualBuffer, newframe);
     	updateActualBuffer(actualBuffer);
     }
     
@@ -103,17 +93,15 @@ public class DMD extends Observable {
             bytesPerRow++;
         frameSizeInByte = bytesPerRow * height;
         setNumberOfSubframes(2);
-        buffers.put(actualBuffer, frames);
+        buffers.put(actualBuffer, frame);
         setChanged();
     }
     
     public void setNumberOfSubframes(int n) {
-        frames.clear();
-        for(int i = 0; i < n; i++) {
-            frames.add( new byte[frameSizeInByte]);
+        frame.planes.clear();
+    	for(int i = 0; i < n; i++) {
+    		frame.planes.add( new Plane((byte)i,new byte[frameSizeInByte]));
         }
-        frame1 = frames.get(0);
-        frame2 = frames.get(1);
         numberOfSubframes = n;
     }
 
@@ -123,13 +111,13 @@ public class DMD extends Observable {
 
     public void setPixel(int x, int y, int v) {
         if( x<0 || y<0 || x>=width || y >= height ) return;
-    	int numberOfPlanes = frames.size();
+    	int numberOfPlanes = frame.planes.size();
     	byte mask = (byte) (128 >> (x % 8));
     	for(int plane = 0; plane < numberOfPlanes; plane++) {
     		if( (v & 0x01) != 0) {
-    			frames.get(plane)[y*bytesPerRow+x/8] |= mask;
+    			frame.planes.get(plane).plane[y*bytesPerRow+x/8] |= mask;
     		} else {
-    			frames.get(plane)[y*bytesPerRow+x/8] &= ~mask;
+    			frame.planes.get(plane).plane[y*bytesPerRow+x/8] &= ~mask;
     		}
     		v >>= 1;
     	}
@@ -138,50 +126,48 @@ public class DMD extends Observable {
     public int getPixel(int x, int y) {
     	byte mask = (byte) (128 >> (x % 8));
     	int v = 0;
-    	for(int plane = 0; plane <frames.size(); plane++) {
-    		v += (frames.get(plane)[x / 8 + y * bytesPerRow] & mask) != 0 ? (1<<plane) : 0;
+    	for(int plane = 0; plane <frame.planes.size(); plane++) {
+    		v += (frame.planes.get(plane).plane[x / 8 + y * bytesPerRow] & mask) != 0 ? (1<<plane) : 0;
     	}
     	return v;
     }
    
     public void clear() {
     	updateActualBuffer(0);
-        for (byte[] p : frames) {
-			Arrays.fill(p, (byte)0);
+        for (Plane p : frame.planes) {
+			Arrays.fill(p.plane, (byte)0);
 		}
     }
 
-    public void writeOr(Frame frame) {
-        if (frame != null) {
-        	if( frame.planes.size()!=3) {
-        		while( frames.size()< frame.planes.size() ) {
-        			frames.add(new byte[bytesPerRow*height]);
+    public void writeOr(Frame src) {
+        if (src != null) {
+        	if( src.planes.size()!=3) {
+        		while( frame.planes.size() < src.planes.size() ) {
+        			frame.planes.add(new Plane((byte)0,new byte[bytesPerRow*height]));
         		}
-        		numberOfSubframes = frames.size();
-        		for (int i = 0; i < frame.planes.size(); i++) {
-					copyOr(frames.get(i),frame.planes.get(i).plane);
-					
+        		numberOfSubframes = frame.planes.size();
+        		for (int i = 0; i < src.planes.size(); i++) {
+					copyOr(frame.planes.get(i).plane,src.planes.get(i).plane);
 				}
-        		//copyOr(frame1, frame.planes.get(0).plane);
-        		//copyOr(frame2, frame.planes.get(1).plane);
         	}
         }
     }
 
     public void writeAnd(byte[] mask) {
         if (mask != null) {
-            copyAnd(frame1, mask);
-            copyAnd(frame2, mask);
+        	for(Plane p:frame.planes) {
+        		copyAnd(p.plane, mask);
+        	}
         }
     }
     
     public void writeNotAnd(byte[] mask) {
         if (mask != null) {
-            copyNotAnd(frame1, mask);
-            copyNotAnd(frame2, mask);
+        	for(Plane p:frame.planes) {
+        		copyNotAnd(p.plane, mask);
+        	}
         }
     }
-
 
     private void copyNotAnd(byte[] target, byte[] src) {
         for (int i = 0; i < src.length; i++) {
@@ -202,21 +188,25 @@ public class DMD extends Observable {
     }
     
     public void copy(int yoffset, int xoffset, DMD src, boolean low, boolean mask) {
+    	byte[] frame1 = frame.getPlaneBytes(0);
+    	byte[] frame2 = frame.getPlaneBytes(1);
+    	
         for (int row = 0; row < src.getHeight(); row++) {
             for (int col = 0; col < src.getWidth() / 8; col++) {
                 if(mask) 
                     frame1[(row + yoffset) * getBytesPerRow() + xoffset + col] &= 
-                        ~src.frame1[src.getBytesPerRow() * row + col];
+                        ~src.frame.getPlaneBytes(0)[src.getBytesPerRow() * row + col];
                 else
                     frame1[(row + yoffset) * getBytesPerRow() + xoffset + col] = 
-                        src.frame1[src.getBytesPerRow() * row + col];
+                        src.frame.getPlaneBytes(0)[src.getBytesPerRow() * row + col];
+                
                 if (!low) {
                     if( mask )
                         frame2[(row + yoffset) * getBytesPerRow() + xoffset + col] &= 
-                            ~src.frame1[src.getBytesPerRow() * row + col];
+                            ~src.frame.getPlaneBytes(0)[src.getBytesPerRow() * row + col];
                     else
                         frame2[(row + yoffset) * getBytesPerRow() + xoffset + col] = 
-                            src.frame1[src.getBytesPerRow() * row + col];
+                            src.frame.getPlaneBytes(0)[src.getBytesPerRow() * row + col];
 
                 }
             }
@@ -284,19 +274,19 @@ public class DMD extends Observable {
     }
 
     public Frame getFrame() {
-        return new Frame( frame1, frame2);
+        return frame;
     }
 
 	public void updateActualBuffer(int i) {
 		this.actualBuffer = i;
-		frames = buffers.get(actualBuffer);
+		frame = buffers.get(actualBuffer);
     	setChanged();
     	notifyObservers();
 	}
 
-	public List<byte[]> getActualBuffers() {
+	/*public List<byte[]> getActualBuffers() {
 		return buffers.get(actualBuffer);
-	}
+	}*/
 
 	@Override
 	public String toString() {

@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import org.eclipse.swt.graphics.RGB;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,6 +17,7 @@ import com.rinke.solutions.pinball.model.Model;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.Project;
+import com.rinke.solutions.pinball.model.RGB;
 import com.rinke.solutions.pinball.model.Scene;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.HierarchicalStreamReader;
@@ -88,11 +88,6 @@ public class FileHelper {
             case BIN:
                 writer = driver.createWriter(out);
                 bstream.marshal(obj, writer);
-                break;
-            case DAT:
-                DataOutputStream dos = new DataOutputStream(new FileOutputStream(filename));
-                obj.writeTo(dos);
-                dos.close();
                 break;
                 
             default:

@@ -14,8 +14,11 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 
 import com.rinke.solutions.pinball.DMD;
+import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.widget.PaletteTool.ColorChangedListerner;
+
+import static com.rinke.solutions.pinball.widget.SWTUtil.toSwtRGB;
 
 public class DMDWidget extends ResourceManagedCanvas implements ColorChangedListerner {
 	
@@ -88,13 +91,13 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
             cols = new Color[1<<numberOfSubframes];
             
             if( numberOfSubframes == 2) {
-                cols[0] = resourceManager.createColor(palette.colors[0]);
-                cols[1] = resourceManager.createColor(palette.colors[1]);
-                cols[2] = resourceManager.createColor(palette.colors[4]);
-                cols[3] = resourceManager.createColor(palette.colors[15]);
+                cols[0] = resourceManager.createColor(toSwtRGB(palette.colors[0]));
+                cols[1] = resourceManager.createColor(toSwtRGB(palette.colors[1]));
+                cols[2] = resourceManager.createColor(toSwtRGB(palette.colors[4]));
+                cols[3] = resourceManager.createColor(toSwtRGB(palette.colors[15]));
             } else {
                 for(int i = 0; i < (1 << numberOfSubframes);i++) {
-                    cols[i] = resourceManager.createColor(palette.colors[i]);
+                    cols[i] = resourceManager.createColor(toSwtRGB(palette.colors[i]));
                 }
             }
         }
@@ -110,9 +113,9 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
                 // hsb first
                 byte mask = (byte) (128 >> (col % 8));
                 int v = 0;
-                List<byte[]> buffers = dmd.getActualBuffers();
+                Frame frame = dmd.getFrame();
                 for(int i = 0; i < numberOfSubframes;i++) {
-                    v += (buffers.get(i)[col / 8 + row * bytesPerRow] & mask) != 0 ? (1<<i) : 0;
+                    v += (frame.getPlaneBytes(i)[col / 8 + row * bytesPerRow] & mask) != 0 ? (1<<i) : 0;
                 }
 
                 if( useColorIndex ) {

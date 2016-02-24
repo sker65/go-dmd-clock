@@ -72,7 +72,7 @@ public class PinDmdEditorSWTTest {
 		
 		uut.createBindings();
 		
-		byte[] digest = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
+		byte[] digest = {1,0,0,0};
 		uut.hashes.add(digest);
 		byte[] emptyFrameDigest = { (byte)0xBF, 0x61, (byte)0x9E, (byte)0xAC, 0x0C, (byte)0xDF, 0x3F, 0x68,
 				(byte)0xD4, (byte)0x96, (byte)0xEA, (byte)0x93, 0x44, 0x13, 0x7E, (byte)0x8B };
@@ -253,7 +253,7 @@ public class PinDmdEditorSWTTest {
 		assertThat(uut.project.palMappings.size(), equalTo(1));
 		PalMapping mapping = uut.project.palMappings.get(0);
 		assertThat(mapping.name, equalTo("KeyFrame foo"));
-		assertThat(mapping.digest[0], equalTo((byte)1));
+		assertThat(mapping.crc32, equalTo((long)0x01000000));
 		assertThat(mapping.frameSeqName, equalTo("foo"));
 	}
 
