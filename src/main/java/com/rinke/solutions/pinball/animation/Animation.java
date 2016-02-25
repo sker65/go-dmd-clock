@@ -14,6 +14,7 @@ import com.rinke.solutions.pinball.renderer.AnimatedGIFRenderer;
 import com.rinke.solutions.pinball.renderer.DMDFRenderer;
 import com.rinke.solutions.pinball.renderer.DummyRenderer;
 import com.rinke.solutions.pinball.renderer.PcapRenderer;
+import com.rinke.solutions.pinball.renderer.PinDumpRenderer;
 import com.rinke.solutions.pinball.renderer.PngRenderer;
 import com.rinke.solutions.pinball.renderer.Renderer;
 import com.rinke.solutions.pinball.renderer.VPinMameRenderer;
@@ -307,6 +308,9 @@ public class Animation {
 			break;
 		case COMPILED:
 			renderer = new DummyRenderer();
+			break;
+		case PINDUMP:
+			renderer = new PinDumpRenderer();
 			break;
 		case VIDEO:
 			renderer = new VideoCapRenderer(start,end);
