@@ -18,6 +18,13 @@ before_script:
 after_success:
   - codecov
 
-install: "mvn install -Plinux_x86_64 -DskipTests=true -Dmaven.javadoc.skip=true -B -V"
+install: "mvn install -Pwin_64 -DskipTests=true -Dmaven.javadoc.skip=true -B -V"
 
-script: "mvn -Plinux_x86_64 clean package assembly:single"
+script: "mvn -Pwin_64 clean package assembly:single launch4j:launch4j"
+
+deploy:
+  - provider: bintray
+  - file: "target/pin2dmd-editor64.exe"
+  - user: "sker65"
+  - key: "5e83ecfd9135e263ea0c69332fed32c5c1aa56b0"
+  - dry-run: "false"
