@@ -445,7 +445,7 @@ public class PinDmdEditor implements EventHandler{
         }
         
         for( String inputFile : projectToImport.inputFiles ) {
-        	loadAni(inputFile, true, true);
+        	loadAni(buildRelFilename(filename, inputFile), true, true);
         }
         for( PalMapping palMapping : projectToImport.palMappings) {
         	project.palMappings.add(palMapping);
@@ -461,7 +461,7 @@ public class PinDmdEditor implements EventHandler{
         	shell.setText(frameTextPrefix+" - "+new File(filename).getName());
             project = projectToLoad;
             
-            for( String file : project.inputFiles) loadAni(file, true, false);
+            for( String file : project.inputFiles) loadAni(buildRelFilename(filename,file), true, false);
             
             for( int i = 1; i < project.scenes.size(); i++) {
             	//cutOutNewAnimation(project.scenes.get(i).start, project.scenes.get(i).end, animations.get(0));
@@ -479,6 +479,11 @@ public class PinDmdEditor implements EventHandler{
 		
 	}
 	
+	private String buildRelFilename(String parent, String file) {
+		return new File(parent).getParent()+File.separator+file;
+	}
+
+
 	private void exportProject() {
         String filename = fileChooserHelper(SWT.SAVE, project.name, 
         		new String[] { "*.dat" },
@@ -538,7 +543,7 @@ public class PinDmdEditor implements EventHandler{
         String aniFilename = replaceExtensionTo("ani", filename);
         int numberOfStoredAnis = storeAnimations(animations.values(), aniFilename);
         if( numberOfStoredAnis > 0 ) {
-        	project.inputFiles.add(aniFilename);
+        	project.inputFiles.add(new File(aniFilename).getName());
         }
         fileHelper.storeObject(project, filename);
         project.dirty = false;

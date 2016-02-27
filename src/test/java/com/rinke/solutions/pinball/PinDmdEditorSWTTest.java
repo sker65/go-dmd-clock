@@ -248,12 +248,12 @@ public class PinDmdEditorSWTTest {
 		// frameSeqView must have a selection
 		uut.buildFrameSeqList();
 		uut.frameSeqViewer.setSelection(new StructuredSelection(uut.frameSeqList.get(0)), true);
-		
+		byte[] digest = {1,0,0,0};
 		trigger(SWT.Selection).on(uut.btnAddFrameSeq);
 		assertThat(uut.project.palMappings.size(), equalTo(1));
 		PalMapping mapping = uut.project.palMappings.get(0);
 		assertThat(mapping.name, equalTo("KeyFrame foo"));
-		assertThat(mapping.crc32, equalTo((long)0x01000000));
+		assertThat(mapping.crc32, equalTo(digest));
 		assertThat(mapping.frameSeqName, equalTo("foo"));
 	}
 
