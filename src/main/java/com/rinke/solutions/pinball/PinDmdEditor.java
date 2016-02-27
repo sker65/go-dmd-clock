@@ -72,6 +72,7 @@ import com.rinke.solutions.pinball.io.SmartDMDImporter;
 import com.rinke.solutions.pinball.io.UsbTool;
 import com.rinke.solutions.pinball.model.FrameSeq;
 import com.rinke.solutions.pinball.model.PalMapping;
+import com.rinke.solutions.pinball.model.PalMapping.SwitchMode;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.PaletteType;
 import com.rinke.solutions.pinball.model.PlaneNumber;
@@ -886,6 +887,7 @@ public class PinDmdEditor implements EventHandler{
         	}
         	palMapping.animationName = selectedAnimation.get().getDesc();
         	palMapping.frameIndex = selectedAnimation.get().actFrame;
+        	palMapping.switchMode = SwitchMode.PALETTE;
         	project.palMappings.add(palMapping);
         	saveTimeCode = lastTimeCode;
         	keyframeListViewer.refresh();
@@ -959,6 +961,7 @@ public class PinDmdEditor implements EventHandler{
         		palMapping.palIndex = activePalette.index;
         		palMapping.frameSeqName = ani.getDesc();
         		palMapping.animationName = ani.getDesc();
+            	palMapping.switchMode = SwitchMode.REPLACE;
         		palMapping.frameIndex = selectedAnimation.get().actFrame;
         		project.palMappings.add(palMapping);
         		keyframeListViewer.refresh();
