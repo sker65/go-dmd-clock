@@ -18,8 +18,19 @@ import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.Palette;
 
 public class UsbTool {
-    
-    private static Logger LOG = LoggerFactory.getLogger(UsbTool.class);
+
+	public static enum UsbCmd {
+		RESET(0), SAVE_CONFIG(1), SWITCH_DEVICEMODE(2), SWITCH_PALETTE(3),  UPLOAD_PALETTE(4), UPLOAD_MAPPING(5),
+		UPLOAD_SMARTDMD_SIG(6), RESET_SETTINGS(7), SET_DISPLAY_TIMING(8), WRITE_FILE(9), SEND_SETTINGS(16),
+		UPLOAD_MASK(17), DELETE_LICENSE(0xFD), RECEIVE_LICENSE(0xFE), DISPLAY_UID(0xFF);
+		
+		UsbCmd(int cmd) {
+			this.cmd = (byte)cmd;
+		}
+		byte cmd;
+	}; 
+	
+	private static Logger LOG = LoggerFactory.getLogger(UsbTool.class);
 
     public void upload(Palette palette) { 
         byte[] bytes = fromPalette(palette);
@@ -32,7 +43,18 @@ public class UsbTool {
             bulk(bytes);
         }
     }
+    
+    public void switchToPal( int standardPalNumber ) {
+    	byte[] res = buildBuffer(UsbCmd.SWITCH_PALETTE);
+    	res[5] = (byte) standardPalNumber;
+    	bulk(res);
+    }
 
+    public void switchToMode( int deviceMode ) {
+    	byte[] res = buildBuffer(UsbCmd.SWITCH_DEVICEMODE);
+    	res[5] = (byte) deviceMode;
+    	bulk(res);
+    }
     
     public void bulk(byte[] data) {
         Context ctx = initUsb();
@@ -57,13 +79,18 @@ public class UsbTool {
         }
     }
     
-    private byte[] fromMapping(PalMapping palMapping) {
+    private byte[] buildBuffer(UsbCmd usbCmd) {
         byte[] res = new byte[2052];
         res[0] = (byte)0x81;
         res[1] = (byte)0xc3;
         res[2] = (byte)0xe7; // used for small buffer 2052
         res[3] = (byte)0xFF; // do config
-        res[4] = (byte)0x05; // upload mapping
+        res[4] = usbCmd.cmd;
+        return res;
+    }
+    
+    private byte[] fromMapping(PalMapping palMapping) {
+    	byte[] res = buildBuffer(UsbCmd.UPLOAD_MAPPING);
         int j = 5;
         for(int i = 0; i < palMapping.digest.length; i++)
             res[j++] = palMapping.digest[i];
@@ -74,12 +101,7 @@ public class UsbTool {
     }
 
     private byte[] fromPalette(Palette palette) {
-        byte[] res = new byte[2052];
-        res[0] = (byte)0x81;
-        res[1] = (byte)0xc3;
-        res[2] = (byte)0xe7;
-        res[3] = (byte)0xFF; // do config
-        res[4] = (byte)0x04; // upload pal
+    	byte[] res = buildBuffer(UsbCmd.UPLOAD_PALETTE);
         //palette.writeTo(os);
         res[5] = (byte) palette.index;
         res[6] = (byte) palette.type.ordinal();// 6: type / default

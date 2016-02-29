@@ -80,6 +80,8 @@ import com.rinke.solutions.pinball.model.Project;
 import com.rinke.solutions.pinball.model.Scene;
 import com.rinke.solutions.pinball.ui.About;
 import com.rinke.solutions.pinball.ui.DeviceConfig;
+import com.rinke.solutions.pinball.ui.UsbConfig;
+
 import com.rinke.solutions.pinball.ui.FileChooser;
 import com.rinke.solutions.pinball.ui.FileDialogDelegate;
 import com.rinke.solutions.pinball.ui.GifExporter;
@@ -1428,9 +1430,13 @@ public class PinDmdEditor implements EventHandler{
         new MenuItem(menu_3, SWT.SEPARATOR);
 
         MenuItem mntmDevice = new MenuItem(menu_3, SWT.NONE);
-        mntmDevice.setText("Configure Device");
+        mntmDevice.setText("Configure Device");        
         mntmDevice.addListener(SWT.Selection, e->new DeviceConfig(shell).open());
         
+        MenuItem mntmUsbconfig = new MenuItem(menu_3, SWT.NONE);
+        mntmUsbconfig.setText("Usb Config");
+        mntmUsbconfig.addListener(SWT.Selection, e->new UsbConfig(shell).open());
+
         MenuItem mntmhelp = new MenuItem(menu, SWT.CASCADE);
 		mntmhelp.setText("&Help");
 		

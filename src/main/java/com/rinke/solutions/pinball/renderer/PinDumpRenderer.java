@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.io.LittleEndianDataInputStream;
 import com.rinke.solutions.pinball.DMD;
+import com.rinke.solutions.pinball.DeviceMode;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.renderer.Pcap.Header;
 import com.rinke.solutions.pinball.renderer.Pcap.Paket;
@@ -35,12 +36,14 @@ public class PinDumpRenderer extends Renderer {
     		}
     		
     		int lastTimestamp = 0;
+    		DeviceMode deviceMode = DeviceMode.forOrdinal(stream.read());
     		byte[] tcBuffer = new byte[4];
     		int tc = 0;
     		while( stream.available() > 0 ) {
     			stream.read(tcBuffer);
     			tc = tcBuffer[0] << 24 + tcBuffer[1] << 16 + tcBuffer[2] << 8 +tcBuffer[3]; 
-    			int buflen = 512*4;
+    			int numberOfFrames = 4;
+    			int buflen = 512*numberOfFrames;
     			byte[] data = new byte[buflen];
     			stream.read(data);
     			int offset = 0;
