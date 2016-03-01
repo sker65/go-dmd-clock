@@ -9,14 +9,15 @@ import com.rinke.solutions.pinball.DMD;
 public class PinDumpRendererTest {
 	
 	String base = "./src/test/resources/renderer/";
+	String filename = "250216_224617_pin2dmd.dump.gz";
 	
 	PinDumpRenderer uut = new PinDumpRenderer();
 
 	@Test
 	public void testReadImage() throws Exception {
 		DMD dmd = new DMD(128,32);
-		uut.readImage(base+"real_tz.dump.gz", dmd );
-		assertEquals(602, uut.getFrames().size());
+		uut.readImage(base+filename, dmd );
+		assertEquals(479, uut.getFrames().size());
 	}
 
 }
