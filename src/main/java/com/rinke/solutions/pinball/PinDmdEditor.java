@@ -33,6 +33,7 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ListViewer;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.osgi.framework.internal.core.Msg;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.GridData;
@@ -75,13 +76,13 @@ import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.PalMapping.SwitchMode;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.PaletteType;
+import com.rinke.solutions.pinball.model.Plane;
 import com.rinke.solutions.pinball.model.PlaneNumber;
 import com.rinke.solutions.pinball.model.Project;
 import com.rinke.solutions.pinball.model.Scene;
 import com.rinke.solutions.pinball.ui.About;
 import com.rinke.solutions.pinball.ui.DeviceConfig;
 import com.rinke.solutions.pinball.ui.UsbConfig;
-
 import com.rinke.solutions.pinball.ui.FileChooser;
 import com.rinke.solutions.pinball.ui.FileDialogDelegate;
 import com.rinke.solutions.pinball.ui.GifExporter;
@@ -203,7 +204,7 @@ public class PinDmdEditor implements EventHandler{
 
 	java.util.List<Palette> previewPalettes = new ArrayList<>();
 
-	PlaneNumber planeNumer;
+	PlaneNumber planeNumber;
 
     Label lblPlanesVal;
 
@@ -212,7 +213,6 @@ public class PinDmdEditor implements EventHandler{
 	private Button btnSortAni;
 
 	LicenseManager licManager;
-
 
 	public PinDmdEditor() {
 		super();
@@ -1169,8 +1169,8 @@ public class PinDmdEditor implements EventHandler{
         planesComboViewer.setContentProvider(ArrayContentProvider.getInstance());
         planesComboViewer.setInput(PlaneNumber.values());
         planesComboViewer.addSelectionChangedListener(e -> {
-        	planeNumer = (PlaneNumber) ((IStructuredSelection) e.getSelection()).getFirstElement();
-        	paletteTool.setNumberOfPlanes(planeNumer.numberOfPlanes);
+        	planeNumber = (PlaneNumber) ((IStructuredSelection) e.getSelection()).getFirstElement();
+        	paletteTool.setNumberOfPlanes(planeNumber.numberOfPlanes);
         });
 
         paletteTool = new PaletteTool(shell, grpPalettes, SWT.FLAT | SWT.RIGHT, activePalette);
@@ -1224,9 +1224,35 @@ public class PinDmdEditor implements EventHandler{
         
         Button btnUploadMappings = new Button(grpPalettes, SWT.NONE);
         btnUploadMappings.setText("Upload KeyFrames");
+        
+        Button btnMask = new Button(grpPalettes, SWT.CHECK);
+        btnMask.setText("Mask");
+        btnMask.addListener(SWT.Selection, e->switchMask(btnMask.getSelection()));
+        new Label(grpPalettes, SWT.NONE);
+        new Label(grpPalettes, SWT.NONE);
+        new Label(grpPalettes, SWT.NONE);
+        new Label(grpPalettes, SWT.NONE);
+        new Label(grpPalettes, SWT.NONE);
+        new Label(grpPalettes, SWT.NONE);
         btnUploadMappings.addListener(SWT.Selection, e->usbTool.upload(project.palMappings));
 
     }
+
+	private void switchMask(boolean useMask) {
+		if( useMask ) {
+			DMD maskDMD = new DMD(128, 32);
+			maskDMD.frame = new Frame();
+			maskDMD.frame.planes.add(new Plane((byte)0, project.mask));
+			paletteTool.setNumberOfPlanes(1);
+			dmdWidget.setMask(maskDMD);
+		} else {
+			DMD dmdMask = dmdWidget.getMask();
+			System.arraycopy(dmdMask.frame.planes.get(0).plane, 0, project.mask, 0, 512);
+			paletteTool.setNumberOfPlanes(planeNumber.numberOfPlanes);
+			dmdWidget.setMask(null);
+		}
+	}
+
 
 	private void sortAnimations() {
 		ArrayList<Entry<String,Animation>> list = new ArrayList<>( animations.entrySet() );

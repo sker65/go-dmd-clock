@@ -68,6 +68,10 @@ public class PaletteTool {
 
 	public void setNumberOfPlanes(int planes) {
 		switch (planes) {
+		case 1:
+			for (int i = 0; i < colBtn.length; i++)
+				colBtn[i].setEnabled(i<2);
+			break;
 		case 2: // 2 planes -> 4 colors
 			for (int i = 0; i < colBtn.length; i++)
 				colBtn[i].setEnabled(visible[i] == 1);

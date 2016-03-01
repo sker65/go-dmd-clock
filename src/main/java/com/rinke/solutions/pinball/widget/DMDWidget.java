@@ -7,6 +7,7 @@ import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Composite;
@@ -24,6 +25,7 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 	
 	private Palette palette;	// color palette
 	private DMD dmd; 			// the model holding buffers etc.
+	private DMD mask;			// if set draw on mask and paint a mask overlay
 	private int resolutionX;
 	private int resolutionY;
 	private int bytesPerRow;
@@ -78,20 +80,26 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
         image.dispose();
 	}
 	
+	public RGB transformColor( com.rinke.solutions.pinball.model.RGB rgb, boolean dimColors ) {
+		if( dimColors ) {
+			RGB res = new RGB(rgb.red, rgb.green, rgb.blue);
+			float[] hsb = res.getHSB();
+			hsb[2] /= 1.6;
+			return new RGB(hsb[0],hsb[1],hsb[2]);
+		} else {
+			return toSwtRGB(rgb);
+		}
+	}
+	
 	public Image drawImage(Display display,int w, int h) {
-		
-		Image image =  new Image(display, w, h);
-        GC gcImage = new GC(image);
-
         // int colIdx[] = {0,1,4,15};
     	int numberOfSubframes = dmd.getNumberOfSubframes();
     	boolean useColorIndex = numberOfSubframes < 8;
         Color cols[] = {};
         if( useColorIndex ) {
             cols = new Color[1<<numberOfSubframes];
-            
             if( numberOfSubframes == 2) {
-                cols[0] = resourceManager.createColor(toSwtRGB(palette.colors[0]));
+				cols[0] = resourceManager.createColor(toSwtRGB(palette.colors[0]));
                 cols[1] = resourceManager.createColor(toSwtRGB(palette.colors[1]));
                 cols[2] = resourceManager.createColor(toSwtRGB(palette.colors[4]));
                 cols[3] = resourceManager.createColor(toSwtRGB(palette.colors[15]));
@@ -103,17 +111,38 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
         }
 
         Color bg = resourceManager.createColor(new RGB(10, 10, 10));
+
+		Image image =  new Image(display, w, h);		
+        GC gcImage = new GC(image);
         gcImage.setBackground(bg);
         gcImage.fillRectangle(0, 0, w, h);
 
-        for (int row = 0; row < resolutionY; row++) {
+        drawDMD(gcImage, dmd.getFrame(), numberOfSubframes, useColorIndex, cols);
+        if( mask != null ) {
+            ImageData imageData = image.getImageData();
+    		imageData.alpha = 96;
+    		Image maskImage =  new Image(display, imageData);
+            GC gcMask = new GC(maskImage);
+			cols[0] = resourceManager.createColor(new RGB(0, 0, 0));
+            cols[1] = resourceManager.createColor(new RGB(255, 0, 0));
+            drawDMD(gcMask, mask.getFrame(), 1, true, cols);
+            gcImage.drawImage(maskImage, 0, 0);
+            gcMask.dispose();
+        }
+		
+        gcImage.dispose();
+        return image;
+	}
+
+	private void drawDMD(GC gcImage, Frame frame, int numberOfSubframes,
+			boolean useColorIndex, Color[] cols) {
+		for (int row = 0; row < resolutionY; row++) {
             for (int col = 0; col < resolutionX; col++) {
                 // lsb first
                 // byte mask = (byte) (1 << (col % 8));
                 // hsb first
                 byte mask = (byte) (128 >> (col % 8));
                 int v = 0;
-                Frame frame = dmd.getFrame();
                 for(int i = 0; i < numberOfSubframes;i++) {
                     v += (frame.getPlaneBytes(i)[col / 8 + row * bytesPerRow] & mask) != 0 ? (1<<i) : 0;
                 }
@@ -131,10 +160,6 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
                 gcImage.fillOval(margin + col * pitch, margin + row * pitch, pitch, pitch);
             }
         }
-
-        gcImage.dispose();
-        return image;
-		
 	}
 
 	@Override
@@ -157,7 +182,13 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 
 	public void setDrawTool(DrawTool drawTool) {
 		this.drawTool = drawTool;
-		if(drawTool!= null) this.drawTool.setDMD(dmd);
+		if(drawTool!= null) {
+			if( mask == null ) {
+				this.drawTool.setDMD(dmd);
+			} else {
+				this.drawTool.setDMD(mask);
+			}
+		}
 	}
 
 	public boolean isDrawingEnabled() {
@@ -176,6 +207,15 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 	@Override
 	public void paletteChanged(Palette pal) {
 		setPalette(pal);
+	}
+
+	public DMD getMask() {
+		return mask;
+	}
+
+	public void setMask(DMD mask) {
+		this.mask = mask;
+		redraw();
 	}
 
 
