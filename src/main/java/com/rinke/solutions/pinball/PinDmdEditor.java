@@ -330,7 +330,8 @@ public class PinDmdEditor implements EventHandler{
 		
         animationHandler.setScale(scale);
 		animationHandler.setEventHandler(this);
-		    
+		animationHandler.setMask(project.mask);    
+		
 		createBindings();
 		
 		SplashScreen splashScreen = SplashScreen.getSplashScreen();

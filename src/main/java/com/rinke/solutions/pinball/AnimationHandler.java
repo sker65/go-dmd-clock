@@ -40,6 +40,8 @@ public class AnimationHandler extends Observable implements Runnable{
 	private boolean showClock = true;
 	//private int transitionFrame= 0;
 	private int lastRenderedFrame = -1;
+
+	private byte[] mask;
 	
 	public AnimationHandler(List<Animation> anis, DMDClock clock, DMD dmd) {
 		this.anis = anis;
@@ -94,7 +96,7 @@ public class AnimationHandler extends Observable implements Runnable{
 				Frame res = ani.render(dmd,stop);
                 scale.setSelection(ani.actFrame);
                 eventHandler.notifyAni(
-                        new AniEvent(Type.ANI, ani.actFrame, ani, res.getHashes(), 
+                        new AniEvent(Type.ANI, ani.actFrame, ani, res.getHashes(mask), 
                                 res.timecode, res.delay, res.planes.size() ));
                 
                 lastRenderedFrame = ani.actFrame;
@@ -209,6 +211,10 @@ public class AnimationHandler extends Observable implements Runnable{
 
 	public void setClockActive(boolean clockActive) {
 		this.clockActive = clockActive;
+	}
+
+	public void setMask(byte[] mask) {
+		this.mask = mask;
 	}
 
 }
