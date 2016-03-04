@@ -42,6 +42,8 @@ public class AnimationHandler extends Observable implements Runnable{
 	private int lastRenderedFrame = -1;
 
 	private byte[] mask;
+
+	private boolean forceRerender = false;
 	
 	public AnimationHandler(List<Animation> anis, DMDClock clock, DMD dmd) {
 		this.anis = anis;
@@ -83,9 +85,10 @@ public class AnimationHandler extends Observable implements Runnable{
 				scale.setMaximum(ani.end);
 				scale.setIncrement(ani.skip);
 				
-				if( stop && ani.actFrame == lastRenderedFrame ) return;
+				if( !forceRerender  && stop && ani.actFrame == lastRenderedFrame ) return;
 				//System.out.println("rendering: "+ani.actFrame);
 				
+				forceRerender = false;
 				dmd.clear();
 				if( ani.addClock() ) {
 				    if( ani.isClockSmall())
@@ -215,6 +218,10 @@ public class AnimationHandler extends Observable implements Runnable{
 
 	public void setMask(byte[] mask) {
 		this.mask = mask;
+		if( stop ) {
+			forceRerender = true;
+			run();
+		}
 	}
 
 }

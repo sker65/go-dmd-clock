@@ -28,11 +28,17 @@ import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.resource.LocalResourceManager;
 import org.eclipse.jface.resource.ResourceManager;
 import org.eclipse.jface.viewers.ArrayContentProvider;
+import org.eclipse.jface.viewers.CellEditor;
+import org.eclipse.jface.viewers.ColumnLabelProvider;
+import org.eclipse.jface.viewers.ColumnViewerEditor;
 import org.eclipse.jface.viewers.ComboViewer;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ListViewer;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.viewers.TableViewer;
+import org.eclipse.jface.viewers.TableViewerColumn;
+import org.eclipse.jface.viewers.TableViewerEditor;
 import org.eclipse.osgi.framework.internal.core.Msg;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.RGB;
@@ -43,6 +49,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.List;
@@ -51,6 +58,7 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Scale;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
@@ -102,6 +110,8 @@ import com.rinke.solutions.pinball.widget.PaletteTool;
 import com.rinke.solutions.pinball.widget.RectTool;
 import com.rinke.solutions.pinball.widget.SetPixelTool;
 
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 
@@ -157,8 +167,8 @@ public class PinDmdEditor implements EventHandler{
 	FileHelper fileHelper = new FileHelper();
     SmartDMDImporter smartDMDImporter = new SmartDMDImporter();
     UsbTool usbTool = new UsbTool();
-    
     Project project = new Project();
+    byte[] emptyMask = new byte[512];
 
     int numberOfHashes = 4;
     java.util.List<byte[]> hashes = new ArrayList<byte[]>();
@@ -168,8 +178,8 @@ public class PinDmdEditor implements EventHandler{
 	Text txtDuration;
 	Scale scale;
 	ComboViewer paletteComboViewer;
-	ListViewer aniListViewer;
-	ListViewer keyframeListViewer;
+	TableViewer aniListViewer;
+	TableViewer keyframeTableViewer;
 	Button btnRemoveAni;
 	Button btnDeleteKeyframe;
 	Button btnAddKeyframe;
@@ -214,11 +224,16 @@ public class PinDmdEditor implements EventHandler{
 
 	LicenseManager licManager;
 
+	private Button btnMask;
+
+	private boolean useMask;
+
 	public PinDmdEditor() {
 		super();
 	    activePalette = project.palettes.get(0);
 	    previewPalettes = Palette.previewPalettes();
 	    licManager = LicenseManagerFactory.getInstance();
+	    Arrays.fill(emptyMask, (byte)0xFF);
 	}
 	
 	
@@ -400,7 +415,7 @@ public class PinDmdEditor implements EventHandler{
     	project.clear();
 	    activePalette = project.palettes.get(0);
 	    paletteComboViewer.refresh();
-    	keyframeListViewer.refresh();
+    	keyframeTableViewer.refresh();
 	    animations.clear();
 	    playingAnis.clear();
 	    selectedAnimation = Optional.of(defaultAnimation);
@@ -472,7 +487,7 @@ public class PinDmdEditor implements EventHandler{
             }
             
             paletteComboViewer.setInput(project.palettes);
-            keyframeListViewer.setInput(project.palMappings);
+            keyframeTableViewer.setInput(project.palMappings);
             for( Animation ani : animations.values()) {
             	selectedAnimation = Optional.of(animations.isEmpty() ? defaultAnimation : ani);
             	break;
@@ -777,11 +792,13 @@ public class PinDmdEditor implements EventHandler{
 		Label lblPreview = new Label(shell, SWT.NONE);
 		lblPreview.setText("Preview");
 		
-		aniListViewer = new ListViewer(shell, SWT.BORDER | SWT.V_SCROLL);
-		List aniList = aniListViewer.getList();
+		aniListViewer = new TableViewer(shell, SWT.BORDER | SWT.V_SCROLL);
+		Table aniList = aniListViewer.getTable();
 		GridData gd_aniList = new GridData(SWT.LEFT, SWT.FILL, false, false, 1, 1);
 		gd_aniList.widthHint = 189;
 		aniList.setLayoutData(gd_aniList);
+		aniList.setLinesVisible(true);
+		aniList.addKeyListener(new EscUnselect(aniListViewer));
 		aniListViewer.setContentProvider(ArrayContentProvider.getInstance());
 		aniListViewer.setLabelProvider(new LabelProviderAdapter(o->((Animation)o).getDesc()));
 		aniListViewer.setInput(animations.values());
@@ -803,16 +820,37 @@ public class PinDmdEditor implements EventHandler{
             btnRemoveAni.setEnabled(selection.size()>0);
             btnAddKeyframe.setEnabled(selection.size()>0);
 		});
+		TableViewerColumn viewerCol1 = new TableViewerColumn(aniListViewer, SWT.LEFT);
+		viewerCol1.setEditingSupport(
+				new GenericTextCellEditor(aniListViewer,
+					e -> ((Animation)e).getDesc(),
+					(e,v) -> { ((Animation)e).setDesc(v); } ));
 		
-		keyframeListViewer = new ListViewer(shell, SWT.SINGLE | SWT.BORDER | SWT.V_SCROLL);
-		List keyframeList = keyframeListViewer.getList();
+		viewerCol1.getColumn().setWidth(220);
+		viewerCol1.setLabelProvider(new ColumnLabelProviderAdapter(o->((Animation)o).getDesc()));
+
+		
+		keyframeTableViewer = new TableViewer(shell, SWT.SINGLE | SWT.V_SCROLL);
+		Table keyframeList = keyframeTableViewer.getTable();
 		GridData gd_keyframeList = new GridData(SWT.LEFT, SWT.FILL, false, false, 1, 1);
 		gd_keyframeList.widthHint = 137;
+		keyframeList.setLinesVisible(true);
 		keyframeList.setLayoutData(gd_keyframeList);
-		keyframeListViewer.setLabelProvider(new LabelProviderAdapter(o->((PalMapping)o).name));
-		keyframeListViewer.setContentProvider(ArrayContentProvider.getInstance());
-		keyframeListViewer.setInput(project.palMappings);
-		keyframeListViewer.addSelectionChangedListener(event -> keyFrameChanged(event));
+		keyframeList.addKeyListener(new EscUnselect(keyframeTableViewer));
+
+		keyframeTableViewer.setLabelProvider(new LabelProviderAdapter(o->((PalMapping)o).name));
+		keyframeTableViewer.setContentProvider(ArrayContentProvider.getInstance());
+		keyframeTableViewer.setInput(project.palMappings);
+		keyframeTableViewer.addSelectionChangedListener(event -> keyFrameChanged(event));
+		
+		TableViewerColumn viewerColumn = new TableViewerColumn(keyframeTableViewer, SWT.LEFT);
+		viewerColumn.setEditingSupport(
+				new GenericTextCellEditor(keyframeTableViewer,
+					e -> ((PalMapping)e).name,
+					(e,v) -> { ((PalMapping)e).name = v; } ));
+		
+		viewerColumn.getColumn().setWidth(200);
+		viewerColumn.setLabelProvider(new ColumnLabelProviderAdapter(o->((PalMapping)o).name));
 		
         dmdWidget = new DMDWidget(shell, SWT.DOUBLE_BUFFERED, this.dmd);
         //dmdWidget.setBounds(0, 0, 700, 240);
@@ -896,9 +934,10 @@ public class PinDmdEditor implements EventHandler{
         	palMapping.animationName = selectedAnimation.get().getDesc();
         	palMapping.frameIndex = selectedAnimation.get().actFrame;
         	palMapping.switchMode = SwitchMode.PALETTE;
+        	palMapping.withMask = useMask;
         	project.palMappings.add(palMapping);
         	saveTimeCode = lastTimeCode;
-        	keyframeListViewer.refresh();
+        	keyframeTableViewer.refresh();
         });
         new Label(grpKeyframe, SWT.NONE);
         new Label(grpKeyframe, SWT.NONE);
@@ -912,7 +951,7 @@ public class PinDmdEditor implements EventHandler{
         btnDeleteKeyframe.addListener(SWT.Selection, e->{
         	if( selectedPalMapping!=null) {
         		project.palMappings.remove(selectedPalMapping);
-        		keyframeListViewer.refresh();
+        		keyframeTableViewer.refresh();
         	}
         });
         
@@ -972,7 +1011,7 @@ public class PinDmdEditor implements EventHandler{
             	palMapping.switchMode = SwitchMode.REPLACE;
         		palMapping.frameIndex = selectedAnimation.get().actFrame;
         		project.palMappings.add(palMapping);
-        		keyframeListViewer.refresh();
+        		keyframeTableViewer.refresh();
         	}
         });
 
@@ -1226,9 +1265,10 @@ public class PinDmdEditor implements EventHandler{
         Button btnUploadMappings = new Button(grpPalettes, SWT.NONE);
         btnUploadMappings.setText("Upload KeyFrames");
         
-        Button btnMask = new Button(grpPalettes, SWT.CHECK);
+        btnMask = new Button(grpPalettes, SWT.CHECK);
         btnMask.setText("Mask");
         btnMask.addListener(SWT.Selection, e->switchMask(btnMask.getSelection()));
+
         new Label(grpPalettes, SWT.NONE);
         new Label(grpPalettes, SWT.NONE);
         new Label(grpPalettes, SWT.NONE);
@@ -1240,17 +1280,20 @@ public class PinDmdEditor implements EventHandler{
     }
 
 	private void switchMask(boolean useMask) {
+		this.useMask = useMask;
 		if( useMask ) {
 			DMD maskDMD = new DMD(128, 32);
 			maskDMD.frame = new Frame();
 			maskDMD.frame.planes.add(new Plane((byte)0, project.mask));
 			paletteTool.setNumberOfPlanes(1);
 			dmdWidget.setMask(maskDMD);
+			animationHandler.setMask(project.mask);
 		} else {
 			DMD dmdMask = dmdWidget.getMask();
-			System.arraycopy(dmdMask.frame.planes.get(0).plane, 0, project.mask, 0, 512);
+			if( dmdMask!=null ) System.arraycopy(dmdMask.frame.planes.get(0).plane, 0, project.mask, 0, 512);
 			paletteTool.setNumberOfPlanes(planeNumber.numberOfPlanes);
 			dmdWidget.setMask(null);
+			animationHandler.setMask(emptyMask);
 		}
 	}
 
@@ -1281,12 +1324,20 @@ public class PinDmdEditor implements EventHandler{
 		IStructuredSelection selection = (IStructuredSelection) event
 				.getSelection();
 		if (selection.size() > 0) {
+//			if( ((PalMapping) selection.getFirstElement()).equals(selectedPalMapping) ) {
+//				keyframeListViewer.setSelection(StructuredSelection.EMPTY);
+//				selectedPalMapping = null;
+//				return;
+//			}
 			// set new mapping
 			selectedPalMapping = (PalMapping) selection.getFirstElement();
 
 			LOG.debug("selected new palMapping {}", selectedPalMapping);
 
 			selectedHashIndex = selectedPalMapping.hashIndex;
+			
+			btnMask.setSelection(selectedPalMapping.withMask);
+			btnMask.notifyListeners(SWT.Selection, new Event());
 
 			txtDuration.setText(selectedPalMapping.durationInMillis + "");
 			paletteComboViewer.setSelection(new StructuredSelection(

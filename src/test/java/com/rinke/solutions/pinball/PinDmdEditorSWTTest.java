@@ -103,9 +103,9 @@ public class PinDmdEditorSWTTest {
 		
 		uut.loadAni("./src/test/resources/drwho-dump.txt.gz", false, true);
 		
-		SelectionChangedEvent e = new SelectionChangedEvent(uut.keyframeListViewer, 
+		SelectionChangedEvent e = new SelectionChangedEvent(uut.keyframeTableViewer, 
 				new StructuredSelection(palMapping));
-		fireSelectionChanged(uut.keyframeListViewer, e);
+		fireSelectionChanged(uut.keyframeTableViewer, e);
 	}
 	
 	@Test

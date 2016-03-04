@@ -110,9 +110,11 @@ public class PaletteTool {
 			colBtn[i].setData(Integer.valueOf(i));
 			colBtn[i].setImage(getSquareImage(display, toSwtRGB(pal.colors[i])));
 			colBtn[i].addListener(SWT.Selection, e -> {
-				selectedColor = (Integer) e.widget.getData();
+				int col = (Integer) e.widget.getData();
+				selectedColor = col;
+				boolean sel = ((ToolItem)e.widget).getSelection();
 				listeners.forEach(l -> l.setActualColorIndex(selectedColor));
-				if( (e.stateMask & SWT.CTRL) != 0 || (e.stateMask & 4194304) != 0) {
+				if( sel && ( (e.stateMask & SWT.CTRL) != 0 || (e.stateMask & 4194304) != 0 )) {
 					changeColor();
 				}
 			});
