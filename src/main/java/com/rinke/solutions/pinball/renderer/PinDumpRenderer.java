@@ -43,13 +43,25 @@ public class PinDumpRenderer extends Renderer {
 			DeviceMode deviceMode = DeviceMode.forOrdinal(stream.read());
 			byte[] tcBuffer = new byte[4];
 			long tc = 0;
+			int numberOfFrames = 0;
+			switch (deviceMode) {
+			case Gottlieb:
+				numberOfFrames = 5;
+				break;
+			case Stern:
+				numberOfFrames = 4;
+				break;
+
+			default:
+				numberOfFrames = 3;
+				break;
+			}
+			int buflen = 512 * numberOfFrames;
 			while (stream.available() > 0) {
 				stream.read(tcBuffer);
 				tc = (((int)tcBuffer[3]&0xFF) << 24) + (((int)tcBuffer[2]&0xFF) << 16) 
 						+ (((int)tcBuffer[1]&0xFF) << 8) + ((int)tcBuffer[0]&0xFF);
 				if( firstTimestamp == 0) { firstTimestamp = tc; lastTimestamp = tc; }
-				int numberOfFrames = deviceMode.equals(DeviceMode.Gottlieb) ? 5 : 4;
-				int buflen = 512 * numberOfFrames;
 				byte[] data = new byte[buflen];
 				stream.read(data);
 				int offset = 0;
