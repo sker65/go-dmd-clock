@@ -38,30 +38,38 @@ public class PinDumpRenderer extends Renderer {
 						"bad file type / file extension. *.dump or *.dump.gz expected");
 			}
 
-			int lastTimestamp = 0;
+			long lastTimestamp = 0;
+			long firstTimestamp = 0;
 			DeviceMode deviceMode = DeviceMode.forOrdinal(stream.read());
 			byte[] tcBuffer = new byte[4];
-			int tc = 0;
+			long tc = 0;
 			while (stream.available() > 0) {
 				stream.read(tcBuffer);
-				tc = (tcBuffer[0] << 24) + (tcBuffer[1] << 16) + (tcBuffer[2] << 8) + tcBuffer[3];
+				tc = (((int)tcBuffer[3]&0xFF) << 24) + (((int)tcBuffer[2]&0xFF) << 16) 
+						+ (((int)tcBuffer[1]&0xFF) << 8) + ((int)tcBuffer[0]&0xFF);
+				if( firstTimestamp == 0) { firstTimestamp = tc; lastTimestamp = tc; }
 				int numberOfFrames = deviceMode.equals(DeviceMode.Gottlieb) ? 5 : 4;
 				int buflen = 512 * numberOfFrames;
 				byte[] data = new byte[buflen];
 				stream.read(data);
 				int offset = 0;
-				Frame res = new Frame();
+				Frame res = null;
 				// TODO for Gottlieb and WPC do an additive aggregation
-				for(int i = 0; i < numberOfFrames; i++) {
-					res.planes.add(new Plane((byte)i, Frame.transform(data, offset+i*512, dmd.getFrameSizeInByte())));
+				if( deviceMode.equals(DeviceMode.WPC) ||
+						deviceMode.equals(DeviceMode.Gottlieb) ) {
+					res = transformPlanes(data, deviceMode);
+				} else {
+					res = new Frame();
+					for(int i = 0; i < numberOfFrames; i++) {
+						res.planes.add(new Plane((byte)i, Frame.transform(data, offset+i*512, dmd.getFrameSizeInByte())));
+					}
 				}
 
 				// res = buildSummarizedFrame(dmd.getWidth(),
 				// dmd.getHeight(),data, offset+4);
 
-				res.delay = lastTimestamp == 0 ? 0 : (int) (tc - lastTimestamp);
-				tc += res.delay;
-				res.timecode = tc;
+				res.delay = (int) (tc- lastTimestamp);
+				res.timecode = (int) (tc - firstTimestamp);
 				if (res.delay > 1) {
 					// System.out.println("frame"+frames.size()+", delay: "+res.delay
 					// + " "+p);
@@ -84,7 +92,28 @@ public class PinDumpRenderer extends Renderer {
 				}
 			}
 		}
+	}
 
+	private Frame transformPlanes(byte[] data, DeviceMode deviceMode) {
+		byte[] plane1 = new byte[512];
+		byte[] plane2 = new byte[512];
+		
+		for( int i = 0; i <512 ; i++) {
+			byte v0 = data[i];
+			byte v1 = data[i+512];
+			byte v2 = data[i+1024];
+			for( int j = 0; j < 8; j++) {				
+				int sum = v0&1 + v1&1 + v2&1;
+				if( (sum&1) != 0) {
+					plane1[i] |= (1 << j);
+				}
+				if( (sum&2) != 0 ) {
+					plane1[i] |= (1 << j);
+				}
+				v0 >>= 1; v1 >>= 1; v2 >>= 1;
+			}
+		}
+		return new Frame(plane1 , plane2);
 	}
 
 	@Override

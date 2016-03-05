@@ -17,7 +17,7 @@ public class PinDumpRendererTest {
 	public void testReadImage() throws Exception {
 		DMD dmd = new DMD(128,32);
 		uut.readImage(base+filename, dmd );
-		assertEquals(479, uut.getFrames().size());
+		assertEquals(611, uut.getFrames().size());
 	}
 
 }

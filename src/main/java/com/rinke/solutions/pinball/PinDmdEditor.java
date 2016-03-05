@@ -618,6 +618,8 @@ public class PinDmdEditor implements EventHandler{
             loadedList.addAll(AnimationFactory.createAnimationsFromProperties(filename));
         } else if (extensionIs(filename, ".pcap",".pcap.gz") ) {
         	loadedList.add(Animation.buildAnimationFromFile(filename, AnimationType.PCAP));
+        } else if (extensionIs(filename, ".dump",".dump.gz") ) {
+        	loadedList.add(Animation.buildAnimationFromFile(filename, AnimationType.PINDUMP));
         } else if ( extensionIs(filename, ".mp4", ".3gp", ".avi" ) ) {
         	loadedList.add(Animation.buildAnimationFromFile(filename, AnimationType.VIDEO));
         }
