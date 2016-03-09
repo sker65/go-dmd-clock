@@ -204,7 +204,7 @@ public class Animation {
 		this.name = name;
 		this.holdCycles = holdCycles;
 		this.type = type;
-		this.clockFrom = 20000;
+		this.clockFrom = Integer.MAX_VALUE;
 	}
 
 	Renderer renderer = null;

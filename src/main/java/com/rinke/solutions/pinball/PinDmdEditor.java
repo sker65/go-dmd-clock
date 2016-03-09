@@ -498,7 +498,7 @@ public class PinDmdEditor implements EventHandler{
 	}
 	
 	private String buildRelFilename(String parent, String file) {
-		return new File(parent).getParent()+File.separator+file;
+		return new File(parent).getParent()+File.separator+new File(file).getName();
 	}
 
 
@@ -1001,19 +1001,21 @@ public class PinDmdEditor implements EventHandler{
         btnAddFrameSeq.setText("Add FrameSeq");
         btnAddFrameSeq.addListener(SWT.Selection, e->{
         	if( !frameSeqViewer.getSelection().isEmpty()) {
-        		Animation ani = (Animation) ((IStructuredSelection) frameSeqViewer.getSelection()).getFirstElement();
-        		// TODO add index, add ref to framesSeq
-        		PalMapping palMapping = new PalMapping(0, "KeyFrame "+ani.getDesc());
-            	if( selectedHashIndex != -1 ) {
-            		palMapping.setDigest(hashes.get(selectedHashIndex));
-            	}
-        		palMapping.palIndex = activePalette.index;
-        		palMapping.frameSeqName = ani.getDesc();
-        		palMapping.animationName = ani.getDesc();
-            	palMapping.switchMode = SwitchMode.REPLACE;
-        		palMapping.frameIndex = selectedAnimation.get().actFrame;
-        		project.palMappings.add(palMapping);
-        		keyframeTableViewer.refresh();
+        		if( selectedHashIndex != -1 ) {
+	        		Animation ani = (Animation) ((IStructuredSelection) frameSeqViewer.getSelection()).getFirstElement();
+	        		// TODO add index, add ref to framesSeq
+	        		PalMapping palMapping = new PalMapping(0, "KeyFrame "+ani.getDesc());
+	            	palMapping.setDigest(hashes.get(selectedHashIndex));
+	        		palMapping.palIndex = activePalette.index;
+	        		palMapping.frameSeqName = ani.getDesc();
+	        		palMapping.animationName = ani.getDesc();
+	            	palMapping.switchMode = SwitchMode.REPLACE;
+	        		palMapping.frameIndex = selectedAnimation.get().actFrame;
+	        		project.palMappings.add(palMapping);
+	        		keyframeTableViewer.refresh();
+        		} else {
+        			warn("no hash selected","in order to create a key frame mapping, you must select a hash");
+        		}
         	}
         });
 
@@ -1187,9 +1189,16 @@ public class PinDmdEditor implements EventHandler{
         btnRenamePalette = new Button(grpPalettes, SWT.NONE);
         btnRenamePalette.setText("Rename");
         btnRenamePalette.addListener(SWT.Selection, e -> {
-        	activePalette.name = paletteComboViewer.getCombo().getText().split(" - ")[1];
-        	paletteComboViewer.setSelection(new StructuredSelection(activePalette));
-            paletteComboViewer.refresh();
+        	String newName = paletteComboViewer.getCombo().getText();
+        	if( newName.contains(" - ") ) {
+            	activePalette.name = newName.split(" - ")[1];
+            	paletteComboViewer.setSelection(new StructuredSelection(activePalette));
+                paletteComboViewer.refresh();
+            } else {
+    			warn("Illegal palette name", "Palette names must consist of palette index and name.\nName format therefore must be '<idx> - <name>'");
+                paletteComboViewer.getCombo().setText(activePalette.index +" - " + activePalette.name);
+            }
+
         });
 
         Button btnReset = new Button(grpPalettes, SWT.NONE);
@@ -1281,6 +1290,16 @@ public class PinDmdEditor implements EventHandler{
 
     }
 
+
+	private void warn( String header, String msg) {
+		MessageBox messageBox = new MessageBox(shell,
+		        SWT.ICON_WARNING | SWT.OK  );
+		
+		messageBox.setText(header);
+		messageBox.setMessage(msg);
+		messageBox.open();
+	}
+
 	private void switchMask(boolean useMask) {
 		this.useMask = useMask;
 		if( useMask ) {
@@ -1293,7 +1312,7 @@ public class PinDmdEditor implements EventHandler{
 		} else {
 			DMD dmdMask = dmdWidget.getMask();
 			if( dmdMask!=null ) System.arraycopy(dmdMask.frame.planes.get(0).plane, 0, project.mask, 0, 512);
-			paletteTool.setNumberOfPlanes(planeNumber.numberOfPlanes);
+			if( planeNumber != null ) paletteTool.setNumberOfPlanes(planeNumber.numberOfPlanes);
 			dmdWidget.setMask(null);
 			animationHandler.setMask(emptyMask);
 		}
