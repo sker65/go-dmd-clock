@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Constructor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,10 +21,16 @@ import com.rinke.solutions.pinball.model.Project;
 import com.rinke.solutions.pinball.model.RGB;
 import com.rinke.solutions.pinball.model.Scene;
 import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.converters.ConversionException;
+import com.thoughtworks.xstream.converters.UnmarshallingContext;
+import com.thoughtworks.xstream.converters.reflection.PureJavaReflectionProvider;
+import com.thoughtworks.xstream.converters.reflection.ReflectionConverter;
+import com.thoughtworks.xstream.converters.reflection.ReflectionProvider;
 import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import com.thoughtworks.xstream.io.binary.BinaryStreamDriver;
 import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
+import com.thoughtworks.xstream.mapper.Mapper;
 
 public class FileHelper {
 	
@@ -37,9 +44,39 @@ public class FileHelper {
     public FileHelper() {
 		setupXStream();
 	}
-	
+
+    @SuppressWarnings("rawtypes")
+    public static class DefaultConstructorConverter extends ReflectionConverter {
+        public DefaultConstructorConverter(Mapper mapper, ReflectionProvider reflectionProvider) {
+            super(mapper, reflectionProvider);
+        }
+        
+		@Override
+        public boolean canConvert(Class clazz) {
+			if( ! clazz.getName().startsWith("com.rinke.solutions.pinball.")) return false;
+            for (Constructor c : clazz.getConstructors()) {
+                if (c.getParameterTypes().length == 0) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        @Override
+        protected Object instantiateNewInstance(HierarchicalStreamReader reader, UnmarshallingContext context) {
+            try {
+            	Class clazz = mapper.realClass(reader.getNodeName());
+                return clazz.newInstance();
+            } catch (Exception e) {
+                throw new ConversionException("Could not create instance of class " + reader.getNodeName(), e);
+            }
+        }
+    }
+    
     private void setupXStream() {
         xstream = new XStream();
+        xstream.registerConverter(new DefaultConstructorConverter(xstream.getMapper(),
+        		xstream.getReflectionProvider()));
         jstream = new XStream(new JettisonMappedXmlDriver());
         jstream = new XStream(new JettisonMappedXmlDriver());
         

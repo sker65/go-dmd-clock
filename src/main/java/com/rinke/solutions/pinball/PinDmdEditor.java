@@ -148,6 +148,9 @@ public class PinDmdEditor implements EventHandler{
 
 	@Option(name="-save", usage="if set, project is saved right away", required=false)
 	private String saveFile;
+
+	@Option(name="-load", usage="if set, project is loaded right away", required=false)
+	private String loadFile;
 	
     @Argument
     private java.util.List<String> arguments = new ArrayList<String>();
@@ -365,21 +368,9 @@ public class PinDmdEditor implements EventHandler{
 
 		display.timerExec(animationHandler.getRefreshDelay(), cyclicRedraw);
 		
-		// cmd line processing
-		if( aniToLoad != null ) {
-		    loadAni(aniToLoad, false, true);
-		}
-		if( cutCmd != null && !animations.isEmpty() ) {
-		    String[] cuts = cutCmd.split(",");
-		    if( cuts.length >=3 ) {
-		        cutScene(animations.get(cuts[0]),Integer.parseInt(cuts[2]), Integer.parseInt(cuts[3]), cuts[1]);
-		    }
-		}
-		if( saveFile != null ) {
-			saveProject(saveFile);
-		}
-		
-        int retry = 0;
+		processCmdLine();
+
+		int retry = 0;
         while (true ) {
             try {
                 LOG.info("entering event loop");
@@ -397,6 +388,26 @@ public class PinDmdEditor implements EventHandler{
             }
         }
 
+	}
+
+
+	private void processCmdLine() {
+		// cmd line processing
+		if( loadFile != null ) {
+			loadProject(loadFile);
+		}
+		if( aniToLoad != null ) {
+		    loadAni(aniToLoad, false, true);
+		}
+		if( cutCmd != null && !animations.isEmpty() ) {
+		    String[] cuts = cutCmd.split(",");
+		    if( cuts.length >=3 ) {
+		        cutScene(animations.get(cuts[0]),Integer.parseInt(cuts[2]), Integer.parseInt(cuts[3]), cuts[1]);
+		    }
+		}
+		if( saveFile != null ) {
+			saveProject(saveFile);
+		}
 	}
 	
     private Animation cutScene(Animation animation, int start, int end, String name) {
