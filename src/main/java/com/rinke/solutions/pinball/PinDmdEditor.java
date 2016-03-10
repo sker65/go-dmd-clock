@@ -489,6 +489,7 @@ public class PinDmdEditor implements EventHandler{
         if( projectToLoad != null ) {
         	shell.setText(frameTextPrefix+" - "+new File(filename).getName());
             project = projectToLoad;
+            animations.clear();
             
             for( String file : project.inputFiles) loadAni(buildRelFilename(filename,file), true, false);
             
@@ -503,7 +504,6 @@ public class PinDmdEditor implements EventHandler{
             	selectedAnimation = Optional.of(animations.isEmpty() ? defaultAnimation : ani);
             	break;
             }
-            
         }
 		
 	}

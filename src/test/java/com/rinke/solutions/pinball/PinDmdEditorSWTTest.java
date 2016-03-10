@@ -133,6 +133,9 @@ public class PinDmdEditorSWTTest {
 	public void testLoadProjectString() throws Exception {
 		uut.shell = shell;
 		uut.loadProject("./src/test/resources/test.xml");
+		assertThat(uut.animations.size(), equalTo(1));
+		uut.loadProject("./src/test/resources/test.xml");
+		assertThat(uut.animations.size(), equalTo(1));
 	}
 	
 	@Test
