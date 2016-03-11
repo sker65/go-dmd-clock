@@ -141,7 +141,7 @@ public class DMD extends Observable {
 
     public void writeOr(Frame src) {
         if (src != null) {
-        	if( src.planes.size()!=3) {
+        	//if( src.planes.size()!=3) {
         		while( frame.planes.size() < src.planes.size() ) {
         			frame.planes.add(new Plane((byte)0,new byte[bytesPerRow*height]));
         		}
@@ -149,7 +149,7 @@ public class DMD extends Observable {
         		for (int i = 0; i < src.planes.size(); i++) {
 					copyOr(frame.planes.get(i).plane,src.planes.get(i).plane);
 				}
-        	}
+        	//s}
         }
     }
 

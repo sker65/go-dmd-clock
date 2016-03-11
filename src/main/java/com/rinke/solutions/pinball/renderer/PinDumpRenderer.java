@@ -7,6 +7,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.zip.CRC32;
 import java.util.zip.GZIPInputStream;
 
 import org.slf4j.Logger;
@@ -40,6 +41,7 @@ public class PinDumpRenderer extends Renderer {
 
 			long lastTimestamp = 0;
 			long firstTimestamp = 0;
+			long lastCRC = -1;
 			DeviceMode deviceMode = DeviceMode.forOrdinal(stream.read());
 			byte[] tcBuffer = new byte[4];
 			long tc = 0;
@@ -64,7 +66,9 @@ public class PinDumpRenderer extends Renderer {
 				if( firstTimestamp == 0) { firstTimestamp = tc; lastTimestamp = tc; }
 				byte[] data = new byte[buflen];
 				stream.read(data);
-				int offset = 0;
+				long crc = getCRC(data);
+				if( crc == lastCRC ) continue;
+				lastCRC = crc;
 				Frame res = null;
 				// TODO for Gottlieb and WPC do an additive aggregation
 				if( deviceMode.equals(DeviceMode.WPC) ||
@@ -73,7 +77,7 @@ public class PinDumpRenderer extends Renderer {
 				} else {
 					res = new Frame();
 					for(int i = 0; i < numberOfFrames; i++) {
-						res.planes.add(new Plane((byte)i, Frame.transform(data, offset+i*512, dmd.getFrameSizeInByte())));
+						res.planes.add(new Plane((byte)i, Frame.transform(data, i*512, dmd.getFrameSizeInByte())));
 					}
 				}
 
@@ -104,6 +108,12 @@ public class PinDumpRenderer extends Renderer {
 				}
 			}
 		}
+	}
+
+	private long getCRC(byte[] data) {
+		CRC32 crc = new CRC32();
+		crc.update(data);
+		return crc.getValue();
 	}
 
 	private Frame transformPlanes(byte[] data, DeviceMode deviceMode) {

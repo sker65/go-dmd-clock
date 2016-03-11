@@ -97,7 +97,7 @@ public class AnimationHandler extends Observable implements Runnable{
                 
                 lastRenderedFrame = ani.actFrame;
                 
-                if( res.planes.size()==3 ) { // there is a mask
+                if( res.containsMask() ) { // there is a mask
                     if( ani.getClockFrom()>ani.getTransitionFrom())
                         dmd.writeNotAnd(res.planes.get(2).plane); // mask out clock
                     DMD tmp = new DMD(dmd.getWidth(), dmd.getHeight());
