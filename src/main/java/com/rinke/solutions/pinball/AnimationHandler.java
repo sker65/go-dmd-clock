@@ -1,13 +1,7 @@
 package com.rinke.solutions.pinball;
 
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
 import java.util.List;
 import java.util.Observable;
-
-import javax.imageio.stream.FileImageOutputStream;
-import javax.imageio.stream.ImageOutputStream;
 
 import org.eclipse.swt.widgets.Scale;
 import org.slf4j.Logger;
@@ -18,7 +12,6 @@ import com.rinke.solutions.pinball.animation.AniEvent.Type;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.EventHandler;
 import com.rinke.solutions.pinball.model.Frame;
-import com.rinke.solutions.pinball.io.GifSequenceWriter;
 
 /**
  * handles the sequence of animations and clock
@@ -35,7 +28,7 @@ public class AnimationHandler extends Observable implements Runnable{
 	private int clockCycles;
 	private EventHandler eventHandler;
 	private DMD dmd;
-	private volatile boolean stop = false;
+	private volatile boolean stop = true;
 	private Scale scale;
 	private boolean showClock = true;
 	//private int transitionFrame= 0;
@@ -75,7 +68,7 @@ public class AnimationHandler extends Observable implements Runnable{
 			if( scale.isDisposed() ) return;
 			eventHandler.notifyAni(new AniEvent(Type.CLOCK));
 		} else {
-			if( anis.isEmpty() ) {
+			if( anis==null || anis.isEmpty() ) {
 				clockActive = true;
 			} else {
 				

@@ -1,5 +1,7 @@
 package com.rinke.solutions.pinball.ui;
 
+import org.eclipse.jface.viewers.ArrayContentProvider;
+import org.eclipse.jface.viewers.ComboViewer;
 import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
@@ -12,6 +14,7 @@ import org.eclipse.swt.layout.GridData;
 
 import com.rinke.solutions.pinball.DeviceMode;
 import com.rinke.solutions.pinball.io.UsbTool;
+import com.rinke.solutions.pinball.model.DefaultPalette;
 
 public class UsbConfig extends Dialog {
 
@@ -75,15 +78,19 @@ public class UsbConfig extends Dialog {
 		lblPalette.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
 		lblPalette.setText("Palette:");
 		
-		Combo paletteCombo = new Combo(shell, SWT.NONE);
-		GridData gd_combo_1 = new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1);
-		gd_combo_1.widthHint = 161;
-		paletteCombo.setLayoutData(gd_combo_1);
+		ComboViewer comboViewerDefaultPalette = new ComboViewer(shell, SWT.NONE);
+		Combo comboDefaultPalette = comboViewerDefaultPalette.getCombo();
+        GridData gd_comboDefaultPalette = new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1);
+        gd_comboDefaultPalette.widthHint = 161;
+        comboDefaultPalette.setLayoutData(gd_comboDefaultPalette);
+        comboViewerDefaultPalette.setContentProvider(ArrayContentProvider.getInstance());
+        comboViewerDefaultPalette.setInput(DefaultPalette.values());
+        comboDefaultPalette.select(0);
 		
 		Button btnSetPalette = new Button(shell, SWT.NONE);
 		btnSetPalette.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
 		btnSetPalette.setText("Set Palette");
-		btnSetPalette.addListener(SWT.Selection, e->usbTool.switchToPal(paletteCombo.getSelectionIndex()));
+		btnSetPalette.addListener(SWT.Selection, e->usbTool.switchToPal(comboDefaultPalette.getSelectionIndex()));
 
 		new Label(shell, SWT.NONE);
 		new Label(shell, SWT.NONE);

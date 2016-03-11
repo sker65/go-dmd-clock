@@ -64,13 +64,14 @@ public class UsbTool {
         if (result != LibUsb.SUCCESS)
             throw new LibUsbException("Unable to open USB device", result);
         try {
-            IntBuffer intBuffer = IntBuffer.allocate(1);
+        	IntBuffer transfered = IntBuffer.allocate(1);
             ByteBuffer buffer = ByteBuffer.allocateDirect(data.length);
             buffer.put(data);
             // Use device handle here
-            LibUsb.bulkTransfer(handle, (byte) 0x01, buffer, intBuffer, 4000);
-            if( intBuffer.array()[0] != data.length ) {
-                LOG.error("unexpected length returned on bulk: {}", intBuffer.array()[0]);
+            int res = LibUsb.bulkTransfer(handle, (byte) 0x01, buffer, transfered, 4000);
+            if (res != LibUsb.SUCCESS) throw new LibUsbException("Control transfer failed", res);
+            if( transfered.get() != data.length ) {
+                LOG.error("unexpected length returned on bulk: {}", transfered.get());
             }
 
         } finally {
