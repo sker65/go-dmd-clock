@@ -63,6 +63,10 @@ public class UsbTool {
         int result = LibUsb.open(device, handle);
         if (result != LibUsb.SUCCESS)
             throw new LibUsbException("Unable to open USB device", result);
+        result = LibUsb.claimInterface(handle, 0);
+        if (result != LibUsb.SUCCESS)
+            throw new LibUsbException("Unable to claim USB interface", result);
+        
         try {
         	IntBuffer transfered = IntBuffer.allocate(1);
             ByteBuffer buffer = ByteBuffer.allocateDirect(data.length);
@@ -75,6 +79,7 @@ public class UsbTool {
             }
 
         } finally {
+        	LibUsb.releaseInterface(handle, 0);
             LibUsb.close(handle);
             LibUsb.exit(ctx);
         }
@@ -141,17 +146,19 @@ public class UsbTool {
                 result = LibUsb.getDeviceDescriptor(device, descriptor);
                 if (result != LibUsb.SUCCESS)
                     throw new LibUsbException("Unable to read device descriptor", result);
-                System.out.println("scanning for device: "
+                LOG.debug("scanning for device: "
                     +String.format("%04X", descriptor.idVendor())
                     +", "+String.format("%04X", descriptor.idProduct()));
-                if (descriptor.idVendor() == vendorId && descriptor.idProduct() == productId)
-                    return device;
+                if (descriptor.idVendor() == vendorId && descriptor.idProduct() == productId) {
+                    LOG.debug("found {}", device);
+                	return device;
+                }
             }
         } finally {
             // Ensure the allocated device list is freed
             LibUsb.freeDeviceList(list, false);
         }
-
+        LOG.error("usb device not found");
         // Device not found
         return null;
     }
