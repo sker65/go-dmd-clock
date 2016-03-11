@@ -149,7 +149,7 @@ public class UsbTool {
             }
         } finally {
             // Ensure the allocated device list is freed
-            LibUsb.freeDeviceList(list, true);
+            LibUsb.freeDeviceList(list, false);
         }
 
         // Device not found
