@@ -108,7 +108,7 @@ public class UsbTool {
 
 	private void doHandShake(Pair<Context, DeviceHandle> usb) {
 		byte[] res = receive(usb);
-		if( res[0] != 1) throw new RuntimeException("handshake error");
+		if( res[0] != 0) throw new RuntimeException("handshake error");
 	}
 
 	private void buildBytes(byte[] res, String sdname) {
