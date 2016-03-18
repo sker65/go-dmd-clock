@@ -1308,6 +1308,7 @@ public class PinDmdEditor implements EventHandler{
         
         Button btnUploadMappings = new Button(grpPalettes, SWT.NONE);
         btnUploadMappings.setText("Upload KeyFrames");
+        btnUploadMappings.addListener(SWT.Selection, e->usbTool.upload(project.palMappings));
         
         btnMask = new Button(grpPalettes, SWT.CHECK);
         btnMask.setText("Mask");
@@ -1316,10 +1317,13 @@ public class PinDmdEditor implements EventHandler{
         new Label(grpPalettes, SWT.NONE);
         new Label(grpPalettes, SWT.NONE);
         new Label(grpPalettes, SWT.NONE);
+        
+        Button btnUploadProject = new Button(grpPalettes, SWT.NONE);
+        btnUploadProject.setText("Upload Project");
+        btnUploadProject.addListener(SWT.Selection, e->uploadProject());
+        
         new Label(grpPalettes, SWT.NONE);
         new Label(grpPalettes, SWT.NONE);
-        new Label(grpPalettes, SWT.NONE);
-        btnUploadMappings.addListener(SWT.Selection, e->usbTool.upload(project.palMappings));
 
     }
 
