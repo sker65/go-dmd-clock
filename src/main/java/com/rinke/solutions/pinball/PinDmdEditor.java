@@ -4,10 +4,13 @@ import java.awt.SplashScreen;
 
 import static com.rinke.solutions.pinball.api.LicenseManager.Capability;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -517,7 +520,7 @@ public class PinDmdEditor implements EventHandler{
         String filename = fileChooserHelper(SWT.SAVE, project.name, 
         		new String[] { "*.dat" },
         		new String[] { "Export dat" });	
-        if( filename != null ) exportProject(filename);
+        if( filename != null ) exportProject(filename, f->new FileOutputStream(f));
 	}
 
     private void saveProject() {
@@ -527,7 +530,26 @@ public class PinDmdEditor implements EventHandler{
         if (filename != null) saveProject(filename);
     }
     
-    void exportProject(String filename) {
+    @FunctionalInterface
+    public interface OutputStreamProvider {
+    	OutputStream buildStream(String name) throws IOException;
+    }
+    
+    private void uploadProject() {
+    	Map<String, ByteArrayOutputStream> captureOutput = new HashMap<>();
+    	exportProject("a.dat", f->{
+    		ByteArrayOutputStream stream = new ByteArrayOutputStream();
+    		captureOutput.put(f, stream);
+    		return stream;
+    	});
+    	
+    	usbTool.transferFile("palettes.dat", new ByteArrayInputStream(captureOutput.get("a.dat").toByteArray()));
+    	if( captureOutput.containsKey("a.fsq")) {
+    		usbTool.transferFile("pin2dmd.fsq", new ByteArrayInputStream(captureOutput.get("a.fsq").toByteArray()));
+    	}
+    }
+    
+    void exportProject(String filename, OutputStreamProvider streamProvider) {
         
     	licManager.requireOneOf( Capability.VPIN, Capability.REALPIN );
     	
@@ -553,12 +575,12 @@ public class PinDmdEditor implements EventHandler{
     		Map<String, Integer> map = new HashMap<String, Integer>();
             BinaryExporter exporter = BinaryExporterFactory.getInstance();
     		if( !project.frameSeqMap.isEmpty() ) {
-        		DataOutputStream dos = new DataOutputStream(new FileOutputStream(replaceExtensionTo("fsq",filename)));
+        		DataOutputStream dos = new DataOutputStream(streamProvider.buildStream(replaceExtensionTo("fsq",filename)));
         		map = exporter.writeFrameSeqTo(dos, project);
         		dos.close();
     		}
     		
-            DataOutputStream dos2 = new DataOutputStream(new FileOutputStream(filename));
+            DataOutputStream dos2 = new DataOutputStream(streamProvider.buildStream(filename));
             exporter.writeTo(dos2, map, project);
             dos2.close();
         	//fileHelper.storeObject(project, filename);

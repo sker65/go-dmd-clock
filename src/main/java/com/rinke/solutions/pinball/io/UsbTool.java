@@ -1,9 +1,13 @@
 package com.rinke.solutions.pinball.io;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.util.List;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.usb4java.Context;
@@ -21,7 +25,7 @@ public class UsbTool {
 
 	public static enum UsbCmd {
 		RESET(0), SAVE_CONFIG(1), SWITCH_DEVICEMODE(2), SWITCH_PALETTE(3),  UPLOAD_PALETTE(4), UPLOAD_MAPPING(5),
-		UPLOAD_SMARTDMD_SIG(6), RESET_SETTINGS(7), SET_DISPLAY_TIMING(8), WRITE_FILE(9), SEND_SETTINGS(16),
+		UPLOAD_SMARTDMD_SIG(6), RESET_SETTINGS(7), SET_DISPLAY_TIMING(8), WRITE_FILE(9), WRITE_FILE_EX(10), SEND_SETTINGS(16),
 		UPLOAD_MASK(17), DELETE_LICENSE(0xFD), RECEIVE_LICENSE(0xFE), DISPLAY_UID(0xFF);
 		
 		UsbCmd(int cmd) {
@@ -56,8 +60,8 @@ public class UsbTool {
     	bulk(res);
     }
     
-    public void bulk(byte[] data) {
-        Context ctx = initUsb();
+    public Pair<Context,DeviceHandle> initUsb() {
+        Context ctx = initCtx();
         Device device = findDevice(ctx, (short) 0x314, (short)0xE457);
         DeviceHandle handle = new DeviceHandle();
         int result = LibUsb.open(device, handle);
@@ -66,24 +70,96 @@ public class UsbTool {
         result = LibUsb.claimInterface(handle, 0);
         if (result != LibUsb.SUCCESS)
             throw new LibUsbException("Unable to claim USB interface", result);
-        
+        return Pair.of(ctx, handle);	
+    }
+    
+    public void transferFile(String filename, InputStream is) {
+    	byte[] data = buildBuffer(UsbCmd.WRITE_FILE_EX);
+    	data[5] = (byte) 0;
+    	String sdname = "0:/"+filename;
+    	buildBytes(data, sdname);
+    	Pair<Context, DeviceHandle> usb = initUsb();    
         try {
-        	IntBuffer transfered = IntBuffer.allocate(1);
-            ByteBuffer buffer = ByteBuffer.allocateDirect(data.length);
-            buffer.put(data);
-            // Use device handle here
-            int res = LibUsb.bulkTransfer(handle, (byte) 0x01, buffer, transfered, 4000);
-            if (res != LibUsb.SUCCESS) throw new LibUsbException("Control transfer failed", res);
-            if( transfered.get() != data.length ) {
-                LOG.error("unexpected length returned on bulk: {}", transfered.get());
-            }
+        	send(data, usb);
+        	doHandShake(usb);
+        	byte[] buffer = new byte[512];
+        	int read;
+        	while( (read = is.read(buffer)) > 0 ){
+        		data = buildBuffer(UsbCmd.WRITE_FILE_EX);
+        		data[5] = (byte) 1;
+        		data[6] = (byte) (read >> 8);
+        		data[7] = (byte) (read & 0xFF);
+        		send(data, usb);
+        		doHandShake(usb);
+        	}
+        	data = buildBuffer(UsbCmd.WRITE_FILE_EX);
+    		data[5] = (byte) 0xFF;
+    		send(data, usb);
+    		doHandShake(usb);
+        } catch (IOException e) {
+        	throw new RuntimeException(e);
+		} finally {
+        	LibUsb.releaseInterface(usb.getRight(), 0);
+            LibUsb.close(usb.getRight());
+            LibUsb.exit(usb.getLeft());
+        }
+    	
+    }
 
+	private void doHandShake(Pair<Context, DeviceHandle> usb) {
+		byte[] res = receive(usb);
+		if( res[0] != 1) throw new RuntimeException("handshake error");
+	}
+
+	private void buildBytes(byte[] res, String sdname) {
+		try {
+			byte[] namebytes = sdname.getBytes("ASCII");
+			int i = 6;
+			for (byte b : namebytes) {
+				res[i++] = b;
+			}
+			res[i] = 0;
+		} catch (UnsupportedEncodingException e) {
+			throw new RuntimeException(e);
+		}
+	}
+        
+    public void bulk(byte[] data) {
+        Pair<Context, DeviceHandle> usb = initUsb();      
+        try {
+        	send(data, usb);
         } finally {
-        	LibUsb.releaseInterface(handle, 0);
-            LibUsb.close(handle);
-            LibUsb.exit(ctx);
+        	LibUsb.releaseInterface(usb.getRight(), 0);
+            LibUsb.close(usb.getRight());
+            LibUsb.exit(usb.getLeft());
         }
     }
+    
+    private byte[] receive(Pair<Context, DeviceHandle> usb) {
+    	byte[] data = new byte[64];
+		IntBuffer transfered = IntBuffer.allocate(1);
+		ByteBuffer buffer = ByteBuffer.allocateDirect(data.length);
+		buffer.put(data);
+		// Use device handle here
+		int res = LibUsb.bulkTransfer(usb.getRight(), (byte) 0x81, buffer, transfered, 4000);
+		if (res != LibUsb.SUCCESS) throw new LibUsbException("Control transfer failed", res);
+		if( transfered.get() != data.length ) {
+		    LOG.error("unexpected length returned on bulk: {}", transfered.get());
+		}
+    	return data;
+    }
+
+	private void send(byte[] data, Pair<Context, DeviceHandle> usb) {
+		IntBuffer transfered = IntBuffer.allocate(1);
+		ByteBuffer buffer = ByteBuffer.allocateDirect(data.length);
+		buffer.put(data);
+		// Use device handle here
+		int res = LibUsb.bulkTransfer(usb.getRight(), (byte) 0x01, buffer, transfered, 4000);
+		if (res != LibUsb.SUCCESS) throw new LibUsbException("Control transfer failed", res);
+		if( transfered.get() != data.length ) {
+		    LOG.error("unexpected length returned on bulk: {}", transfered.get());
+		}
+	}
     
     private byte[] buildBuffer(UsbCmd usbCmd) {
         byte[] res = new byte[2052];
@@ -122,7 +198,7 @@ public class UsbTool {
         return res;
     }
 
-    private Context initUsb() {
+    private Context initCtx() {
         LOG.debug("init libusb");
         Context context = new Context();
         int result = LibUsb.init(context);

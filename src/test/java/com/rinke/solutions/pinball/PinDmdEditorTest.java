@@ -5,6 +5,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertNull;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -77,7 +78,7 @@ public class PinDmdEditorTest {
 		Frame frame = new Frame(plane1, plane2);
 		frame.delay = 0x77ee77ee;
 		aniFrames.add(frame);
-		uut.exportProject(filename);
+		uut.exportProject(filename, f->new FileOutputStream(f));
 		// System.out.println(filename);
 		assertNull(Util.isBinaryIdentical(filename,
 				"./src/test/resources/mappingWithSeq.dat"));
@@ -99,7 +100,7 @@ public class PinDmdEditorTest {
 
 		uut.project.palMappings.add(p);
 
-		uut.exportProject(filename);
+		uut.exportProject(filename, f->new FileOutputStream(f));
 
 		// System.out.println(filename);
 
@@ -115,7 +116,7 @@ public class PinDmdEditorTest {
 		File tempFile = testFolder.newFile("test.dat");
 		String filename = tempFile.getAbsolutePath();
 
-		uut.exportProject(filename);
+		uut.exportProject(filename, f->new FileOutputStream(f));
 		// System.out.println(filename);
 
 		// create a reference file and compare against
