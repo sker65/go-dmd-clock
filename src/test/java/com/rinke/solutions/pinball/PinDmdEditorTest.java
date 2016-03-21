@@ -2,7 +2,7 @@ package com.rinke.solutions.pinball;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -153,6 +153,16 @@ public class PinDmdEditorTest {
 		palettesImported.add(new Palette(Palette.defaultColors(), 0, "foo"));
 		uut.importPalettes(palettesImported, false);
 		uut.importPalettes(palettesImported, true);
+	}
+
+	@Test
+	public void testCheckForDuplicateKeyFrames() throws Exception {
+		PalMapping p = new PalMapping(0, "foo");
+		p.crc32 = new byte[]{1,2,3,4};
+		uut.project.palMappings.add(p);
+		assertFalse(uut.checkForDuplicateKeyFrames());
+		uut.project.palMappings.add(p);
+		assertTrue(uut.checkForDuplicateKeyFrames());
 	}
 
 }

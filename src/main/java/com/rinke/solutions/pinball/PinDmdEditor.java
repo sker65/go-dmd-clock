@@ -529,7 +529,6 @@ public class PinDmdEditor implements EventHandler{
 		return new File(parent).getParent()+File.separator+new File(file).getName();
 	}
 
-
 	private void exportProject() {
         String filename = fileChooserHelper(SWT.SAVE, project.name, 
         		new String[] { "*.dat" },
@@ -819,6 +818,33 @@ public class PinDmdEditor implements EventHandler{
     	}
     }
     
+    public void addKeyFrame() {
+    	PalMapping palMapping = new PalMapping(activePalette.index, "KeyFrame "+(project.palMappings.size()+1));
+    	if( selectedHashIndex != -1 ) {
+    		palMapping.setDigest(hashes.get(selectedHashIndex));
+    	}
+    	palMapping.animationName = selectedAnimation.get().getDesc();
+    	palMapping.frameIndex = selectedAnimation.get().actFrame;
+    	palMapping.switchMode = SwitchMode.PALETTE;
+    	palMapping.withMask = useMask;
+    	
+    	if( !checkForDuplicateKeyFrames() ) {
+        	project.palMappings.add(palMapping);
+        	saveTimeCode = lastTimeCode;
+        	keyframeTableViewer.refresh();
+    	} else {
+    		warn("Hash is already used", "The selected hash is already used by another key frame");
+    	}
+    }
+
+	boolean checkForDuplicateKeyFrames() {
+		HashSet<byte[]> hashes = new HashSet<byte[]>();
+		for(PalMapping p : project.palMappings) {
+			if( !hashes.add(p.crc32) ) return true;
+		}
+		return false;
+	}
+
 
 	/**
 	 * Create contents of the window.
@@ -975,19 +1001,7 @@ public class PinDmdEditor implements EventHandler{
         btnAddKeyframe.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, false, false, 1, 1));
         btnAddKeyframe.setText("Add PalSwitch");
         btnAddKeyframe.setEnabled(false);
-        btnAddKeyframe.addListener(SWT.Selection, e->{
-        	PalMapping palMapping = new PalMapping(activePalette.index, "KeyFrame "+(project.palMappings.size()+1));
-        	if( selectedHashIndex != -1 ) {
-        		palMapping.setDigest(hashes.get(selectedHashIndex));
-        	}
-        	palMapping.animationName = selectedAnimation.get().getDesc();
-        	palMapping.frameIndex = selectedAnimation.get().actFrame;
-        	palMapping.switchMode = SwitchMode.PALETTE;
-        	palMapping.withMask = useMask;
-        	project.palMappings.add(palMapping);
-        	saveTimeCode = lastTimeCode;
-        	keyframeTableViewer.refresh();
-        });
+        btnAddKeyframe.addListener(SWT.Selection, e->addKeyFrame() );
         new Label(grpKeyframe, SWT.NONE);
         new Label(grpKeyframe, SWT.NONE);
         
