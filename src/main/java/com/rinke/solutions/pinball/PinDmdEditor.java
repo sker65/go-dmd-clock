@@ -1060,25 +1060,7 @@ public class PinDmdEditor implements EventHandler{
         btnAddFrameSeq = new Button(grpKeyframe, SWT.NONE);
         btnAddFrameSeq.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
         btnAddFrameSeq.setText("Add FrameSeq");
-        btnAddFrameSeq.addListener(SWT.Selection, e->{
-        	if( !frameSeqViewer.getSelection().isEmpty()) {
-        		if( selectedHashIndex != -1 ) {
-	        		Animation ani = (Animation) ((IStructuredSelection) frameSeqViewer.getSelection()).getFirstElement();
-	        		// TODO add index, add ref to framesSeq
-	        		PalMapping palMapping = new PalMapping(0, "KeyFrame "+ani.getDesc());
-	            	palMapping.setDigest(hashes.get(selectedHashIndex));
-	        		palMapping.palIndex = activePalette.index;
-	        		palMapping.frameSeqName = ani.getDesc();
-	        		palMapping.animationName = ani.getDesc();
-	            	palMapping.switchMode = SwitchMode.REPLACE;
-	        		palMapping.frameIndex = selectedAnimation.get().actFrame;
-	        		project.palMappings.add(palMapping);
-	        		keyframeTableViewer.refresh();
-        		} else {
-        			warn("no hash selected","in order to create a key frame mapping, you must select a hash");
-        		}
-        	}
-        });
+        btnAddFrameSeq.addListener(SWT.Selection, e->addFrameSeq());
 
         Group grpDetails = new Group(shell, SWT.NONE);
         grpDetails.setLayout(new GridLayout(8, false));
@@ -1354,6 +1336,32 @@ public class PinDmdEditor implements EventHandler{
         new Label(grpPalettes, SWT.NONE);
 
     }
+
+
+	private void addFrameSeq()         {
+    	if( !frameSeqViewer.getSelection().isEmpty()) {
+    		if( selectedHashIndex != -1 ) {
+        		Animation ani = (Animation) ((IStructuredSelection) frameSeqViewer.getSelection()).getFirstElement();
+        		// TODO add index, add ref to framesSeq
+        		PalMapping palMapping = new PalMapping(0, "KeyFrame "+ani.getDesc());
+            	palMapping.setDigest(hashes.get(selectedHashIndex));
+        		palMapping.palIndex = activePalette.index;
+        		palMapping.frameSeqName = ani.getDesc();
+        		palMapping.animationName = ani.getDesc();
+            	palMapping.switchMode = SwitchMode.REPLACE;
+        		palMapping.frameIndex = selectedAnimation.get().actFrame;
+        		if(!checkForDuplicateKeyFrames(palMapping)) {
+            		project.palMappings.add(palMapping);
+            		keyframeTableViewer.refresh();
+        		} else {
+        			warn("duplicate hash", "There is already another Keyframe that uses the same hash");
+        		}
+    		} else {
+    			warn("no hash selected","in order to create a key frame mapping, you must select a hash");
+    		}
+    	}
+    }
+
 
 
 	private void warn( String header, String msg) {
