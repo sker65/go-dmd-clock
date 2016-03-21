@@ -1103,7 +1103,7 @@ public class PinDmdEditor implements EventHandler{
         lblPlanesVal.setText("xxxxxx");
 
         Composite composite = new Composite(shell, SWT.NONE);
-        composite.setLayout(new GridLayout(10, false));
+        composite.setLayout(new GridLayout(13, false));
         composite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
         
         btnStart = new Button(composite, SWT.NONE);
@@ -1180,6 +1180,16 @@ public class PinDmdEditor implements EventHandler{
             dmdRedraw();
         });
         ObserverManager.bind(dmd, e -> btnRedo.setEnabled(e), ()->dmd.canRedo() );
+
+        new Label(composite, SWT.NONE);
+        
+        Button btnIncPitch = new Button(composite, SWT.NONE);
+        btnIncPitch.setText("+");
+        btnIncPitch.addListener(SWT.Selection, e->dmdWidget.incPitch());
+        
+        Button btnDecPitch = new Button(composite, SWT.NONE);
+        btnDecPitch.setText("-");
+        btnDecPitch.addListener(SWT.Selection, e->dmdWidget.decPitch());
         
         Group grpPalettes = new Group(shell, SWT.NONE);
         grpPalettes.setLayout(new GridLayout(7, false));

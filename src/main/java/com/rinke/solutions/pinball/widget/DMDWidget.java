@@ -13,6 +13,8 @@ import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.ScrollBar;
+import org.eclipse.swt.widgets.Scrollable;
 
 import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.model.Frame;
@@ -34,9 +36,14 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 	int pressedButton = 0;
 	private DrawTool drawTool = null;//new RectTool();//new SetPixelTool();
 	private boolean drawingEnabled;
+	private int standardPitch;
+	private ScrollBar hBar;
+	private ScrollBar vBar;
+	int vScroll;
+	int hScroll;
 
 	public DMDWidget(Composite parent, int style, DMD dmd) {
-		super(parent, style);
+		super(parent, style + SWT.V_SCROLL + SWT.H_SCROLL);
 		//palette = Palette.getDefaultPalette();
 		resolutionX = dmd.getWidth();
 		resolutionY = dmd.getHeight();
@@ -45,13 +52,24 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 		this.addListener( SWT.MouseDown, e -> handleMouse(e));
 		this.addListener( SWT.MouseUp, e -> handleMouse(e));
 		this.addListener( SWT.MouseMove, e -> handleMouse(e));
+		hBar = this.getHorizontalBar();
+		vBar = this.getVerticalBar();
+		hBar.addListener(SWT.Selection, e->resized(e));
+		vBar.addListener(SWT.Selection, e->resized(e));
+		
 		if( drawTool != null ) drawTool.setDMD(dmd);
+	}
+	
+	private void resized(Event e) {
+		hScroll = hBar.getSelection();
+		vScroll = vBar.getSelection();
+		redraw();
 	}
 	
 	private void handleMouse(Event e) {
 		if( drawTool != null && drawingEnabled ) {
-			int x = (e.x-margin)/pitch;
-			int y = (e.y-margin)/pitch;
+			int x = (e.x-margin)/pitch + hScroll;
+			int y = (e.y-margin)/pitch + vScroll;
 			//System.out.println(x+ ":"+y);
 			if( x >= 0 && x < dmd.getWidth() && y>=0 && y < dmd.getHeight() ) {
 				if( drawTool.handleMouse(e, x, y)) {
@@ -70,13 +88,27 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 		int pitchx = (width -2*margin) / resolutionX;
 		int pitchy = (height -2*margin) / resolutionY;
 		pitch = pitchx<pitchy?pitchx:pitchy;
+		standardPitch = pitch;
 		if( pitch <= 0) pitch = 1;
+		hBar.setMaximum(width/pitch);
+		vBar.setMaximum(height/pitch);
+	}
+	
+	public void incPitch() {
+		pitch++;
+		redraw();
+	}
+
+	public void decPitch() {
+		if (pitch > 1)
+			pitch--;
+		redraw();
 	}
 
 	@Override
 	protected void paintWidget(PaintEvent ev) {
-		Image image = drawImage(ev.display, ev.width, ev.height);
-        ev.gc.drawImage(image, 0, 0);
+		Image image = drawImage(ev.display, margin*2+resolutionX*pitch, margin*2+resolutionY*pitch);
+        ev.gc.drawImage(image, -hScroll*pitch, -vScroll*pitch);
         image.dispose();
 	}
 	
