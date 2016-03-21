@@ -828,7 +828,7 @@ public class PinDmdEditor implements EventHandler{
     	palMapping.switchMode = SwitchMode.PALETTE;
     	palMapping.withMask = useMask;
     	
-    	if( !checkForDuplicateKeyFrames() ) {
+    	if( !checkForDuplicateKeyFrames(palMapping) ) {
         	project.palMappings.add(palMapping);
         	saveTimeCode = lastTimeCode;
         	keyframeTableViewer.refresh();
@@ -837,12 +837,12 @@ public class PinDmdEditor implements EventHandler{
     	}
     }
 
-	boolean checkForDuplicateKeyFrames() {
+	boolean checkForDuplicateKeyFrames(PalMapping palMapping) {
 		HashSet<byte[]> hashes = new HashSet<byte[]>();
 		for(PalMapping p : project.palMappings) {
-			if( !hashes.add(p.crc32) ) return true;
+			hashes.add(p.crc32);
 		}
-		return false;
+		return hashes.contains(palMapping.crc32);
 	}
 
 

@@ -159,10 +159,9 @@ public class PinDmdEditorTest {
 	public void testCheckForDuplicateKeyFrames() throws Exception {
 		PalMapping p = new PalMapping(0, "foo");
 		p.crc32 = new byte[]{1,2,3,4};
+		assertFalse(uut.checkForDuplicateKeyFrames(p));
 		uut.project.palMappings.add(p);
-		assertFalse(uut.checkForDuplicateKeyFrames());
-		uut.project.palMappings.add(p);
-		assertTrue(uut.checkForDuplicateKeyFrames());
+		assertTrue(uut.checkForDuplicateKeyFrames(p));
 	}
 
 }
