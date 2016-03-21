@@ -507,8 +507,22 @@ public class PinDmdEditor implements EventHandler{
             	selectedAnimation = Optional.of(animations.isEmpty() ? defaultAnimation : ani);
             	break;
             }
+            ensureDefault();
         }
 		
+	}
+
+	private void ensureDefault() {
+		boolean foundDefault = false;
+		for(Palette p:project.palettes) {
+			if( PaletteType.DEFAULT.equals(p.type) ) {
+				foundDefault = true;
+				break;
+			}
+		}
+		if( !foundDefault ) {
+			project.palettes.get(0).type = PaletteType.DEFAULT;
+		}
 	}
 	
 	private String buildRelFilename(String parent, String file) {
