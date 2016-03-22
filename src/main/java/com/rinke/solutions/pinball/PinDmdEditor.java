@@ -106,6 +106,7 @@ import com.rinke.solutions.pinball.api.LicenseManagerFactory;
 import com.rinke.solutions.pinball.util.ObservableList;
 import com.rinke.solutions.pinball.util.ObservableMap;
 import com.rinke.solutions.pinball.widget.CircleTool;
+import com.rinke.solutions.pinball.widget.ColorizeTool;
 import com.rinke.solutions.pinball.widget.DMDWidget;
 import com.rinke.solutions.pinball.widget.DrawTool;
 import com.rinke.solutions.pinball.widget.FloodFillTool;
@@ -1284,6 +1285,7 @@ public class PinDmdEditor implements EventHandler{
         drawTools.put("rect", new RectTool(paletteTool.getSelectedColor()));
         drawTools.put("line", new LineTool(paletteTool.getSelectedColor()));
         drawTools.put("circle", new CircleTool(paletteTool.getSelectedColor()));
+        drawTools.put("colorize", new ColorizeTool(paletteTool.getSelectedColor()));
         drawTools.values().forEach(d->paletteTool.addListener(d));
         
         paletteTool.addListener(dmdWidget);
@@ -1314,6 +1316,10 @@ public class PinDmdEditor implements EventHandler{
         ToolItem tltmCircle = new ToolItem(drawToolBar, SWT.RADIO);
         tltmCircle.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/oval.png")));
         tltmCircle.addListener(SWT.Selection, e->dmdWidget.setDrawTool(drawTools.get("circle")));
+
+        ToolItem tltmColorize = new ToolItem(drawToolBar, SWT.RADIO);
+        tltmColorize.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/colorize.png")));
+        tltmColorize.addListener(SWT.Selection, e->dmdWidget.setDrawTool(drawTools.get("colorize")));
 
 //        ToolItem tltmEraser = new ToolItem(toolBar, SWT.RADIO);
 //        tltmEraser.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/eraser.png")));
