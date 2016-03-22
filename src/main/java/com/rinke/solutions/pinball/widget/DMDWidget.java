@@ -41,6 +41,8 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 	private ScrollBar vBar;
 	int vScroll;
 	int hScroll;
+	private int width;
+	private int height;
 
 	public DMDWidget(Composite parent, int style, DMD dmd) {
 		super(parent, style + SWT.V_SCROLL + SWT.H_SCROLL);
@@ -63,6 +65,7 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 	private void resized(Event e) {
 		hScroll = hBar.getSelection();
 		vScroll = vBar.getSelection();
+		//System.out.println(hScroll);
 		redraw();
 	}
 	
@@ -83,6 +86,8 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 	@Override
 	public void setBounds(int x, int y, int width, int height) {
 		super.setBounds(x, y, width, height);
+		this.width = width;
+		this.height = height;
 		int minwh = width<height?width:height;
 		margin = minwh/25;
 		int pitchx = (width -2*margin) / resolutionX;
@@ -90,18 +95,28 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 		pitch = pitchx<pitchy?pitchx:pitchy;
 		standardPitch = pitch;
 		if( pitch <= 0) pitch = 1;
-		hBar.setMaximum(width/pitch);
-		vBar.setMaximum(height/pitch);
+		setBars();
+	}
+
+	private void setBars() {
+		int xoff = resolutionX*pitch + 2*margin - width;
+		//System.out.println(xoff);
+		int yoff = resolutionY*pitch + 2*margin - height;
+		hBar.setMaximum(xoff<=0?1:xoff / pitch + 2);
+		vBar.setMaximum(yoff<=0?1:yoff/pitch+2);
 	}
 	
 	public void incPitch() {
 		pitch++;
+		setBars();
 		redraw();
 	}
 
 	public void decPitch() {
-		if (pitch > 1)
+		if (pitch > 1) {
 			pitch--;
+			setBars();
+		}
 		redraw();
 	}
 

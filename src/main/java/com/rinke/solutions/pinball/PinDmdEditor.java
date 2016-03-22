@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -838,11 +839,10 @@ public class PinDmdEditor implements EventHandler{
     }
 
 	boolean checkForDuplicateKeyFrames(PalMapping palMapping) {
-		HashSet<byte[]> hashes = new HashSet<byte[]>();
 		for(PalMapping p : project.palMappings) {
-			hashes.add(p.crc32);
+			if(Arrays.equals(p.crc32, palMapping.crc32)) return true;
 		}
-		return hashes.contains(palMapping.crc32);
+		return false;
 	}
 
 
@@ -1222,7 +1222,7 @@ public class PinDmdEditor implements EventHandler{
         combo_1.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
         paletteTypeComboViewer.setContentProvider(ArrayContentProvider.getInstance());
         paletteTypeComboViewer.setInput(PaletteType.values());
-        paletteTypeComboViewer.setSelection(new StructuredSelection(PaletteType.NORMAL));
+        paletteTypeComboViewer.setSelection(new StructuredSelection(activePalette.type));
         paletteTypeComboViewer.addSelectionChangedListener(e->paletteTypeChanged(e));
 
         btnNewPalette = new Button(grpPalettes, SWT.NONE);
