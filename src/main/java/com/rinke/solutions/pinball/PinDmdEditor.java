@@ -532,6 +532,9 @@ public class PinDmdEditor implements EventHandler{
 	}
 
 	private void exportProject() {
+		
+		licManager.requireOneOf( Capability.VPIN, Capability.REALPIN );
+		
         String filename = fileChooserHelper(SWT.SAVE, project.name, 
         		new String[] { "*.dat" },
         		new String[] { "Export dat" });	

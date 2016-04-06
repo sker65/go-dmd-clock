@@ -7,9 +7,13 @@ import org.eclipse.core.runtime.MultiStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
+
+import com.rinke.solutions.pinball.api.LicenseException;
 
 public class GlobalExceptionHandler {
 
@@ -48,29 +52,39 @@ public class GlobalExceptionHandler {
             
             @Override
             public void run() {
-                MultiStatus status = createMultiStatus(e.getLocalizedMessage(), e);
-                ErrorDialog errorDialog = new ErrorDialog(Display.getCurrent().getActiveShell(),
-                        "Error", "Ein unerwarteter Fehler ist aufgetreten", status,
-                        IStatus.OK | IStatus.INFO | IStatus.WARNING | IStatus.ERROR) {
-                    protected void createButtonsForButtonBar(Composite parent) {
-                        createButton(parent, IDialogConstants.ABORT_ID, IDialogConstants.ABORT_LABEL, true);
-                        createButton(parent, IDialogConstants.PROCEED_ID, IDialogConstants.PROCEED_LABEL, false);
-                        createDetailsButton(parent);
-                    }
-
-                    @Override
-                    protected void buttonPressed(int id) {
-                        super.buttonPressed(id);
-                        if( id == IDialogConstants.ABORT_ID || id == IDialogConstants.PROCEED_ID) {
-                            setReturnCode(id);
-                            close();
+            	if( e instanceof LicenseException ) {
+            		MessageBox messageBox = new MessageBox(shell,
+            		        SWT.ICON_WARNING | SWT.OK  );
+            		
+            		messageBox.setText("License problem");
+            		messageBox.setMessage("This action requires a license. Error message was: "+ e.getMessage() + 
+            				"\nIf you hav a license file please register your key file via menu Help/Register.");
+            		messageBox.open();
+            	} else {
+                    MultiStatus status = createMultiStatus(e.getLocalizedMessage(), e);
+                    ErrorDialog errorDialog = new ErrorDialog(Display.getCurrent().getActiveShell(),
+                            "Error", "Ein unerwarteter Fehler ist aufgetreten", status,
+                            IStatus.OK | IStatus.INFO | IStatus.WARNING | IStatus.ERROR) {
+                        protected void createButtonsForButtonBar(Composite parent) {
+                            createButton(parent, IDialogConstants.ABORT_ID, IDialogConstants.ABORT_LABEL, true);
+                            createButton(parent, IDialogConstants.PROCEED_ID, IDialogConstants.PROCEED_LABEL, false);
+                            createDetailsButton(parent);
                         }
-                    }
-                    
-                };
-                int ret = errorDialog.open();
-                if( ret == IDialogConstants.ABORT_ID ) System.exit(1);
-                System.out.println(ret); // cancel = 1
+
+                        @Override
+                        protected void buttonPressed(int id) {
+                            super.buttonPressed(id);
+                            if( id == IDialogConstants.ABORT_ID || id == IDialogConstants.PROCEED_ID) {
+                                setReturnCode(id);
+                                close();
+                            }
+                        }
+                        
+                    };
+                    int ret = errorDialog.open();
+                    if( ret == IDialogConstants.ABORT_ID ) System.exit(1);
+                }
+                //System.out.println(ret); // cancel = 1
                 lastException=null;
             }
         });
