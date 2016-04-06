@@ -78,6 +78,7 @@ import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.AnimationCompiler;
 import com.rinke.solutions.pinball.animation.AnimationFactory;
 import com.rinke.solutions.pinball.animation.AnimationType;
+import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.animation.EventHandler;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.io.FileHelper;
@@ -289,7 +290,7 @@ public class PinDmdEditor implements EventHandler{
     
     public void createBindings() {
 		// do some bindings
-        ObserverManager.bind(animationHandler, e->drawToolBar.setEnabled(e), ()->animationHandler.isStopped());
+        ObserverManager.bind(animationHandler, e->drawToolBar.setEnabled(e), ()->animationIsEditable());
         ObserverManager.bind(animationHandler, e->dmdWidget.setDrawingEnabled(e), ()->animationHandler.isStopped());
 
         ObserverManager.bind(animationHandler, e->btnStop.setEnabled(e), ()->!animationHandler.isStopped());
@@ -316,7 +317,12 @@ public class PinDmdEditor implements EventHandler{
         //ObserverManager.bind(animations, e->btnAddFrameSeq.setEnabled(e), ()->!frameSeqList.isEmpty());
     }
     
-    protected void buildFrameSeqList() {
+    private boolean animationIsEditable() {
+		return selectedAnimation.isPresent() && selectedAnimation.get() instanceof CompiledAnimation && animationHandler.isStopped();
+	}
+
+
+	protected void buildFrameSeqList() {
     	frameSeqList.clear();
     	frameSeqList.addAll( animations.values().stream().filter(a->!a.isLoadedFromFile()).collect(Collectors.toList()));
     	frameSeqViewer.refresh();
@@ -1086,7 +1092,7 @@ public class PinDmdEditor implements EventHandler{
         gd_lblFrameNo.widthHint = 66;
         gd_lblFrameNo.minimumWidth = 60;
         lblFrameNo.setLayoutData(gd_lblFrameNo);
-        lblFrameNo.setText("xxxxx");
+        lblFrameNo.setText("---");
         
         Label lblTimecode = new Label(grpDetails, SWT.NONE);
         lblTimecode.setText("Timecode:");
@@ -1096,19 +1102,19 @@ public class PinDmdEditor implements EventHandler{
         gd_lblTcval.widthHint = 62;
         gd_lblTcval.minimumWidth = 80;
         lblTcval.setLayoutData(gd_lblTcval);
-        lblTcval.setText("xxxxx");
+        lblTcval.setText("---");
         
         Label lblDelay = new Label(grpDetails, SWT.NONE);
         lblDelay.setText("Delay:");
         
         lblDelayVal = new Label(grpDetails, SWT.NONE);
-        lblDelayVal.setText("xxxxx");
+        lblDelayVal.setText("---");
         
         Label lblPlanes = new Label(grpDetails, SWT.NONE);
         lblPlanes.setText("Planes:");
         
         lblPlanesVal = new Label(grpDetails, SWT.NONE);
-        lblPlanesVal.setText("xxxxxx");
+        lblPlanesVal.setText("---");
 
         Composite composite = new Composite(shell, SWT.NONE);
         composite.setLayout(new GridLayout(13, false));
