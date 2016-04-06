@@ -538,7 +538,11 @@ public class PinDmdEditor implements EventHandler{
         String filename = fileChooserHelper(SWT.SAVE, project.name, 
         		new String[] { "*.dat" },
         		new String[] { "Export dat" });	
-        if( filename != null ) exportProject(filename, f->new FileOutputStream(f));
+        if( filename != null ) {
+        	exportProject(filename, f->new FileOutputStream(f));
+        	warn("Hint","Remember to rename your export file to palettes.dat if you want to use it"
+        			+ " in a real pinballs sdcard of pin2dmd.");
+        }
 	}
 
     private void saveProject() {
