@@ -73,7 +73,7 @@ public class GifExporter extends Dialog {
     public void exportAni(String filename) {
 		DMD dmd = new DMD(128, 32);
 		
-		DMDWidget dmdWidget = new DMDWidget(shell, 0, dmd);
+		DMDWidget dmdWidget = new DMDWidget(shell, 0, dmd,false);
 		dmdWidget.setPalette(palette);
 		int pitch = comboSize.getSelectionIndex() + 2;
 		int width = dmd.getWidth() * pitch +20;

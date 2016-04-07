@@ -33,7 +33,7 @@ public class AnimationGifExporter {
 	public void export(String filename, Animation ani, Palette palette, Shell parent) {
 		DMD dmd = new DMD(128, 32);
 		
-		DMDWidget dmdWidget = new DMDWidget(parent, 0, dmd);
+		DMDWidget dmdWidget = new DMDWidget(parent, 0, dmd, false);
 		dmdWidget.setPalette(palette);
 		int width = dmd.getWidth() * 3 +20;
 		int height = dmd.getHeight() * 3 +20;;

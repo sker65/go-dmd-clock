@@ -43,9 +43,11 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 	int hScroll;
 	private int width;
 	private int height;
+	private boolean scrollable = false;
 
-	public DMDWidget(Composite parent, int style, DMD dmd) {
-		super(parent, style + SWT.V_SCROLL + SWT.H_SCROLL);
+	public DMDWidget(Composite parent, int style, DMD dmd, boolean scrollable) {
+		super(parent, style + ( scrollable ? SWT.V_SCROLL + SWT.H_SCROLL : 0));
+		this.scrollable = scrollable;
 		//palette = Palette.getDefaultPalette();
 		resolutionX = dmd.getWidth();
 		resolutionY = dmd.getHeight();
@@ -54,10 +56,12 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 		this.addListener( SWT.MouseDown, e -> handleMouse(e));
 		this.addListener( SWT.MouseUp, e -> handleMouse(e));
 		this.addListener( SWT.MouseMove, e -> handleMouse(e));
-		hBar = this.getHorizontalBar();
-		vBar = this.getVerticalBar();
-		hBar.addListener(SWT.Selection, e->resized(e));
-		vBar.addListener(SWT.Selection, e->resized(e));
+		if( scrollable ) {
+			hBar = this.getHorizontalBar();
+			vBar = this.getVerticalBar();
+			hBar.addListener(SWT.Selection, e->resized(e));
+			vBar.addListener(SWT.Selection, e->resized(e));
+		}
 		
 		if( drawTool != null ) drawTool.setDMD(dmd);
 	}
@@ -82,7 +86,6 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 		}
 	}
 
-
 	@Override
 	public void setBounds(int x, int y, int width, int height) {
 		super.setBounds(x, y, width, height);
@@ -99,8 +102,8 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 	}
 
 	private void setBars() {
+		if( !scrollable  ) return;
 		int xoff = resolutionX*pitch + 2*margin - width;
-		//System.out.println(xoff);
 		int yoff = resolutionY*pitch + 2*margin - height;
 		hBar.setMaximum(xoff<=0?1:xoff / pitch + 2);
 		vBar.setMaximum(yoff<=0?1:yoff/pitch+2);

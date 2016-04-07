@@ -941,7 +941,7 @@ public class PinDmdEditor implements EventHandler{
 		viewerColumn.getColumn().setWidth(200);
 		viewerColumn.setLabelProvider(new ColumnLabelProviderAdapter(o->((PalMapping)o).name));
 		
-        dmdWidget = new DMDWidget(shell, SWT.DOUBLE_BUFFERED, this.dmd);
+        dmdWidget = new DMDWidget(shell, SWT.DOUBLE_BUFFERED, this.dmd, true);
         //dmdWidget.setBounds(0, 0, 700, 240);
         GridData gd_dmdWidget = new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1);
         gd_dmdWidget.heightHint = 210;
@@ -1000,7 +1000,7 @@ public class PinDmdEditor implements EventHandler{
 
         createHashButtons(composite_hash, 10, 20);
         
-        previewDmd = new DMDWidget(grpKeyframe, SWT.DOUBLE_BUFFERED, dmd);
+        previewDmd = new DMDWidget(grpKeyframe, SWT.DOUBLE_BUFFERED, dmd, false);
         GridData gd_dmdPreWidget = new GridData(SWT.LEFT, SWT.TOP, false, false, 2, 2);
         gd_dmdPreWidget.heightHint = 40;
         //gd_dmdPreWidget.heightHint = 40;
