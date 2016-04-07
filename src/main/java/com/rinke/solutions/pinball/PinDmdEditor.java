@@ -318,7 +318,15 @@ public class PinDmdEditor implements EventHandler{
     }
     
     private boolean animationIsEditable() {
-		return selectedAnimation.isPresent() && selectedAnimation.get() instanceof CompiledAnimation && animationHandler.isStopped();
+		return animationHandler.isStopped() && isEditable(animationHandler.getAnimations());
+	}
+
+
+	private boolean isEditable(java.util.List<Animation> a) {
+		if( a != null ) {
+			return a.size() == 1 && a.get(0) instanceof CompiledAnimation;
+		}
+		return false;
 	}
 
 

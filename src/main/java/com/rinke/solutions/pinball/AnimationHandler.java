@@ -178,6 +178,10 @@ public class AnimationHandler extends Observable implements Runnable{
 	        run();
 		}
 	}
+	
+	public java.util.List<Animation> getAnimations() {
+		return anis;
+	}
 
 	public void setAnimations(java.util.List<Animation> anis2) {
 		this.anis = anis2;
@@ -187,6 +191,8 @@ public class AnimationHandler extends Observable implements Runnable{
 		    anis.get(index).restart();
 		    run();
 		}
+		setChanged();
+		notifyObservers();
 	}
 
 	public boolean isShowClock() {

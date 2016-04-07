@@ -18,7 +18,7 @@ public class ObserverManager {
 
 	}
 
-	public static void bind(Observable observable, BooleanConsumer booleanConsumer, 
+	public static Observer bind(Observable observable, BooleanConsumer booleanConsumer, 
 			BooleanSupplier booleanSupplier) {
 		
 		Observer observer = new Observer() {
@@ -43,6 +43,7 @@ public class ObserverManager {
         }
 		
 		observable.notifyObservers();
+		return observer;
 	}
 
 }

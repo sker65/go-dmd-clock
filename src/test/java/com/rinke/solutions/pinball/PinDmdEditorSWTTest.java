@@ -34,6 +34,7 @@ import com.rinke.solutions.pinball.animation.AnimationType;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.animation.EventHandler;
 import com.rinke.solutions.pinball.animation.AniEvent.Type;
+import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.PaletteType;
@@ -224,6 +225,11 @@ public class PinDmdEditorSWTTest {
 	@Test
 	public void testAniStop() {
 		uut.animationHandler.stop();
+		List<Animation> anis = new ArrayList<>();
+		CompiledAnimation animation = new CompiledAnimation(AnimationType.COMPILED, "", 0, 0, 0, 0, 0);
+		animation.frames.add( new Frame());
+		anis.add(animation);
+		uut.animationHandler.setAnimations(anis);
 		assertThat(uut.drawToolBar.getEnabled(), equalTo(true));
 	}
 
