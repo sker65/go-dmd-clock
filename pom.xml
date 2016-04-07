@@ -12,6 +12,8 @@
 	</repositories>
 	<properties>
     	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven.build.timestamp.format>dd.MM.yyyy HH:mm:ss</maven.build.timestamp.format>
+		<buildNumber>${maven.build.timestamp}</buildNumber>
   	</properties>
 	<profiles>
 		<profile>
@@ -95,6 +97,11 @@
 								<manifest>
 									<mainClass>com.rinke.solutions.pinball.PinDmdEditor</mainClass>
 								</manifest>
+								<manifestEntries>
+		             				<buildNumber>${maven.build.timestamp}</buildNumber>
+		             				<version>${project.version}</version>
+		            			</manifestEntries>
+								
 							</archive>
 							<descriptorRefs>
 								<descriptorRef>jar-with-dependencies</descriptorRef>
@@ -141,6 +148,10 @@
 								<manifest>
 									<mainClass>com.rinke.solutions.pinball.PinDmdEditor</mainClass>
 								</manifest>
+								<manifestEntries>
+		             				<buildNumber>${maven.build.timestamp}</buildNumber>
+		             				<version>${project.version}</version>
+		            			</manifestEntries>
 							</archive>
 							<descriptorRefs>
 								<descriptorRef>jar-with-dependencies</descriptorRef>
@@ -170,6 +181,10 @@
 								<manifest>
 									<mainClass>com.rinke.solutions.pinball.PinDmdEditor</mainClass>
 								</manifest>
+								<manifestEntries>
+		             				<buildNumber>${maven.build.timestamp}</buildNumber>
+		             				<version>${project.version}</version>
+		            			</manifestEntries>
 							</archive>
 							<descriptorRefs>
 								<descriptorRef>jar-with-dependencies</descriptorRef>
@@ -205,7 +220,7 @@
 								<fileVersion>${project.version}</fileVersion>
 								<txtFileVersion>${project.version}</txtFileVersion>
 								<fileDescription>Editor to use with pin2dmd (64 Bit version)</fileDescription>
-								<copyright>Rinke Solutions 2015</copyright>
+								<copyright>Rinke Solutions 2016</copyright>
 								<productVersion>${project.version}</productVersion>
 								<txtProductVersion>${project.version}</txtProductVersion>
 								<productName>Pin2Dmd Editor</productName>
@@ -236,6 +251,10 @@
 								<manifest>
 									<mainClass>com.rinke.solutions.pinball.PinDmdEditor</mainClass>
 								</manifest>
+								<manifestEntries>
+		             				<buildNumber>${maven.build.timestamp}</buildNumber>
+		             				<version>${project.version}</version>
+		            			</manifestEntries>
 							</archive>
 							<descriptorRefs>
 								<descriptorRef>jar-with-dependencies</descriptorRef>
@@ -271,7 +290,7 @@
 								<fileVersion>${project.version}</fileVersion>
 								<txtFileVersion>${project.version}</txtFileVersion>
 								<fileDescription>Editor to use with pin2dmd (32 Bit version)</fileDescription>
-								<copyright>Rinke Solutions 2015</copyright>
+								<copyright>Rinke Solutions 2016</copyright>
 								<productVersion>${project.version}</productVersion>
 								<txtProductVersion>${project.version}</txtProductVersion>
 								<productName>Pin2Dmd Editor</productName>
@@ -451,7 +470,12 @@
 							<addClasspath>true</addClasspath>
 							<mainClass>com.rinke.solutions.pinball.Editor</mainClass>
 							<classpathPrefix>dependency-jars/</classpathPrefix>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+              				<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
 						</manifest>
+						<manifestEntries>
+             				<buildNumber>${maven.build.timestamp}</buildNumber>
+            			</manifestEntries>
 					</archive>
 				</configuration>
 			</plugin>

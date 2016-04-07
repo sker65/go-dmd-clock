@@ -2,7 +2,10 @@ package com.rinke.solutions.pinball.ui;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.Properties;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
 
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.JFaceResources;
@@ -72,22 +75,30 @@ public class About extends Dialog {
 		lblBySteve.setText("by Steve\n(C) 2016\n\n\nhttp://github.com/\nsker65/go-dmd-clock");
 		
 		Label lblVersion = new Label(shlAboutPindmdEditor, SWT.NONE);
-		lblVersion.setBounds(211, 126, 89, 14);
+		lblVersion.setBounds(160, 126, 195, 35);
 		lblVersion.setText(getVersion());
 
 	}
 	
 	public synchronized String getVersion() {
-	    String version = null;
-
+		
+		String className = this.getClass().getSimpleName() + ".class";
+		String classPath = this.getClass().getResource(className).toString();
+		if (!classPath.startsWith("jar")) {
+		  // Class not from JAR
+		  return "";
+		}
+		String version = "";
+		
+		String manifestPath = classPath.substring(0, classPath.lastIndexOf("!") + 1) + 
+		    "/META-INF/MANIFEST.MF";
+		
 	    // try to load from maven properties first
 	    try {
-	        Properties p = new Properties();
-	        InputStream is = getClass().getResourceAsStream("/META-INF/maven/com.rinke.solutions.pinball/go-dmd-clock/pom.properties");
-	        if (is != null) {
-	            p.load(is);
-	            version = p.getProperty("version", "");
-	        }
+			Manifest manifest = new Manifest(new URL(manifestPath).openStream());
+			Attributes attr = manifest.getMainAttributes();
+	            version = "Version: " + attr.getValue("version");
+	            version += "\nBuild: " + attr.getValue("buildNumber");
 	    } catch (Exception e) {
 	        // ignore
 	    }
