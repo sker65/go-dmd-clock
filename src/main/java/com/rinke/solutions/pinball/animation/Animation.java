@@ -87,6 +87,7 @@ public class Animation {
 				AnimationType.COMPILED, this.getName(),
 				0, end-start, this.skip, 1, 0);
 		dest.setLoadedFromFile(false);
+		dest.setClockFrom(Short.MAX_VALUE);
 		// rerender and thereby copy all frames
 		this.actFrame = start;
         int tcOffset = 0;
@@ -286,7 +287,7 @@ public class Animation {
 	}
 
 	public boolean addClock() {
-		return actFrame>clockFrom | (transitionFrom>0 && actFrame>=transitionFrom);
+		return actFrame>clockFrom || (transitionFrom>0 && actFrame>=transitionFrom);
 	}
 
 	protected void init() {
