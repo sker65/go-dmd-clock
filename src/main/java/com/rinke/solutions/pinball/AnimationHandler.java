@@ -93,7 +93,7 @@ public class AnimationHandler extends Observable implements Runnable{
                 scale.setSelection(ani.actFrame);
                 eventHandler.notifyAni(
                         new AniEvent(Type.ANI, ani.actFrame, ani, res.getHashes(mask), 
-                                res.timecode, res.delay, res.planes.size() ));
+                                res.timecode, res.delay, res.planes.size(), res ));
                 
                 lastRenderedFrame = ani.actFrame;
                 

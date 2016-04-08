@@ -11,7 +11,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -28,25 +27,22 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.resource.LocalResourceManager;
 import org.eclipse.jface.resource.ResourceManager;
 import org.eclipse.jface.viewers.ArrayContentProvider;
-import org.eclipse.jface.viewers.CellEditor;
-import org.eclipse.jface.viewers.ColumnLabelProvider;
-import org.eclipse.jface.viewers.ColumnViewerEditor;
+
 import org.eclipse.jface.viewers.ComboViewer;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.ListViewer;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
-import org.eclipse.jface.viewers.TableViewerEditor;
-import org.eclipse.osgi.framework.internal.core.Msg;
+
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.RGB;
+
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.program.Program;
@@ -73,6 +69,9 @@ import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.usb4java.Context;
+import org.usb4java.DeviceHandle;
+import org.usb4java.LibUsbException;
 
 import com.rinke.solutions.pinball.animation.AniEvent;
 import com.rinke.solutions.pinball.animation.Animation;
@@ -238,6 +237,12 @@ public class PinDmdEditor implements EventHandler{
 	private boolean useMask;
 
 	private Observer editAniObserver;
+
+	private Button btnLivePreview;
+
+	private boolean livePreviewActive;
+
+	private Pair<Context, DeviceHandle> usb;
 
 	public PinDmdEditor() {
 		super();
@@ -1087,7 +1092,7 @@ public class PinDmdEditor implements EventHandler{
         btnAddFrameSeq.addListener(SWT.Selection, e->addFrameSeq());
 
         Group grpDetails = new Group(shell, SWT.NONE);
-        grpDetails.setLayout(new GridLayout(8, false));
+        grpDetails.setLayout(new GridLayout(10, false));
         GridData gd_grpDetails = new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1);
         gd_grpDetails.heightHint = 21;
         gd_grpDetails.widthHint = 231;
@@ -1125,7 +1130,12 @@ public class PinDmdEditor implements EventHandler{
         
         lblPlanesVal = new Label(grpDetails, SWT.NONE);
         lblPlanesVal.setText("---");
-
+        new Label(grpDetails, SWT.NONE);
+        
+        btnLivePreview = new Button(grpDetails, SWT.CHECK);
+        btnLivePreview.setText("Live Preview");
+        btnLivePreview.addListener(SWT.Selection, e->switchLivePreview(e));
+        
         Composite composite = new Composite(shell, SWT.NONE);
         composite.setLayout(new GridLayout(13, false));
         composite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
@@ -1356,10 +1366,7 @@ public class PinDmdEditor implements EventHandler{
         Button btnUploadMappings = new Button(grpPalettes, SWT.NONE);
         btnUploadMappings.setText("Upload KeyFrames");
         btnUploadMappings.addListener(SWT.Selection, e->usbTool.upload(project.palMappings));
-        
-        btnMask = new Button(grpPalettes, SWT.CHECK);
-        btnMask.setText("Mask");
-        btnMask.addListener(SWT.Selection, e->switchMask(btnMask.getSelection()));
+        new Label(grpPalettes, SWT.NONE);
 
         new Label(grpPalettes, SWT.NONE);
         new Label(grpPalettes, SWT.NONE);
@@ -1370,10 +1377,37 @@ public class PinDmdEditor implements EventHandler{
         btnUploadProject.addListener(SWT.Selection, e->uploadProject());
         
         new Label(grpPalettes, SWT.NONE);
-        new Label(grpPalettes, SWT.NONE);
+        
+        btnMask = new Button(grpPalettes, SWT.CHECK);
+        btnMask.setText("Mask");
+        btnMask.addListener(SWT.Selection, e->switchMask(btnMask.getSelection()));
 
     }
 
+	private void switchLivePreview(Event e) {
+		boolean selection = btnLivePreview.getSelection();
+		if (selection) {
+			try {
+				usbTool.switchToMode(DeviceMode.PinMame_RGB.ordinal());
+				usb = usbTool.initUsb();
+				livePreviewActive = selection;
+			} catch (RuntimeException ex) {
+				warn("usb problem", "Message was: " + ex.getMessage());
+				btnLivePreview.setSelection(false);
+			}
+		} else {
+			if (usb != null) {
+				try {
+					usbTool.releaseUsb(usb);
+					livePreviewActive = selection;
+				} catch (RuntimeException ex) {
+					warn("usb problem", "Message was: " + ex.getMessage());
+				}
+				usb = null;
+			}
+		}
+
+	}
 
 	private void addFrameSeq()         {
     	if( !frameSeqViewer.getSelection().isEmpty()) {
@@ -1708,6 +1742,9 @@ public class PinDmdEditor implements EventHandler{
 
             saveHashes(evt.hashes);
             lastTimeCode = evt.timecode;
+            if( livePreviewActive && evt.frame != null ) {
+            	usbTool.sendFrame(evt.frame, usb);
+            }
             break;
         case CLOCK:
             lblFrameNo.setText("");
@@ -1717,6 +1754,9 @@ public class PinDmdEditor implements EventHandler{
             break;
         case CLEAR:
         	for(int j=0; j<4; j++) btnHash[j++].setText(""); // clear hashes
+        	if( livePreviewActive ) {
+        		usbTool.sendFrame(new Frame(), usb);
+        	}
         	break;
         }
         dmdRedraw();

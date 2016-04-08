@@ -18,8 +18,10 @@ import org.usb4java.DeviceList;
 import org.usb4java.LibUsb;
 import org.usb4java.LibUsbException;
 
+import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.Palette;
+import com.rinke.solutions.pinball.model.Plane;
 
 public class UsbTool {
 
@@ -48,6 +50,17 @@ public class UsbTool {
         }
     }
     
+    public void sendFrame( Frame frame, Pair<Context, DeviceHandle> usb ) {
+    	LOG.info("sending frame to device: {}", frame);
+    	byte[] buffer = buildFrameBuffer();
+    	int i = 0;
+    	for( Plane p : frame.planes) {
+    		System.arraycopy(Frame.transform(p.plane), 0, buffer, i*512, 512);
+    		if( i++ > 3 ) break;
+    	}
+    	send(buffer, usb);
+    }
+    
     public void switchToPal( int standardPalNumber ) {
     	byte[] res = buildBuffer(UsbCmd.SWITCH_PALETTE);
     	res[5] = (byte) standardPalNumber;
@@ -63,6 +76,7 @@ public class UsbTool {
     public Pair<Context,DeviceHandle> initUsb() {
         Context ctx = initCtx();
         Device device = findDevice(ctx, (short) 0x314, (short)0xE457);
+        if( device == null ) throw new LibUsbException("pin2dmd device not found",-1);
         DeviceHandle handle = new DeviceHandle();
         int result = LibUsb.open(device, handle);
         if (result != LibUsb.SUCCESS)
@@ -99,9 +113,7 @@ public class UsbTool {
         } catch (IOException e) {
         	throw new RuntimeException(e);
 		} finally {
-        	LibUsb.releaseInterface(usb.getRight(), 0);
-            LibUsb.close(usb.getRight());
-            LibUsb.exit(usb.getLeft());
+        	releaseUsb(usb);
         }
     	
     }
@@ -123,15 +135,19 @@ public class UsbTool {
 			throw new RuntimeException(e);
 		}
 	}
+	
+	public void releaseUsb(Pair<Context, DeviceHandle> usb) {
+    	LibUsb.releaseInterface(usb.getRight(), 0);
+        LibUsb.close(usb.getRight());
+        LibUsb.exit(usb.getLeft());	
+	}
         
     public void bulk(byte[] data) {
         Pair<Context, DeviceHandle> usb = initUsb();      
         try {
         	send(data, usb);
         } finally {
-        	LibUsb.releaseInterface(usb.getRight(), 0);
-            LibUsb.close(usb.getRight());
-            LibUsb.exit(usb.getLeft());
+        	releaseUsb(usb);
         }
     }
     
@@ -170,6 +186,16 @@ public class UsbTool {
         res[4] = usbCmd.cmd;
         return res;
     }
+
+    private byte[] buildFrameBuffer() {
+        byte[] res = new byte[2052];
+        res[0] = (byte)0x81;
+        res[1] = (byte)0xc3;
+        res[2] = (byte)0xe7;
+        res[3] = (byte)0x00;
+        return res;
+    }
+
     
     private byte[] fromMapping(PalMapping palMapping) {
     	byte[] res = buildBuffer(UsbCmd.UPLOAD_MAPPING);
