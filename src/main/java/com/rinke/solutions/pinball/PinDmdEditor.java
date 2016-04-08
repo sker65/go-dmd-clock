@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Observer;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -237,6 +238,8 @@ public class PinDmdEditor implements EventHandler{
 
 	private boolean useMask;
 
+	private Observer editAniObserver;
+
 	public PinDmdEditor() {
 		super();
 	    activePalette = project.palettes.get(0);
@@ -290,7 +293,7 @@ public class PinDmdEditor implements EventHandler{
     
     public void createBindings() {
 		// do some bindings
-        ObserverManager.bind(animationHandler, e->drawToolBar.setEnabled(e), ()->animationIsEditable());
+        editAniObserver = ObserverManager.bind(animationHandler, e->drawToolBar.setEnabled(e), ()->animationIsEditable());
         ObserverManager.bind(animationHandler, e->dmdWidget.setDrawingEnabled(e), ()->animationHandler.isStopped());
 
         ObserverManager.bind(animationHandler, e->btnStop.setEnabled(e), ()->!animationHandler.isStopped());
@@ -318,7 +321,7 @@ public class PinDmdEditor implements EventHandler{
     }
     
     private boolean animationIsEditable() {
-		return animationHandler.isStopped() && isEditable(animationHandler.getAnimations());
+		return this.useMask || ( animationHandler.isStopped() && isEditable(animationHandler.getAnimations()));
 	}
 
 
@@ -1411,7 +1414,7 @@ public class PinDmdEditor implements EventHandler{
 	}
 
 	private void switchMask(boolean useMask) {
-		this.useMask = useMask;
+		this.useMask = useMask;		
 		if( useMask ) {
 			DMD maskDMD = new DMD(128, 32);
 			maskDMD.frame = new Frame();
@@ -1426,6 +1429,7 @@ public class PinDmdEditor implements EventHandler{
 			dmdWidget.setMask(null);
 			animationHandler.setMask(emptyMask);
 		}
+		editAniObserver.update(animationHandler, null);
 	}
 
 
