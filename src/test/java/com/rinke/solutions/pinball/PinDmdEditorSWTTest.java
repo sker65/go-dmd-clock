@@ -119,7 +119,7 @@ public class PinDmdEditorSWTTest {
 	@Test
 	public void testNotifyAniAni() throws Exception {
 		Animation actAnimation = new CompiledAnimation(AnimationType.COMPILED,"foo",0,0,0,0,0);
-		AniEvent evt = new AniEvent(Type.ANI, 0, actAnimation, uut.hashes, 0,0,0);
+		AniEvent evt = new AniEvent(Type.ANI, 0, actAnimation, uut.hashes, 0,0,0, null);
 		uut.notifyAni(evt );
 	}
 
