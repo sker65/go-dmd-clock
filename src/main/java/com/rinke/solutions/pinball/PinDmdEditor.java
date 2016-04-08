@@ -1311,6 +1311,12 @@ public class PinDmdEditor implements EventHandler{
         	paletteTool.setNumberOfPlanes(planeNumber.numberOfPlanes);
         });
 
+        //Composite grpPal = new Composite(grpPalettes, SWT.NONE);
+//        GridData gd_grpPal = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+//        gd_grpPal.widthHint = 223;
+//        gd_grpPal.heightHint = 61;
+//        grpPal.setLayoutData(gd_grpPal);
+//        
         paletteTool = new PaletteTool(shell, grpPalettes, SWT.FLAT | SWT.RIGHT, activePalette);
         
         drawTools.put("pencil", new SetPixelTool(paletteTool.getSelectedColor()));       
@@ -1323,7 +1329,8 @@ public class PinDmdEditor implements EventHandler{
         
         paletteTool.addListener(dmdWidget);
         
-        new Label(grpPalettes, SWT.NONE);
+        Label label = new Label(grpPalettes, SWT.NONE);
+        label.setText("  Ctrl-Click to edit color");
         
         drawToolBar = new ToolBar(grpPalettes, SWT.FLAT | SWT.RIGHT);
         drawToolBar.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 3, 1));
@@ -1380,6 +1387,12 @@ public class PinDmdEditor implements EventHandler{
         
         btnMask = new Button(grpPalettes, SWT.CHECK);
         btnMask.setText("Mask");
+        new Label(grpPalettes, SWT.NONE);
+        new Label(grpPalettes, SWT.NONE);
+        new Label(grpPalettes, SWT.NONE);
+        new Label(grpPalettes, SWT.NONE);
+        new Label(grpPalettes, SWT.NONE);
+        new Label(grpPalettes, SWT.NONE);
         btnMask.addListener(SWT.Selection, e->switchMask(btnMask.getSelection()));
 
     }
