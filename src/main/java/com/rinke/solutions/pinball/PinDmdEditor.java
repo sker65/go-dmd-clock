@@ -200,7 +200,6 @@ public class PinDmdEditor implements EventHandler{
 	DMDWidget dmdWidget;
 	ResourceManager resManager;
 
-	Button btnChangeColor;
 	Button btnNewPalette;
 	Button btnRenamePalette;
 	ToolBar drawToolBar;
@@ -1314,10 +1313,8 @@ public class PinDmdEditor implements EventHandler{
         
         paletteTool.addListener(dmdWidget);
         
-        btnChangeColor = new Button(grpPalettes, SWT.NONE);
-        btnChangeColor.setText("Color");
-		btnChangeColor.addListener(SWT.Selection, e -> paletteTool.changeColor() );
-
+        new Label(grpPalettes, SWT.NONE);
+        
         drawToolBar = new ToolBar(grpPalettes, SWT.FLAT | SWT.RIGHT);
         drawToolBar.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 3, 1));
         
@@ -1608,13 +1605,7 @@ public class PinDmdEditor implements EventHandler{
 		
 		MenuItem mntmLoadAnimation = new MenuItem(menu_2, SWT.NONE);
 		mntmLoadAnimation.setText("Load Animation");
-		mntmLoadAnimation.addListener(SWT.Selection, e->loadAniWithFC(false));
-		
-		MenuItem mntmAddAnimation = new MenuItem(menu_2, SWT.NONE);
-		mntmAddAnimation.setText("Add Animation");
-		mntmAddAnimation.addListener(SWT.Selection, e->loadAniWithFC(true));
-		
-		new MenuItem(menu_2, SWT.SEPARATOR);
+		mntmLoadAnimation.addListener(SWT.Selection, e->loadAniWithFC(true));
 		
 		MenuItem mntmSaveAnimation = new MenuItem(menu_2, SWT.NONE);
 		mntmSaveAnimation.setText("Save Animation");
