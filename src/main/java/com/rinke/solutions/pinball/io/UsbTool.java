@@ -25,6 +25,12 @@ import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.Plane;
 
+/**
+ * usb tool models the usb protocol to pin2dmd controller for various
+ * transfers: config, license key, frames for live preview, palettes,
+ * uploading files.
+ * @author stefanri
+ */
 public class UsbTool {
 
 	public static enum UsbCmd {
