@@ -1510,8 +1510,9 @@ public class PinDmdEditor implements EventHandler{
 
 			selectedHashIndex = selectedPalMapping.hashIndex;
 			
-			btnMask.setSelection(selectedPalMapping.withMask);
-			btnMask.notifyListeners(SWT.Selection, new Event());
+			// cuurent firmware always checks with and w/o mask
+			//			btnMask.setSelection(selectedPalMapping.withMask);
+			//			btnMask.notifyListeners(SWT.Selection, new Event());
 
 			txtDuration.setText(selectedPalMapping.durationInMillis + "");
 			paletteComboViewer.setSelection(new StructuredSelection(
