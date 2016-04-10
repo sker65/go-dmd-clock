@@ -67,6 +67,7 @@
 								</manifest>
 								<manifestEntries>
 									<SplashScreen-Image>images/pin2dmd-splash.png</SplashScreen-Image>
+		             				<drone>${env.DRONE_BUILD_NUMBER}</drone>
 								</manifestEntries>
 							</archive>
 							<descriptorRefs>
