@@ -1,9 +1,6 @@
 package com.rinke.solutions.pinball;
 
 import java.awt.SplashScreen;
-
-import static com.rinke.solutions.pinball.api.LicenseManager.Capability;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
@@ -33,16 +30,15 @@ import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.resource.LocalResourceManager;
 import org.eclipse.jface.resource.ResourceManager;
 import org.eclipse.jface.viewers.ArrayContentProvider;
-
 import org.eclipse.jface.viewers.ComboViewer;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
-
 import org.eclipse.swt.SWT;
-
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.program.Program;
@@ -53,7 +49,6 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.List;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.MessageBox;
@@ -71,7 +66,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.usb4java.Context;
 import org.usb4java.DeviceHandle;
-import org.usb4java.LibUsbException;
 
 import com.rinke.solutions.pinball.animation.AniEvent;
 import com.rinke.solutions.pinball.animation.Animation;
@@ -80,10 +74,15 @@ import com.rinke.solutions.pinball.animation.AnimationFactory;
 import com.rinke.solutions.pinball.animation.AnimationType;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.animation.EventHandler;
-import com.rinke.solutions.pinball.model.Frame;
+import com.rinke.solutions.pinball.api.BinaryExporter;
+import com.rinke.solutions.pinball.api.BinaryExporterFactory;
+import com.rinke.solutions.pinball.api.LicenseManager;
+import com.rinke.solutions.pinball.api.LicenseManager.Capability;
+import com.rinke.solutions.pinball.api.LicenseManagerFactory;
 import com.rinke.solutions.pinball.io.FileHelper;
 import com.rinke.solutions.pinball.io.SmartDMDImporter;
 import com.rinke.solutions.pinball.io.UsbTool;
+import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.FrameSeq;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.PalMapping.SwitchMode;
@@ -95,15 +94,11 @@ import com.rinke.solutions.pinball.model.Project;
 import com.rinke.solutions.pinball.model.Scene;
 import com.rinke.solutions.pinball.ui.About;
 import com.rinke.solutions.pinball.ui.DeviceConfig;
-import com.rinke.solutions.pinball.ui.UsbConfig;
 import com.rinke.solutions.pinball.ui.FileChooser;
 import com.rinke.solutions.pinball.ui.FileDialogDelegate;
 import com.rinke.solutions.pinball.ui.GifExporter;
 import com.rinke.solutions.pinball.ui.RegisterLicense;
-import com.rinke.solutions.pinball.api.BinaryExporter;
-import com.rinke.solutions.pinball.api.BinaryExporterFactory;
-import com.rinke.solutions.pinball.api.LicenseManager;
-import com.rinke.solutions.pinball.api.LicenseManagerFactory;
+import com.rinke.solutions.pinball.ui.UsbConfig;
 import com.rinke.solutions.pinball.util.ObservableList;
 import com.rinke.solutions.pinball.util.ObservableMap;
 import com.rinke.solutions.pinball.widget.CircleTool;
@@ -115,11 +110,6 @@ import com.rinke.solutions.pinball.widget.LineTool;
 import com.rinke.solutions.pinball.widget.PaletteTool;
 import com.rinke.solutions.pinball.widget.RectTool;
 import com.rinke.solutions.pinball.widget.SetPixelTool;
-
-import org.eclipse.swt.events.KeyEvent;
-import org.eclipse.swt.events.KeyListener;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
 
 public class PinDmdEditor implements EventHandler{
 
