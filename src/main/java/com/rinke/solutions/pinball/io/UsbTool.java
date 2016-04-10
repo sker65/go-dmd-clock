@@ -84,6 +84,11 @@ public class UsbTool {
     		System.arraycopy(Frame.transform(p.plane), 0, buffer, 4+i*512, 512);
     		if( i++ > 3 ) break;
     	}
+    	if( i == 2 ) {
+    		System.arraycopy(Frame.transform(frame.planes.get(1).plane), 0, buffer, 4+i*512, 512);
+    		i++;
+    		System.arraycopy(Frame.transform(frame.planes.get(0).plane), 0, buffer, 4+i*512, 512);
+    	}
     	send(buffer, usb);
     }
     
