@@ -45,8 +45,8 @@ public class UsbTool {
         bulk(bytes);
     }
     
-    public void sendReset() {
-    	byte[] res = buildBuffer(UsbCmd.RESET);
+    public void sendCmd(UsbCmd cmd) {
+    	byte[] res = buildBuffer(cmd);
     	bulk(res);
     }
     
@@ -64,6 +64,7 @@ public class UsbTool {
 			stream.read(res, 5, 68);
 			usb = initUsb();
 			send(res, usb);
+			Thread.sleep(100);
 			receive(usb);
 			Thread.sleep(1000);
 			res = buildBuffer(UsbCmd.RESET);
@@ -76,11 +77,11 @@ public class UsbTool {
     }
     
     public void sendFrame( Frame frame, Pair<Context, DeviceHandle> usb ) {
-    	LOG.info("sending frame to device: {}", frame);
+    	//LOG.info("sending frame to device: {}", frame);
     	byte[] buffer = buildFrameBuffer();
     	int i = 0;
     	for( Plane p : frame.planes) {
-    		System.arraycopy(Frame.transform(p.plane), 0, buffer, i*512, 512);
+    		System.arraycopy(Frame.transform(p.plane), 0, buffer, 4+i*512, 512);
     		if( i++ > 3 ) break;
     	}
     	send(buffer, usb);
@@ -186,8 +187,9 @@ public class UsbTool {
 		// Use device handle here
 		int res = LibUsb.bulkTransfer(usb.getRight(), (byte) 0x81, buffer, transfered, 4000);
 		if (res != LibUsb.SUCCESS) throw new LibUsbException("Control transfer failed", res);
-		if( transfered.get() != data.length ) {
-		    LOG.error("unexpected length returned on bulk: {}", transfered.get());
+		int read = transfered.get();
+		if( read != data.length ) {
+		    LOG.error("unexpected length returned on bulk: {}", read);
 		}
     	return data;
     }

@@ -14,6 +14,7 @@ import org.eclipse.swt.layout.GridData;
 
 import com.rinke.solutions.pinball.DeviceMode;
 import com.rinke.solutions.pinball.io.UsbTool;
+import com.rinke.solutions.pinball.io.UsbTool.UsbCmd;
 import com.rinke.solutions.pinball.model.DefaultPalette;
 
 public class UsbConfig extends Dialog {
@@ -96,11 +97,15 @@ public class UsbConfig extends Dialog {
 		
 		Button btnResetDevice = new Button(shell, SWT.NONE);
 		btnResetDevice.setText("Reset Device");
-		btnResetDevice.addListener(SWT.Selection, e->usbTool.sendReset() );
+		btnResetDevice.addListener(SWT.Selection, e->usbTool.sendCmd(UsbCmd.RESET) );
 		
 		new Label(shell, SWT.NONE);
 		new Label(shell, SWT.NONE);
-		new Label(shell, SWT.NONE);
+		
+		Button btnRemoveLicenseFrom = new Button(shell, SWT.NONE);
+		btnRemoveLicenseFrom.setText("Remove License from device");
+		btnRemoveLicenseFrom.addListener(SWT.Selection, e->usbTool.sendCmd(UsbCmd.DELETE_LICENSE) );
+		
 		new Label(shell, SWT.NONE);
 		new Label(shell, SWT.NONE);
 		new Label(shell, SWT.NONE);

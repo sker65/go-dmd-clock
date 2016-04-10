@@ -1510,7 +1510,7 @@ public class PinDmdEditor implements EventHandler{
 
 			selectedHashIndex = selectedPalMapping.hashIndex;
 			
-			// cuurent firmware always checks with and w/o mask
+			// current firmware always checks with and w/o mask
 			//			btnMask.setSelection(selectedPalMapping.withMask);
 			//			btnMask.notifyListeners(SWT.Selection, new Event());
 
@@ -1677,11 +1677,11 @@ public class PinDmdEditor implements EventHandler{
         new MenuItem(menu_3, SWT.SEPARATOR);
 
         MenuItem mntmDevice = new MenuItem(menu_3, SWT.NONE);
-        mntmDevice.setText("Configure Device");        
+        mntmDevice.setText("Create Device File");        
         mntmDevice.addListener(SWT.Selection, e->new DeviceConfig(shell).open());
         
         MenuItem mntmUsbconfig = new MenuItem(menu_3, SWT.NONE);
-        mntmUsbconfig.setText("Usb Config");
+        mntmUsbconfig.setText("Configure Device via USB");
         mntmUsbconfig.addListener(SWT.Selection, e->new UsbConfig(shell).open());
 
         MenuItem mntmhelp = new MenuItem(menu, SWT.CASCADE);
