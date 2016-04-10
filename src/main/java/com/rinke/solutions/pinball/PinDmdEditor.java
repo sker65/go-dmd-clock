@@ -918,7 +918,10 @@ public class PinDmdEditor implements EventHandler{
 		viewerCol1.setEditingSupport(
 				new GenericTextCellEditor(aniListViewer,
 					e -> ((Animation)e).getDesc(),
-					(e,v) -> { ((Animation)e).setDesc(v); } ));
+					(e,v) -> { 
+						((Animation)e).setDesc(v);
+						frameSeqViewer.refresh();
+					} ));
 		
 		viewerCol1.getColumn().setWidth(220);
 		viewerCol1.setLabelProvider(new ColumnLabelProviderAdapter(o->((Animation)o).getDesc()));
@@ -941,7 +944,9 @@ public class PinDmdEditor implements EventHandler{
 		viewerColumn.setEditingSupport(
 				new GenericTextCellEditor(keyframeTableViewer,
 					e -> ((PalMapping)e).name,
-					(e,v) -> { ((PalMapping)e).name = v; } ));
+					(e,v) -> { 
+						((PalMapping)e).name = v;
+						} ));
 		
 		viewerColumn.getColumn().setWidth(200);
 		viewerColumn.setLabelProvider(new ColumnLabelProviderAdapter(o->((PalMapping)o).name));
