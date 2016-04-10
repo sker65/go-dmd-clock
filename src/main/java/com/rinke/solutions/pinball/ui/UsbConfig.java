@@ -2,6 +2,7 @@ package com.rinke.solutions.pinball.ui;
 
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ComboViewer;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
@@ -16,6 +17,9 @@ import com.rinke.solutions.pinball.DeviceMode;
 import com.rinke.solutions.pinball.io.UsbTool;
 import com.rinke.solutions.pinball.io.UsbTool.UsbCmd;
 import com.rinke.solutions.pinball.model.DefaultPalette;
+
+import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Scale;
 
 public class UsbConfig extends Dialog {
 
@@ -55,7 +59,7 @@ public class UsbConfig extends Dialog {
 	 */
 	private void createContents() {
 		shell = new Shell(getParent(), getStyle());
-		shell.setSize(450, 300);
+		shell.setSize(480, 277);
 		shell.setText("Usb Config");
 		shell.setLayout(new GridLayout(3, false));
 		
@@ -92,31 +96,42 @@ public class UsbConfig extends Dialog {
 		btnSetPalette.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
 		btnSetPalette.setText("Set Palette");
 		btnSetPalette.addListener(SWT.Selection, e->usbTool.switchToPal(comboDefaultPalette.getSelectionIndex()));
-
-		new Label(shell, SWT.NONE);
+		
+		Label lblNewLabel = new Label(shell, SWT.NONE);
+		lblNewLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.TOP, false, false, 1, 1));
+		lblNewLabel.setText("Timing:");
+		
+		Composite grpTiming = new Composite(shell, SWT.NONE);
+		grpTiming.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 3));
+		//grpTiming.setText("Timing");
+		grpTiming.setLayout(new GridLayout(1, false));
+		
+		Scale scale = new Scale(grpTiming, SWT.NONE);
+		GridData gd_scale = new GridData(SWT.CENTER, SWT.CENTER, false, false, 1, 1);
+		gd_scale.widthHint = 177;
+		scale.setLayoutData(gd_scale);
+		
+		Scale scale_1 = new Scale(grpTiming, SWT.NONE);
+		scale_1.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
+		
+		Scale scale_2 = new Scale(grpTiming, SWT.NONE);
+		scale_2.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
+		
+		Scale scale_3 = new Scale(grpTiming, SWT.NONE);
+		scale_3.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
+		
+		Scale scale_4 = new Scale(grpTiming, SWT.NONE);
+		scale_4.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
 		
 		Button btnResetDevice = new Button(shell, SWT.NONE);
+		btnResetDevice.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
 		btnResetDevice.setText("Reset Device");
 		btnResetDevice.addListener(SWT.Selection, e->usbTool.sendCmd(UsbCmd.RESET) );
-		
-		new Label(shell, SWT.NONE);
 		new Label(shell, SWT.NONE);
 		
 		Button btnRemoveLicenseFrom = new Button(shell, SWT.NONE);
 		btnRemoveLicenseFrom.setText("Remove License from device");
 		btnRemoveLicenseFrom.addListener(SWT.Selection, e->usbTool.sendCmd(UsbCmd.DELETE_LICENSE) );
-		
-		new Label(shell, SWT.NONE);
-		new Label(shell, SWT.NONE);
-		new Label(shell, SWT.NONE);
-		new Label(shell, SWT.NONE);
-		new Label(shell, SWT.NONE);
-		new Label(shell, SWT.NONE);
-		new Label(shell, SWT.NONE);
-		new Label(shell, SWT.NONE);
-		new Label(shell, SWT.NONE);
-		new Label(shell, SWT.NONE);
-		new Label(shell, SWT.NONE);
 		new Label(shell, SWT.NONE);
 		new Label(shell, SWT.NONE);
 		new Label(shell, SWT.NONE);
