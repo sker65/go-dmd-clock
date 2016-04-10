@@ -33,7 +33,8 @@ public class PaletteTool {
 
 	ResourceManager resManager;
 	private int selectedColor;
-	byte[] visible = { 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 };
+	byte[] visible = { 1, 1, 0, 0, 0, 0, 0, 1, 
+			           0, 0, 0, 0, 0, 0, 0, 1 };
 	private ToolBar paletteBar;
 
 	/** used to reused images in col buttons. */
