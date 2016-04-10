@@ -1512,11 +1512,11 @@ public class PinDmdEditor implements EventHandler{
 		IStructuredSelection selection = (IStructuredSelection) event
 				.getSelection();
 		if (selection.size() > 0) {
-//			if( ((PalMapping) selection.getFirstElement()).equals(selectedPalMapping) ) {
-//				keyframeListViewer.setSelection(StructuredSelection.EMPTY);
-//				selectedPalMapping = null;
-//				return;
-//			}
+			if( ((PalMapping) selection.getFirstElement()).equals(selectedPalMapping) ) {
+				keyframeTableViewer.setSelection(StructuredSelection.EMPTY);
+				selectedPalMapping = null;
+				return;
+			}
 			// set new mapping
 			selectedPalMapping = (PalMapping) selection.getFirstElement();
 
