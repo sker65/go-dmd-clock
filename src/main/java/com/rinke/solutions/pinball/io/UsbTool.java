@@ -46,9 +46,18 @@ public class UsbTool {
 	
 	private static Logger LOG = LoggerFactory.getLogger(UsbTool.class);
 
-    public void upload(Palette palette) { 
+	public void upload(Palette palette, Pair<Context, DeviceHandle> usb ) { 
         byte[] bytes = fromPalette(palette);
-        bulk(bytes);
+        if( usb == null ) {
+        	bulk(bytes);
+        } else {
+        	send(bytes, usb);
+        }
+		
+	}
+    
+	public void upload(Palette palette) { 
+		upload(palette, null);
     }
     
     public void sendCmd(UsbCmd cmd) {

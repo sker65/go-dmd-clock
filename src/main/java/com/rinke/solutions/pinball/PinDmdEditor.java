@@ -1323,6 +1323,20 @@ public class PinDmdEditor implements EventHandler{
         drawTools.values().forEach(d->paletteTool.addListener(d));
         
         paletteTool.addListener(dmdWidget);
+        paletteTool.addListener(new PaletteTool.ColorChangedListerner() {
+			
+			@Override
+			public void setActualColorIndex(int actualColorIndex) {
+				
+			}
+			
+			@Override
+			public void paletteChanged(Palette palette) {
+				if( livePreviewActive ) {
+					usbTool.upload(activePalette, usb);
+				}
+			}
+		});
         
         Label label = new Label(grpPalettes, SWT.NONE);
         label.setText("  Ctrl-Click to edit color");
