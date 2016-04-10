@@ -80,14 +80,25 @@ public class UsbTool {
     	//LOG.info("sending frame to device: {}", frame);
     	byte[] buffer = buildFrameBuffer();
     	int i = 0;
-    	for( Plane p : frame.planes) {
-    		System.arraycopy(Frame.transform(p.plane), 0, buffer, 4+i*512, 512);
-    		if( i++ > 3 ) break;
-    	}
-    	if( i == 2 ) {
-    		System.arraycopy(Frame.transform(frame.planes.get(1).plane), 0, buffer, 4+i*512, 512);
-    		i++;
-    		System.arraycopy(Frame.transform(frame.planes.get(0).plane), 0, buffer, 4+i*512, 512);
+    	if( frame.planes.size() == 2 ) {
+    		System.arraycopy(Frame.transform(frame.planes.get(1).plane), 0, buffer, 4+1*512, 512);
+    		System.arraycopy(Frame.transform(frame.planes.get(1).plane), 0, buffer, 4+2*512, 512);
+    		byte[] planeOr = new byte[512];
+    		byte[] planeAnd = new byte[512];
+    		byte[] plane0 = frame.planes.get(0).plane;
+    		byte[] plane1 = frame.planes.get(1).plane;
+    		
+    		for (int j = 0; j < plane0.length; j++) {
+				planeOr[j] =  (byte) (plane0[j] | plane1[j]);
+				planeAnd[j] =  (byte) (plane0[j] & plane1[j]);
+			}
+    		System.arraycopy(Frame.transform(planeOr), 0, buffer, 4+0*512, 512);
+    		System.arraycopy(Frame.transform(planeAnd), 0, buffer, 4+3*512, 512);
+    	} else {
+        	for( Plane p : frame.planes) {
+        		System.arraycopy(Frame.transform(p.plane), 0, buffer, 4+i*512, 512);
+        		if( i++ > 3 ) break;
+        	}
     	}
     	send(buffer, usb);
     }
