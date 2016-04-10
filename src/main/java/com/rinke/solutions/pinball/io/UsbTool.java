@@ -1,5 +1,7 @@
 package com.rinke.solutions.pinball.io;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -43,11 +45,34 @@ public class UsbTool {
         bulk(bytes);
     }
     
+    public void sendReset() {
+    	byte[] res = buildBuffer(UsbCmd.RESET);
+    	bulk(res);
+    }
+    
     public void upload(List<PalMapping> palMapppings) { 
         for (PalMapping palMapping : palMapppings) {
             byte[] bytes = fromMapping(palMapping);
             bulk(bytes);
         }
+    }
+    
+    public void installLicense(String keyFile) {
+    	byte[] res = buildBuffer(UsbCmd.RECEIVE_LICENSE);
+    	Pair<Context,DeviceHandle> usb = null;
+    	try (FileInputStream stream = new FileInputStream(keyFile)){
+			stream.read(res, 5, 68);
+			usb = initUsb();
+			send(res, usb);
+			receive(usb);
+			Thread.sleep(1000);
+			res = buildBuffer(UsbCmd.RESET);
+			send(res,usb);
+		} catch (IOException | InterruptedException e) {
+			throw new RuntimeException("problems installing license", e);
+		} finally {
+			releaseUsb(usb);
+		}
     }
     
     public void sendFrame( Frame frame, Pair<Context, DeviceHandle> usb ) {
@@ -137,9 +162,11 @@ public class UsbTool {
 	}
 	
 	public void releaseUsb(Pair<Context, DeviceHandle> usb) {
-    	LibUsb.releaseInterface(usb.getRight(), 0);
-        LibUsb.close(usb.getRight());
-        LibUsb.exit(usb.getLeft());	
+		if( usb != null ) {
+	    	LibUsb.releaseInterface(usb.getRight(), 0);
+	        LibUsb.close(usb.getRight());
+	        LibUsb.exit(usb.getLeft());	
+		}
 	}
         
     public void bulk(byte[] data) {

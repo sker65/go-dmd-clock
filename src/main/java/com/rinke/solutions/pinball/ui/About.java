@@ -75,7 +75,7 @@ public class About extends Dialog {
 		lblBySteve.setText("by Steve\n(C) 2016\n\n\nhttp://github.com/\nsker65/go-dmd-clock");
 		
 		Label lblVersion = new Label(shlAboutPindmdEditor, SWT.NONE);
-		lblVersion.setBounds(160, 126, 195, 35);
+		lblVersion.setBounds(160, 126, 195, 45);
 		lblVersion.setText(getVersion());
 
 	}
@@ -98,7 +98,8 @@ public class About extends Dialog {
 			Manifest manifest = new Manifest(new URL(manifestPath).openStream());
 			Attributes attr = manifest.getMainAttributes();
 	            version = "Version: " + attr.getValue("version");
-	            version += "\nBuild: " + attr.getValue("buildNumber");
+	            version += "\nat: " + attr.getValue("buildNumber");
+	            version += "\nBuild: " + attr.getValue("drone");
 	    } catch (Exception e) {
 	        // ignore
 	    }

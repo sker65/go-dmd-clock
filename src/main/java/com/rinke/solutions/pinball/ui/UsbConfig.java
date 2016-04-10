@@ -93,6 +93,31 @@ public class UsbConfig extends Dialog {
 		btnSetPalette.addListener(SWT.Selection, e->usbTool.switchToPal(comboDefaultPalette.getSelectionIndex()));
 
 		new Label(shell, SWT.NONE);
+		
+		Button btnResetDevice = new Button(shell, SWT.NONE);
+		btnResetDevice.setText("Reset Device");
+		btnResetDevice.addListener(SWT.Selection, e->usbTool.sendReset() );
+		
+		new Label(shell, SWT.NONE);
+		new Label(shell, SWT.NONE);
+		new Label(shell, SWT.NONE);
+		new Label(shell, SWT.NONE);
+		new Label(shell, SWT.NONE);
+		new Label(shell, SWT.NONE);
+		new Label(shell, SWT.NONE);
+		new Label(shell, SWT.NONE);
+		new Label(shell, SWT.NONE);
+		new Label(shell, SWT.NONE);
+		new Label(shell, SWT.NONE);
+		new Label(shell, SWT.NONE);
+		new Label(shell, SWT.NONE);
+		new Label(shell, SWT.NONE);
+		new Label(shell, SWT.NONE);
+		new Label(shell, SWT.NONE);
+		new Label(shell, SWT.NONE);
+		new Label(shell, SWT.NONE);
+		new Label(shell, SWT.NONE);
+		new Label(shell, SWT.NONE);
 		new Label(shell, SWT.NONE);
 		
 		Button btnOk = new Button(shell, SWT.NONE);

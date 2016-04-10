@@ -1,5 +1,6 @@
 package com.rinke.solutions.pinball.ui;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Dialog;
@@ -11,14 +12,19 @@ import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.rinke.solutions.pinball.api.LicenseManager;
 import com.rinke.solutions.pinball.api.LicenseManager.Capability;
 import com.rinke.solutions.pinball.api.LicenseManager.VerifyResult;
 import com.rinke.solutions.pinball.api.LicenseManagerFactory;
+import com.rinke.solutions.pinball.io.UsbTool;
 
 
 public class RegisterLicense extends Dialog {
+	
+	private static Logger LOG = LoggerFactory.getLogger(RegisterLicense.class);
 
 	private Shell shell;
 	private Text licFileText;
@@ -107,7 +113,25 @@ public class RegisterLicense extends Dialog {
 		fd_list.left = new FormAttachment(0, 10);
 		fd_list.right = new FormAttachment(0, 225);
 		capList.setLayoutData(fd_list);
+		
+		Button btnUpload = new Button(shell, SWT.NONE);
+		FormData fd_btnUpload = new FormData();
+		fd_btnUpload.top = new FormAttachment(btnChoose, 6);
+		fd_btnUpload.left = new FormAttachment(btnCancel, 0, SWT.LEFT);
+		btnUpload.setLayoutData(fd_btnUpload);
+		btnUpload.setText("Upload");
+		btnUpload.addListener(SWT.Selection, e->uploadLicense());
 
+	}
+
+	private Object uploadLicense() {
+		String licFile = licFileText.getText();
+		LOG.info("uploading license file: {}", licFile);
+		if( !StringUtils.isEmpty(licFile)) {
+			UsbTool usb = new UsbTool();
+			usb.installLicense(licFile);
+		}
+		return null;
 	}
 
 	protected FileChooser createFileChooser(Shell shell, int flags) {
@@ -126,6 +150,7 @@ public class RegisterLicense extends Dialog {
 		if (filename != null) {
 			licFileText.setText(filename);
 			try {
+				LOG.info("loading license file: {}", filename);
 				verifyAndPopulateCaps(licManager.verify(filename));
 			} catch (Exception e) {
 				throw new RuntimeException(e);
