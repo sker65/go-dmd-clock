@@ -306,9 +306,9 @@ public class ColorPicker {
 	 * @return the result
 	 */
 	public RGB open() {
+		closed = false;
 		if( !created ) {
 			created = true;
-			closed = false;
 			createContents();
 			shell.open();
 			shell.layout();
@@ -320,6 +320,7 @@ public class ColorPicker {
 				display.sleep();
 			}
 		}
+		closed = false;
 		return currentRGB;
 	}
 	
