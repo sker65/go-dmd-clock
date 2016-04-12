@@ -235,6 +235,11 @@ public class PinDmdEditor implements EventHandler{
 
 	private Pair<Context, DeviceHandle> usb;
 
+	private Button btnUploadFrame;
+	private Button btnUploadPalette;
+	private Button btnUploadMappings;
+	private Button btnUploadProject;
+
 	public PinDmdEditor() {
 		super();
 	    activePalette = project.palettes.get(0);
@@ -516,6 +521,8 @@ public class PinDmdEditor implements EventHandler{
             }
             
             paletteComboViewer.setInput(project.palettes);
+            paletteComboViewer.setSelection(new StructuredSelection(
+					project.palettes.get(0)));
             keyframeTableViewer.setInput(project.palMappings);
             for( Animation ani : animations.values()) {
             	selectedAnimation = Optional.of(animations.isEmpty() ? defaultAnimation : ani);
@@ -1364,14 +1371,14 @@ public class PinDmdEditor implements EventHandler{
 //        tltmEraser.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/eraser.png")));
 //        tltmEraser.addListener(SWT.Selection, e->dmdWidget.setDrawTool(null));
         
-        Button btnUploadFrame = new Button(grpPalettes, SWT.NONE);
+        btnUploadFrame = new Button(grpPalettes, SWT.NONE);
         btnUploadFrame.setText("Upload Frame");
         
-        Button btnUploadPalette = new Button(grpPalettes, SWT.NONE);
+        btnUploadPalette = new Button(grpPalettes, SWT.NONE);
         btnUploadPalette.setText("Upload Palette");
         btnUploadPalette.addListener(SWT.Selection, e->usbTool.upload(activePalette));
         
-        Button btnUploadMappings = new Button(grpPalettes, SWT.NONE);
+        btnUploadMappings = new Button(grpPalettes, SWT.NONE);
         btnUploadMappings.setText("Upload KeyFrames");
         btnUploadMappings.addListener(SWT.Selection, e->usbTool.upload(project.palMappings));
         new Label(grpPalettes, SWT.NONE);
@@ -1380,7 +1387,7 @@ public class PinDmdEditor implements EventHandler{
         new Label(grpPalettes, SWT.NONE);
         new Label(grpPalettes, SWT.NONE);
         
-        Button btnUploadProject = new Button(grpPalettes, SWT.NONE);
+        btnUploadProject = new Button(grpPalettes, SWT.NONE);
         btnUploadProject.setText("Upload Project");
         btnUploadProject.addListener(SWT.Selection, e->uploadProject());
         
@@ -1405,6 +1412,7 @@ public class PinDmdEditor implements EventHandler{
 				usbTool.switchToMode(DeviceMode.PinMame_RGB.ordinal());
 				usb = usbTool.initUsb();
 				livePreviewActive = selection;
+				setEnableUsbTooling(!selection);
 			} catch (RuntimeException ex) {
 				warn("usb problem", "Message was: " + ex.getMessage());
 				btnLivePreview.setSelection(false);
@@ -1414,6 +1422,7 @@ public class PinDmdEditor implements EventHandler{
 				try {
 					usbTool.releaseUsb(usb);
 					livePreviewActive = selection;
+					setEnableUsbTooling(!selection);
 				} catch (RuntimeException ex) {
 					warn("usb problem", "Message was: " + ex.getMessage());
 				}
@@ -1422,6 +1431,14 @@ public class PinDmdEditor implements EventHandler{
 		}
 
 	}
+
+	private void setEnableUsbTooling(boolean enabled) {
+        btnUploadFrame.setEnabled(enabled);
+        btnUploadPalette.setEnabled(enabled);
+        btnUploadMappings.setEnabled(enabled);
+        btnUploadProject.setEnabled(enabled);
+	}
+
 
 	private void addFrameSeq()         {
     	if( !frameSeqViewer.getSelection().isEmpty()) {
