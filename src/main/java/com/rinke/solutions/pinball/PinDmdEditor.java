@@ -928,6 +928,7 @@ public class PinDmdEditor implements EventHandler{
 				new GenericTextCellEditor(aniListViewer,
 					e -> ((Animation)e).getDesc(),
 					(e,v) -> { 
+						updateAnimationMapKey(((Animation)e).getDesc(), v);
 						((Animation)e).setDesc(v);
 						frameSeqViewer.refresh();
 					} ));
@@ -1406,6 +1407,16 @@ public class PinDmdEditor implements EventHandler{
         btnMask.addListener(SWT.Selection, e->switchMask(btnMask.getSelection()));
 
     }
+
+	private void updateAnimationMapKey(String oldKey, String newKey) {
+		ArrayList<Animation> tmp = new ArrayList<Animation>();
+		if( !oldKey.equals(newKey)) {
+			animations.values().forEach(ani->tmp.add(ani));
+			animations.clear();
+			tmp.forEach(ani->animations.put(ani.getDesc(), ani));
+		}
+	}
+
 
 	private void frameChanged(Frame frame) {
 		if (livePreviewActive) {
