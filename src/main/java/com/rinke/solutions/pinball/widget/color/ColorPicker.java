@@ -169,10 +169,8 @@ public class ColorPicker {
 	}
 	
 	private void notifyListeners( EventType type, RGB rgb ) {
-		ColorModifiedEvent evt = new ColorModifiedEvent(type,rgb);
-		for (ColorModifiedListener colorModifiedListener : listeners) {
-			colorModifiedListener.colorModified(evt );
-		}
+		ColorModifiedEvent event = new ColorModifiedEvent(type,rgb);
+		listeners.forEach(e->e.colorModified(event));
 	}
 	
 	public abstract class DelayedInfrequentAction implements Runnable {
@@ -697,6 +695,7 @@ public class ColorPicker {
 	}
 
 	private void onCancel() {
+		currentRGB = null;
 		close();
 	}
 
