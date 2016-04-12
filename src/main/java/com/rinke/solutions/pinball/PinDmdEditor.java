@@ -108,6 +108,7 @@ import com.rinke.solutions.pinball.widget.DrawTool;
 import com.rinke.solutions.pinball.widget.FloodFillTool;
 import com.rinke.solutions.pinball.widget.LineTool;
 import com.rinke.solutions.pinball.widget.PaletteTool;
+import com.rinke.solutions.pinball.widget.PaletteTool.ColorChangedListerner;
 import com.rinke.solutions.pinball.widget.RectTool;
 import com.rinke.solutions.pinball.widget.SetPixelTool;
 
@@ -1233,7 +1234,6 @@ public class PinDmdEditor implements EventHandler{
         paletteComboViewer.setContentProvider(ArrayContentProvider.getInstance());
         paletteComboViewer.setLabelProvider(new LabelProviderAdapter(o->((Palette)o).index + " - " + ((Palette)o).name));
         paletteComboViewer.setInput(project.palettes);
-        
         paletteComboViewer.addSelectionChangedListener(event -> {
             IStructuredSelection selection = (IStructuredSelection) event.getSelection();
             if (selection.size() > 0) {
@@ -1243,6 +1243,7 @@ public class PinDmdEditor implements EventHandler{
                 paletteTool.setPalette(activePalette);
                 LOG.info("new palette is {}",activePalette);
                 paletteTypeComboViewer.setSelection(new StructuredSelection(activePalette.type));
+                if( livePreviewActive ) usbTool.upload(activePalette, usb);
             }
         });
 
@@ -1323,21 +1324,12 @@ public class PinDmdEditor implements EventHandler{
         drawTools.values().forEach(d->paletteTool.addListener(d));
         
         paletteTool.addListener(dmdWidget);
-        paletteTool.addListener(new PaletteTool.ColorChangedListerner() {
-			
-			@Override
-			public void setActualColorIndex(int actualColorIndex) {
-				
-			}
-			
-			@Override
-			public void paletteChanged(Palette palette) {
-				if( livePreviewActive ) {
-					usbTool.upload(activePalette, usb);
-				}
+		paletteTool.addListener(palette -> {
+			if (livePreviewActive) {
+				usbTool.upload(activePalette, usb);
 			}
 		});
-        
+       
         Label label = new Label(grpPalettes, SWT.NONE);
         label.setText("  Ctrl-Click to edit color");
         
