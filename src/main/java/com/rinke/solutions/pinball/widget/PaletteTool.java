@@ -23,6 +23,8 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.widget.color.ColorPicker;
@@ -30,6 +32,8 @@ import com.rinke.solutions.pinball.widget.color.ColorPicker.ColorModifiedEvent;
 import com.rinke.solutions.pinball.widget.color.ColorPicker.ColorModifiedListener;
 
 public class PaletteTool implements ColorModifiedListener {
+	
+	private static final Logger LOG = LoggerFactory.getLogger(PaletteTool.class);
 
 	final ToolItem colBtn[] = new ToolItem[16];
 	Palette palette;
@@ -117,6 +121,7 @@ public class PaletteTool implements ColorModifiedListener {
 			colBtn[i].addListener(SWT.Selection, e -> {
 				int col = (Integer) e.widget.getData();
 				selectedColor = col;
+				tmpRgb = getSelectedRGB();
 				boolean sel = ((ToolItem)e.widget).getSelection();
 				//listeners.forEach(l -> l.setActualColorIndex(selectedColor));
 				if( sel && ( (e.stateMask & SWT.CTRL) != 0 || (e.stateMask & 4194304) != 0 )) {
@@ -146,10 +151,13 @@ public class PaletteTool implements ColorModifiedListener {
 	
 	public void changeColor() {
 		tmpRgb = getSelectedRGB();
+		LOG.info("changing color, old color was. {}", tmpRgb);
 		RGB rgb = colorPicker.open();
 		if( rgb != null) {
+			LOG.info("updating to new color: {}", rgb);
 			updateSelectedColor(rgb);
 		} else {
+			LOG.info("restoring old color.");
 			updateSelectedColor(tmpRgb);
 		}
 	}
