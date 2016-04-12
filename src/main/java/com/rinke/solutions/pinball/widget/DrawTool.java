@@ -6,6 +6,7 @@ import org.eclipse.swt.widgets.Event;
 import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.widget.PaletteTool.ColorChangedListerner;
+import com.rinke.solutions.pinball.widget.PaletteTool.ColorIndexChangedListerner;
 
 /*
  * notes:
@@ -15,7 +16,7 @@ import com.rinke.solutions.pinball.widget.PaletteTool.ColorChangedListerner;
  * 
  */
 
-public abstract class DrawTool implements ColorChangedListerner {
+public abstract class DrawTool implements ColorIndexChangedListerner {
 	
 	protected int x1 = -1;
 	protected int y1 = -1; // where mouse goes down
@@ -70,7 +71,8 @@ public abstract class DrawTool implements ColorChangedListerner {
 		return actualColor;
 	}
 
-	public void setActualColorIndex(int actualColor) {
+	@Override
+	public void indexChanged(int actualColor) {
 		this.actualColor = actualColor;
 	}
 	

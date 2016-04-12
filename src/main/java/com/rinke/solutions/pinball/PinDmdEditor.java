@@ -104,6 +104,7 @@ import com.rinke.solutions.pinball.util.ObservableMap;
 import com.rinke.solutions.pinball.widget.CircleTool;
 import com.rinke.solutions.pinball.widget.ColorizeTool;
 import com.rinke.solutions.pinball.widget.DMDWidget;
+import com.rinke.solutions.pinball.widget.DMDWidget.FrameChangedListerner;
 import com.rinke.solutions.pinball.widget.DrawTool;
 import com.rinke.solutions.pinball.widget.FloodFillTool;
 import com.rinke.solutions.pinball.widget.LineTool;
@@ -966,6 +967,7 @@ public class PinDmdEditor implements EventHandler{
         gd_dmdWidget.widthHint = 790;
         dmdWidget.setLayoutData(gd_dmdWidget);
         dmdWidget.setPalette(activePalette);
+        dmdWidget.addListeners(l->frameChanged(l));
         
         Composite composite_1 = new Composite(shell, SWT.NONE);
         composite_1.setLayout(new GridLayout(2, false));
@@ -1328,7 +1330,7 @@ public class PinDmdEditor implements EventHandler{
         drawTools.put("line", new LineTool(paletteTool.getSelectedColor()));
         drawTools.put("circle", new CircleTool(paletteTool.getSelectedColor()));
         drawTools.put("colorize", new ColorizeTool(paletteTool.getSelectedColor()));
-        drawTools.values().forEach(d->paletteTool.addListener(d));
+        drawTools.values().forEach(d->paletteTool.addIndexListener(d));
         
         paletteTool.addListener(dmdWidget);
 		paletteTool.addListener(palette -> {
@@ -1404,6 +1406,12 @@ public class PinDmdEditor implements EventHandler{
         btnMask.addListener(SWT.Selection, e->switchMask(btnMask.getSelection()));
 
     }
+
+	private void frameChanged(Frame frame) {
+		if (livePreviewActive) {
+			usbTool.sendFrame(frame, usb);
+		}
+	}
 
 	private void switchLivePreview(Event e) {
 		boolean selection = btnLivePreview.getSelection();

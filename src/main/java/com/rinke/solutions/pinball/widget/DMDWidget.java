@@ -1,5 +1,6 @@
 package com.rinke.solutions.pinball.widget;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
@@ -44,6 +45,16 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 	private int width;
 	private int height;
 	private boolean scrollable = false;
+	private List<FrameChangedListerner> frameChangedListeners = new ArrayList<>();
+	
+	@FunctionalInterface
+	public static interface FrameChangedListerner {
+		public void frameChanged(Frame frame);
+	}
+	
+	public void addListeners( FrameChangedListerner l) {
+		frameChangedListeners.add(l);
+	}
 
 	public DMDWidget(Composite parent, int style, DMD dmd, boolean scrollable) {
 		super(parent, style + ( scrollable ? SWT.V_SCROLL + SWT.H_SCROLL : 0));
@@ -81,6 +92,7 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 			if( x >= 0 && x < dmd.getWidth() && y>=0 && y < dmd.getHeight() ) {
 				if( drawTool.handleMouse(e, x, y)) {
 					redraw();
+					frameChangedListeners.forEach(l->l.frameChanged(dmd.getFrame()));
 				}
 			}
 		}

@@ -47,16 +47,25 @@ public class PaletteTool implements ColorModifiedListener {
 
 	/** used to reused images in col buttons. */
 	Map<RGB, Image> colImageCache = new HashMap<>();
-	List<ColorChangedListerner> listeners = new ArrayList<>();
+	List<ColorChangedListerner> colorChangedListeners = new ArrayList<>();
+	List<ColorIndexChangedListerner> indexChangedListeners = new ArrayList<>();
 	ColorPicker colorPicker = new ColorPicker();
 
 	@FunctionalInterface
 	public static interface ColorChangedListerner {
 		public void paletteChanged(Palette palette );
 	}
+	
+	@FunctionalInterface
+	public static interface ColorIndexChangedListerner {
+		public void indexChanged(int index);
+	}
 
 	public void addListener(ColorChangedListerner listener) {
-		listeners.add(listener);
+		colorChangedListeners.add(listener);
+	}
+	public void addIndexListener(ColorIndexChangedListerner listener) {
+		indexChangedListeners.add(listener);
 	}
 
 	public void redraw() {
@@ -123,7 +132,7 @@ public class PaletteTool implements ColorModifiedListener {
 				selectedColor = col;
 				tmpRgb = getSelectedRGB();
 				boolean sel = ((ToolItem)e.widget).getSelection();
-				//listeners.forEach(l -> l.setActualColorIndex(selectedColor));
+				indexChangedListeners.forEach(l -> l.indexChanged(selectedColor));
 				if( sel && ( (e.stateMask & SWT.CTRL) != 0 || (e.stateMask & 4194304) != 0 )) {
 					changeColor();
 				}
@@ -165,7 +174,7 @@ public class PaletteTool implements ColorModifiedListener {
 	private void updateSelectedColor(RGB rgb) {
 		palette.colors[selectedColor] = toModelRGB(rgb);
 		colBtn[selectedColor].setImage(getSquareImage(display, rgb));
-		listeners.forEach(l -> l.paletteChanged(palette));
+		colorChangedListeners.forEach(l -> l.paletteChanged(palette));
 	}
 
 	@Override
