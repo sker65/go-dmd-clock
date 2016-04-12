@@ -928,8 +928,9 @@ public class PinDmdEditor implements EventHandler{
 				new GenericTextCellEditor(aniListViewer,
 					e -> ((Animation)e).getDesc(),
 					(e,v) -> { 
-						updateAnimationMapKey(((Animation)e).getDesc(), v);
-						((Animation)e).setDesc(v);
+						Animation ani = (Animation)e;
+						updateAnimationMapKey(ani.getDesc(), v);
+						ani.setDesc(v);
 						frameSeqViewer.refresh();
 					} ));
 		
