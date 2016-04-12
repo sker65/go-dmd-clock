@@ -1,5 +1,8 @@
 package com.rinke.solutions.pinball.widget;
 
+import static com.rinke.solutions.pinball.widget.SWTUtil.toModelRGB;
+import static com.rinke.solutions.pinball.widget.SWTUtil.toSwtRGB;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -15,7 +18,6 @@ import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.widgets.ColorDialog;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
@@ -23,9 +25,11 @@ import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 
 import com.rinke.solutions.pinball.model.Palette;
-import static com.rinke.solutions.pinball.widget.SWTUtil.*;
+import com.rinke.solutions.pinball.widget.color.ColorPicker;
+import com.rinke.solutions.pinball.widget.color.ColorPicker.ColorModifiedEvent;
+import com.rinke.solutions.pinball.widget.color.ColorPicker.ColorModifiedListener;
 
-public class PaletteTool {
+public class PaletteTool implements ColorModifiedListener {
 
 	final ToolItem colBtn[] = new ToolItem[16];
 	Palette palette;
@@ -40,10 +44,10 @@ public class PaletteTool {
 	/** used to reused images in col buttons. */
 	Map<RGB, Image> colImageCache = new HashMap<>();
 	List<ColorChangedListerner> listeners = new ArrayList<>();
-	private Shell shell;
+	ColorPicker colorPicker = new ColorPicker();
 
-	public interface ColorChangedListerner {
-		public void setActualColorIndex(int actualColorIndex );
+	@FunctionalInterface
+	public static interface ColorChangedListerner {
 		public void paletteChanged(Palette palette );
 	}
 
@@ -57,7 +61,6 @@ public class PaletteTool {
 
 	public PaletteTool(Shell shell, Composite parent, int flags, Palette palette) {
 		this.palette = palette;
-		this.shell = shell;
 		resManager = new LocalResourceManager(JFaceResources.getResources(),
 				parent);
 		paletteBar = new ToolBar(parent, flags);
@@ -65,6 +68,7 @@ public class PaletteTool {
 		gd.widthHint = 310;
 		paletteBar.setLayoutData(gd);
 		createColorButtons(paletteBar, 20, 10, palette);
+		colorPicker.addListener(this);
 	}
 
 	public void setNumberOfPlanes(int planes) {
@@ -114,7 +118,7 @@ public class PaletteTool {
 				int col = (Integer) e.widget.getData();
 				selectedColor = col;
 				boolean sel = ((ToolItem)e.widget).getSelection();
-				listeners.forEach(l -> l.setActualColorIndex(selectedColor));
+				//listeners.forEach(l -> l.setActualColorIndex(selectedColor));
 				if( sel && ( (e.stateMask & SWT.CTRL) != 0 || (e.stateMask & 4194304) != 0 )) {
 					changeColor();
 				}
@@ -137,18 +141,35 @@ public class PaletteTool {
 			colBtn[i].setImage(getSquareImage(display, toSwtRGB(palette.colors[i])));
 		}
 	}
-
+	
+	RGB tmpRgb = new RGB(0,0,0);
+	
 	public void changeColor() {
-		ColorDialog cd = new ColorDialog(shell);
-		cd.setText("Select new color");
-		cd.setRGB(getSelectedRGB());
-		RGB rgb = cd.open();
-		if (rgb == null) {
-			return;
+		tmpRgb = getSelectedRGB();
+		RGB rgb = colorPicker.open();
+		if( rgb != null) {
+			updateSelectedColor(rgb);
+		} else {
+			updateSelectedColor(tmpRgb);
 		}
+	}
+
+	private void updateSelectedColor(RGB rgb) {
 		palette.colors[selectedColor] = toModelRGB(rgb);
 		colBtn[selectedColor].setImage(getSquareImage(display, rgb));
 		listeners.forEach(l -> l.paletteChanged(palette));
+	}
+
+	@Override
+	public void colorModified(ColorModifiedEvent evt) {
+		switch(evt.eventType) {
+		case Choosing:
+			updateSelectedColor(evt.rgb);
+			break;
+		case Selected:
+			updateSelectedColor(evt.rgb);
+			break;
+		}
 	}
 
 }
