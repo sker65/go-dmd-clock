@@ -250,11 +250,6 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 	}
 
 	@Override
-	public void setActualColorIndex(int actualColorIndex) {
-		
-	}
-
-	@Override
 	public void paletteChanged(Palette pal) {
 		setPalette(pal);
 	}
