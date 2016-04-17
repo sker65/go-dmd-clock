@@ -8,6 +8,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.resource.LocalResourceManager;
@@ -23,18 +25,15 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.widget.color.ColorPicker;
 import com.rinke.solutions.pinball.widget.color.ColorPicker.ColorModifiedEvent;
 import com.rinke.solutions.pinball.widget.color.ColorPicker.ColorModifiedListener;
 
+@Slf4j
 public class PaletteTool implements ColorModifiedListener {
 	
-	private static final Logger LOG = LoggerFactory.getLogger(PaletteTool.class);
-
 	final ToolItem colBtn[] = new ToolItem[16];
 	Palette palette;
 	private Display display;
@@ -160,13 +159,13 @@ public class PaletteTool implements ColorModifiedListener {
 	
 	public void changeColor() {
 		tmpRgb = getSelectedRGB();
-		LOG.info("changing color, old color was. {}", tmpRgb);
-		RGB rgb = colorPicker.open();
+		log.info("changing color, old color was. {}", tmpRgb);
+		RGB rgb = colorPicker.open(tmpRgb);
 		if( rgb != null) {
-			LOG.info("updating to new color: {}", rgb);
+			log.info("updating to new color: {}", rgb);
 			updateSelectedColor(rgb);
 		} else {
-			LOG.info("restoring old color.");
+			log.info("restoring old color.");
 			updateSelectedColor(tmpRgb);
 		}
 	}
