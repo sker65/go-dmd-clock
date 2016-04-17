@@ -24,6 +24,8 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.JFaceResources;
@@ -62,8 +64,6 @@ import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.usb4java.Context;
 import org.usb4java.DeviceHandle;
 
@@ -104,19 +104,16 @@ import com.rinke.solutions.pinball.util.ObservableMap;
 import com.rinke.solutions.pinball.widget.CircleTool;
 import com.rinke.solutions.pinball.widget.ColorizeTool;
 import com.rinke.solutions.pinball.widget.DMDWidget;
-import com.rinke.solutions.pinball.widget.DMDWidget.FrameChangedListerner;
 import com.rinke.solutions.pinball.widget.DrawTool;
 import com.rinke.solutions.pinball.widget.FloodFillTool;
 import com.rinke.solutions.pinball.widget.LineTool;
 import com.rinke.solutions.pinball.widget.PaletteTool;
-import com.rinke.solutions.pinball.widget.PaletteTool.ColorChangedListerner;
 import com.rinke.solutions.pinball.widget.RectTool;
 import com.rinke.solutions.pinball.widget.SetPixelTool;
 
+@Slf4j
 public class PinDmdEditor implements EventHandler{
 
-	private static final Logger LOG = LoggerFactory.getLogger(PinDmdEditor.class);
-	
 	private static final int FRAME_RATE = 40;
 
 	private static final String HELP_URL = "http://go-dmd.de/2015/11/24/pin2dmd-editor/";
@@ -215,25 +212,16 @@ public class PinDmdEditor implements EventHandler{
 	java.util.List<Palette> previewPalettes = new ArrayList<>();
 
 	PlaneNumber planeNumber;
-
     Label lblPlanesVal;
-
     Label lblDelayVal;
-
 	private Button btnSortAni;
-
 	LicenseManager licManager;
 
 	private Button btnMask;
-
 	private boolean useMask;
-
 	private Observer editAniObserver;
-
 	private Button btnLivePreview;
-
 	private boolean livePreviewActive;
-
 	private Pair<Context, DeviceHandle> usb;
 
 	private Button btnUploadFrame;
@@ -249,8 +237,6 @@ public class PinDmdEditor implements EventHandler{
 	    Arrays.fill(emptyMask, (byte)0xFF);
 	}
 	
-	
-
 	/**
 	 * handles redraw of animations
 	 * @author steve
@@ -396,7 +382,7 @@ public class PinDmdEditor implements EventHandler{
 		int retry = 0;
         while (true ) {
             try {
-                LOG.info("entering event loop");
+                log.info("entering event loop");
                 while (!shell.isDisposed()) {
                     if (!display.readAndDispatch()) {
                         display.sleep();
@@ -405,7 +391,7 @@ public class PinDmdEditor implements EventHandler{
                 System.exit(0);
             } catch( Exception e) {
                 GlobalExceptionHandler.getInstance().showError(e);
-                LOG.error("unexpected error: {}",e);
+                log.error("unexpected error: {}",e);
                 if (retry++ > 10)
                     System.exit(1);
             }
@@ -475,7 +461,7 @@ public class PinDmdEditor implements EventHandler{
 	}
 	
 	void importProject(String filename) {
-        LOG.info("importing project from {}",filename);
+        log.info("importing project from {}",filename);
         Project projectToImport  = (Project) fileHelper.loadObject(filename);
 		// merge into existing Project
         HashSet<String> collisions = new HashSet<>();
@@ -506,7 +492,7 @@ public class PinDmdEditor implements EventHandler{
 
 
 	void loadProject(String filename) {
-        LOG.info("load project from {}",filename);
+        log.info("load project from {}",filename);
         Project projectToLoad  = (Project) fileHelper.loadObject(filename);
 
         if( projectToLoad != null ) {
@@ -518,7 +504,7 @@ public class PinDmdEditor implements EventHandler{
             
             for( int i = 1; i < project.scenes.size(); i++) {
             	//cutOutNewAnimation(project.scenes.get(i).start, project.scenes.get(i).end, animations.get(0));
-            	LOG.info("cutting out "+project.scenes.get(i));
+            	log.info("cutting out "+project.scenes.get(i));
             }
             
             paletteComboViewer.setInput(project.palettes);
@@ -632,7 +618,7 @@ public class PinDmdEditor implements EventHandler{
 	}
 
 	private void saveProject(String filename) {
-        LOG.info("write project to {}",filename);
+        log.info("write project to {}",filename);
         String aniFilename = replaceExtensionTo("ani", filename);
         int numberOfStoredAnis = storeAnimations(animations.values(), aniFilename);
         if( numberOfStoredAnis > 0 ) {
@@ -647,7 +633,7 @@ public class PinDmdEditor implements EventHandler{
         String filename = fileChooserHelper(SWT.SAVE, activePalette.name, 
         		new String[] { "*.ani" }, new String[] { "Animations" });
         if (filename != null) {
-            LOG.info("store animation to {}",filename);
+            log.info("store animation to {}",filename);
             storeAnimations(this.animations.values(), filename);
         }
     }
@@ -698,7 +684,7 @@ public class PinDmdEditor implements EventHandler{
         } else if ( extensionIs(filename, ".mp4", ".3gp", ".avi" ) ) {
         	loadedList.add(Animation.buildAnimationFromFile(filename, AnimationType.VIDEO));
         }
-        LOG.info("loaded {} animations from {}", loadedList.size(), filename);
+        log.info("loaded {} animations from {}", loadedList.size(), filename);
         
         if( populateProject ) {
             if( !append ) project.inputFiles.clear();
@@ -747,7 +733,7 @@ public class PinDmdEditor implements EventHandler{
         String filename = fileChooserHelper(SWT.SAVE, activePalette.name, 
         		new String[] { "*.xml", "*.json" }, new String[] { "Paletten XML", "Paletten JSON" });
         if (filename != null) {
-            LOG.info("store palette to {}",filename);
+            log.info("store palette to {}",filename);
             fileHelper.storeObject(activePalette, filename);
         }
     }
@@ -780,7 +766,7 @@ public class PinDmdEditor implements EventHandler{
 			}
 		} else {
 			Palette pal = (Palette) fileHelper.loadObject(filename);
-			LOG.info("load palette from {}", filename);
+			log.info("load palette from {}", filename);
 			project.palettes.add(pal);
 			activePalette = pal;
 		}
@@ -1193,7 +1179,7 @@ public class PinDmdEditor implements EventHandler{
         btnCut.addListener(SWT.Selection, e -> {
         	// respect number of planes while cutting / copying
             Animation ani = cutScene(selectedAnimation.get(), cutInfo.getStart(), cutInfo.getEnd(), "Scene "+animations.size());
-            LOG.info("cutting out scene from {} to {}", cutInfo );
+            log.info("cutting out scene from {} to {}", cutInfo );
             cutInfo.reset();
 
             // TODO mark such a scene somehow, to copy it to the projects frames sequence for later export
@@ -1252,7 +1238,7 @@ public class PinDmdEditor implements EventHandler{
                 if( selectedPalMapping != null ) selectedPalMapping.palIndex = activePalette.index;
                 dmdWidget.setPalette(activePalette);
                 paletteTool.setPalette(activePalette);
-                LOG.info("new palette is {}",activePalette);
+                log.info("new palette is {}",activePalette);
                 paletteTypeComboViewer.setSelection(new StructuredSelection(activePalette.type));
                 if( livePreviewActive ) usbTool.upload(activePalette, usb);
             }
@@ -1549,7 +1535,7 @@ public class PinDmdEditor implements EventHandler{
 			// set new mapping
 			selectedPalMapping = (PalMapping) selection.getFirstElement();
 
-			LOG.debug("selected new palMapping {}", selectedPalMapping);
+			log.debug("selected new palMapping {}", selectedPalMapping);
 
 			selectedHashIndex = selectedPalMapping.hashIndex;
 			
