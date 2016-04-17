@@ -119,7 +119,7 @@ public class ColorPickerSlider extends ResourceManagedCanvas implements MouseLis
 			if (mode == ColorPicker.HUE) {
 				for (int y = 0; y < trackRect.height; y++) {
 					float hue = ((float) y) / ((float) trackRect.height);
-					intArray[y] = HSBtoRGB(hue, 1f, 1f);
+					intArray[trackRect.height-1-y] = HSBtoRGB(hue, 1f, 1f);
 				}
 			} else if (mode == ColorPicker.SAT) {
 				for (int y = 0; y < trackRect.height; y++) {
@@ -161,9 +161,9 @@ public class ColorPickerSlider extends ResourceManagedCanvas implements MouseLis
 		Image image = new Image(display, convertToSWT(bi));
 		Pattern pattern = new Pattern(display,image);
 		g.setForeground(display.getSystemColor(SWT.COLOR_BLACK));
-		g.drawRectangle(5, trackRect.y, 14, trackRect.height-ARROW_HALF);
+		g.drawRectangle(5, trackRect.y+2, 14, trackRect.height-ARROW_HALF);
 		g.setBackgroundPattern(pattern);
-		g.fillRectangle(6, trackRect.y+1, 13, trackRect.height-ARROW_HALF-1);
+		g.fillRectangle(6, trackRect.y+3, 13, trackRect.height-ARROW_HALF);
 		pattern.dispose();
 		// PlafPaintUtils.drawBevel(g2, r);
 	}
@@ -248,14 +248,12 @@ public class ColorPickerSlider extends ResourceManagedCanvas implements MouseLis
 		but = e.button;
 	}
 	
-	private int value = 0;
-	
 	private void updateArrow(int y) {
 		if( y >= ARROW_HALF && y < trackRect.height) {
 			thumbRect.y = y - ARROW_HALF;
-			int range = getRangeForMode(getMode());
-			
-			updateValue( range - thumbRect.y * range / (trackRect.height-ARROW_HALF-1) );
+			int range = getRangeForMode(getMode());	
+			int v = range - thumbRect.y * range / (trackRect.height-ARROW_HALF-1);
+			updateValue(v);
 			redraw();
 		}	
 	}
@@ -282,7 +280,6 @@ public class ColorPickerSlider extends ResourceManagedCanvas implements MouseLis
 	}
 
 	public void updateValue(int i) {
-		value = i;
 		colorPicker.sliderValueChanged(i);
 	}
 
