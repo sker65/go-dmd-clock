@@ -7,31 +7,30 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
+
 
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.PaletteType;
 import com.rinke.solutions.pinball.model.RGB;
 
+@Slf4j
 public class SmartDMDImporter {
 	
-	private static final Logger LOG = LoggerFactory.getLogger(SmartDMDImporter.class);
-
     public List<Palette> importFromFile(String filename) {
         List<Palette> res = new ArrayList<>();
         int defaultPalette = 0;
-        int persistent = 0;
+//        int persistent = 0;
         try(BufferedReader reader = getReader(filename) ) {
             String line = reader.readLine();
-            int numberOfPalettes = 0;
+//            int numberOfPalettes = 0;
             while (line != null) {
                 int pos = line.indexOf("=");
                 if (pos != -1) {
                     String key = line.substring(0, pos);
                     String val = line.substring(pos+1);
                     if (key.equals("dmd_npalettes")) {
-                        numberOfPalettes = Integer.parseInt(val);
+//                        numberOfPalettes = Integer.parseInt(val);
                     } else if (key.equals("dmd_defaultpalette")) {
                         defaultPalette = Integer.parseInt(val);
                     } else if (key.startsWith("dmd_palette")) {
@@ -40,7 +39,7 @@ public class SmartDMDImporter {
                         p.index = idx;
                         res.add(p);
                     } else if( key.equals("dmd_persistentpalette")) {
-                    	persistent = Integer.parseInt(val);
+//                    	persistent = Integer.parseInt(val);
                     }
                 }
                 line = reader.readLine();
@@ -54,7 +53,7 @@ public class SmartDMDImporter {
 			} else {
 				palette.type = PaletteType.NORMAL;
 			}
-			LOG.debug("loaded palette: {}", palette);
+			log.debug("loaded palette: {}", palette);
 		}
         return res;
     }
