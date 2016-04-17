@@ -3,9 +3,9 @@ package com.rinke.solutions.pinball;
 import java.util.List;
 import java.util.Observable;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.eclipse.swt.widgets.Scale;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.rinke.solutions.pinball.animation.AniEvent;
 import com.rinke.solutions.pinball.animation.AniEvent.Type;
@@ -17,26 +17,24 @@ import com.rinke.solutions.pinball.model.Frame;
  * handles the sequence of animations and clock
  * @author sr
  */
+@Slf4j
 public class AnimationHandler extends Observable implements Runnable{
-    
-    private static Logger LOG = LoggerFactory.getLogger(AnimationHandler.class); 
 
 	private List<Animation> anis;
-	private int index = 0; // index of the current animation
-	private DMDClock clock;
+	private int index; // index of the current animation
+	private final DMDClock clock;
 	private boolean clockActive;
 	private int clockCycles;
 	private EventHandler eventHandler;
-	private DMD dmd;
+	private final DMD dmd;
 	private volatile boolean stop = true;
 	private Scale scale;
 	private boolean showClock = true;
-	//private int transitionFrame= 0;
 	private int lastRenderedFrame = -1;
 
 	private byte[] mask;
 
-	private boolean forceRerender = false;
+	private boolean forceRerender;
 	
 	public AnimationHandler(List<Animation> anis, DMDClock clock, DMD dmd) {
 		this.anis = anis;
@@ -51,7 +49,7 @@ public class AnimationHandler extends Observable implements Runnable{
 	        GlobalExceptionHandler.getInstance().setException(e);
 	        anis.clear();
 	        eventHandler.notifyAni(new AniEvent(Type.CLEAR));
-	        LOG.error("unexpected exception caught: {}", e.getMessage(), e);
+	        log.error("unexpected exception caught: {}", e.getMessage(), e);
 	    }
 	}
 	
@@ -72,14 +70,14 @@ public class AnimationHandler extends Observable implements Runnable{
 				clockActive = true;
 			} else {
 				
-				Animation ani = anis.get(index); 
 				if( scale.isDisposed() ) return;
+
+				Animation ani = anis.get(index); 
 				scale.setMinimum(ani.start);
 				scale.setMaximum(ani.end);
 				scale.setIncrement(ani.skip);
 				
 				if( !forceRerender  && stop && ani.actFrame == lastRenderedFrame ) return;
-				//System.out.println("rendering: "+ani.actFrame);
 				
 				forceRerender = false;
 				dmd.clear();
