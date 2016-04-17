@@ -43,6 +43,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 
 import com.rinke.solutions.pinball.widget.ResourceManagedCanvas;
+import com.rinke.solutions.pinball.widget.color.ColorPicker.Mode;
 
 /**
  * This is a SliderUI designed specifically for the <code>ColorPicker</code>.
@@ -107,46 +108,47 @@ public class ColorPickerSlider extends ResourceManagedCanvas implements MouseLis
 		trackRect.height = size;
 	}
 	
-	int getMode() {
-		return colorPicker!=null?colorPicker.getMode():ColorPicker.HUE;
+	Mode getMode() {
+		return colorPicker!=null?colorPicker.getMode():Mode.HUE;
 	}
 
 	public synchronized void paintTrack(GC g, Display display) {
-		int mode = getMode();
-		if (mode == ColorPicker.HUE || mode == ColorPicker.BRI
-				|| mode == ColorPicker.SAT) {
+		Mode mode = getMode();
+		int height = trackRect.height+3;
+		if (mode == Mode.HUE || mode == Mode.BRI
+				|| mode == Mode.SAT) {
 			float[] hsb = colorPicker!=null?colorPicker.getHSB():new float[]{0.3f,0.3f,0.3f};
-			if (mode == ColorPicker.HUE) {
-				for (int y = 0; y < trackRect.height; y++) {
-					float hue = ((float) y) / ((float) trackRect.height);
-					intArray[trackRect.height-1-y] = HSBtoRGB(hue, 1f, 1f);
+			if (mode == Mode.HUE) {
+				for (int y = 0; y < height; y++) {
+					float hue = ((float) y) / ((float) height);
+					intArray[height-y-1] = HSBtoRGB(hue, 1f, 1f);
 				}
-			} else if (mode == ColorPicker.SAT) {
-				for (int y = 0; y < trackRect.height; y++) {
-					float sat = 1 - ((float) y) / ((float) trackRect.height);
+			} else if (mode == Mode.SAT) {
+				for (int y = 0; y < height; y++) {
+					float sat = 1 - ((float) y) / ((float) height);
 					intArray[y] = HSBtoRGB(hsb[0], sat, hsb[2]);
 				}
 			} else {
-				for (int y = 0; y < trackRect.height; y++) {
-					float bri = 1 - ((float) y) / ((float) trackRect.height);
+				for (int y = 0; y < height; y++) {
+					float bri = 1 - ((float) y) / ((float) height);
 					intArray[y] = HSBtoRGB(hsb[0], hsb[1], bri);
 				}
 			}
 		} else {
 			int[] rgb = colorPicker.getRGB();
-			if (mode == ColorPicker.RED) {
-				for (int y = 0; y < trackRect.height; y++) {
-					int red = 255 - (int) (y * 255 / trackRect.height + .49);
+			if (mode == Mode.RED) {
+				for (int y = 0; y < height; y++) {
+					int red = 255 - (int) (y * 255 / height + .49);
 					intArray[y] = (red << 16) + (rgb[1] << 8) + (rgb[2]);
 				}
-			} else if (mode == ColorPicker.GREEN) {
-				for (int y = 0; y < trackRect.height; y++) {
-					int green = 255 - (int) (y * 255 / trackRect.height + .49);
+			} else if (mode == Mode.GREEN) {
+				for (int y = 0; y < height; y++) {
+					int green = 255 - (int) (y * 255 / height + .49);
 					intArray[y] = (rgb[0] << 16) + (green << 8) + (rgb[2]);
 				}
-			} else if (mode == ColorPicker.BLUE) {
-				for (int y = 0; y < trackRect.height; y++) {
-					int blue = 255 - (int) (y * 255 / trackRect.height + .49);
+			} else if (mode == Mode.BLUE) {
+				for (int y = 0; y < height; y++) {
+					int blue = 255 - (int) (y * 255 / height + .49);
 					intArray[y] = (rgb[0] << 16) + (rgb[1] << 8) + (blue);
 				}
 			}
@@ -157,13 +159,14 @@ public class ColorPickerSlider extends ResourceManagedCanvas implements MouseLis
 
 		// http://www.java2s.com/Tutorial/Java/0280__SWT/ConvertbetweenSWTImageandAWTBufferedImage.htm
 
-		bi.getRaster().setDataElements(0, 0, 1, trackRect.height, intArray);
+		bi.getRaster().setDataElements(0, 0, 1, height, intArray);
 		Image image = new Image(display, convertToSWT(bi));
 		Pattern pattern = new Pattern(display,image);
 		g.setForeground(display.getSystemColor(SWT.COLOR_BLACK));
 		g.drawRectangle(5, trackRect.y+2, 14, trackRect.height-ARROW_HALF);
 		g.setBackgroundPattern(pattern);
-		g.fillRectangle(6, trackRect.y+3, 13, trackRect.height-ARROW_HALF);
+		//g.setBackground(resourceManager.createColor(new RGB(255,200,33)));
+		g.fillRectangle(6, trackRect.y+3, 13, trackRect.height-ARROW_HALF-1);
 		pattern.dispose();
 		// PlafPaintUtils.drawBevel(g2, r);
 	}
@@ -249,10 +252,10 @@ public class ColorPickerSlider extends ResourceManagedCanvas implements MouseLis
 	}
 	
 	private void updateArrow(int y) {
-		if( y >= ARROW_HALF && y < trackRect.height) {
+		if( y >= ARROW_HALF && y < trackRect.height+3) {
 			thumbRect.y = y - ARROW_HALF;
 			int range = getRangeForMode(getMode());	
-			int v = range - thumbRect.y * range / (trackRect.height-ARROW_HALF-1);
+			int v = range - thumbRect.y * range / (trackRect.height+3-ARROW_HALF-1);
 			updateValue(v);
 			redraw();
 		}	
@@ -266,12 +269,12 @@ public class ColorPickerSlider extends ResourceManagedCanvas implements MouseLis
 		redraw();
 	}
 
-	private int getRangeForMode(int mode) {
+	private int getRangeForMode(Mode mode) {
 		switch (mode) {
-		case ColorPicker.HUE:
+		case HUE:
 			return 360;
-		case ColorPicker.SAT:
-		case ColorPicker.BRI:
+		case SAT:
+		case BRI:
 			return 100;
 
 		default:

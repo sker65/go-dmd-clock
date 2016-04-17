@@ -41,6 +41,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 
 import com.rinke.solutions.pinball.widget.ResourceManagedCanvas;
+import com.rinke.solutions.pinball.widget.color.ColorPicker.Mode;
 
 
 /** This is the large graphic element in the <code>ColorPicker</code>
@@ -82,7 +83,7 @@ public class ColorPickerPanel extends ResourceManagedCanvas implements MouseList
 	public static final int MAX_SIZE = 325;
 	
 	/** This controls how the colors are displayed. */
-	private int mode = ColorPicker.HUE;//ColorPicker.BRI;
+	private Mode mode = Mode.HUE;//ColorPicker.BRI;
 	
 	/** The point used to indicate the selected color. */
 	private Point point = new Point(0,0);
@@ -152,9 +153,8 @@ public class ColorPickerPanel extends ResourceManagedCanvas implements MouseList
 		g2.drawImage(i, 0, 0, size, size, 0, 0, size, size );
 		
 		g2.setForeground(display.getSystemColor(SWT.COLOR_BLACK));
-		if(mode==ColorPicker.SAT || mode==ColorPicker.BRI) {
+		if(mode.equals(Mode.SAT) || mode.equals(Mode.BRI)) {
 			g2.drawOval(0,0,size,size);
-//			PlafPaintUtils.drawBevel(g2,r);
 		} else {
 			g2.drawRectangle(0,0,size,size);
 		}
@@ -227,11 +227,7 @@ public class ColorPickerPanel extends ResourceManagedCanvas implements MouseList
 	 * @param mode This must be one of the following constants from the <code>ColorPicker</code> class:
 	 * <code>HUE</code>, <code>SAT</code>, <code>BRI</code>, <code>RED</code>, <code>GREEN</code>, or <code>BLUE</code>
 	 */
-	public void setMode(int mode) {
-		if(!(mode==ColorPicker.HUE || mode==ColorPicker.SAT || mode==ColorPicker.BRI || 
-				mode==ColorPicker.RED || mode==ColorPicker.GREEN || mode==ColorPicker.BLUE))
-			throw new IllegalArgumentException("The mode must be HUE, SAT, BRI, RED, GREEN, or BLUE.");
-			
+	public void setMode(Mode mode) {
 		if(this.mode==mode)
 			return;
 		this.mode = mode;
@@ -267,9 +263,9 @@ public class ColorPickerPanel extends ResourceManagedCanvas implements MouseList
 			throw new IllegalArgumentException("The blue value ("+b+") must be between [0,255].");
 		
 		if(red!=r || green!=g || blue!=b) {
-			if(mode==ColorPicker.RED || 
-					mode==ColorPicker.GREEN ||
-					mode==ColorPicker.BLUE) {
+			if(mode.equals(Mode.RED) || 
+					mode.equals(Mode.GREEN) ||
+					mode.equals(Mode.BLUE)) {
 				int lastR = red;
 				int lastG = green;
 				int lastB = blue;
@@ -277,18 +273,12 @@ public class ColorPickerPanel extends ResourceManagedCanvas implements MouseList
 				green = g;
 				blue = b;
 				
-				if(mode==ColorPicker.RED) {
-					if(lastR!=r) {
-						regenerateImage();
-					}
-				} else if(mode==ColorPicker.GREEN) {
-					if(lastG!=g) {
-						regenerateImage();
-					}
-				} else if(mode==ColorPicker.BLUE) {
-					if(lastB!=b) {
-						regenerateImage();
-					}
+				if (mode.equals(Mode.RED) && lastR != r) {
+					regenerateImage();
+				} else if (mode.equals(Mode.GREEN) && lastG != g) {
+					regenerateImage();
+				} else if (mode.equals(Mode.BLUE) && lastB != b) {
+					regenerateImage();
 				}
 			} else {
 				float[] hsb = new float[3];
@@ -323,8 +313,8 @@ public class ColorPickerPanel extends ResourceManagedCanvas implements MouseList
 	 * @return the HSB values at the point provided.
 	 */
 	public float[] getHSB(Point p) {
-		if(mode==ColorPicker.RED || mode==ColorPicker.GREEN ||
-				mode==ColorPicker.BLUE) {
+		if(mode.is(Mode.RED) || mode.is(Mode.GREEN) ||
+				mode.is(Mode.BLUE)) {
 			int[] rgb = getRGB(p);
 			float[] hsb = java.awt.Color.RGBtoHSB(rgb[0], rgb[1], rgb[2], null);
 			return hsb;
@@ -334,7 +324,7 @@ public class ColorPickerPanel extends ResourceManagedCanvas implements MouseList
 		
 		p = new Point(p.x-(getWidth()/2-size/2), p.y-(getHeight()/2-size/2));
 		
-		if(mode==ColorPicker.BRI || mode==ColorPicker.SAT) {
+		if(mode.is(Mode.BRI) || mode.is(Mode.SAT)) {
 			//the two circular views:
 			double radius = (size)/2.0;
 			double x = p.x-size/2.0;
@@ -344,7 +334,7 @@ public class ColorPickerPanel extends ResourceManagedCanvas implements MouseList
 			
 			if(r>1) r = 1;
 			
-			if(mode==ColorPicker.BRI) {
+			if(mode.is(Mode.BRI)) {
 				return new float[] { 
 						(float)(theta+.25f),
 						(float)(r),
@@ -373,8 +363,8 @@ public class ColorPickerPanel extends ResourceManagedCanvas implements MouseList
 	 * @return the RGB values at the point provided.
 	 */
 	public int[] getRGB(Point p) {
-		if(mode==ColorPicker.BRI || mode==ColorPicker.SAT ||
-				mode==ColorPicker.HUE) {
+		if(mode.is(Mode.BRI) || mode.is(Mode.SAT) ||
+				mode.is(Mode.HUE)) {
 			float[] hsb = getHSB(p);
 			int rgb = java.awt.Color.HSBtoRGB(hsb[0], hsb[1], hsb[2]);
 			int r = (rgb & 0xff0000) >> 16;
@@ -394,9 +384,9 @@ public class ColorPickerPanel extends ResourceManagedCanvas implements MouseList
 		if(y2<0) y2 = 0;
 		if(y2>255) y2 = 255;
 			
-		if(mode==ColorPicker.RED) {
+		if(mode.is(Mode.RED)) {
 			return new int[] {red, x2, y2};
-		} else if(mode==ColorPicker.GREEN) {
+		} else if(mode.is(Mode.GREEN)) {
 			return new int[] {x2, green, y2};
 		} else {
 			return new int[] {x2, y2, blue};
@@ -423,24 +413,24 @@ public class ColorPickerPanel extends ResourceManagedCanvas implements MouseList
 			throw new IllegalArgumentException("The brightness value ("+b+") must be between [0,1]");
 		
 		if(hue!=h || sat!=s || bri!=b) {
-			if(mode==ColorPicker.HUE || 
-					mode==ColorPicker.BRI ||
-					mode==ColorPicker.SAT) {
+			if(mode.is(Mode.HUE) || 
+					mode.is(Mode.BRI) ||
+					mode.is(Mode.SAT)) {
 				float lastHue = hue;
 				float lastBri = bri;
 				float lastSat = sat;
 				hue = h;
 				sat = s;
 				bri = b;
-				if(mode==ColorPicker.HUE) {
+				if(mode.is(Mode.HUE)) {
 					if(lastHue!=hue) {
 						regenerateImage();
 					}
-				} else if(mode==ColorPicker.SAT) {
+				} else if(mode.is(Mode.SAT)) {
 					if(lastSat!=sat) {
 						regenerateImage();
 					}
-				} else if(mode==ColorPicker.BRI) {
+				} else if(mode.is(Mode.BRI)) {
 					if(lastBri!=bri) {
 						regenerateImage();
 					}
@@ -467,28 +457,28 @@ public class ColorPickerPanel extends ResourceManagedCanvas implements MouseList
 	/** Recalculates the (x,y) point used to indicate the selected color. */
 	private void regeneratePoint() {
 		int size = Math.min(MAX_SIZE, Math.min(getWidth()-imagePadding.left-imagePadding.right,getHeight()-imagePadding.top-imagePadding.bottom));
-		if(mode==ColorPicker.HUE || mode==ColorPicker.SAT || mode==ColorPicker.BRI) {
-			if(mode==ColorPicker.HUE) {
+		if(mode.is(Mode.HUE) || mode.is(Mode.SAT) || mode.is(Mode.BRI)) {
+			if(mode.is(Mode.HUE)) {
 				point = new Point((int)(sat*size+.5),(int)(bri*size+.5));
-			} else if(mode==ColorPicker.SAT) {
+			} else if(mode.is(Mode.SAT)) {
 				double theta = hue*2*Math.PI-Math.PI/2;
 				if(theta<0) theta+=2*Math.PI;
 				
 				double r = bri*size/2;
 				point = new Point((int)(r*Math.cos(theta)+.5+size/2.0),(int)(r*Math.sin(theta)+.5+size/2.0));
-			} else if(mode==ColorPicker.BRI) {
+			} else if(mode.is(Mode.BRI)) {
 				double theta = hue*2*Math.PI-Math.PI/2;
 				if(theta<0) theta+=2*Math.PI;
 				double r = sat*size/2;
 				point = new Point((int)(r*Math.cos(theta)+.5+size/2.0),(int)(r*Math.sin(theta)+.5+size/2.0));
 			}
-		} else if(mode==ColorPicker.RED) {
+		} else if(mode.is(Mode.RED)) {
 			point = new Point((int)(green*size/255f+.49f),
 					(int)(blue*size/255f+.49f) );
-		} else if(mode==ColorPicker.GREEN) {
+		} else if(mode.is(Mode.GREEN)) {
 			point = new Point((int)(red*size/255f+.49f),
 					(int)(blue*size/255f+.49f) );
-		} else if(mode==ColorPicker.BLUE) {
+		} else if(mode.is(Mode.BLUE)) {
 			point = new Point((int)(red*size/255f+.49f),
 					(int)(green*size/255f+.49f) );
 		}
@@ -502,7 +492,7 @@ public class ColorPickerPanel extends ResourceManagedCanvas implements MouseList
 	private synchronized void regenerateImage() {
 		int size = Math.min(MAX_SIZE, Math.min(getWidth()-imagePadding.left-imagePadding.right,getHeight()-imagePadding.top-imagePadding.bottom));
 		
-		if(mode==ColorPicker.BRI || mode==ColorPicker.SAT) {
+		if(mode.is(Mode.BRI) || mode.is(Mode.SAT)) {
 			float bri2 = this.bri;
 			float sat2 = this.sat;
 			float radius = (size)/2f;
@@ -517,7 +507,7 @@ public class ColorPickerPanel extends ResourceManagedCanvas implements MouseList
 					
 					double r = Math.sqrt(x2*x2+y2*y2);
 					if(r<=radius) {
-						if(mode==ColorPicker.BRI) {
+						if(mode.is(Mode.BRI)) {
 							hue2 = (float)(theta/(2*Math.PI));
 							sat2 = (float)(r/radius);
 						} else { //SAT
@@ -537,7 +527,7 @@ public class ColorPickerPanel extends ResourceManagedCanvas implements MouseList
 				}
 				image.getRaster().setDataElements(0, y, size, 1, row);
 			}
-		} else if(mode==ColorPicker.HUE) {
+		} else if(mode.is(Mode.HUE)) {
 			float hue2 = this.hue;
 			for(int y = 0; y<size; y++) {
 				float y2 = ((float)y)/((float)size);
@@ -555,10 +545,10 @@ public class ColorPickerPanel extends ResourceManagedCanvas implements MouseList
 				float y2 = ((float)y)/((float)size);
 				for(int x = 0; x<size; x++) {
 					float x2 = ((float)x)/((float)size);
-					if(mode==ColorPicker.RED) {
+					if(mode.is(Mode.RED)) {
 						green2 = (int)(x2*255+.49);
 						blue2 = (int)(y2*255+.49);
-					} else if(mode==ColorPicker.GREEN) {
+					} else if(mode.is(Mode.GREEN)) {
 						red2 = (int)(x2*255+.49);
 						blue2 = (int)(y2*255+.49);
 					} else {
@@ -602,8 +592,8 @@ public class ColorPickerPanel extends ResourceManagedCanvas implements MouseList
 
 	private void handleMouse(org.eclipse.swt.events.MouseEvent e) {
 		Point p = new Point(e.x+6, e.y+6);
-		if(mode==ColorPicker.BRI || mode==ColorPicker.SAT ||
-				mode==ColorPicker.HUE) {
+		if(mode.is(Mode.BRI) || mode.is(Mode.SAT) ||
+				mode.is(Mode.HUE)) {
 			float[] hsb = getHSB(p);
 			setHSB(hsb[0], hsb[1], hsb[2]);
 		} else {

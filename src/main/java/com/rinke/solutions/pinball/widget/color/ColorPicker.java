@@ -28,6 +28,8 @@ import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Canvas;
 
+import com.rinke.solutions.pinball.widget.color.ColorPicker.Mode;
+
 
 public class ColorPicker {
 
@@ -36,20 +38,15 @@ public class ColorPicker {
 	private Display display;
 	private Text hexField;
 
-	/** Used to indicate when we're in "hue mode". */
-	public static final int HUE = 0;
-	/** Used to indicate when we're in "brightness mode". */
-	public static final int BRI = 1;
-	/** Used to indicate when we're in "saturation mode". */
-	public static final int SAT = 2;
-	/** Used to indicate when we're in "red mode". */
-	public static final int RED = 3;
-	/** Used to indicate when we're in "green mode". */
-	public static final int GREEN = 4;
-	/** Used to indicate when we're in "blue mode". */
-	public static final int BLUE = 5;
+	public static enum Mode {
+		HUE,BRI,SAT,RED,GREEN,BLUE;
+
+		public boolean is(Mode m) {
+			return this.equals(m);
+		}
+	};
 	
-	private int mode = ColorPicker.HUE;
+	private Mode mode = Mode.HUE;
 
 	private int currentRed = 0;
 	private int currentGreen = 0;
@@ -98,7 +95,7 @@ public class ColorPicker {
 	private List<ColorModifiedListener> listeners = new ArrayList<>();
 	private SetRGBRunnable rgbRunnable;
 
-	public int getMode() {
+	public Mode getMode() {
 		return mode;
 	}
 	
@@ -355,11 +352,12 @@ public class ColorPicker {
 		if(adjustingColorPanel>0)
 			return;
 
-		int mode = getMode();
-		if(mode==HUE || mode==BRI || mode==SAT) {
+		switch(getMode()) {
+		case HUE: case BRI: case SAT:
 			float[] hsb = colorPanel.getHSB();
 			setHSB(hsb[0],hsb[1],hsb[2]);
-		} else {
+			break;
+		default:
 			int[] rgb = colorPanel.getRGB();
 			setRGB(rgb[0],rgb[1],rgb[2]);
 		}
@@ -417,19 +415,25 @@ public class ColorPicker {
 	private void updateSlider() {
 		adjustingSlider++;
 		try {
-			int mode = getMode();
-			if(mode==HUE) {
+			switch( getMode() ) {
+			case HUE:
 				cpSlider.setValue( getIntValue(hue) );
-			} else if(mode==SAT) {
+				break;
+			case SAT:
 				cpSlider.setValue( getIntValue(sat) );
-			} else if(mode==BRI) {
+				break;
+			case BRI:
 				cpSlider.setValue( getIntValue(bri) );
-			} else if(mode==RED) {
+				break;
+			case RED:
 				cpSlider.setValue( getIntValue(red) );
-			} else if(mode==GREEN) {
+				break;
+			case GREEN:
 				cpSlider.setValue( getIntValue(green) );
-			} else if(mode==BLUE) {
+				break;
+			case BLUE:
 				cpSlider.setValue( getIntValue(blue) );
+				break;
 			}
 		} finally {
 			adjustingSlider--;
@@ -579,7 +583,7 @@ public class ColorPicker {
 		hue = createSpinner(composite, 360);
 		
 		Button btnHue = new Button(composite, SWT.RADIO);
-		btnHue.addListener(SWT.Selection, e->setMode(ColorPicker.HUE));
+		btnHue.addListener(SWT.Selection, e->setMode(Mode.HUE));
 		btnHue.setSelection(true);
 		
 		Label lblSat = new Label(composite, SWT.NONE);
@@ -589,7 +593,7 @@ public class ColorPicker {
 		sat = createSpinner(composite, 100);
 		
 		Button btnSat = new Button(composite, SWT.RADIO);
-		btnSat.addListener(SWT.Selection, e->setMode(ColorPicker.SAT));
+		btnSat.addListener(SWT.Selection, e->setMode(Mode.SAT));
 		
 		Label lblBri = new Label(composite, SWT.NONE);
 		lblBri.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
@@ -598,7 +602,7 @@ public class ColorPicker {
 		bri = createSpinner(composite, 100);
 		
 		Button btnBri = new Button(composite, SWT.RADIO);
-		btnBri.addListener(SWT.Selection, e->setMode(ColorPicker.BRI));
+		btnBri.addListener(SWT.Selection, e->setMode(Mode.BRI));
 
 		new Label(composite, SWT.NONE);
 		new Label(composite, SWT.NONE);
@@ -611,7 +615,7 @@ public class ColorPicker {
 		red = createSpinner(composite, 255);
 	
 		Button btnRed = new Button(composite, SWT.RADIO);
-		btnRed.addListener(SWT.Selection, e->setMode(ColorPicker.RED));
+		btnRed.addListener(SWT.Selection, e->setMode(Mode.RED));
 		
 		Label lblGreen = new Label(composite, SWT.NONE);
 		lblGreen.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
@@ -620,7 +624,7 @@ public class ColorPicker {
 		green = createSpinner(composite, 255);
 		
 		Button btnGreen = new Button(composite, SWT.RADIO);
-		btnGreen.addListener(SWT.Selection, e->setMode(ColorPicker.GREEN));
+		btnGreen.addListener(SWT.Selection, e->setMode(Mode.GREEN));
 		
 		Label lblBlue = new Label(composite, SWT.NONE);
 		lblBlue.setLayoutData(new GridData(SWT.RIGHT, SWT.TOP, false, false, 1, 1));
@@ -629,7 +633,7 @@ public class ColorPicker {
 		blue = createSpinner(composite, 255);
 		
 		Button btnBlue = new Button(composite, SWT.RADIO);
-		btnBlue.addListener(SWT.Selection, e->setMode(ColorPicker.BLUE));
+		btnBlue.addListener(SWT.Selection, e->setMode(Mode.BLUE));
 		
 		Composite composite_1 = new Composite(composite, SWT.NONE);
 		composite_1.setLayout(new GridLayout(NRECENT, false));
@@ -748,10 +752,10 @@ public class ColorPicker {
 		}
 	}
 
-	private void setMode(int m) {
+	private void setMode(Mode m) {
 		mode = m;
-		cpSlider.redraw();
-		colorPanel.setMode(m);;
+		updateSlider();
+		colorPanel.setMode(m);
 	}
 
 	public static void main( String[] args ) {
