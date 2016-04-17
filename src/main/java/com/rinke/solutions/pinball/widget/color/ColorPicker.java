@@ -137,10 +137,6 @@ public class ColorPicker {
 	public ColorPicker() {
 		display = Display.getDefault();
 		shell = new Shell(SWT.CLOSE | SWT.TITLE | SWT.MIN);
-		for(int i = 0; i < NRECENT; i++) {
-			recentRGB[i] = new RGB(0,0,0);
-		}
-
 	}
 	
 	public void close() {
@@ -303,9 +299,10 @@ public class ColorPicker {
 
 	/**
 	 * Open the dialog.
+	 * @param rgb 
 	 * @return the result
 	 */
-	public RGB open() {
+	public RGB open(RGB rgb) {
 		closed = false;
 		if( !created ) {
 			created = true;
@@ -315,6 +312,7 @@ public class ColorPicker {
 		} else {
 			shell.setVisible(true);
 		}
+		setRGB(rgb.red, rgb.green, rgb.blue);
 		while (!shell.isDisposed() && !closed ) {
 			if (!display.readAndDispatch()) {
 				display.sleep();
@@ -709,7 +707,7 @@ public class ColorPicker {
 
 	private void rotateRecent() {
 		for(int i = 0; i < NRECENT; i++) {
-			if( recentRGB[i].equals(currentRGB)) return;
+			if( recentRGB[i] !=null && recentRGB[i].equals(currentRGB)) return;
 		}
 		for(int i = NRECENT-1; i > 0; i--) {
 			recentRGB[i] = recentRGB[i-1];
@@ -757,7 +755,7 @@ public class ColorPicker {
 	}
 
 	public static void main( String[] args ) {
-		new ColorPicker().open();
+		new ColorPicker().open(new RGB(255, 0, 0));
 	}
 
 	public ColorPickerPanel getColorPanel() {
