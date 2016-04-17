@@ -7,13 +7,12 @@ import java.util.Observer;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
+
+@Slf4j
 public class ObserverManager {
 	
-	private static final Logger LOG = LoggerFactory.getLogger(ObserverManager.class);
-
 	public static interface BooleanConsumer extends Consumer<Boolean>{
 
 	}
@@ -39,7 +38,7 @@ public class ObserverManager {
             method.setAccessible(true);
             method.invoke(observable);
         } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-            LOG.error("problem calling setChanged",e);
+            log.error("problem calling setChanged",e);
         }
 		
 		observable.notifyObservers();
