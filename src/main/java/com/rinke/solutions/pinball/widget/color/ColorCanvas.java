@@ -33,17 +33,22 @@ public class ColorCanvas extends ResourceManagedCanvas {
 
 	Display display = Display.getCurrent();
 
-	private RGB rgb = new RGB(0,0,0);
+	private RGB rgb = null;
 	
 	@Override
 	protected void paintWidget(PaintEvent e) {
 		GC g = e.gc;
-		Color color = resourceManager.createColor(ColorDescriptor.createFrom(rgb));
+		Color color = rgb!=null ? resourceManager.createColor(ColorDescriptor.createFrom(rgb)):null;
 		Rectangle r = getBounds();
 		g.setForeground(display.getSystemColor(SWT.COLOR_BLACK));
 		g.drawRectangle(0,0,r.width-1,r.height-1);
-		g.setBackground(color);
-		g.fillRectangle(1, 1, r.width-2, r.height-2);
+		if( color != null ) {
+			g.setBackground(color);
+			g.fillRectangle(1, 1, r.width-2, r.height-2);
+		} else {
+			g.drawLine(0, 0, r.width-2, r.height-2);
+			g.drawLine(0, r.height-2, r.width-2, 0);
+		}
 	}
 
 	@Override
