@@ -1,6 +1,5 @@
 package com.rinke.solutions.pinball.io;
 
-import java.io.DataOutputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -8,8 +7,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Constructor;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
+
 
 import com.rinke.solutions.pinball.model.Format;
 import com.rinke.solutions.pinball.model.Frame;
@@ -23,7 +22,6 @@ import com.rinke.solutions.pinball.model.Scene;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.converters.ConversionException;
 import com.thoughtworks.xstream.converters.UnmarshallingContext;
-import com.thoughtworks.xstream.converters.reflection.PureJavaReflectionProvider;
 import com.thoughtworks.xstream.converters.reflection.ReflectionConverter;
 import com.thoughtworks.xstream.converters.reflection.ReflectionProvider;
 import com.thoughtworks.xstream.io.HierarchicalStreamReader;
@@ -32,9 +30,8 @@ import com.thoughtworks.xstream.io.binary.BinaryStreamDriver;
 import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 import com.thoughtworks.xstream.mapper.Mapper;
 
+@Slf4j
 public class FileHelper {
-	
-    private static Logger LOG = LoggerFactory.getLogger(FileHelper.class); 
 	
     private XStream xstream;
     private XStream jstream;
@@ -132,7 +129,7 @@ public class FileHelper {
             }
             if(writer!=null) writer.close(); else out.close();
     	} catch( IOException e) {
-    	    LOG.error("error on storing "+filename, e);
+    	    log.error("error on storing "+filename, e);
     	    throw new RuntimeException("error on storing "+filename,e);
     	}
     }
@@ -156,7 +153,7 @@ public class FileHelper {
                 throw new RuntimeException("unsupported filetype / extension " +filename);
             }
     	} catch( IOException e2) {
-    	    LOG.error("error on load "+filename,e2);
+    	    log.error("error on load "+filename,e2);
     	    throw new RuntimeException("error on load "+filename, e2);
     	}
     	return res;
