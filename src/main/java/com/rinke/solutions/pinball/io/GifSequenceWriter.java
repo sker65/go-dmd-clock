@@ -17,14 +17,14 @@ import javax.imageio.stream.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 import java.awt.image.*;
 import java.io.*;
 import java.util.Iterator;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class GifSequenceWriter {
-    
-    private static Logger LOG = LoggerFactory.getLogger(GifSequenceWriter.class); 
     
 	protected ImageWriter gifWriter;
 	protected ImageWriteParam imageWriteParam;
@@ -188,7 +188,7 @@ public class GifSequenceWriter {
 			writer.close();
 			output.close();
 		} else {
-			LOG.info("Usage: java GifSequenceWriter [list of gif files] [output file]");
+			log.info("Usage: java GifSequenceWriter [list of gif files] [output file]");
 		}
 	}
 }
