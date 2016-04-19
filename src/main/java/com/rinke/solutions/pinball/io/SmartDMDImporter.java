@@ -15,8 +15,9 @@ import com.rinke.solutions.pinball.model.PaletteType;
 import com.rinke.solutions.pinball.model.RGB;
 
 @Slf4j
-public class SmartDMDImporter {
+public class SmartDMDImporter implements PaletteImporter {
 	
+	@Override
     public List<Palette> importFromFile(String filename) {
         List<Palette> res = new ArrayList<>();
         int defaultPalette = 0;
