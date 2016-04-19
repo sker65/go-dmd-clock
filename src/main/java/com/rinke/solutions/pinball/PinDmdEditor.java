@@ -79,7 +79,9 @@ import com.rinke.solutions.pinball.api.BinaryExporterFactory;
 import com.rinke.solutions.pinball.api.LicenseManager;
 import com.rinke.solutions.pinball.api.LicenseManager.Capability;
 import com.rinke.solutions.pinball.api.LicenseManagerFactory;
+import com.rinke.solutions.pinball.io.DMCImporter;
 import com.rinke.solutions.pinball.io.FileHelper;
+import com.rinke.solutions.pinball.io.PaletteImporter;
 import com.rinke.solutions.pinball.io.SmartDMDImporter;
 import com.rinke.solutions.pinball.io.UsbTool;
 import com.rinke.solutions.pinball.model.Frame;
@@ -745,8 +747,8 @@ public class PinDmdEditor implements EventHandler{
     }
     
     void loadPalette(String filename) {
-		if (filename.toLowerCase().endsWith(".txt")) {
-			java.util.List<Palette> palettesImported = smartDMDImporter
+		if (filename.toLowerCase().endsWith(".txt")||filename.toLowerCase().endsWith(".dmc")) {
+			java.util.List<Palette> palettesImported = getImporterByFilename(filename)
 					.importFromFile(filename);
 			String override = checkOverride(project.palettes, palettesImported);
 			if (!override.isEmpty()) {
@@ -774,7 +776,17 @@ public class PinDmdEditor implements EventHandler{
 		paletteComboViewer.refresh();
 	}
    
-    // testability overridden by tests
+    private PaletteImporter getImporterByFilename(String filename) {
+    	if( filename.toLowerCase().endsWith(".txt") ) {
+    		return new SmartDMDImporter();
+    	} else if(filename.toLowerCase().endsWith(".dmc")) {
+    		return new DMCImporter();
+    	}
+		return null;
+	}
+
+
+	// testability overridden by tests
     protected FileChooser createFileChooser(Shell shell, int flags) {	
 		return new FileDialogDelegate(shell, flags);
 	}
