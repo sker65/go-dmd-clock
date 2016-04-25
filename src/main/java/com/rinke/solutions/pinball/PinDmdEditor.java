@@ -118,7 +118,7 @@ public class PinDmdEditor implements EventHandler{
 
 	private static final int FRAME_RATE = 40;
 
-	private static final String HELP_URL = "http://go-dmd.de/2015/11/24/pin2dmd-editor/";
+	private static final String HELP_URL = "http://pin2dmd.com/editor/";
 
 	DMD dmd = new DMD(128,32);
 	
