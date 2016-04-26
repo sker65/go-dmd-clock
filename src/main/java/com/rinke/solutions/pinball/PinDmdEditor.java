@@ -1735,7 +1735,7 @@ public class PinDmdEditor implements EventHandler{
         new MenuItem(menu_3, SWT.SEPARATOR);
 
         MenuItem mntmDevice = new MenuItem(menu_3, SWT.NONE);
-        mntmDevice.setText("Create Device File");        
+        mntmDevice.setText("Create Device File / WiFi");        
         mntmDevice.addListener(SWT.Selection, e->{
         	DeviceConfig deviceConfig = new DeviceConfig(shell);
         	deviceConfig.open(pin2dmdAdress);	

@@ -78,7 +78,7 @@ public class IpConnector extends Pin2DmdConnector {
 		String[] p = address.split(":");
 		Socket s = null;
 		try {
-			s = new Socket(p[0], Integer.parseInt(p[1]));
+			s = new Socket(p[0], p.length == 2 ? Integer.parseInt(p[1]):9191);
 		} catch (NumberFormatException | IOException e) {
 			log.error("connecting problems with {}",address);
 			throw new RuntimeException("connect problem "+address,e);
