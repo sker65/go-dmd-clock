@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.model.Frame;
+import com.rinke.solutions.pinball.model.Plane;
 
 // als parameter in der Steuerdatei sollten
 // die helligkeits schwellen angebbar sein
@@ -70,6 +71,7 @@ public class VPinMameRenderer extends Renderer {
 					int bit = (i % 8);
 					int b = i / 8;
 					int mask = 128 >> bit;
+					int v = Integer.parseInt(line.substring(i,i+1), 16);
 					if (c == '1') {
 						res.planes.get(0).plane[j + b] |= mask;
 					} else if (c == '2') {
@@ -77,7 +79,6 @@ public class VPinMameRenderer extends Renderer {
 					} else if (c == '3') {
 						res.planes.get(0).plane[j + b] |= mask;
 						res.planes.get(1).plane[j + b] |= mask;
-
 					}
 				}
 				j += 16;

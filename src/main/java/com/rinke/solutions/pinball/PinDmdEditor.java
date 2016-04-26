@@ -79,11 +79,14 @@ import com.rinke.solutions.pinball.api.BinaryExporterFactory;
 import com.rinke.solutions.pinball.api.LicenseManager;
 import com.rinke.solutions.pinball.api.LicenseManager.Capability;
 import com.rinke.solutions.pinball.api.LicenseManagerFactory;
+import com.rinke.solutions.pinball.io.ConnectorFactory;
 import com.rinke.solutions.pinball.io.DMCImporter;
 import com.rinke.solutions.pinball.io.FileHelper;
 import com.rinke.solutions.pinball.io.PaletteImporter;
+import com.rinke.solutions.pinball.io.Pin2DmdConnector;
+import com.rinke.solutions.pinball.io.Pin2DmdConnector.ConnectionHandle;
 import com.rinke.solutions.pinball.io.SmartDMDImporter;
-import com.rinke.solutions.pinball.io.UsbTool;
+import com.rinke.solutions.pinball.io.UsbConnector;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.FrameSeq;
 import com.rinke.solutions.pinball.model.PalMapping;
@@ -166,7 +169,6 @@ public class PinDmdEditor implements EventHandler{
     private DMDClock clock = new DMDClock(false);
 	FileHelper fileHelper = new FileHelper();
     SmartDMDImporter smartDMDImporter = new SmartDMDImporter();
-    UsbTool usbTool = new UsbTool();
     Project project = new Project();
     byte[] emptyMask = new byte[512];
 
@@ -224,20 +226,34 @@ public class PinDmdEditor implements EventHandler{
 	private Observer editAniObserver;
 	private Button btnLivePreview;
 	private boolean livePreviewActive;
-	private Pair<Context, DeviceHandle> usb;
+	private ConnectionHandle handle;
 
 	private Button btnUploadFrame;
 	private Button btnUploadPalette;
 	private Button btnUploadMappings;
 	private Button btnUploadProject;
 
-	public PinDmdEditor() {
+	private String pin2dmdAdress = null;
+
+    Pin2DmdConnector connector = ConnectorFactory.create(pin2dmdAdress);
+
+    public PinDmdEditor() {
 		super();
 	    activePalette = project.palettes.get(0);
 	    previewPalettes = Palette.previewPalettes();
 	    licManager = LicenseManagerFactory.getInstance();
 	    Arrays.fill(emptyMask, (byte)0xFF);
 	}
+    
+    public void refreshPin2DmdHost(String address) {
+    	if( address != null && !address.equals(pin2dmdAdress)) {
+        	if( handle != null ) {
+        		connector.release(handle);
+        	}
+        	this.pin2dmdAdress = address;
+        	connector = ConnectorFactory.create(address);
+    	}
+    }
 	
 	/**
 	 * handles redraw of animations
@@ -573,9 +589,9 @@ public class PinDmdEditor implements EventHandler{
     		return stream;
     	});
     	
-    	usbTool.transferFile("palettes.dat", new ByteArrayInputStream(captureOutput.get("a.dat").toByteArray()));
+    	connector.transferFile("palettes.dat", new ByteArrayInputStream(captureOutput.get("a.dat").toByteArray()));
     	if( captureOutput.containsKey("a.fsq")) {
-    		usbTool.transferFile("pin2dmd.fsq", new ByteArrayInputStream(captureOutput.get("a.fsq").toByteArray()));
+    		connector.transferFile("pin2dmd.fsq", new ByteArrayInputStream(captureOutput.get("a.fsq").toByteArray()));
     	}
     }
     
@@ -742,7 +758,8 @@ public class PinDmdEditor implements EventHandler{
     
     private void loadPalette() {
     	String filename = fileChooserHelper(SWT.OPEN, null, 
-        		new String[] { "*.xml","*.json,", "*.txt" }, new String[] { "Palette XML", "Palette JSON", "smartdmd" });
+        		new String[] { "*.xml","*.json,", "*.txt", "*.dmc" },
+        		new String[] { "Palette XML", "Palette JSON", "smartdmd", "DMC" });
         if (filename != null) loadPalette(filename);
     }
     
@@ -1252,7 +1269,7 @@ public class PinDmdEditor implements EventHandler{
                 paletteTool.setPalette(activePalette);
                 log.info("new palette is {}",activePalette);
                 paletteTypeComboViewer.setSelection(new StructuredSelection(activePalette.type));
-                if( livePreviewActive ) usbTool.upload(activePalette, usb);
+                if( livePreviewActive ) connector.upload(activePalette, handle);
             }
         });
 
@@ -1335,7 +1352,7 @@ public class PinDmdEditor implements EventHandler{
         paletteTool.addListener(dmdWidget);
 		paletteTool.addListener(palette -> {
 			if (livePreviewActive) {
-				usbTool.upload(activePalette, usb);
+				connector.upload(activePalette, handle);
 			}
 		});
        
@@ -1378,11 +1395,11 @@ public class PinDmdEditor implements EventHandler{
         
         btnUploadPalette = new Button(grpPalettes, SWT.NONE);
         btnUploadPalette.setText("Upload Palette");
-        btnUploadPalette.addListener(SWT.Selection, e->usbTool.upload(activePalette));
+        btnUploadPalette.addListener(SWT.Selection, e->connector.upload(activePalette));
         
         btnUploadMappings = new Button(grpPalettes, SWT.NONE);
         btnUploadMappings.setText("Upload KeyFrames");
-        btnUploadMappings.addListener(SWT.Selection, e->usbTool.upload(project.palMappings));
+        btnUploadMappings.addListener(SWT.Selection, e->connector.upload(project.palMappings));
         new Label(grpPalettes, SWT.NONE);
 
         new Label(grpPalettes, SWT.NONE);
@@ -1419,7 +1436,7 @@ public class PinDmdEditor implements EventHandler{
 
 	private void frameChanged(Frame frame) {
 		if (livePreviewActive) {
-			usbTool.sendFrame(frame, usb);
+			connector.sendFrame(frame, handle);
 		}
 	}
 
@@ -1427,8 +1444,8 @@ public class PinDmdEditor implements EventHandler{
 		boolean selection = btnLivePreview.getSelection();
 		if (selection) {
 			try {
-				usbTool.switchToMode(DeviceMode.PinMame_RGB.ordinal());
-				usb = usbTool.initUsb();
+				connector.switchToMode(DeviceMode.PinMame_RGB.ordinal());
+				handle = connector.connect(pin2dmdAdress);
 				livePreviewActive = selection;
 				setEnableUsbTooling(!selection);
 			} catch (RuntimeException ex) {
@@ -1436,15 +1453,15 @@ public class PinDmdEditor implements EventHandler{
 				btnLivePreview.setSelection(false);
 			}
 		} else {
-			if (usb != null) {
+			if (handle != null) {
 				try {
-					usbTool.releaseUsb(usb);
+					connector.release(handle);
 					livePreviewActive = selection;
 					setEnableUsbTooling(!selection);
 				} catch (RuntimeException ex) {
 					warn("usb problem", "Message was: " + ex.getMessage());
 				}
-				usb = null;
+				handle = null;
 			}
 		}
 
@@ -1719,7 +1736,11 @@ public class PinDmdEditor implements EventHandler{
 
         MenuItem mntmDevice = new MenuItem(menu_3, SWT.NONE);
         mntmDevice.setText("Create Device File");        
-        mntmDevice.addListener(SWT.Selection, e->new DeviceConfig(shell).open());
+        mntmDevice.addListener(SWT.Selection, e->{
+        	DeviceConfig deviceConfig = new DeviceConfig(shell);
+        	deviceConfig.open(pin2dmdAdress);	
+        	refreshPin2DmdHost( deviceConfig.getPin2DmdHost() );
+        });
         
         MenuItem mntmUsbconfig = new MenuItem(menu_3, SWT.NONE);
         mntmUsbconfig.setText("Configure Device via USB");
@@ -1793,7 +1814,7 @@ public class PinDmdEditor implements EventHandler{
             saveHashes(evt.hashes);
             lastTimeCode = evt.timecode;
             if( livePreviewActive && evt.frame != null ) {
-            	usbTool.sendFrame(evt.frame, usb);
+            	connector.sendFrame(evt.frame, handle);
             }
             break;
         case CLOCK:
@@ -1805,7 +1826,7 @@ public class PinDmdEditor implements EventHandler{
         case CLEAR:
         	for(int j=0; j<4; j++) btnHash[j++].setText(""); // clear hashes
         	if( livePreviewActive ) {
-        		usbTool.sendFrame(new Frame(), usb);
+        		connector.sendFrame(new Frame(), handle);
         	}
         	break;
         }

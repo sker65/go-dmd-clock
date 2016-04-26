@@ -21,8 +21,16 @@ import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.rinke.solutions.pinball.PinDmdEditor;
+import com.rinke.solutions.pinball.io.ConnectorFactory;
+import com.rinke.solutions.pinball.io.Pin2DmdConnector;
+import com.rinke.solutions.pinball.io.Pin2DmdConnector.ConnectionHandle;
 import com.rinke.solutions.pinball.model.DefaultPalette;
 import com.rinke.solutions.pinball.model.DeviceMode;
+
+import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 
 public class DeviceConfig extends Dialog {
     
@@ -35,6 +43,11 @@ public class DeviceConfig extends Dialog {
     private ComboViewer comboViewerDefaultPalette;
     private Combo deviceModeCombo;
     private Combo comboDefaultPalette;
+    private Text pin2dmdHost;
+    
+    public String getPin2DmdHost() {
+    	return pin2dmdHost.getText();
+    }
 
     /**
      * Create the dialog.
@@ -84,8 +97,11 @@ public class DeviceConfig extends Dialog {
      * Open the dialog.
      * @return the result
      */
-    public Object open() {
+    public Object open(String address) {
         createContents();
+        
+        pin2dmdHost.setText(address!=null?address:"");
+        
         shell.open();
         shell.layout();
         Display display = getParent().getDisplay();
@@ -102,7 +118,7 @@ public class DeviceConfig extends Dialog {
      */
     void createContents() {
         shell = new Shell(getParent(), getStyle());
-        shell.setSize(448, 162);
+        shell.setSize(480, 231);
         shell.setText("Device Configuration");
         shell.setLayout(new FormLayout());
         
@@ -110,8 +126,7 @@ public class DeviceConfig extends Dialog {
         FormData fd_grpConfig = new FormData();
         fd_grpConfig.top = new FormAttachment(0, 10);
         fd_grpConfig.left = new FormAttachment(0, 10);
-        fd_grpConfig.bottom = new FormAttachment(0, 129);
-        fd_grpConfig.right = new FormAttachment(0, 440);
+        fd_grpConfig.right = new FormAttachment(0, 470);
         grpConfig.setLayoutData(fd_grpConfig);
         grpConfig.setText("Config");
         grpConfig.setLayout(new GridLayout(3, false));
@@ -136,7 +151,9 @@ public class DeviceConfig extends Dialog {
         
         comboViewerDefaultPalette = new ComboViewer(grpConfig, SWT.NONE);
         comboDefaultPalette = comboViewerDefaultPalette.getCombo();
-        comboDefaultPalette.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+        GridData gd_comboDefaultPalette = new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1);
+        gd_comboDefaultPalette.widthHint = 245;
+        comboDefaultPalette.setLayoutData(gd_comboDefaultPalette);
         comboViewerDefaultPalette.setContentProvider(ArrayContentProvider.getInstance());
         comboViewerDefaultPalette.setInput(DefaultPalette.values());
         comboDefaultPalette.select(0);
@@ -144,6 +161,38 @@ public class DeviceConfig extends Dialog {
         Button btnCancel = new Button(grpConfig, SWT.NONE);
         btnCancel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
         btnCancel.setText("Cancel");
+        
+        Group grpWifi = new Group(shell, SWT.NONE);
+        fd_grpConfig.bottom = new FormAttachment(grpWifi, -6);
+        grpWifi.setText("WiFi");
+        grpWifi.setLayout(new GridLayout(3, false));
+        FormData fd_grpWifi = new FormData();
+        fd_grpWifi.bottom = new FormAttachment(100, -10);
+        fd_grpWifi.top = new FormAttachment(0, 114);
+        fd_grpWifi.left = new FormAttachment(0, 10);
+        fd_grpWifi.right = new FormAttachment(100, -8);
+        grpWifi.setLayoutData(fd_grpWifi);
+        
+        Label lblAdress = new Label(grpWifi, SWT.NONE);
+        GridData gd_lblAdress = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+        gd_lblAdress.widthHint = 83;
+        lblAdress.setLayoutData(gd_lblAdress);
+        lblAdress.setText("Adress");
+        
+        pin2dmdHost = new Text(grpWifi, SWT.BORDER);
+        GridData gd_text = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+        gd_text.widthHint = 267;
+        pin2dmdHost.setLayoutData(gd_text);
+        
+        Button btnConnectBtn = new Button(grpWifi, SWT.NONE);
+        btnConnectBtn.addListener(SWT.Selection, e->testConnect(getPin2DmdHost()));
+        btnConnectBtn.setText("Connect");
         btnCancel.addListener(SWT.Selection, e->shell.close());
     }
+
+	private void testConnect(String address) {
+		Pin2DmdConnector connector = ConnectorFactory.create(address);
+		ConnectionHandle handle = connector.connect(address);
+		connector.release(handle);
+	}
 }

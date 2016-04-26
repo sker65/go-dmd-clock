@@ -19,7 +19,9 @@ import com.rinke.solutions.pinball.api.LicenseManager;
 import com.rinke.solutions.pinball.api.LicenseManager.Capability;
 import com.rinke.solutions.pinball.api.LicenseManager.VerifyResult;
 import com.rinke.solutions.pinball.api.LicenseManagerFactory;
-import com.rinke.solutions.pinball.io.UsbTool;
+import com.rinke.solutions.pinball.io.ConnectorFactory;
+import com.rinke.solutions.pinball.io.Pin2DmdConnector;
+import com.rinke.solutions.pinball.io.UsbConnector;
 
 
 public class RegisterLicense extends Dialog {
@@ -128,8 +130,8 @@ public class RegisterLicense extends Dialog {
 		String licFile = licFileText.getText();
 		LOG.info("uploading license file: {}", licFile);
 		if( !StringUtils.isEmpty(licFile)) {
-			UsbTool usb = new UsbTool();
-			usb.installLicense(licFile);
+			Pin2DmdConnector connector = ConnectorFactory.create(null);
+			connector.installLicense(licFile);
 		}
 		return null;
 	}

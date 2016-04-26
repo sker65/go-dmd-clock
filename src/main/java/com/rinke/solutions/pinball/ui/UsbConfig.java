@@ -14,8 +14,10 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.GridData;
 
 import com.rinke.solutions.pinball.DeviceMode;
-import com.rinke.solutions.pinball.io.UsbTool;
-import com.rinke.solutions.pinball.io.UsbTool.UsbCmd;
+import com.rinke.solutions.pinball.io.ConnectorFactory;
+import com.rinke.solutions.pinball.io.Pin2DmdConnector;
+import com.rinke.solutions.pinball.io.Pin2DmdConnector.UsbCmd;
+import com.rinke.solutions.pinball.io.UsbConnector;
 import com.rinke.solutions.pinball.model.DefaultPalette;
 
 import org.eclipse.swt.widgets.Group;
@@ -25,7 +27,7 @@ public class UsbConfig extends Dialog {
 
 	protected Object result;
 	protected Shell shell;
-	UsbTool usbTool = new UsbTool();
+	Pin2DmdConnector connector = ConnectorFactory.create(null);
 
 	/**
 	 * Create the dialog.
@@ -60,7 +62,7 @@ public class UsbConfig extends Dialog {
 	private void createContents() {
 		shell = new Shell(getParent(), getStyle());
 		shell.setSize(480, 277);
-		shell.setText("Usb Config");
+		shell.setText("Config Device");
 		shell.setLayout(new GridLayout(3, false));
 		
 		Label lblDeviceMode = new Label(shell, SWT.NONE);
@@ -77,7 +79,7 @@ public class UsbConfig extends Dialog {
 		Button btnSetDeviceMode = new Button(shell, SWT.NONE);
 		btnSetDeviceMode.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
 		btnSetDeviceMode.setText("Set Device Mode");
-		btnSetDeviceMode.addListener(SWT.Selection, e->usbTool.switchToMode(deviceModeCombo.getSelectionIndex()));
+		btnSetDeviceMode.addListener(SWT.Selection, e->connector.switchToMode(deviceModeCombo.getSelectionIndex()));
 		
 		Label lblPalette = new Label(shell, SWT.NONE);
 		lblPalette.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
@@ -95,7 +97,7 @@ public class UsbConfig extends Dialog {
 		Button btnSetPalette = new Button(shell, SWT.NONE);
 		btnSetPalette.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
 		btnSetPalette.setText("Set Palette");
-		btnSetPalette.addListener(SWT.Selection, e->usbTool.switchToPal(comboDefaultPalette.getSelectionIndex()));
+		btnSetPalette.addListener(SWT.Selection, e->connector.switchToPal(comboDefaultPalette.getSelectionIndex()));
 		
 		Label lblNewLabel = new Label(shell, SWT.NONE);
 		lblNewLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.TOP, false, false, 1, 1));
@@ -126,12 +128,12 @@ public class UsbConfig extends Dialog {
 		Button btnResetDevice = new Button(shell, SWT.NONE);
 		btnResetDevice.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
 		btnResetDevice.setText("Reset Device");
-		btnResetDevice.addListener(SWT.Selection, e->usbTool.sendCmd(UsbCmd.RESET) );
+		btnResetDevice.addListener(SWT.Selection, e->connector.sendCmd(UsbCmd.RESET) );
 		new Label(shell, SWT.NONE);
 		
 		Button btnRemoveLicenseFrom = new Button(shell, SWT.NONE);
 		btnRemoveLicenseFrom.setText("Remove License from device");
-		btnRemoveLicenseFrom.addListener(SWT.Selection, e->usbTool.sendCmd(UsbCmd.DELETE_LICENSE) );
+		btnRemoveLicenseFrom.addListener(SWT.Selection, e->connector.sendCmd(UsbCmd.DELETE_LICENSE) );
 		new Label(shell, SWT.NONE);
 		new Label(shell, SWT.NONE);
 		new Label(shell, SWT.NONE);
