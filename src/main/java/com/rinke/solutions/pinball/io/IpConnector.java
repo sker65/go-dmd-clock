@@ -22,6 +22,7 @@ import com.rinke.solutions.pinball.model.Palette;
 @Slf4j
 public class IpConnector extends Pin2DmdConnector {
 
+	public static final int DEFAULT_PORT = 9191;
 	private static final int IP_PACKET_SIZE = 256;
 
 	public IpConnector(String address) {
@@ -78,7 +79,7 @@ public class IpConnector extends Pin2DmdConnector {
 		String[] p = address.split(":");
 		Socket s = null;
 		try {
-			s = new Socket(p[0], p.length == 2 ? Integer.parseInt(p[1]):9191);
+			s = new Socket(p[0], p.length == 2 ? Integer.parseInt(p[1]):DEFAULT_PORT);
 		} catch (NumberFormatException | IOException e) {
 			log.error("connecting problems with {}",address);
 			throw new RuntimeException("connect problem "+address,e);

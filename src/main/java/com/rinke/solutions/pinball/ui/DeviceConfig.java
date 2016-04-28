@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import com.rinke.solutions.pinball.PinDmdEditor;
 import com.rinke.solutions.pinball.io.ConnectorFactory;
+import com.rinke.solutions.pinball.io.IpConnector;
 import com.rinke.solutions.pinball.io.Pin2DmdConnector;
 import com.rinke.solutions.pinball.io.Pin2DmdConnector.ConnectionHandle;
 import com.rinke.solutions.pinball.model.DefaultPalette;
@@ -46,7 +47,7 @@ public class DeviceConfig extends Dialog {
     private Text pin2dmdHost;
     
     public String getPin2DmdHost() {
-    	return pin2dmdHost.getText();
+    	return address;
     }
 
     /**
@@ -92,6 +93,8 @@ public class DeviceConfig extends Dialog {
             throw new RuntimeException("error writing "+filename, e);
         }
     }
+    
+    private String address;
 
     /**
      * Open the dialog.
@@ -99,6 +102,7 @@ public class DeviceConfig extends Dialog {
      */
     public Object open(String address) {
         createContents();
+        this.address = address;
         
         pin2dmdHost.setText(address!=null?address:"");
         
@@ -161,6 +165,7 @@ public class DeviceConfig extends Dialog {
         Button btnCancel = new Button(grpConfig, SWT.NONE);
         btnCancel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
         btnCancel.setText("Cancel");
+        btnCancel.addListener(SWT.Selection, e->shell.close());
         
         Group grpWifi = new Group(shell, SWT.NONE);
         fd_grpConfig.bottom = new FormAttachment(grpWifi, -6);
@@ -185,14 +190,21 @@ public class DeviceConfig extends Dialog {
         pin2dmdHost.setLayoutData(gd_text);
         
         Button btnConnectBtn = new Button(grpWifi, SWT.NONE);
-        btnConnectBtn.addListener(SWT.Selection, e->testConnect(getPin2DmdHost()));
+        btnConnectBtn.addListener(SWT.Selection, e->testConnect(pin2dmdHost.getText()));
         btnConnectBtn.setText("Connect");
-        btnCancel.addListener(SWT.Selection, e->shell.close());
+        
+        Label lblEnterIpAddress = new Label(grpWifi, SWT.NONE);
+        lblEnterIpAddress.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 2, 1));
+        lblEnterIpAddress.setText("Enter IP address or hostname for WiFi (default port is "
+        		+IpConnector.DEFAULT_PORT+")");
+        new Label(grpWifi, SWT.NONE);
+        new Label(grpWifi, SWT.NONE);
     }
 
 	private void testConnect(String address) {
 		Pin2DmdConnector connector = ConnectorFactory.create(address);
 		ConnectionHandle handle = connector.connect(address);
 		connector.release(handle);
+		this.address = address;
 	}
 }

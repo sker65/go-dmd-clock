@@ -104,6 +104,7 @@ import com.rinke.solutions.pinball.ui.FileDialogDelegate;
 import com.rinke.solutions.pinball.ui.GifExporter;
 import com.rinke.solutions.pinball.ui.RegisterLicense;
 import com.rinke.solutions.pinball.ui.UsbConfig;
+import com.rinke.solutions.pinball.util.ApplicationProperties;
 import com.rinke.solutions.pinball.util.ObservableList;
 import com.rinke.solutions.pinball.util.ObservableMap;
 import com.rinke.solutions.pinball.widget.CircleTool;
@@ -118,6 +119,8 @@ import com.rinke.solutions.pinball.widget.SetPixelTool;
 
 @Slf4j
 public class PinDmdEditor implements EventHandler{
+
+	private static final String PIN2DMD_ADRESS_PROP_KEY = "pin2dmdAdress";
 
 	private static final int FRAME_RATE = 40;
 
@@ -235,7 +238,7 @@ public class PinDmdEditor implements EventHandler{
 
 	private String pin2dmdAdress = null;
 
-    Pin2DmdConnector connector = ConnectorFactory.create(pin2dmdAdress);
+    Pin2DmdConnector connector;
 
     public PinDmdEditor() {
 		super();
@@ -243,6 +246,8 @@ public class PinDmdEditor implements EventHandler{
 	    previewPalettes = Palette.previewPalettes();
 	    licManager = LicenseManagerFactory.getInstance();
 	    Arrays.fill(emptyMask, (byte)0xFF);
+	    pin2dmdAdress = ApplicationProperties.get(PIN2DMD_ADRESS_PROP_KEY);
+	    connector = ConnectorFactory.create(pin2dmdAdress);
 	}
     
     public void refreshPin2DmdHost(String address) {
@@ -251,6 +256,7 @@ public class PinDmdEditor implements EventHandler{
         		connector.release(handle);
         	}
         	this.pin2dmdAdress = address;
+        	ApplicationProperties.put(PIN2DMD_ADRESS_PROP_KEY,pin2dmdAdress);
         	connector = ConnectorFactory.create(address);
     	}
     }
