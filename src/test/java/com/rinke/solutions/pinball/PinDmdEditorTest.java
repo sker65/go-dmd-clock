@@ -3,6 +3,7 @@ package com.rinke.solutions.pinball;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -14,6 +15,10 @@ import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.AnimationType;
@@ -22,18 +27,25 @@ import com.rinke.solutions.pinball.model.FrameSeq;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.test.Util;
+import com.rinke.solutions.pinball.util.ApplicationProperties;
+import com.rinke.solutions.pinball.util.RecentMenuManager;
 
+@RunWith(MockitoJUnitRunner.class)
 public class PinDmdEditorTest {
 
-	PinDmdEditor uut = new PinDmdEditor();
+	@InjectMocks
+	PinDmdEditor uut;
 
 	byte[] digest = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
 
+	@Mock
+	RecentMenuManager recentAnimationsMenuManager;
+	
 	@Rule
 	public TemporaryFolder testFolder = new TemporaryFolder();
 
 	@Before
-	public void setup() {
+	public void setup() throws Exception {
 		// TODO remove and replace by real license file
 		// uut.licManager.fakeCap(LicenseManager.Capability.VPIN);
 	}
@@ -127,6 +139,7 @@ public class PinDmdEditorTest {
 	@Test
 	public void testImportProjectString() throws Exception {
 		uut.importProject("./src/test/resources/test.xml");
+		verify(recentAnimationsMenuManager).populateRecent(eq("./src/test/resources/drwho-dump.txt.gz"));
 	}
 
 	@Test

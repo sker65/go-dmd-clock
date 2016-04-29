@@ -11,7 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ApplicationProperties {
 
-	private static final String PIN2DMD_PROPERTIES = "pin2dmd.properties";
+	private String propertiesFilename = "pin2dmd.properties";
 
 	private static ApplicationProperties theInstance;
 
@@ -31,7 +31,7 @@ public class ApplicationProperties {
 
 	private String getFilename() {
 		String homeDir = System.getProperty("user.home");
-		String filename = homeDir + File.separator + PIN2DMD_PROPERTIES;
+		String filename = homeDir + File.separator + propertiesFilename;
 		return filename;
 	}
 
@@ -41,7 +41,7 @@ public class ApplicationProperties {
 			props.load(new FileInputStream(filename));
 			log.info("loaded properties from {}", filename);
 		} catch (Exception e) {
-			log.warn("problems loading " + PIN2DMD_PROPERTIES + " from "
+			log.warn("problems loading " + propertiesFilename + " from "
 					+ filename, e);
 		}
 	}
@@ -70,6 +70,12 @@ public class ApplicationProperties {
 		String val = getInstance().props.getProperty(key);
 		log.info("get prop {} = '{}' ", key, val);
 		return val;
+	}
+
+	/** mainly for testing purpose */
+	public static void setPropFile(String filename) {
+		getInstance().propertiesFilename = filename;
+		
 	}
 
 }
