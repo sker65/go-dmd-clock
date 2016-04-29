@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ApplicationProperties {
+
 	private static final String PIN2DMD_PROPERTIES = "pin2dmd.properties";
 
 	private static ApplicationProperties theInstance;
@@ -28,38 +29,47 @@ public class ApplicationProperties {
 
 	private Properties props = new Properties();
 
-	public void load() {
+	private String getFilename() {
 		String homeDir = System.getProperty("user.home");
+		String filename = homeDir + File.separator + PIN2DMD_PROPERTIES;
+		return filename;
+	}
+
+	public void load() {
+		String filename = getFilename();
 		try {
-			props.load(new FileInputStream(homeDir + File.separator
-					+ PIN2DMD_PROPERTIES));
+			props.load(new FileInputStream(filename));
+			log.info("loaded properties from {}", filename);
 		} catch (Exception e) {
-			log.warn("problems loading / verifing " + PIN2DMD_PROPERTIES
-					+ " from " + homeDir);
+			log.warn("problems loading " + PIN2DMD_PROPERTIES + " from "
+					+ filename, e);
 		}
 	}
-	
+
 	public static Properties getProperties() {
 		return getInstance().props;
 	}
-	
+
 	public static void put(String key, String value) {
+		log.info("setting prop {} to '{}'", key, value);
 		getInstance().props.put(key, value);
 		getInstance().save();
 	}
 
 	public void save() {
-		String homeDir = System.getProperty("user.home");
+		String filename = getFilename();
 		try {
-			props.store(new FileOutputStream(homeDir + File.separator
-					+ PIN2DMD_PROPERTIES), "");
+			props.store(new FileOutputStream(filename), "");
 		} catch (IOException e) {
+			log.error("storing {}", filename);
 			throw new RuntimeException(e);
 		}
 	}
 
 	public static String get(String key) {
-		return getInstance().props.getProperty(key);
+		String val = getInstance().props.getProperty(key);
+		log.info("get prop {} = '{}' ", key, val);
+		return val;
 	}
 
 }

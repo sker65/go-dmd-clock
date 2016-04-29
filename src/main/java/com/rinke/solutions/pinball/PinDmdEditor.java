@@ -16,6 +16,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Observer;
@@ -107,6 +108,7 @@ import com.rinke.solutions.pinball.ui.UsbConfig;
 import com.rinke.solutions.pinball.util.ApplicationProperties;
 import com.rinke.solutions.pinball.util.ObservableList;
 import com.rinke.solutions.pinball.util.ObservableMap;
+import com.rinke.solutions.pinball.util.RecentMenuManager;
 import com.rinke.solutions.pinball.widget.CircleTool;
 import com.rinke.solutions.pinball.widget.ColorizeTool;
 import com.rinke.solutions.pinball.widget.DMDWidget;
@@ -239,6 +241,14 @@ public class PinDmdEditor implements EventHandler{
 	private String pin2dmdAdress = null;
 
     Pin2DmdConnector connector;
+
+	private Menu menuPopRecentProjects;
+	private Menu mntmRecentAnimations;
+	private Menu mntmRecentPalettes;
+	private RecentMenuManager recentProjectsMenuManager;
+	private RecentMenuManager recentPalettesMenuManager;
+	private RecentMenuManager recentAnimationsMenuManager;
+
 
     public PinDmdEditor() {
 		super();
@@ -540,10 +550,11 @@ public class PinDmdEditor implements EventHandler{
             	break;
             }
             ensureDefault();
+            recentProjectsMenuManager.populateRecent(filename);
         }
 		
 	}
-
+	
 	private void ensureDefault() {
 		boolean foundDefault = false;
 		for(Palette p:project.palettes) {
@@ -735,7 +746,7 @@ public class PinDmdEditor implements EventHandler{
         	}
         	animations.put(ani.getDesc(), ani);
         }
-        
+        recentAnimationsMenuManager.populateRecent(filename);
         project.dirty = true;
     }
     
@@ -797,6 +808,7 @@ public class PinDmdEditor implements EventHandler{
 		}
 		paletteComboViewer.setSelection(new StructuredSelection(activePalette));
 		paletteComboViewer.refresh();
+		recentPalettesMenuManager.populateRecent(filename);
 	}
    
     private PaletteImporter getImporterByFilename(String filename) {
@@ -905,7 +917,19 @@ public class PinDmdEditor implements EventHandler{
 		
 		createMenu(shell);
 
-		resManager = new LocalResourceManager(JFaceResources.getResources(),shell);
+	    recentProjectsMenuManager = new RecentMenuManager("recentProject", 4, menuPopRecentProjects, 
+	    		e->loadProject((String) e.widget.getData()));
+	    recentProjectsMenuManager.loadRecent();
+		
+	    recentPalettesMenuManager = new RecentMenuManager("recentPalettes", 4, mntmRecentPalettes,
+	    		e->loadPalette((String) e.widget.getData()));
+	    recentPalettesMenuManager.loadRecent();
+	    
+	    recentAnimationsMenuManager = new RecentMenuManager("recentAnimations", 4, mntmRecentAnimations,
+	    		e->loadAni(((String) e.widget.getData()), true, false));
+	    recentAnimationsMenuManager.loadRecent();
+
+	    resManager = new LocalResourceManager(JFaceResources.getResources(),shell);
 		
 		Label lblAnimations = new Label(shell, SWT.NONE);
 		lblAnimations.setText("Animations");
@@ -1426,6 +1450,7 @@ public class PinDmdEditor implements EventHandler{
         new Label(grpPalettes, SWT.NONE);
         new Label(grpPalettes, SWT.NONE);
         new Label(grpPalettes, SWT.NONE);
+        new Label(grpPalettes, SWT.NONE);
         btnMask.addListener(SWT.Selection, e->switchMask(btnMask.getSelection()));
 
     }
@@ -1661,6 +1686,12 @@ public class PinDmdEditor implements EventHandler{
 		mntmSaveProject.setText("Save Project");
 		mntmSaveProject.addListener(SWT.Selection, e->saveProject());
 		
+		MenuItem mntmRecentProjects = new MenuItem(menu_1, SWT.CASCADE);
+		mntmRecentProjects.setText("Recent Projects");
+		
+		menuPopRecentProjects = new Menu(mntmRecentProjects);
+		mntmRecentProjects.setMenu(menuPopRecentProjects);
+				
 		new MenuItem(menu_1, SWT.SEPARATOR);
 		
 		MenuItem mntmImportProject = new MenuItem(menu_1, SWT.NONE);
@@ -1717,6 +1748,14 @@ public class PinDmdEditor implements EventHandler{
 		MenuItem mntmSaveAnimation = new MenuItem(menu_2, SWT.NONE);
 		mntmSaveAnimation.setText("Save Animation");
 		mntmSaveAnimation.addListener(SWT.Selection, e->saveAniWithFC() );
+		
+		MenuItem mntmRecentAnimationsItem = new MenuItem(menu_2, SWT.CASCADE);
+		mntmRecentAnimationsItem.setText("Recent Animations");
+		
+		mntmRecentAnimations = new Menu(mntmRecentAnimationsItem);
+		mntmRecentAnimationsItem.setMenu(mntmRecentAnimations);
+		
+		new MenuItem(menu_2, SWT.SEPARATOR);
 
 		MenuItem mntmExportAnimation = new MenuItem(menu_2, SWT.NONE);
 		mntmExportAnimation.setText("Export Animation as GIF");
@@ -1737,6 +1776,12 @@ public class PinDmdEditor implements EventHandler{
 		MenuItem mntmSavePalette = new MenuItem(menu_3, SWT.NONE);
 		mntmSavePalette.setText("Save Palette");
 		mntmSavePalette.addListener(SWT.Selection, e->savePalette());
+        
+		MenuItem mntmRecentPalettesItem = new MenuItem(menu_3, SWT.CASCADE);
+		mntmRecentPalettesItem.setText("Recent Palettes");
+        
+		mntmRecentPalettes = new Menu(mntmRecentPalettesItem);
+		mntmRecentPalettesItem.setMenu(mntmRecentPalettes);
 		
         new MenuItem(menu_3, SWT.SEPARATOR);
 
