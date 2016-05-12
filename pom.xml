@@ -9,6 +9,10 @@
 			<id>swt-repo</id>
 			<url>https://swt-repo.googlecode.com/svn/repo/</url>
 		</repository>
+		<repository>
+			<id>jface-repo</id>
+			<url>http://www.jabylon.org/maven/</url>
+		</repository>
 	</repositories>
 	<properties>
     	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -320,9 +324,9 @@
 		</dependency>
 		<!-- JFace dependencies -->
 		<dependency>
-			<groupId>org.eclipse.jface</groupId>
-			<artifactId>org.eclipse.jface</artifactId>
-			<version>3.7.0.v20110928-1505</version>
+			<groupId>org.eclipse</groupId>
+			<artifactId>jface</artifactId>
+			<version>3.7.0</version>
 		</dependency>
 
 		<dependency>
