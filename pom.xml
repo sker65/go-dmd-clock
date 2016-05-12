@@ -6,12 +6,12 @@
 	<version>1.0.18.0</version>
 	<repositories>
 		<repository>
-			<id>swt-repo</id>
-			<url>https://swt-repo.googlecode.com/svn/repo/</url>
-		</repository>
+    	    <id>maven-eclipse-repo</id>
+   	    	<url>http://maven-eclipse.github.io/maven</url>
+   		</repository>
 		<repository>
-			<id>jface-repo</id>
-			<url>http://www.jabylon.org/maven/</url>
+			<id>godmd-repo</id>
+			<url>http://go-dmd.de/maven/</url>
 		</repository>
 	</repositories>
 	<properties>
