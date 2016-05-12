@@ -2,6 +2,7 @@ package com.rinke.solutions.pinball.util;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Properties;
@@ -40,9 +41,10 @@ public class ApplicationProperties {
 		try {
 			props.load(new FileInputStream(filename));
 			log.info("loaded properties from {}", filename);
+		} catch( FileNotFoundException e ) {
+			log.info("no property file {} found", filename );
 		} catch (Exception e) {
-			log.warn("problems loading " + propertiesFilename + " from "
-					+ filename, e);
+			log.warn("problems loading {} from ", filename, e);
 		}
 	}
 
