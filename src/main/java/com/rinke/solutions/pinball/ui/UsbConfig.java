@@ -101,7 +101,7 @@ public class UsbConfig extends Dialog {
 		
 		Label lblNewLabel = new Label(shell, SWT.NONE);
 		lblNewLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.TOP, false, false, 1, 1));
-		lblNewLabel.setText("Timing:");
+		lblNewLabel.setText("Brightness:");
 		
 		Composite grpTiming = new Composite(shell, SWT.NONE);
 		grpTiming.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 3));
@@ -133,7 +133,7 @@ public class UsbConfig extends Dialog {
 		
 		Button btnRemoveLicenseFrom = new Button(shell, SWT.NONE);
 		btnRemoveLicenseFrom.setText("Remove License from device");
-		btnRemoveLicenseFrom.addListener(SWT.Selection, e->connector.sendCmd(UsbCmd.DELETE_LICENSE) );
+		btnRemoveLicenseFrom.addListener(SWT.Selection, e->removeLicenses() );
 		new Label(shell, SWT.NONE);
 		new Label(shell, SWT.NONE);
 		new Label(shell, SWT.NONE);
@@ -147,5 +147,14 @@ public class UsbConfig extends Dialog {
 		btnOk.setText("Ok");
 		btnOk.addListener(SWT.Selection, e->shell.close());
 
+	}
+
+	private void removeLicenses() {
+		connector.sendCmd(UsbCmd.DELETE_LICENSE);
+		try {
+			Thread.sleep(200);
+		} catch (InterruptedException e) {
+		}
+		connector.sendCmd(UsbCmd.RESET);
 	}
 }
