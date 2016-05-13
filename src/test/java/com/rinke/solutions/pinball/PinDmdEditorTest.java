@@ -7,6 +7,7 @@ import static org.mockito.Mockito.*;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,15 +17,18 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.AnimationType;
+import com.rinke.solutions.pinball.io.Pin2DmdConnector;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.FrameSeq;
 import com.rinke.solutions.pinball.model.PalMapping;
+import com.rinke.solutions.pinball.model.PalMapping.SwitchMode;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.test.Util;
 import com.rinke.solutions.pinball.util.ApplicationProperties;
@@ -40,6 +44,9 @@ public class PinDmdEditorTest {
 
 	@Mock
 	RecentMenuManager recentAnimationsMenuManager;
+	
+	@Mock
+	Pin2DmdConnector connector;
 	
 	@Rule
 	public TemporaryFolder testFolder = new TemporaryFolder();
@@ -175,6 +182,17 @@ public class PinDmdEditorTest {
 		assertFalse(uut.checkForDuplicateKeyFrames(p));
 		uut.project.palMappings.add(p);
 		assertTrue(uut.checkForDuplicateKeyFrames(p));
+	}
+
+	@Test
+	public void testUploadProject() throws Exception {
+		PalMapping p = new PalMapping(0, "foo");
+		p.crc32 = new byte[]{1,2,3,4};		
+		p.switchMode = SwitchMode.PALETTE;
+		uut.project.palMappings.add(p);
+		uut.uploadProject();
+		
+		verify(connector).transferFile(eq("palettes.dat"), any(InputStream.class));
 	}
 
 }
