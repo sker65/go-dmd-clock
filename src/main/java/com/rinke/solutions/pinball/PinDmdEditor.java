@@ -86,6 +86,7 @@ import com.rinke.solutions.pinball.io.FileHelper;
 import com.rinke.solutions.pinball.io.PaletteImporter;
 import com.rinke.solutions.pinball.io.Pin2DmdConnector;
 import com.rinke.solutions.pinball.io.Pin2DmdConnector.ConnectionHandle;
+import com.rinke.solutions.pinball.io.Pin2DmdConnector.UsbCmd;
 import com.rinke.solutions.pinball.io.SmartDMDImporter;
 import com.rinke.solutions.pinball.io.UsbConnector;
 import com.rinke.solutions.pinball.model.Frame;
@@ -232,10 +233,7 @@ public class PinDmdEditor implements EventHandler{
 	private Button btnLivePreview;
 	private boolean livePreviewActive;
 	private ConnectionHandle handle;
-
-	private Button btnUploadFrame;
 	private Button btnUploadPalette;
-	private Button btnUploadMappings;
 	private Button btnUploadProject;
 
 	private String pin2dmdAdress = null;
@@ -598,7 +596,7 @@ public class PinDmdEditor implements EventHandler{
     	OutputStream buildStream(String name) throws IOException;
     }
     
-    private void uploadProject() {
+    void uploadProject() {
     	Map<String, ByteArrayOutputStream> captureOutput = new HashMap<>();
     	exportProject("a.dat", f->{
     		ByteArrayOutputStream stream = new ByteArrayOutputStream();
@@ -610,9 +608,18 @@ public class PinDmdEditor implements EventHandler{
     	if( captureOutput.containsKey("a.fsq")) {
     		connector.transferFile("pin2dmd.fsq", new ByteArrayInputStream(captureOutput.get("a.fsq").toByteArray()));
     	}
+    	sleep(200);
+    	connector.sendCmd(UsbCmd.RESET);
     }
     
-    void exportProject(String filename, OutputStreamProvider streamProvider) {
+    private void sleep(long millis) {
+    	try {
+			Thread.sleep(millis);
+		} catch (InterruptedException e) {
+		}
+	}
+
+	void exportProject(String filename, OutputStreamProvider streamProvider) {
         
     	licManager.requireOneOf( Capability.VPIN, Capability.REALPIN );
     	
@@ -1415,21 +1422,9 @@ public class PinDmdEditor implements EventHandler{
         ToolItem tltmColorize = new ToolItem(drawToolBar, SWT.RADIO);
         tltmColorize.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/colorize.png")));
         tltmColorize.addListener(SWT.Selection, e->dmdWidget.setDrawTool(drawTools.get("colorize")));
-
-//        ToolItem tltmEraser = new ToolItem(toolBar, SWT.RADIO);
-//        tltmEraser.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/eraser.png")));
-//        tltmEraser.addListener(SWT.Selection, e->dmdWidget.setDrawTool(null));
-        
-        btnUploadFrame = new Button(grpPalettes, SWT.NONE);
-        btnUploadFrame.setText("Upload Frame");
-        
-        btnUploadPalette = new Button(grpPalettes, SWT.NONE);
-        btnUploadPalette.setText("Upload Palette");
-        btnUploadPalette.addListener(SWT.Selection, e->connector.upload(activePalette));
-        
-        btnUploadMappings = new Button(grpPalettes, SWT.NONE);
-        btnUploadMappings.setText("Upload KeyFrames");
-        btnUploadMappings.addListener(SWT.Selection, e->connector.upload(project.palMappings));
+        new Label(grpPalettes, SWT.NONE);
+        new Label(grpPalettes, SWT.NONE);
+        new Label(grpPalettes, SWT.NONE);
         new Label(grpPalettes, SWT.NONE);
 
         new Label(grpPalettes, SWT.NONE);
@@ -1440,17 +1435,12 @@ public class PinDmdEditor implements EventHandler{
         btnUploadProject.setText("Upload Project");
         btnUploadProject.addListener(SWT.Selection, e->uploadProject());
         
-        new Label(grpPalettes, SWT.NONE);
+        btnUploadPalette = new Button(grpPalettes, SWT.NONE);
+        btnUploadPalette.setText("Upload Palettes");
+        btnUploadPalette.addListener(SWT.Selection, e->connector.upload(activePalette));
         
         btnMask = new Button(grpPalettes, SWT.CHECK);
         btnMask.setText("Mask");
-        new Label(grpPalettes, SWT.NONE);
-        new Label(grpPalettes, SWT.NONE);
-        new Label(grpPalettes, SWT.NONE);
-        new Label(grpPalettes, SWT.NONE);
-        new Label(grpPalettes, SWT.NONE);
-        new Label(grpPalettes, SWT.NONE);
-        new Label(grpPalettes, SWT.NONE);
         btnMask.addListener(SWT.Selection, e->switchMask(btnMask.getSelection()));
 
     }
@@ -1499,9 +1489,7 @@ public class PinDmdEditor implements EventHandler{
 	}
 
 	private void setEnableUsbTooling(boolean enabled) {
-        btnUploadFrame.setEnabled(enabled);
         btnUploadPalette.setEnabled(enabled);
-        btnUploadMappings.setEnabled(enabled);
         btnUploadProject.setEnabled(enabled);
 	}
 
