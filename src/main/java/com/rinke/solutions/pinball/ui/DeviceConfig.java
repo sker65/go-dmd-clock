@@ -3,6 +3,8 @@ package com.rinke.solutions.pinball.ui;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ComboViewer;
 import org.eclipse.swt.SWT;
@@ -33,10 +35,9 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 
+@Slf4j
 public class DeviceConfig extends Dialog {
     
-    private static final Logger LOG = LoggerFactory.getLogger(DeviceConfig.class);
-
     protected Object result;
     protected Shell shell;
     private String lastPath;
@@ -89,7 +90,7 @@ public class DeviceConfig extends Dialog {
             fos.write(defPalette);
             fos.write(dummy);
         } catch(IOException e) {
-            LOG.error("problems writing {}", filename,e);
+            log.error("problems writing {}", filename,e);
             throw new RuntimeException("error writing "+filename, e);
         }
     }
