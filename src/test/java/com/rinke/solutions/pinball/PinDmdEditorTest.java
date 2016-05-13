@@ -24,6 +24,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.AnimationType;
+import com.rinke.solutions.pinball.api.LicenseManager;
 import com.rinke.solutions.pinball.io.Pin2DmdConnector;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.FrameSeq;
@@ -54,7 +55,7 @@ public class PinDmdEditorTest {
 	@Before
 	public void setup() throws Exception {
 		// TODO remove and replace by real license file
-		// uut.licManager.fakeCap(LicenseManager.Capability.VPIN);
+		uut.licManager.verify("src/test/resources/#3E002400164732.key");
 	}
 
 	@Test
@@ -64,14 +65,14 @@ public class PinDmdEditorTest {
 	}
 
 	@Test
-	@Ignore
 	public void testExportProjectWithFrameMapping() throws Exception {
 
 		File tempFile = testFolder.newFile("test.dat");
 		String filename = tempFile.getAbsolutePath();
 
 		PalMapping p = new PalMapping(0, "foo");
-		p.digest = digest;
+		p.crc32 = new byte[]{1,2,3,4};		
+		p.switchMode = SwitchMode.PALETTE;
 		p.frameSeqName = "foo";
 
 		List<Frame> frames = new ArrayList<Frame>();
@@ -108,14 +109,14 @@ public class PinDmdEditorTest {
 	}
 
 	@Test
-	@Ignore
 	public void testExportProjectWithMapping() throws Exception {
 
 		File tempFile = testFolder.newFile("test.dat");
 		String filename = tempFile.getAbsolutePath();
 
 		PalMapping p = new PalMapping(0, "foo");
-		p.digest = digest;
+		p.crc32 = new byte[]{1,2,3,4};		
+		p.switchMode = SwitchMode.PALETTE;
 
 		uut.project.palMappings.add(p);
 
@@ -129,7 +130,6 @@ public class PinDmdEditorTest {
 	}
 
 	@Test
-	@Ignore
 	public void testExportProjectEmpty() throws Exception {
 
 		File tempFile = testFolder.newFile("test.dat");
