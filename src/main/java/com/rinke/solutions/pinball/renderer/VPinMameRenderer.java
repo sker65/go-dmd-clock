@@ -40,9 +40,12 @@ public class VPinMameRenderer extends Renderer {
 			String line = stream.readLine();
 			Frame res = new Frame(
 					new byte[dmd.getFrameSizeInByte()],
+					new byte[dmd.getFrameSizeInByte()],
+					new byte[dmd.getFrameSizeInByte()],
 					new byte[dmd.getFrameSizeInByte()]);
 
 			int j = 0;
+			int vmax = 0;
 			while (line != null) {
 				if (line.startsWith("0x")) {
 					int newTs = Integer.parseInt(line.substring(2), 16);
@@ -60,30 +63,37 @@ public class VPinMameRenderer extends Renderer {
 					frameNo++;
 					res = new Frame(
 							new byte[dmd.getFrameSizeInByte()],
-							new byte[dmd.getFrameSizeInByte()]);
+							new byte[dmd.getFrameSizeInByte()],
+							new byte[dmd.getFrameSizeInByte()],
+							new byte[dmd.getFrameSizeInByte()]
+							);
 					LOG.debug("reading frame: " + frameNo);
 					j = 0;
 					line = stream.readLine();
 					continue;
 				}
 				for (int i = 0; i < line.length(); i++) {
-					char c = line.charAt(i);
+					//char c = line.charAt(i);
 					int bit = (i % 8);
 					int b = i / 8;
 					int mask = 128 >> bit;
 					int v = Integer.parseInt(line.substring(i,i+1), 16);
-					if (c == '1') {
+					if( v > vmax ) vmax = v;
+					if( (v & 1) != 0 )
 						res.planes.get(0).plane[j + b] |= mask;
-					} else if (c == '2') {
+					if( (v & 2) != 0 )
 						res.planes.get(1).plane[j + b] |= mask;
-					} else if (c == '3') {
-						res.planes.get(0).plane[j + b] |= mask;
-						res.planes.get(1).plane[j + b] |= mask;
-					}
+					if( (v & 4) != 0 )
+						res.planes.get(2).plane[j + b] |= mask;
+					if( (v & 8) != 0 )
+						res.planes.get(3).plane[j + b] |= mask;
 				}
 				j += 16;
 				line = stream.readLine();
 			}
+			// check maximum value for v
+			// if never ever more than 3 reduce number of planes
+			if( vmax == 3 ) reducePlanes(frames,2);
 		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {
@@ -95,6 +105,16 @@ public class VPinMameRenderer extends Renderer {
 				}
 		}
 		this.maxFrame = frameNo;
+	}
+
+	private void reducePlanes(List<Frame> frames, int maxNumberOfPlanes) {
+		for (Frame frame : frames) {
+			List<Plane> planes = frame.planes;
+			while( planes.size() > maxNumberOfPlanes ) {
+				planes.remove(planes.size()-1);
+			}
+		}
+		
 	}
 
 }
