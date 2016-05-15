@@ -173,7 +173,7 @@ public class RegisterLicense extends Dialog {
 
 	private void verifyAndPopulateCaps(VerifyResult res) {
 		capList.removeAll();
-		if (res.valid) {
+		if (res != null && res.valid) {
 			for (Capability c : res.capabilities) {
 				capList.add(c.name().toLowerCase());
 			}

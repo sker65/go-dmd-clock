@@ -1603,6 +1603,12 @@ public class PinDmdEditor implements EventHandler{
 					selectedAnimation.get()));
 
 			animationHandler.setPos(selectedPalMapping.frameIndex);
+			
+			if( selectedPalMapping.withMask ) {
+				String txt = btnHash[selectedHashIndex].getText();
+				btnHash[selectedHashIndex].setText("* "+txt);
+			}
+			
 			saveTimeCode = (int) selectedAnimation.get().getTimeCode(
 					selectedPalMapping.frameIndex);
 		} else {
