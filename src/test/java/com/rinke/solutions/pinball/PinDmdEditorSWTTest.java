@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.OptionalInt;
 
+import org.eclipse.core.databinding.observable.Realm;
+import org.eclipse.jface.databinding.swt.SWTObservables;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ListViewer;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
@@ -63,7 +65,15 @@ public class PinDmdEditorSWTTest {
 	@Before
 	public void setup() {
 		shell = displayHelper.createShell();
-		uut.createContents(shell);	
+		Realm.runWithDefault(SWTObservables.getRealm(shell.getDisplay()), new Runnable() {
+
+			@Override
+			public void run() {
+				uut.createContents(shell);	
+			}
+			
+		});
+		
 		uut.createNewProject();
 		
 		DMD dmd = new DMD(128,32);
@@ -162,7 +172,7 @@ public class PinDmdEditorSWTTest {
 	public void testRemoveAni() throws Exception {
 		Animation animation = new Animation(AnimationType.PNG, "test", 0, 0, 0, 0, 0);
 		animation.setDesc("foo");
-		animation.setLoadedFromFile(false);
+		animation.setMutable(false);
 		uut.animations.put("foo", animation );
 		uut.selectedAnimation = Optional.of(animation);
 		trigger(SWT.Selection).on(uut.btnRemoveAni);
@@ -198,23 +208,23 @@ public class PinDmdEditorSWTTest {
 		
 		trigger(SWT.Selection).on(uut.btnNewPalette);
 		assertThat(uut.activePalette, notNullValue());
-		assertThat(uut.project.palettes.size(), equalTo(2));
+		assertThat(uut.project.palettes.size(), equalTo(10));
 		
 		// test that new palette is selected
-		Palette palette = uut.project.palettes.get(1);
+		Palette palette = uut.project.palettes.get(9);
 		Object element = ((StructuredSelection)uut.paletteComboViewer.getSelection()).getFirstElement();
 		assertThat(palette,equalTo(element));
 	}
 	@Test
 	public void testOnlyDefaultPalette() {
 		assertThat(uut.activePalette, notNullValue());
-		assertThat(uut.project.palettes.size(), equalTo(1));
+		assertThat(uut.project.palettes.size(), equalTo(9));
 	}
 	
 	@Test
 	public void testRenamePalette() {
 		assertThat(uut.activePalette, notNullValue());
-		assertThat(uut.activePalette.name, equalTo("default"));
+		assertThat(uut.activePalette.name, equalTo("pal0"));
 		
 		uut.paletteComboViewer.getCombo().setText("2 - foo");
 		trigger(SWT.Selection).on(uut.btnRenamePalette);
@@ -251,7 +261,7 @@ public class PinDmdEditorSWTTest {
 		
 		Animation animation = new Animation(AnimationType.PNG, "test", 0, 0, 0, 0, 0);
 		animation.setDesc("foo");
-		animation.setLoadedFromFile(false);
+		animation.setMutable(false);
 		uut.animations.put("foo", animation );
 
 		// frameSeqView must have a selection
@@ -269,6 +279,7 @@ public class PinDmdEditorSWTTest {
 	
 	@Test
 	public void testLoadPaletteString() throws Exception {
+		uut.project.palettes.clear();
 		uut.loadPalette("./src/test/resources/smartdmd.txt");
 	}
 	
