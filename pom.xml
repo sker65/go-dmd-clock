@@ -13,6 +13,10 @@
 			<id>godmd-repo</id>
 			<url>http://go-dmd.de/maven/</url>
 		</repository>
+		<repository>
+			<id>sker65-repo</id>
+			<url>https://raw.githubusercontent.com/sker65/mvn-repo/master</url>
+		</repository>
 	</repositories>
 	<properties>
     	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -338,7 +342,38 @@
 			<artifactId>org.eclipse.core.runtime</artifactId>
 			<version>3.7.0</version>
 		</dependency>
-
+		<!-- deps for databinding -->
+		<dependency>
+			<groupId>org.eclipse.core</groupId>
+			<artifactId>org.eclipse.core.databinding</artifactId>
+			<version>1.4.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.core</groupId>
+			<artifactId>org.eclipse.core.databinding.observable</artifactId>
+			<version>1.4.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.core</groupId>
+			<artifactId>org.eclipse.core.databinding.beans</artifactId>
+			<version>1.2.200</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.jface</groupId>
+			<artifactId>org.eclipse.jface.databinding</artifactId>
+			<version>1.6.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.core</groupId>
+			<artifactId>org.eclipse.core.databinding.property</artifactId>
+			<version>1.4.100</version>
+		</dependency>
+		<dependency>
+			<groupId>com.ibm.icu</groupId>
+			<artifactId>icu4j</artifactId>
+			<version>4.8</version>
+		</dependency>
+	
 		<dependency>
 		    <groupId>commons-beanutils</groupId>
 		    <artifactId>commons-beanutils</artifactId>
