@@ -85,8 +85,11 @@ public class ApplicationProperties {
 	}
 
 	public static boolean getBoolean(String key) {
-		String val = get(key);
-		return val!=null?Boolean.parseBoolean(val):false;	
+		return getBoolean(key, false);
 	}
 
+	public static boolean getBoolean(String key, boolean defaultVal) {
+		String val = get(key);
+		return val!=null?Boolean.parseBoolean(val):defaultVal;	
+	}
 }
