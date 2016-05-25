@@ -186,6 +186,7 @@ public class AnimationHandler extends Observable implements Runnable{
 		clockActive=false;
 		index = 0;
 		if( !anis.isEmpty() ) {
+			forceRerender = true;
 		    anis.get(index).restart();
 		    run();
 		}
