@@ -16,6 +16,8 @@ import com.typesafe.config.ConfigFactory;
 public class AnimationFactory {
 	
     private static final String GETAWAY = "Getaway";
+    
+    private static AnimationCompiler animationCompiler = new AnimationCompiler();
 
 	public static List<Animation> createAnimationsFromProperties(String filename) {
 	    File ifile = new File(filename);
@@ -28,7 +30,7 @@ public class AnimationFactory {
 		// load compiled file if any
 		if( conf.hasPath("compiled")) {
 			String file = conf.getString("compiled");
-			result.addAll(AnimationCompiler.readFromCompiledFile(file));
+			result.addAll(animationCompiler.readFromCompiledFile(file));
 		}
 		
 		if( conf.hasPath("base")) {
