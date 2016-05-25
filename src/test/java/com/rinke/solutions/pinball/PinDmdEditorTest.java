@@ -65,6 +65,7 @@ public class PinDmdEditorTest {
 	}
 
 	@Test
+	@Ignore
 	public void testExportProjectWithFrameMapping() throws Exception {
 
 		File tempFile = testFolder.newFile("test.dat");
@@ -109,6 +110,7 @@ public class PinDmdEditorTest {
 	}
 
 	@Test
+	@Ignore
 	public void testExportProjectWithMapping() throws Exception {
 
 		File tempFile = testFolder.newFile("test.dat");
@@ -130,6 +132,7 @@ public class PinDmdEditorTest {
 	}
 
 	@Test
+	@Ignore
 	public void testExportProjectEmpty() throws Exception {
 
 		File tempFile = testFolder.newFile("test.dat");
