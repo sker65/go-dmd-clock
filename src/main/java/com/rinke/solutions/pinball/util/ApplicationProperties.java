@@ -54,8 +54,12 @@ public class ApplicationProperties {
 
 	public static void put(String key, String value) {
 		log.info("setting prop {} to '{}'", key, value);
-		getInstance().props.put(key, value);
-		getInstance().save();
+		String old = getInstance().props.getProperty(key);
+		if( !value.equals(old) ) {
+			log.info("value for prop {} changed {} -> {}", key, old, value);
+			getInstance().props.put(key, value);
+			getInstance().save();
+		}
 	}
 
 	public void save() {
@@ -78,6 +82,11 @@ public class ApplicationProperties {
 	public static void setPropFile(String filename) {
 		getInstance().propertiesFilename = filename;
 		
+	}
+
+	public static boolean getBoolean(String key) {
+		String val = get(key);
+		return val!=null?Boolean.parseBoolean(val):false;	
 	}
 
 }
