@@ -1469,7 +1469,7 @@ public class PinDmdEditor implements EventHandler {
 		gd_grpTest.widthHint = 241;
 		grpGoDMDCrtls.setLayoutData(gd_grpTest);
 		grpGoDMDCrtls.setText("goDMD Animation");
-		grpGoDMDCrtls.setVisible(ApplicationProperties.getBoolean(GODMD_ENABLED_PROP_KEY));
+		grpGoDMDCrtls.setVisible(ApplicationProperties.getBoolean(GODMD_ENABLED_PROP_KEY, false));
 
 
 		Label lblCycle = new Label(grpGoDMDCrtls, SWT.NONE);
