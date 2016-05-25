@@ -42,6 +42,7 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
@@ -91,6 +92,7 @@ import com.rinke.solutions.pinball.io.Pin2DmdConnector.UsbCmd;
 import com.rinke.solutions.pinball.io.SmartDMDImporter;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.FrameSeq;
+import com.rinke.solutions.pinball.model.Mask;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.PalMapping.SwitchMode;
 import com.rinke.solutions.pinball.model.Palette;
@@ -272,6 +274,10 @@ public class PinDmdEditor implements EventHandler {
 	private Group grpGoDMDCrtls;
 
 	private MenuItem mntmGodmd;
+
+	private Spinner maskSpinner;
+
+	private int actMaskNumber;
 
 	public PinDmdEditor() {
 		super();
@@ -936,7 +942,12 @@ public class PinDmdEditor implements EventHandler {
 		palMapping.animationName = selectedAnimation.get().getDesc();
 		palMapping.frameIndex = selectedAnimation.get().actFrame;
 		palMapping.switchMode = SwitchMode.PALETTE;
-		palMapping.withMask = useMask;
+		if( useMask ) {
+			palMapping.withMask = useMask;
+			palMapping.maskNumber = actMaskNumber;
+			project.masks.get(actMaskNumber).locked = true;
+			switchMask(true);
+		}
 
 		if (!checkForDuplicateKeyFrames(palMapping)) {
 			project.palMappings.add(palMapping);
@@ -1392,11 +1403,11 @@ public class PinDmdEditor implements EventHandler {
 
 		paletteTool.addListener(dmdWidget);
 
-		Label label = new Label(grpPalettes, SWT.NONE);
-		GridData gd_label = new GridData(SWT.LEFT, SWT.CENTER, false, false, 2, 1);
-		gd_label.widthHint = 139;
-		label.setLayoutData(gd_label);
-		label.setText("  Ctrl-Click to edit color");
+		Label lblCtrlclickToEdit = new Label(grpPalettes, SWT.NONE);
+		GridData gd_lblCtrlclickToEdit = new GridData(SWT.LEFT, SWT.CENTER, false, false, 2, 1);
+		gd_lblCtrlclickToEdit.widthHint = 139;
+		lblCtrlclickToEdit.setLayoutData(gd_lblCtrlclickToEdit);
+		lblCtrlclickToEdit.setText("Ctrl-Click to edit color");
 		new Label(grpPalettes, SWT.NONE);
 
 		drawToolBar = new ToolBar(grpPalettes, SWT.FLAT | SWT.RIGHT);
@@ -1426,11 +1437,16 @@ public class PinDmdEditor implements EventHandler {
 		tltmColorize.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/colorize.png")));
 		tltmColorize.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("colorize")));
 		new Label(grpPalettes, SWT.NONE);
-
+				
+		maskSpinner = new Spinner(grpPalettes, SWT.BORDER);
+		maskSpinner.setMinimum(0);
+		maskSpinner.setMaximum(9);
+		maskSpinner.addListener( SWT.Selection, e->maskNumberChanged(e) );
+		
 		btnMask = new Button(grpPalettes, SWT.CHECK);
 		btnMask.setText("Mask");
 		btnMask.addListener(SWT.Selection, e -> switchMask(btnMask.getSelection()));
-		new Label(grpPalettes, SWT.NONE);
+				
 		new Label(grpPalettes, SWT.NONE);
 
 		btnUploadPalette = new Button(grpPalettes, SWT.NONE);
@@ -1678,6 +1694,12 @@ public class PinDmdEditor implements EventHandler {
 				palMapping.animationName = selectedAnimation.get().getDesc();
 				palMapping.switchMode = SwitchMode.REPLACE;
 				palMapping.frameIndex = selectedAnimation.get().actFrame;
+				if( useMask ) {
+					palMapping.withMask = useMask;
+					palMapping.maskNumber = actMaskNumber;
+					project.masks.get(actMaskNumber).locked = true;
+					switchMask(true);
+				}
 				if (!checkForDuplicateKeyFrames(palMapping)) {
 					project.palMappings.add(palMapping);
 					keyframeTableViewer.refresh();
@@ -1692,7 +1714,6 @@ public class PinDmdEditor implements EventHandler {
 
 	private void warn(String header, String msg) {
 		MessageBox messageBox = new MessageBox(shell, SWT.ICON_WARNING | SWT.OK);
-
 		messageBox.setText(header);
 		messageBox.setMessage(msg);
 		messageBox.open();
@@ -1700,24 +1721,47 @@ public class PinDmdEditor implements EventHandler {
 
 	private void switchMask(boolean useMask) {
 		this.useMask = useMask;
+		Mask maskToUse = project.masks.get(maskSpinner.getSelection());
 		if (useMask) {
-			DMD maskDMD = new DMD(128, 32);
-			maskDMD.frame = new Frame();
-			maskDMD.frame.planes.add(new Plane((byte) 0, project.mask));
-			paletteTool.setNumberOfPlanes(1);
-			dmdWidget.setMask(maskDMD);
-			animationHandler.setMask(project.mask);
+			activeMask(maskToUse);
 		} else {
-			DMD dmdMask = dmdWidget.getMask();
-			if (dmdMask != null)
-				System.arraycopy(dmdMask.frame.planes.get(0).plane, 0, project.mask, 0, 512);
-			if (planeNumber != null)
-				paletteTool.setNumberOfPlanes(planeNumber.numberOfPlanes);
-			dmdWidget.setMask(null);
-			animationHandler.setMask(emptyMask);
+			deactivateMask(maskToUse);
 		}
 		editAniObserver.update(animationHandler, null);
 	}
+
+	private void deactivateMask(Mask mask) {
+		DMD dmdMask = dmdWidget.getMask();
+		if (dmdMask != null)
+			System.arraycopy(dmdMask.frame.planes.get(0).plane, 0, mask.data, 0, 512);
+		if (planeNumber != null)
+			paletteTool.setNumberOfPlanes(planeNumber.numberOfPlanes);
+		dmdWidget.setMask(null, false);
+		animationHandler.setMask(emptyMask);
+	}
+
+	private void activeMask(Mask mask) {
+		DMD maskDMD = new DMD(128, 32);
+		maskDMD.frame = new Frame();
+		maskDMD.frame.planes.add(new Plane((byte) 0, mask.data));
+		paletteTool.setNumberOfPlanes(1);
+		dmdWidget.setMask(maskDMD, mask.locked);
+		animationHandler.setMask(mask.data);
+	}
+
+	private Object maskNumberChanged(Event e) {
+		int newMaskNumber = ((Spinner)e.widget).getSelection();
+		if( useMask && newMaskNumber != actMaskNumber ) {
+			log.info("mask number changed {} -> {}", actMaskNumber, newMaskNumber);
+			deactivateMask(project.masks.get(actMaskNumber));
+			activeMask(project.masks.get(newMaskNumber));
+			actMaskNumber = newMaskNumber;
+			editAniObserver.update(animationHandler, null);
+		}
+		return null;
+	}
+
+
 
 	private void sortAnimations() {
 		ArrayList<Entry<String, Animation>> list = new ArrayList<>(animations.entrySet());
@@ -1767,13 +1811,14 @@ public class PinDmdEditor implements EventHandler {
 			selectedAnimation = Optional.of(animations.get(selectedPalMapping.animationName));
 			aniListViewer.setSelection(new StructuredSelection(selectedAnimation.get()));
 			
-			frameSeqViewer.setSelection(new StructuredSelection(animations.get(selectedPalMapping.frameSeqName)));
+			if( selectedPalMapping.frameSeqName != null )
+				frameSeqViewer.setSelection(new StructuredSelection(animations.get(selectedPalMapping.frameSeqName)));
 
 			animationHandler.setPos(selectedPalMapping.frameIndex);
 
 			if (selectedPalMapping.withMask) {
 				String txt = btnHash[selectedHashIndex].getText();
-				btnHash[selectedHashIndex].setText("* " + txt);
+				btnHash[selectedHashIndex].setText("M"+selectedPalMapping.maskNumber+" " + txt);
 			}
 
 			saveTimeCode = (int) selectedAnimation.get().getTimeCode(selectedPalMapping.frameIndex);

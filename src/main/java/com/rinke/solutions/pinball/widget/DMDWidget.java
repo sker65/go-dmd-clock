@@ -46,6 +46,7 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 	private int height;
 	private boolean scrollable = false;
 	private List<FrameChangedListerner> frameChangedListeners = new ArrayList<>();
+	private boolean maskLocked;
 	
 	@FunctionalInterface
 	public static interface FrameChangedListerner {
@@ -186,7 +187,7 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
     		Image maskImage =  new Image(display, imageData);
             GC gcMask = new GC(maskImage);
 			cols[0] = resourceManager.createColor(new RGB(0, 0, 0));
-            cols[1] = resourceManager.createColor(new RGB(255, 0, 0));
+            cols[1] = resourceManager.createColor(maskLocked ? new RGB(255, 0, 0) : new RGB(0, 0, 255));
             drawDMD(gcMask, mask.getFrame(), 1, true, cols);
             gcImage.drawImage(maskImage, 0, 0);
             gcMask.dispose();
@@ -270,8 +271,9 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 		return mask;
 	}
 
-	public void setMask(DMD mask) {
+	public void setMask(DMD mask, boolean maskLocked) {
 		this.mask = mask;
+		this.maskLocked = maskLocked;
 		redraw();
 	}
 
