@@ -377,7 +377,7 @@ public class PinDmdEditor implements EventHandler {
 	}
 
 	private boolean animationIsEditable() {
-		return this.useMask || (animationHandler.isStopped() && isEditable(animationHandler.getAnimations()));
+		return (this.useMask && !project.masks.get(actMaskNumber).locked ) || (animationHandler.isStopped() && isEditable(animationHandler.getAnimations()));
 	}
 
 	private boolean isEditable(java.util.List<Animation> a) {
@@ -1133,6 +1133,7 @@ public class PinDmdEditor implements EventHandler {
 			if (selectedPalMapping != null) {
 				project.palMappings.remove(selectedPalMapping);
 				keyframeTableViewer.refresh();
+				checkReleaseMask();
 			}
 		});
 
@@ -1570,6 +1571,22 @@ public class PinDmdEditor implements EventHandler {
 
 		m_bindingContext = initDataBindings();
 
+	}
+
+	/**
+	 * checks all pal mappings and releases masks if not used anymore
+	 */
+	private void checkReleaseMask() {
+		HashSet<Integer> useMasks = new HashSet<>();
+		for( PalMapping p : project.palMappings) {
+			if( p.withMask ) {
+				useMasks.add(p.maskNumber);
+			}
+		}
+		for(int i = 0; i<project.masks.size(); i++ ) {
+			project.masks.get(i).locked = useMasks.contains(i);
+		}
+		switchMask(useMask);
 	}
 
 	private void onAnimationSelectionChanged(Animation a) {
