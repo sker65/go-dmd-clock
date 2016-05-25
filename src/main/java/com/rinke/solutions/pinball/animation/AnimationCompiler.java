@@ -5,6 +5,8 @@ import java.io.DataOutputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,7 +15,9 @@ import org.slf4j.LoggerFactory;
 
 import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.model.Frame;
+import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.Plane;
+import com.rinke.solutions.pinball.model.RGB;
 
 /**
  * class that compiles an animation into a binary file 
@@ -21,19 +25,25 @@ import com.rinke.solutions.pinball.model.Plane;
  */
 public class AnimationCompiler {
 
-	private static Logger LOG = LoggerFactory.getLogger(AnimationCompiler.class); 
+	private static Logger LOG = LoggerFactory.getLogger(AnimationCompiler.class);
+	private int startOfIndex; 
 	
-	public static List<Animation> readFromCompiledFile(String filename) {
+	public List<Animation> readFromCompiledFile(String filename) {
 		List<Animation> anis = new ArrayList<>();
 		LOG.info("reading animations from {}",filename);
 		DataInputStream is = null;
+		short version = 0;
 		try {
 			is = new DataInputStream(new FileInputStream(filename));
 			byte[] magic = new byte[4];
 			is.read(magic); //
-			is.readShort(); // version
+			version = is.readShort(); // version
 			int count = is.readShort();
 			LOG.info("reading {} animations from {}",count, filename);
+			if( version > 2 ) {
+				// skip index of animations
+				for( int i=0; i< count; i++) is.readInt();
+			}
 			while(count>0) {
 				String desc = is.readUTF();
 				int cycles = is.readShort();
@@ -44,11 +54,11 @@ public class AnimationCompiler {
 				int clockXOffset = is.readShort();
 				int clockYOffset = is.readShort();
 				int refreshDelay = is.readShort();
-				AnimationType type = AnimationType.values()[is.readByte()];
+				is.readByte(); // ignore type (when reread its always compiled)
 				int fsk = is.readByte();
 				
 				// read complied animations
-				CompiledAnimation a = new CompiledAnimation(type, filename, 0, 0, 1, cycles, holdCycles);
+				CompiledAnimation a = new CompiledAnimation(AnimationType.COMPILED, filename, 0, 0, 1, cycles, holdCycles);
 				a.setRefreshDelay(refreshDelay);
 				a.setClockFrom(clockFrom);
 				a.setClockSmall(clockSmall);
@@ -61,6 +71,17 @@ public class AnimationCompiler {
 				
 				int frames = is.readShort();
 				if( frames < 0 ) frames += 65536;
+
+				if( version > 2 ) {
+					a.setPalIndex(is.readShort());
+					int numberOfColors = is.readShort();
+					RGB[] rgb = new RGB[numberOfColors];
+					for( int i = 0; i < numberOfColors; i++) {
+						rgb[i] = new RGB(is.readByte(),is.readByte(),is.readByte());
+					}
+					a.setAniColors(rgb);
+				}
+
 				LOG.info("reading {} frames for {}",frames, desc);
 				int i = 0;
 				while(frames>0) {
@@ -108,18 +129,23 @@ public class AnimationCompiler {
 		return anis;
 	}
 
-	public static void writeToCompiledFile(List<Animation> anis, String filename) {
+	public void writeToCompiledFile(List<Animation> anis, String filename, int version, List<Palette> palettes) {
 		DataOutputStream os = null;
 		try {
 			LOG.info("writing animations to {}",filename);
-			os = new DataOutputStream(new FileOutputStream(filename));
+			FileOutputStream fos = new FileOutputStream(filename);
+			os = new DataOutputStream(fos);
 			os.writeBytes("ANIM"); // magic header
-
-			os.writeShort(1); // version
-			
+			os.writeShort(version); // version
 			os.writeShort(anis.size());
 			LOG.info("writing {} animations", anis.size());
+			if( version > 2 ) {
+				writeIndexPlaceholder(anis.size(),os);
+			}
+			int aniIndex = 0;
+			int aniOffset[] = new int[anis.size()];
 			for (Animation a : anis) {
+				aniOffset[aniIndex] = os.size();
 			    LOG.info("writing {}",a);
 				// write meta data
 				os.writeUTF(a.getDesc());
@@ -141,6 +167,27 @@ public class AnimationCompiler {
 				
 				int count = a.getFrameCount(dmd);
 				os.writeShort(count);
+				if( version > 2 ) {
+					// write palette idx
+					if( a.getPalIndex() <= 8 ) {
+						os.writeShort(a.getPalIndex()); // standard palette is always 0 for now
+						os.writeShort(0); // number of colors on custom palette is also 0
+					} else {
+						os.writeShort(Short.MAX_VALUE); // as custom pallette use index short max 
+						if( a.getPalIndex() < palettes.size() ) {
+							Palette pal = palettes.get(a.getPalIndex());
+							os.writeShort(pal.numberOfColors);
+							for(RGB col: pal.colors) {
+								os.writeByte(col.red);
+								os.writeByte(col.green);
+								os.writeByte(col.blue);
+							}
+						} else {
+							os.writeShort(0);
+						}
+					}
+				}
+				
 				a.restart();
 				// write frames
 				LOG.info("writing {} frames", count);
@@ -172,7 +219,10 @@ public class AnimationCompiler {
 	                    os.write(r.planes.get(j).plane);
 					}
 				}
+				aniIndex++;
 			}
+			rewriteIndex(aniOffset, os, fos);
+			os.close();
 			LOG.info("done");
 		} catch (IOException e) {
 			LOG.error("problems when wrinting file {}", filename);
@@ -185,6 +235,20 @@ public class AnimationCompiler {
 				}
 			}
 		}
+	}
+
+	private void rewriteIndex(int[] aniOffset, DataOutputStream os,
+			FileOutputStream fos) throws IOException {
+		FileChannel channel = fos.getChannel();
+		channel.position(this.startOfIndex);
+		for (int i = 0; i < aniOffset.length; i++) {
+			os.writeInt(aniOffset[i]);
+		}
+	}
+
+	private void writeIndexPlaceholder(int count, DataOutputStream os) throws IOException {
+		startOfIndex = os.size();
+		for(int i = 0; i<count; i++) os.writeInt(0);
 	}
 	
 }
