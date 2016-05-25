@@ -383,7 +383,7 @@ public class PinDmdEditor implements EventHandler {
 
 	protected void buildFrameSeqList() {
 		frameSeqList.clear();
-		frameSeqList.addAll(animations.values().stream().filter(a -> !a.isMutable()).collect(Collectors.toList()));
+		frameSeqList.addAll(animations.values().stream().filter(a -> a.isMutable()).collect(Collectors.toList()));
 		frameSeqViewer.refresh();
 	}
 
