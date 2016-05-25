@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Plane;
+import com.rinke.solutions.pinball.model.RGB;
 import com.rinke.solutions.pinball.renderer.AnimatedGIFRenderer;
 import com.rinke.solutions.pinball.renderer.DMDFRenderer;
 import com.rinke.solutions.pinball.renderer.DummyRenderer;
@@ -54,7 +55,17 @@ public class Animation {
 	private String transitionName = null;
 	private int transitionCount = 1;
 	private int transitionDelay = 50;
-	private boolean loadedFromFile = false;
+	private boolean mutable = false;
+	private int palIndex = 0;
+	private RGB[] aniColors;
+
+	public void setAniColors(RGB[] rgb) {
+		this.aniColors = rgb;
+	}
+
+	public RGB[] getAniColors() {
+		return aniColors;
+	}
 	
 	public int getFsk() {
 		return fsk;
@@ -86,7 +97,7 @@ public class Animation {
 		CompiledAnimation dest = new CompiledAnimation(
 				AnimationType.COMPILED, this.getName(),
 				0, end-start, this.skip, 1, 0);
-		dest.setLoadedFromFile(false);
+		dest.setMutable(true);
 		dest.setClockFrom(Short.MAX_VALUE);
 		// rerender and thereby copy all frames
 		this.actFrame = start;
@@ -117,7 +128,7 @@ public class Animation {
         Animation ani = new Animation(type, base, 0, 0, 1, 1, 0);
         ani.setBasePath(file.getParent() + "/");
         ani.setDesc(base.substring(0, base.indexOf('.')));
-        ani.setLoadedFromFile(true);
+        ani.setMutable(type.equals(AnimationType.COMPILED));
         return ani;
     }
 
@@ -449,12 +460,20 @@ public class Animation {
 	public void commitDMDchanges(DMD dmd) {
 	}
 
-	public boolean isLoadedFromFile() {
-		return loadedFromFile;
+	public boolean isMutable() {
+		return mutable;
 	}
 
-	public void setLoadedFromFile(boolean loadedFromFile) {
-		this.loadedFromFile = loadedFromFile;
+	public void setMutable(boolean mutable) {
+		this.mutable = mutable;
+	}
+
+	public int getPalIndex() {
+		return palIndex;
+	}
+
+	public void setPalIndex(int palIndex) {
+		this.palIndex = palIndex;
 	}
 
 }
