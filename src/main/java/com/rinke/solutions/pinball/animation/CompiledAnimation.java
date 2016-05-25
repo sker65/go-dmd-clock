@@ -15,6 +15,7 @@ public class CompiledAnimation extends Animation {
 			int end, int skip, int cycles, int holdCycles) {
 		super(type, name, start, end, skip, cycles, holdCycles);
 		init();
+		setMutable(true);
 		frames = renderer.getFrames();
 	}
 
@@ -70,5 +71,5 @@ public class CompiledAnimation extends Animation {
 	private int min(int l, int l2) {
 		return l<l2?l:l2;
 	}
-	
+
 }
