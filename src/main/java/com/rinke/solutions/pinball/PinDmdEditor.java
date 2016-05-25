@@ -683,8 +683,15 @@ public class PinDmdEditor implements EventHandler {
 	private void saveProject(String filename) {
 		log.info("write project to {}", filename);
 		String aniFilename = replaceExtensionTo("ani", filename);
-		int numberOfStoredAnis = storeAnimations(animations.values(), aniFilename, 1);
 		String baseName = new File(aniFilename).getName();
+		String baseNameWithoutExtension = baseName.substring(0,baseName.indexOf('.'));
+		if( project.name == null ) {
+			project.name = baseNameWithoutExtension;
+		} else if( !project.name.equals(baseNameWithoutExtension)) {
+			// save as
+			project.inputFiles.remove(project.name+".ani");
+		}
+		int numberOfStoredAnis = storeAnimations(animations.values(), aniFilename, 1);
 		if (numberOfStoredAnis > 0 && !project.inputFiles.contains(baseName)) {
 			project.inputFiles.add(baseName);
 		}
