@@ -261,7 +261,7 @@ public class PinDmdEditorSWTTest {
 		
 		Animation animation = new Animation(AnimationType.PNG, "test", 0, 0, 0, 0, 0);
 		animation.setDesc("foo");
-		animation.setMutable(false);
+		animation.setMutable(true);
 		uut.animations.put("foo", animation );
 
 		// frameSeqView must have a selection

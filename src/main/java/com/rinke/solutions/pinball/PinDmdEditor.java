@@ -1675,7 +1675,7 @@ public class PinDmdEditor implements EventHandler {
 				palMapping.setDigest(hashes.get(selectedHashIndex));
 				palMapping.palIndex = activePalette.index;
 				palMapping.frameSeqName = ani.getDesc();
-				palMapping.animationName = ani.getDesc();
+				palMapping.animationName = selectedAnimation.get().getDesc();
 				palMapping.switchMode = SwitchMode.REPLACE;
 				palMapping.frameIndex = selectedAnimation.get().actFrame;
 				if (!checkForDuplicateKeyFrames(palMapping)) {
@@ -1763,8 +1763,11 @@ public class PinDmdEditor implements EventHandler {
 			for (int j = 0; j < numberOfHashes; j++) {
 				btnHash[j].setSelection(j == selectedHashIndex);
 			}
+
 			selectedAnimation = Optional.of(animations.get(selectedPalMapping.animationName));
 			aniListViewer.setSelection(new StructuredSelection(selectedAnimation.get()));
+			
+			frameSeqViewer.setSelection(new StructuredSelection(animations.get(selectedPalMapping.frameSeqName)));
 
 			animationHandler.setPos(selectedPalMapping.frameIndex);
 
