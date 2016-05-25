@@ -684,8 +684,9 @@ public class PinDmdEditor implements EventHandler {
 		log.info("write project to {}", filename);
 		String aniFilename = replaceExtensionTo("ani", filename);
 		int numberOfStoredAnis = storeAnimations(animations.values(), aniFilename, 1);
-		if (numberOfStoredAnis > 0) {
-			project.inputFiles.add(new File(aniFilename).getName());
+		String baseName = new File(aniFilename).getName();
+		if (numberOfStoredAnis > 0 && !project.inputFiles.contains(baseName)) {
+			project.inputFiles.add(baseName);
 		}
 		fileHelper.storeObject(project, filename);
 		project.dirty = false;
@@ -700,7 +701,7 @@ public class PinDmdEditor implements EventHandler {
 	}
 
 	private int storeAnimations(Collection<Animation> anis, String filename, int version) {
-		java.util.List<Animation> anisToSave = anis.stream().filter(a -> !a.isMutable()).collect(Collectors.toList());
+		java.util.List<Animation> anisToSave = anis.stream().filter(a -> a.isMutable()).collect(Collectors.toList());
 		AnimationCompiler animationCompiler = new AnimationCompiler();
 		animationCompiler.writeToCompiledFile(anisToSave, filename, version, project.palettes);
 		return anisToSave.size();

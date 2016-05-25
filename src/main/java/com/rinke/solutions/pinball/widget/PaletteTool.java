@@ -79,7 +79,7 @@ public class PaletteTool implements ColorModifiedListener {
 //		GridData gd = new GridData(SWT.LEFT, SWT.CENTER, false, false, 4, 1);
 //		gd.widthHint = 310;
 //		paletteBar.setLayoutData(gd);
-		createColorButtons(paletteBar, 20, 10, palette);
+		createColorButtons(paletteBar, palette);
 		colorPicker.addListener(this);
 	}
 
@@ -121,7 +121,7 @@ public class PaletteTool implements ColorModifiedListener {
 		return image;
 	}
 
-	private void createColorButtons(ToolBar toolBar, int x, int y, Palette pal) {
+	private void createColorButtons(ToolBar toolBar, Palette pal) {
 		for (int i = 0; i < colBtn.length; i++) {
 			colBtn[i] = new ToolItem(toolBar, SWT.RADIO);
 			colBtn[i].setData(Integer.valueOf(i));
