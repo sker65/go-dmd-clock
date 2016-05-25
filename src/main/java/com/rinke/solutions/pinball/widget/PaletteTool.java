@@ -76,9 +76,9 @@ public class PaletteTool implements ColorModifiedListener {
 		resManager = new LocalResourceManager(JFaceResources.getResources(),
 				parent);
 		paletteBar = new ToolBar(parent, flags);
-		GridData gd = new GridData(SWT.LEFT, SWT.CENTER, false, false, 4, 1);
-		gd.widthHint = 310;
-		paletteBar.setLayoutData(gd);
+//		GridData gd = new GridData(SWT.LEFT, SWT.CENTER, false, false, 4, 1);
+//		gd.widthHint = 310;
+//		paletteBar.setLayoutData(gd);
 		createColorButtons(paletteBar, 20, 10, palette);
 		colorPicker.addListener(this);
 	}
