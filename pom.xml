@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.rinke.solutions.pinball</groupId>
 	<artifactId>go-dmd-clock</artifactId>
-	<version>1.0.18.0</version>
+	<version>1.0.19.0</version>
 	<repositories>
 		<repository>
     	    <id>maven-eclipse-repo</id>
@@ -479,7 +479,7 @@
 		<dependency>
 	       <groupId>com.rinke.solutions.pinball</groupId>
     	    <artifactId>pin2dmd-tools</artifactId>
-        	<version>0.0.3-SNAPSHOT</version>
+        	<version>0.0.2-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 	<build>
