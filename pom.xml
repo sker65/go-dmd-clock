@@ -474,12 +474,12 @@
 		<dependency>
 	       <groupId>com.rinke.solutions.pinball</groupId>
     	    <artifactId>license-api</artifactId>
-        	<version>0.1.4-SNAPSHOT</version>
+        	<version>0.1.5-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 	       <groupId>com.rinke.solutions.pinball</groupId>
     	    <artifactId>pin2dmd-tools</artifactId>
-        	<version>0.0.2-SNAPSHOT</version>
+        	<version>0.0.3-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 	<build>
