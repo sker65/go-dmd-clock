@@ -5,13 +5,17 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Observable;
 
+import lombok.extern.slf4j.Slf4j;
+
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Plane;
 
+@Slf4j
 public class DMD extends Observable {
 
     private int width;
     private int height;
+    private int drawMask = 0xFFFF; // limits drawing (setPixel) to planes, that are not masked
     
     Frame frame = new Frame();
     
@@ -51,14 +55,16 @@ public class DMD extends Observable {
     public void copyLastBuffer() {
     	if( actualBuffer>0) {
         	//Frame target = buffers.get(actualBuffer);
-        	Frame source = new Frame(buffers.get(actualBuffer-1));
-        	buffers.put(actualBuffer, source);
+    		log.trace("copy buffer {} -> {}, max: {}", actualBuffer-1, actualBuffer, buffers.size());
+        	frame = new Frame(buffers.get(actualBuffer-1));
+        	buffers.put(actualBuffer, frame);
     	}
     }
     
     public void addUndoBuffer() {
     	Frame newframe = new Frame(frame);
     	actualBuffer++;
+    	log.trace("add undo: {}, max: {}", actualBuffer, buffers.size());
     	buffers.put(actualBuffer, newframe);
     	updateActualBuffer(actualBuffer);
     }
@@ -66,6 +72,7 @@ public class DMD extends Observable {
     public void undo() {
     	if(canUndo()) {
     		actualBuffer--;
+        	log.trace("undo: {}, max: {}", actualBuffer, buffers.size());
     		updateActualBuffer(actualBuffer);
     	}
     }
@@ -73,6 +80,7 @@ public class DMD extends Observable {
     public void redo() {
     	if( canRedo() ) {
     		actualBuffer++;
+    		log.trace("redo: {}, max: {}", actualBuffer, buffers.size());
     		updateActualBuffer(actualBuffer);
     	}
     }
@@ -114,10 +122,12 @@ public class DMD extends Observable {
     	int numberOfPlanes = frame.planes.size();
     	byte mask = (byte) (128 >> (x % 8));
     	for(int plane = 0; plane < numberOfPlanes; plane++) {
-    		if( (v & 0x01) != 0) {
-    			frame.planes.get(plane).plane[y*bytesPerRow+x/8] |= mask;
-    		} else {
-    			frame.planes.get(plane).plane[y*bytesPerRow+x/8] &= ~mask;
+    		if( ((1<<plane) & drawMask) != 0) {
+        		if( (v & 0x01) != 0) {
+        			frame.planes.get(plane).plane[y*bytesPerRow+x/8] |= mask;
+        		} else {
+        			frame.planes.get(plane).plane[y*bytesPerRow+x/8] &= ~mask;
+        		}
     		}
     		v >>= 1;
     	}
@@ -231,7 +241,7 @@ public class DMD extends Observable {
         return (buffer[index] & ~mask[(x & 3) + bitpos]) == 0;
     }
 
-    public void setPixel(byte[] buffer, int x, int y, boolean on) {
+    private void setPixel(byte[] buffer, int x, int y, boolean on) {
         int bitpos = 0;
         int yoffset = y * (width / 4);
         if (y >= height / 2) {
@@ -280,6 +290,7 @@ public class DMD extends Observable {
 	public void updateActualBuffer(int i) {
 		this.actualBuffer = i;
 		frame = buffers.get(actualBuffer);
+		log.trace("actual buffer is: {}, {}", actualBuffer, frame);
     	setChanged();
     	notifyObservers();
 	}
@@ -298,5 +309,13 @@ public class DMD extends Observable {
     public int getNumberOfSubframes() {
         return numberOfSubframes;
     }
+
+	public int getDrawMask() {
+		return drawMask;
+	}
+
+	public void setDrawMask(int drawMask) {
+		 this.drawMask = drawMask;
+	}
 
 }

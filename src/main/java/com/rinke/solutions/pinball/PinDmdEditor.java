@@ -279,6 +279,10 @@ public class PinDmdEditor implements EventHandler {
 
 	private int actMaskNumber;
 
+	private Button btnColorMask;
+
+	private Button btnAddColormaskKeyFrame;
+
 	public PinDmdEditor() {
 		super();
 		activePalette = project.palettes.get(0);
@@ -934,14 +938,14 @@ public class PinDmdEditor implements EventHandler {
 		}
 	}
 
-	public void addKeyFrame() {
+	public void addKeyFrame(SwitchMode switchMode) {
 		PalMapping palMapping = new PalMapping(activePalette.index, "KeyFrame " + (project.palMappings.size() + 1));
 		if (selectedHashIndex != -1) {
 			palMapping.setDigest(hashes.get(selectedHashIndex));
 		}
 		palMapping.animationName = selectedAnimation.get().getDesc();
 		palMapping.frameIndex = selectedAnimation.get().actFrame;
-		palMapping.switchMode = SwitchMode.PALETTE;
+		palMapping.switchMode = switchMode;
 		if( useMask ) {
 			palMapping.withMask = useMask;
 			palMapping.maskNumber = actMaskNumber;
@@ -1083,8 +1087,33 @@ public class PinDmdEditor implements EventHandler {
 		btnSortAni.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
 		btnSortAni.setText("Sort");
 		btnSortAni.addListener(SWT.Selection, e -> sortAnimations());
+		
+		Composite composite_2 = new Composite(shell, SWT.NONE);
+		composite_2.setLayout(new GridLayout(3, false));
+		GridData gd_composite_2 = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+		gd_composite_2.heightHint = 35;
+		gd_composite_2.widthHint = 157;
+		composite_2.setLayoutData(gd_composite_2);
 
-		new Label(shell, SWT.NONE);
+		btnDeleteKeyframe = new Button(composite_2, SWT.NONE);
+		GridData gd_btnDeleteKeyframe = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+		gd_btnDeleteKeyframe.widthHint = 88;
+		btnDeleteKeyframe.setLayoutData(gd_btnDeleteKeyframe);
+		btnDeleteKeyframe.setText("Remove");
+		btnDeleteKeyframe.setEnabled(false);
+		btnDeleteKeyframe.addListener(SWT.Selection, e -> {
+			if (selectedPalMapping != null) {
+				project.palMappings.remove(selectedPalMapping);
+				keyframeTableViewer.refresh();
+				checkReleaseMask();
+			}
+		});
+
+		
+		Button btnSortKeyFrames = new Button(composite_2, SWT.NONE);
+		btnSortKeyFrames.setText("Sort");
+		btnSortKeyFrames.addListener(SWT.Selection, e -> sortKeyFrames());
+		new Label(composite_2, SWT.NONE);
 
 		scale = new Scale(shell, SWT.NONE);
 		scale.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 2, 1));
@@ -1119,23 +1148,14 @@ public class PinDmdEditor implements EventHandler {
 		btnAddKeyframe.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, false, false, 1, 1));
 		btnAddKeyframe.setText("Add PalSwitch");
 		btnAddKeyframe.setEnabled(false);
-		btnAddKeyframe.addListener(SWT.Selection, e -> addKeyFrame());
+		btnAddKeyframe.addListener(SWT.Selection, e -> addKeyFrame(SwitchMode.PALETTE));
 		new Label(grpKeyframe, SWT.NONE);
 		new Label(grpKeyframe, SWT.NONE);
-
-		btnDeleteKeyframe = new Button(grpKeyframe, SWT.NONE);
-		GridData gd_btnDeleteKeyframe = new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1);
-		gd_btnDeleteKeyframe.widthHint = 104;
-		btnDeleteKeyframe.setLayoutData(gd_btnDeleteKeyframe);
-		btnDeleteKeyframe.setText("Del KeyFrame");
-		btnDeleteKeyframe.setEnabled(false);
-		btnDeleteKeyframe.addListener(SWT.Selection, e -> {
-			if (selectedPalMapping != null) {
-				project.palMappings.remove(selectedPalMapping);
-				keyframeTableViewer.refresh();
-				checkReleaseMask();
-			}
-		});
+		
+		btnAddColormaskKeyFrame = new Button(grpKeyframe, SWT.NONE);
+		btnAddColormaskKeyFrame.setText("Add ColorMask");
+		//btnAddColormaskKeyFrame.setEnabled(false);
+		btnAddColormaskKeyFrame.addListener(SWT.Selection, e -> addFrameSeq(SwitchMode.ADD));
 
 		Label lblDuration = new Label(grpKeyframe, SWT.NONE);
 		lblDuration.setText("Duration:");
@@ -1179,7 +1199,7 @@ public class PinDmdEditor implements EventHandler {
 		btnAddFrameSeq = new Button(grpKeyframe, SWT.NONE);
 		btnAddFrameSeq.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
 		btnAddFrameSeq.setText("Add FrameSeq");
-		btnAddFrameSeq.addListener(SWT.Selection, e -> addFrameSeq());
+		btnAddFrameSeq.addListener(SWT.Selection, e -> addFrameSeq(SwitchMode.REPLACE));
 
 		Group grpDetails = new Group(shell, SWT.NONE);
 		grpDetails.setLayout(new GridLayout(10, false));
@@ -1213,6 +1233,9 @@ public class PinDmdEditor implements EventHandler {
 		lblDelay.setText("Delay:");
 
 		lblDelayVal = new Label(grpDetails, SWT.NONE);
+		GridData gd_lblDelayVal = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+		gd_lblDelayVal.widthHint = 53;
+		lblDelayVal.setLayoutData(gd_lblDelayVal);
 		lblDelayVal.setText("---");
 
 		Label lblPlanes = new Label(grpDetails, SWT.NONE);
@@ -1447,8 +1470,13 @@ public class PinDmdEditor implements EventHandler {
 		btnMask = new Button(grpPalettes, SWT.CHECK);
 		btnMask.setText("Mask");
 		btnMask.addListener(SWT.Selection, e -> switchMask(btnMask.getSelection()));
-				
-		new Label(grpPalettes, SWT.NONE);
+		
+		btnColorMask = new Button(grpPalettes, SWT.CHECK);
+		GridData gd_btnColorMask = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+		gd_btnColorMask.widthHint = 77;
+		btnColorMask.setLayoutData(gd_btnColorMask);
+		btnColorMask.setText("ColMask");
+		btnColorMask.addListener(SWT.Selection, e -> switchColorMask(btnColorMask.getSelection()));
 
 		btnUploadPalette = new Button(grpPalettes, SWT.NONE);
 		btnUploadPalette.setText("Upload Palettes");
@@ -1571,6 +1599,20 @@ public class PinDmdEditor implements EventHandler {
 
 		m_bindingContext = initDataBindings();
 
+	}
+
+	private void sortKeyFrames() {
+		Collections.sort(project.palMappings, new Comparator<PalMapping>() {
+			@Override
+			public int compare(PalMapping o1, PalMapping o2) {
+				return o1.name.compareTo(o2.name);
+			}
+		});
+		keyframeTableViewer.refresh();
+	}
+
+	private void switchColorMask(boolean on) {
+		dmd.setDrawMask(on?0b11111100:0xFFFF);
 	}
 
 	/**
@@ -1699,7 +1741,7 @@ public class PinDmdEditor implements EventHandler {
 		btnUploadProject.setEnabled(enabled);
 	}
 
-	private void addFrameSeq() {
+	private void addFrameSeq(SwitchMode switchMode) {
 		if (!frameSeqViewer.getSelection().isEmpty()) {
 			if (selectedHashIndex != -1) {
 				Animation ani = (Animation) ((IStructuredSelection) frameSeqViewer.getSelection()).getFirstElement();
@@ -1709,7 +1751,7 @@ public class PinDmdEditor implements EventHandler {
 				palMapping.palIndex = activePalette.index;
 				palMapping.frameSeqName = ani.getDesc();
 				palMapping.animationName = selectedAnimation.get().getDesc();
-				palMapping.switchMode = SwitchMode.REPLACE;
+				palMapping.switchMode = switchMode;
 				palMapping.frameIndex = selectedAnimation.get().actFrame;
 				if( useMask ) {
 					palMapping.withMask = useMask;
