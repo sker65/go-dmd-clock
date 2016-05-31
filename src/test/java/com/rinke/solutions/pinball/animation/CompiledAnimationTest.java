@@ -33,7 +33,7 @@ public class CompiledAnimationTest {
 		for (Plane p : frame.planes) {
 			for(byte b : p.plane) sum +=b;
 		}
-		assertEquals(78,sum);
+		assertEquals(-2,sum);
 		
 		dmd.setPixel(0, 0, 1);
 		

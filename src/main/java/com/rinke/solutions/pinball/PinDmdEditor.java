@@ -230,7 +230,7 @@ public class PinDmdEditor implements EventHandler {
 
 	java.util.List<Palette> previewPalettes = new ArrayList<>();
 
-	PlaneNumber planeNumber;
+	//PlaneNumber planeNumber;
 	Label lblPlanesVal;
 	Label lblDelayVal;
 	private Button btnSortAni;
@@ -1221,7 +1221,7 @@ public class PinDmdEditor implements EventHandler {
 		paletteComboViewer = new ComboViewer(grpPalettes, SWT.NONE);
 		Combo combo = paletteComboViewer.getCombo();
 		GridData gd_combo = new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1);
-		gd_combo.widthHint = 142;
+		gd_combo.widthHint = 166;
 		combo.setLayoutData(gd_combo);
 		paletteComboViewer.setContentProvider(ArrayContentProvider.getInstance());
 		paletteComboViewer.setLabelProvider(new LabelProviderAdapter(o -> ((Palette) o).index + " - " + ((Palette) o).name));
@@ -1236,7 +1236,7 @@ public class PinDmdEditor implements EventHandler {
 		paletteTypeComboViewer = new ComboViewer(grpPalettes, SWT.READ_ONLY);
 		Combo combo_1 = paletteTypeComboViewer.getCombo();
 		GridData gd_combo_1 = new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1);
-		gd_combo_1.widthHint = 95;
+		gd_combo_1.widthHint = 80;
 		combo_1.setLayoutData(gd_combo_1);
 		paletteTypeComboViewer.setContentProvider(ArrayContentProvider.getInstance());
 		paletteTypeComboViewer.setInput(PaletteType.values());
@@ -1258,9 +1258,6 @@ public class PinDmdEditor implements EventHandler {
 		});
 
 		btnRenamePalette = new Button(grpPalettes, SWT.NONE);
-		GridData gd_btnRenamePalette = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
-		gd_btnRenamePalette.widthHint = 77;
-		btnRenamePalette.setLayoutData(gd_btnRenamePalette);
 		btnRenamePalette.setText("Rename");
 		btnRenamePalette.addListener(SWT.Selection, e -> {
 			String newName = paletteComboViewer.getCombo().getText();
@@ -1278,7 +1275,7 @@ public class PinDmdEditor implements EventHandler {
 		Composite grpPal = new Composite(grpPalettes, SWT.NONE);
 		grpPal.setLayout(new GridLayout(1, false));
 		GridData gd_grpPal = new GridData(SWT.LEFT, SWT.TOP, false, false, 2, 1);
-		gd_grpPal.widthHint = 222;
+		gd_grpPal.widthHint = 298;
 		gd_grpPal.heightHint = 22;
 		grpPal.setLayoutData(gd_grpPal);
 		// GridData gd_grpPal = new GridData(SWT.LEFT, SWT.CENTER, false, false,
@@ -1547,8 +1544,8 @@ public class PinDmdEditor implements EventHandler {
 		DMD dmdMask = dmdWidget.getMask();
 		if (dmdMask != null)
 			System.arraycopy(dmdMask.getFrame().planes.get(0).plane, 0, mask.data, 0, mask.data.length);
-		if (planeNumber != null)
-			paletteTool.setNumberOfPlanes(planeNumber.numberOfPlanes);
+		int planes = dmd.getNumberOfPlanes();
+		paletteTool.setNumberOfPlanes(planes);
 		dmdWidget.setMask(null, false);
 		maskDmdObserver.setMask(null);
 		animationHandler.setMask(emptyMask);

@@ -108,8 +108,10 @@ public class Animation {
 			if( i == start ) tcOffset = frame.timecode;
 			Frame targetFrame = new Frame(frame);
             targetFrame.timecode -= tcOffset;
+            int marker = targetFrame.planes.size();
 			while( targetFrame.planes.size() < actualNumberOfPlanes ) {
-				targetFrame.planes.add(new Plane(frame.planes.get(0).marker, frame.planes.get(0).plane));
+				// dont copy plane 0
+				targetFrame.planes.add(new Plane((byte)marker++, new byte[512]));
 			}
 			LOG.debug("target frame {}",targetFrame);
 			dest.frames.add(targetFrame);

@@ -21,7 +21,7 @@ public class DMD extends Observable {
     
     public Map<Integer,Frame> buffers = new HashMap<>();
     
-    int numberOfSubframes = 2;
+    int numberOfPlanes = 2;
     int actualBuffer = 0;
 
     private int frameSizeInByte;
@@ -110,7 +110,7 @@ public class DMD extends Observable {
     	for(int i = 0; i < n; i++) {
     		frame.planes.add( new Plane((byte)i,new byte[frameSizeInByte]));
         }
-        numberOfSubframes = n;
+        numberOfPlanes = n;
     }
 
     public DMD() {
@@ -155,7 +155,7 @@ public class DMD extends Observable {
         		while( frame.planes.size() < src.planes.size() ) {
         			frame.planes.add(new Plane((byte)0,new byte[bytesPerRow*height]));
         		}
-        		numberOfSubframes = frame.planes.size();
+        		numberOfPlanes = frame.planes.size();
         		for (int i = 0; i < src.planes.size(); i++) {
 					copyOr(frame.planes.get(i).plane,src.planes.get(i).plane);
 				}
@@ -302,12 +302,12 @@ public class DMD extends Observable {
 	@Override
 	public String toString() {
 		return "DMD [width=" + width + ", height=" + height
-				+ ", numberOfSubframes=" + numberOfSubframes
+				+ ", numberOfPlanes=" + numberOfPlanes
 				+ ", actualBuffer=" + actualBuffer + "]";
 	}
 
-    public int getNumberOfSubframes() {
-        return numberOfSubframes;
+    public int getNumberOfPlanes() {
+        return numberOfPlanes;
     }
 
 	public int getDrawMask() {
