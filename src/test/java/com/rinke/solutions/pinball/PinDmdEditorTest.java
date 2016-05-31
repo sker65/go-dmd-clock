@@ -205,21 +205,5 @@ public class PinDmdEditorTest {
 		verify(uut.animationHandler).setMask(eq(uut.emptyMask));
 	}
 
-	@Test
-	public void testMaskNumberChanged() throws Exception {
-		Event e = new Event();
-		e.widget = Mockito.mock(Spinner.class);
-		uut.maskNumberChanged(e);
-	}
-
-	@Test
-	public void testMaskNumberChangedUse() throws Exception {
-		Event e = new Event();
-		Spinner s = Mockito.mock(Spinner.class);
-		e.widget = s;
-		uut.useMask = true;
-		when(s.getSelection()).thenReturn(Integer.valueOf(1));
-		uut.maskNumberChanged(e);
-	}
 
 }

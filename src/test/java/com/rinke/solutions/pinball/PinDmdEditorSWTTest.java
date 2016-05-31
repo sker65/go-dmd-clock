@@ -3,6 +3,7 @@ package com.rinke.solutions.pinball;
 import static com.fappel.swt.SWTEventHelper.trigger;
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +17,9 @@ import org.eclipse.jface.viewers.ListViewer;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Spinner;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -25,6 +28,7 @@ import org.junit.rules.TestWatcher;
 import org.junit.rules.Verifier;
 import org.junit.runner.Description;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import com.fappel.swt.DisplayHelper;
@@ -77,7 +81,7 @@ public class PinDmdEditorSWTTest {
 		uut.createNewProject();
 		
 		DMD dmd = new DMD(128,32);
-		uut.animationHandler = new  AnimationHandler(null,null,dmd);
+		uut.animationHandler = new  AnimationHandler(null,uut.clock,dmd);
 		uut.animationHandler.setScale(uut.scale);
 		uut.animationHandler.setEventHandler(eventHandler);
 		
@@ -276,6 +280,23 @@ public class PinDmdEditorSWTTest {
 		assertThat(mapping.name, equalTo("KeyFrame foo"));
 		assertThat(mapping.crc32, equalTo(digest));
 		assertThat(mapping.frameSeqName, equalTo("foo"));
+	}
+
+	@Test
+	public void testMaskNumberChanged() throws Exception {
+		Event e = new Event();
+		e.widget = Mockito.mock(Spinner.class);
+		uut.maskNumberChanged(e);
+	}
+
+	@Test
+	public void testMaskNumberChangedUse() throws Exception {
+		Event e = new Event();
+		Spinner s = Mockito.mock(Spinner.class);
+		e.widget = s;
+		uut.useMask = true;
+		when(s.getSelection()).thenReturn(Integer.valueOf(1));
+		uut.maskNumberChanged(e);
 	}
 
 

@@ -177,7 +177,7 @@ public class PinDmdEditor implements EventHandler {
 	Palette activePalette;
 
 	// colaboration classes
-	private DMDClock clock = new DMDClock(false);
+	DMDClock clock = new DMDClock(false);
 	FileHelper fileHelper = new FileHelper();
 	SmartDMDImporter smartDMDImporter = new SmartDMDImporter();
 	Project project = new Project();
@@ -1582,9 +1582,6 @@ public class PinDmdEditor implements EventHandler {
 	
 	void frameSeqChanged(SelectionChangedEvent event) {
 		IStructuredSelection selection = (IStructuredSelection) event.getSelection();
-//		if (selection.size() > 0) {
-//			
-//		} 
 		btnAddFrameSeq.setEnabled(selection.size() > 0);
 		btnAddColormaskKeyFrame.setEnabled(selection.size() > 0);
 	}
