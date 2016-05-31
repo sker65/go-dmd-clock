@@ -17,7 +17,7 @@ public class DMD extends Observable {
     private int height;
     private int drawMask = 0xFFFF; // limits drawing (setPixel) to planes, that are not masked
     
-    Frame frame = new Frame();
+    private Frame frame = new Frame();
     
     public Map<Integer,Frame> buffers = new HashMap<>();
     
@@ -55,7 +55,7 @@ public class DMD extends Observable {
     public void copyLastBuffer() {
     	if( actualBuffer>0) {
         	//Frame target = buffers.get(actualBuffer);
-    		log.trace("copy buffer {} -> {}, max: {}", actualBuffer-1, actualBuffer, buffers.size());
+    		log.info("copy buffer {} -> {}, max: {}", actualBuffer-1, actualBuffer, buffers.size());
         	frame = new Frame(buffers.get(actualBuffer-1));
         	buffers.put(actualBuffer, frame);
     	}
@@ -290,7 +290,7 @@ public class DMD extends Observable {
 	public void updateActualBuffer(int i) {
 		this.actualBuffer = i;
 		frame = buffers.get(actualBuffer);
-		log.trace("actual buffer is: {}, {}", actualBuffer, frame);
+		log.info("actual buffer is: {}, {}", actualBuffer, frame);
     	setChanged();
     	notifyObservers();
 	}
@@ -316,6 +316,13 @@ public class DMD extends Observable {
 
 	public void setDrawMask(int drawMask) {
 		 this.drawMask = drawMask;
+	}
+
+	public void setFrame(Frame frame) {
+		this.frame = frame;
+		buffers.put(actualBuffer, frame);
+		setChanged();
+    	notifyObservers();
 	}
 
 }

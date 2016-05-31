@@ -17,7 +17,6 @@ public class ColumnLabelProviderAdapter extends ColumnLabelProvider {
 
 	@Override
 	public String getText(Object element) {
-		// TODO Auto-generated method stub
 		return labelSupplier.getLabel(element);
 	}
 

@@ -111,8 +111,9 @@ public class PinDmdEditorSWTTest {
 		PalMapping palMapping = new PalMapping(0,"foo");
 		palMapping.animationName = "drwho-dump";
 		palMapping.frameIndex = 0;
+		uut.aniAction = new AnimationActionHandler(uut, shell);
 		
-		uut.loadAni("./src/test/resources/drwho-dump.txt.gz", false, true);
+		uut.aniAction.loadAni("./src/test/resources/drwho-dump.txt.gz", false, true);
 		
 		SelectionChangedEvent e = new SelectionChangedEvent(uut.keyframeTableViewer, 
 				new StructuredSelection(palMapping));
@@ -143,6 +144,7 @@ public class PinDmdEditorSWTTest {
 	@Test
 	public void testLoadProjectString() throws Exception {
 		uut.shell = shell;
+		uut.aniAction = new AnimationActionHandler(uut,shell);
 		uut.loadProject("./src/test/resources/test.xml");
 		assertThat(uut.animations.size(), equalTo(1));
 		uut.loadProject("./src/test/resources/test.xml");
@@ -275,19 +277,6 @@ public class PinDmdEditorSWTTest {
 		assertThat(mapping.crc32, equalTo(digest));
 		assertThat(mapping.frameSeqName, equalTo("foo"));
 	}
-
-	
-	@Test
-	public void testLoadPaletteString() throws Exception {
-		uut.project.palettes.clear();
-		uut.loadPalette("./src/test/resources/smartdmd.txt");
-	}
-	
-	@Test
-	public void testLoadPaletteXml() throws Exception {
-		uut.loadPalette("./src/test/resources/defaultPalette.xml");
-	}
-
 
 
 

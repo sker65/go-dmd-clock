@@ -13,6 +13,8 @@ import lombok.extern.slf4j.Slf4j;
 public class ApplicationProperties {
 
 	private String propertiesFilename = "pin2dmd.properties";
+	public static final String PIN2DMD_ADRESS_PROP_KEY = "pin2dmdAdress";
+	public static final String GODMD_ENABLED_PROP_KEY = "godmdEnabled";
 
 	private static ApplicationProperties theInstance;
 

@@ -2,8 +2,12 @@ package com.rinke.solutions.pinball;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.verify;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -17,22 +21,18 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
-import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.AnimationType;
-import com.rinke.solutions.pinball.api.LicenseManager;
 import com.rinke.solutions.pinball.io.Pin2DmdConnector;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.FrameSeq;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.PalMapping.SwitchMode;
-import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.test.Util;
-import com.rinke.solutions.pinball.util.ApplicationProperties;
 import com.rinke.solutions.pinball.util.RecentMenuManager;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -54,11 +54,10 @@ public class PinDmdEditorTest {
 
 	@Before
 	public void setup() throws Exception {
-		// TODO remove and replace by real license file
 		uut.licManager.verify("src/test/resources/#3E002400164732.key");
 	}
 
-	@Test
+	@Test @Ignore
 	public void testReplaceExtensionTo() throws Exception {
 		String newName = uut.replaceExtensionTo("ani", "foo.xml");
 		assertThat(newName, equalTo("foo.ani"));
@@ -148,34 +147,9 @@ public class PinDmdEditorTest {
 
 	@Test
 	public void testImportProjectString() throws Exception {
+		uut.aniAction = new AnimationActionHandler(uut,null);
 		uut.importProject("./src/test/resources/test.xml");
 		verify(recentAnimationsMenuManager).populateRecent(eq("./src/test/resources/drwho-dump.txt.gz"));
-	}
-
-	@Test
-	public void testCheckOverride() throws Exception {
-		List<Palette> palettes = new ArrayList<>();
-		List<Palette> palettesImported = new ArrayList<>();
-		String override = uut.checkOverride(palettes, palettesImported);
-		assertThat(override, equalTo(""));
-
-		palettes.add(new Palette(Palette.defaultColors(), 0, "foo"));
-		palettesImported.add(new Palette(Palette.defaultColors(), 1, "foo"));
-		override = uut.checkOverride(palettes, palettesImported);
-		assertThat(override, equalTo(""));
-
-		palettes.add(new Palette(Palette.defaultColors(), 2, "foo2"));
-		palettesImported.add(new Palette(Palette.defaultColors(), 2, "foo2"));
-		override = uut.checkOverride(palettes, palettesImported);
-		assertThat(override, equalTo("2, "));
-	}
-
-	@Test
-	public void testImportPalettes() throws Exception {
-		List<Palette> palettesImported = new ArrayList<Palette>();
-		palettesImported.add(new Palette(Palette.defaultColors(), 0, "foo"));
-		uut.importPalettes(palettesImported, false);
-		uut.importPalettes(palettesImported, true);
 	}
 
 	@Test
