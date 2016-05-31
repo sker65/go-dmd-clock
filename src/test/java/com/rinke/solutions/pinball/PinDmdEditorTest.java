@@ -15,8 +15,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Observer;
 
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Spinner;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -25,7 +23,6 @@ import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import com.rinke.solutions.pinball.animation.Animation;
