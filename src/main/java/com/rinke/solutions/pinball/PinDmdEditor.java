@@ -1001,7 +1001,7 @@ public class PinDmdEditor implements EventHandler {
 		btnAddColormaskKeyFrame = new Button(grpKeyframe, SWT.NONE);
 		btnAddColormaskKeyFrame.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
 		btnAddColormaskKeyFrame.setText("Add ColorMask");
-		// btnAddColormaskKeyFrame.setEnabled(false);
+		btnAddColormaskKeyFrame.setEnabled(false);
 		btnAddColormaskKeyFrame.addListener(SWT.Selection, e -> addFrameSeq(SwitchMode.ADD));
 
 		btnAddKeyframe = new Button(grpKeyframe, SWT.NONE);
@@ -1051,11 +1051,13 @@ public class PinDmdEditor implements EventHandler {
 		frameSeqViewer.setLabelProvider(new LabelProviderAdapter(o -> ((Animation) o).getDesc()));
 		frameSeqViewer.setContentProvider(ArrayContentProvider.getInstance());
 		frameSeqViewer.setInput(frameSeqList);
+		frameSeqViewer.addSelectionChangedListener(event -> frameSeqChanged(event));
 
 		btnAddFrameSeq = new Button(grpKeyframe, SWT.NONE);
 		btnAddFrameSeq.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
 		btnAddFrameSeq.setText("Add FrameSeq");
 		btnAddFrameSeq.addListener(SWT.Selection, e -> addFrameSeq(SwitchMode.REPLACE));
+		btnAddFrameSeq.setEnabled(false);
 
 		Group grpDetails = new Group(shell, SWT.NONE);
 		grpDetails.setLayout(new GridLayout(10, false));
@@ -1591,6 +1593,15 @@ public class PinDmdEditor implements EventHandler {
 	private void dmdRedraw() {
 		dmdWidget.redraw();
 		previewDmd.redraw();
+	}
+	
+	void frameSeqChanged(SelectionChangedEvent event) {
+		IStructuredSelection selection = (IStructuredSelection) event.getSelection();
+//		if (selection.size() > 0) {
+//			
+//		} 
+		btnAddFrameSeq.setEnabled(selection.size() > 0);
+		btnAddColormaskKeyFrame.setEnabled(selection.size() > 0);
 	}
 
 	void keyFrameChanged(SelectionChangedEvent event) {
