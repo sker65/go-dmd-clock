@@ -125,10 +125,6 @@ import com.rinke.solutions.pinball.widget.PaletteTool;
 import com.rinke.solutions.pinball.widget.RectTool;
 import com.rinke.solutions.pinball.widget.SetPixelTool;
 
-import org.eclipse.core.databinding.observable.value.IObservableValue;
-import org.eclipse.jface.databinding.swt.WidgetProperties;
-import org.eclipse.core.databinding.beans.BeanProperties;
-import org.eclipse.core.databinding.UpdateValueStrategy;
 
 @Slf4j
 public class PinDmdEditor implements EventHandler {
@@ -237,7 +233,7 @@ public class PinDmdEditor implements EventHandler {
 	LicenseManager licManager;
 
 	private Button btnMask;
-	private boolean useMask;
+	boolean useMask;
 	private Observer editAniObserver;
 	private Button btnLivePreview;
 	private boolean livePreviewActive;
@@ -343,7 +339,7 @@ public class PinDmdEditor implements EventHandler {
 
 	public void createBindings() {
 		// do some bindings
-		editAniObserver = ObserverManager.bind(animationHandler, e -> drawToolBar.setEnabled(e), () -> animationIsEditable());
+		editAniObserver = ObserverManager.bind(animationHandler, e -> this.enableDrawing(e), () -> animationIsEditable());
 		ObserverManager.bind(animationHandler, e -> dmdWidget.setDrawingEnabled(e), () -> animationHandler.isStopped());
 
 		ObserverManager.bind(animationHandler, e -> btnStop.setEnabled(e), () -> !animationHandler.isStopped());
@@ -366,6 +362,11 @@ public class PinDmdEditor implements EventHandler {
 
 		// ObserverManager.bind(animations, e->btnAddFrameSeq.setEnabled(e),
 		// ()->!frameSeqList.isEmpty());
+	}
+
+	private void enableDrawing(boolean e) {
+		drawToolBar.setEnabled(e);
+		btnColorMask.setEnabled(e);
 	}
 
 	private boolean animationIsEditable() {
@@ -1195,22 +1196,6 @@ public class PinDmdEditor implements EventHandler {
 		
 		new Label(composite, SWT.NONE);
 		new Label(composite, SWT.NONE);
-		
-/*		Label lblPlanes1 = new Label(composite, SWT.NONE);
-		lblPlanes1.setText("Planes");
-
-		planesComboViewer = new ComboViewer(composite, SWT.NONE);
-		Combo planes = planesComboViewer.getCombo();
-		GridData gd_planes = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
-		gd_planes.widthHint = 56;
-		planes.setLayoutData(gd_planes);
-		planesComboViewer.setContentProvider(ArrayContentProvider.getInstance());
-		planesComboViewer.setInput(PlaneNumber.values());
-		planesComboViewer.addSelectionChangedListener(e -> {
-			planeNumber = (PlaneNumber) ((IStructuredSelection) e.getSelection()).getFirstElement();
-			paletteTool.setNumberOfPlanes(planeNumber.numberOfPlanes);
-		});*/
-		
 
 		Group grpPalettes = new Group(shell, SWT.NONE);
 		grpPalettes.setLayout(new GridLayout(4, false));
@@ -1238,7 +1223,7 @@ public class PinDmdEditor implements EventHandler {
 		paletteTypeComboViewer = new ComboViewer(grpPalettes, SWT.READ_ONLY);
 		Combo combo_1 = paletteTypeComboViewer.getCombo();
 		GridData gd_combo_1 = new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1);
-		gd_combo_1.widthHint = 80;
+		gd_combo_1.widthHint = 85;
 		combo_1.setLayoutData(gd_combo_1);
 		paletteTypeComboViewer.setContentProvider(ArrayContentProvider.getInstance());
 		paletteTypeComboViewer.setInput(PaletteType.values());
@@ -1447,7 +1432,7 @@ public class PinDmdEditor implements EventHandler {
 			connector.upload(activePalette, handle);
 	}
 
-	private void updateAnimationMapKey(String oldKey, String newKey) {
+	void updateAnimationMapKey(String oldKey, String newKey) {
 		ArrayList<Animation> tmp = new ArrayList<Animation>();
 		if (!oldKey.equals(newKey)) {
 			animations.values().forEach(ani -> tmp.add(ani));
@@ -1535,7 +1520,7 @@ public class PinDmdEditor implements EventHandler {
 		this.useMask = useMask;
 		Mask maskToUse = project.masks.get(maskSpinner.getSelection());
 		if (useMask) {
-			activeMask(maskToUse);
+			activateMask(maskToUse);
 		} else {
 			deactivateMask(maskToUse);
 		}
@@ -1553,7 +1538,7 @@ public class PinDmdEditor implements EventHandler {
 		animationHandler.setMask(emptyMask);
 	}
 
-	private void activeMask(Mask mask) {
+	void activateMask(Mask mask) {
 		DMD maskDMD = new DMD(128, 32);
 		Frame frame = new Frame();
 		frame.planes.add(new Plane((byte) 0, mask.data));
@@ -1564,12 +1549,12 @@ public class PinDmdEditor implements EventHandler {
 		animationHandler.setMask(mask.data);
 	}
 
-	private void maskNumberChanged(Event e) {
+	void maskNumberChanged(Event e) {
 		int newMaskNumber = ((Spinner) e.widget).getSelection();
 		if (useMask && newMaskNumber != actMaskNumber) {
 			log.info("mask number changed {} -> {}", actMaskNumber, newMaskNumber);
 			deactivateMask(project.masks.get(actMaskNumber));
-			activeMask(project.masks.get(newMaskNumber));
+			activateMask(project.masks.get(newMaskNumber));
 			actMaskNumber = newMaskNumber;
 			editAniObserver.update(animationHandler, null);
 		}

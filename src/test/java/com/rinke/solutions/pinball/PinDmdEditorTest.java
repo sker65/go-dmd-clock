@@ -5,16 +5,18 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.*;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Observer;
 
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Spinner;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -23,6 +25,7 @@ import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import com.rinke.solutions.pinball.animation.Animation;
@@ -30,10 +33,13 @@ import com.rinke.solutions.pinball.animation.AnimationType;
 import com.rinke.solutions.pinball.io.Pin2DmdConnector;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.FrameSeq;
+import com.rinke.solutions.pinball.model.Mask;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.PalMapping.SwitchMode;
 import com.rinke.solutions.pinball.test.Util;
 import com.rinke.solutions.pinball.util.RecentMenuManager;
+import com.rinke.solutions.pinball.widget.DMDWidget;
+import com.rinke.solutions.pinball.widget.PaletteTool;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PinDmdEditorTest {
@@ -48,6 +54,16 @@ public class PinDmdEditorTest {
 	
 	@Mock
 	Pin2DmdConnector connector;
+	
+	@Mock
+	PaletteTool paletteTool;
+	@Mock
+	DMDWidget dmdWidget;
+	@Mock
+	AnimationHandler animationHandler;
+	@Mock
+	Observer editAniObserver;
+	
 	
 	@Rule
 	public TemporaryFolder testFolder = new TemporaryFolder();
@@ -170,6 +186,40 @@ public class PinDmdEditorTest {
 		uut.uploadProject();
 		
 		verify(connector).transferFile(eq("palettes.dat"), any(InputStream.class));
+	}
+
+	@Test
+	public void testUpdateAnimationMapKey() throws Exception {
+		Animation animation = new Animation(AnimationType.COMPILED, "foo", 0, 1, 0, 1, 1);
+		animation.setDesc("new");
+		uut.animations.put("old", animation);
+		
+		uut.updateAnimationMapKey("old", "new");
+		assertTrue(uut.animations.get("new")!=null);
+	}
+
+	@Test
+	public void testActivateMask() throws Exception {
+		Mask mask = new Mask();
+		uut.activateMask(mask);
+		verify(uut.animationHandler).setMask(eq(uut.emptyMask));
+	}
+
+	@Test
+	public void testMaskNumberChanged() throws Exception {
+		Event e = new Event();
+		e.widget = Mockito.mock(Spinner.class);
+		uut.maskNumberChanged(e);
+	}
+
+	@Test
+	public void testMaskNumberChangedUse() throws Exception {
+		Event e = new Event();
+		Spinner s = Mockito.mock(Spinner.class);
+		e.widget = s;
+		uut.useMask = true;
+		when(s.getSelection()).thenReturn(Integer.valueOf(1));
+		uut.maskNumberChanged(e);
 	}
 
 }
