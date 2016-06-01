@@ -3,6 +3,8 @@ package com.rinke.solutions.pinball;
 import static com.fappel.swt.SWTEventHelper.trigger;
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
@@ -41,6 +43,7 @@ import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.animation.EventHandler;
 import com.rinke.solutions.pinball.animation.AniEvent.Type;
 import com.rinke.solutions.pinball.model.Frame;
+import com.rinke.solutions.pinball.model.Mask;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.PaletteType;
@@ -297,6 +300,12 @@ public class PinDmdEditorSWTTest {
 		uut.useMask = true;
 		when(s.getSelection()).thenReturn(Integer.valueOf(1));
 		uut.maskNumberChanged(e);
+	}
+
+	@Test
+	public void testActivateMask() throws Exception {
+		Mask mask = new Mask();
+		uut.activateMask(mask);
 	}
 
 

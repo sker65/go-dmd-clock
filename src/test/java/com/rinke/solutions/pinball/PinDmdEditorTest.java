@@ -35,8 +35,6 @@ import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.PalMapping.SwitchMode;
 import com.rinke.solutions.pinball.test.Util;
 import com.rinke.solutions.pinball.util.RecentMenuManager;
-import com.rinke.solutions.pinball.widget.DMDWidget;
-import com.rinke.solutions.pinball.widget.PaletteTool;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PinDmdEditorTest {
@@ -51,11 +49,7 @@ public class PinDmdEditorTest {
 	
 	@Mock
 	Pin2DmdConnector connector;
-	
-	@Mock
-	PaletteTool paletteTool;
-	@Mock
-	DMDWidget dmdWidget;
+		
 	@Mock
 	AnimationHandler animationHandler;
 	@Mock
@@ -193,13 +187,6 @@ public class PinDmdEditorTest {
 		
 		uut.updateAnimationMapKey("old", "new");
 		assertTrue(uut.animations.get("new")!=null);
-	}
-
-	@Test
-	public void testActivateMask() throws Exception {
-		Mask mask = new Mask();
-		uut.activateMask(mask);
-		verify(uut.animationHandler).setMask(eq(uut.emptyMask));
 	}
 
 
