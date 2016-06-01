@@ -138,7 +138,6 @@ public class PinDmdEditorTest {
 	}
 
 	@Test
-	@Ignore
 	public void testExportProjectEmpty() throws Exception {
 
 		File tempFile = testFolder.newFile("test.dat");
