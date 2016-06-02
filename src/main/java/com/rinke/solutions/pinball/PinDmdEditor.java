@@ -265,6 +265,8 @@ public class PinDmdEditor implements EventHandler {
 	private MenuItem mntmUploadProject;
 	private MenuItem mntmUploadPalettes;
 	private Button btnCopyFromPrev;
+	private Button btnUndo;
+	private Button btnRedo;
 
 	public PinDmdEditor() {
 		super();
@@ -1112,7 +1114,7 @@ public class PinDmdEditor implements EventHandler {
 		btnLivePreview.addListener(SWT.Selection, e -> switchLivePreview(e));
 
 		Composite composite = new Composite(shell, SWT.NONE);
-		composite.setLayout(new GridLayout(14, false));
+		composite.setLayout(new GridLayout(10, false));
 		composite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 2, 1));
 
 		btnStart = new Button(composite, SWT.NONE);
@@ -1138,10 +1140,7 @@ public class PinDmdEditor implements EventHandler {
 
 		btnNext = new Button(composite, SWT.NONE);
 		btnNext.setText(">");
-		btnNext.addListener(SWT.Selection, e -> {
-			selectedAnimation.orElse(defaultAnimation).commitDMDchanges(dmd);
-			animationHandler.next();
-		});
+		btnNext.addListener(SWT.Selection, e -> nextFrame());
 
 		btnMarkStart = new Button(composite, SWT.NONE);
 		btnMarkEnd = new Button(composite, SWT.NONE);
@@ -1178,17 +1177,6 @@ public class PinDmdEditor implements EventHandler {
 
 		new Label(composite, SWT.NONE);
 
-		Button btnUndo = new Button(composite, SWT.NONE);
-		btnUndo.setText("&Undo");
-		btnUndo.addListener(SWT.Selection, e -> undo());
-
-		Button btnRedo = new Button(composite, SWT.NONE);
-		btnRedo.setText("&Redo");
-		btnRedo.addListener(SWT.Selection, e -> redo());
-
-		ObserverManager.bind(maskDmdObserver, e -> btnUndo.setEnabled(e), () -> maskDmdObserver.canUndo());
-		ObserverManager.bind(maskDmdObserver, e -> btnRedo.setEnabled(e), () -> maskDmdObserver.canRedo());
-		
 		Button btnIncPitch = new Button(composite, SWT.NONE);
 		btnIncPitch.setText("+");
 		btnIncPitch.addListener(SWT.Selection, e -> dmdWidget.incPitch());
@@ -1196,9 +1184,6 @@ public class PinDmdEditor implements EventHandler {
 		Button btnDecPitch = new Button(composite, SWT.NONE);
 		btnDecPitch.setText("-");
 		btnDecPitch.addListener(SWT.Selection, e -> dmdWidget.decPitch());
-		
-		new Label(composite, SWT.NONE);
-		new Label(composite, SWT.NONE);
 
 		Group grpPalettes = new Group(shell, SWT.NONE);
 		grpPalettes.setLayout(new GridLayout(4, false));
@@ -1364,15 +1349,29 @@ public class PinDmdEditor implements EventHandler {
 		
 		btnCopyFromPrev = new Button(grpDrawing, SWT.NONE);
 		btnCopyFromPrev.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 2, 1));
-		btnCopyFromPrev.setText("Copy from Prev");
-		btnCopyFromPrev.addListener(SWT.Selection, e->copyFromPreviousFrame());
+		btnCopyFromPrev.setText("CopyToNext");
+		btnCopyFromPrev.addListener(SWT.Selection, e->copyAndMoveToNextFrame());
 		
-		new Label(grpDrawing, SWT.NONE);
-		new Label(grpDrawing, SWT.NONE);
+		btnUndo = new Button(grpDrawing, SWT.NONE);
+		btnUndo.setText("&Undo");
+		btnUndo.addListener(SWT.Selection, e -> undo());
+
+		btnRedo = new Button(grpDrawing, SWT.NONE);
+		btnRedo.setText("&Redo");
+		btnRedo.addListener(SWT.Selection, e -> redo());
+
+		ObserverManager.bind(maskDmdObserver, e -> btnUndo.setEnabled(e), () -> maskDmdObserver.canUndo());
+		ObserverManager.bind(maskDmdObserver, e -> btnRedo.setEnabled(e), () -> maskDmdObserver.canRedo());
 
 	}
 
-	private void copyFromPreviousFrame() {
+	private void nextFrame(){
+		selectedAnimation.orElse(defaultAnimation).commitDMDchanges(dmd);
+		animationHandler.next();
+	}
+
+	private void copyAndMoveToNextFrame() {
+		nextFrame();
 		Animation ani = selectedAnimation.get();
 		if( ani.getActFrame() > ani.getStart() ) {
 			CompiledAnimation cani = (CompiledAnimation) ani;
