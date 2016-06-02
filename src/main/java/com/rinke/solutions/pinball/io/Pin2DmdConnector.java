@@ -135,7 +135,7 @@ public abstract class Pin2DmdConnector {
 	public void transferFile(String filename, InputStream is) {
     	byte[] data = buildBuffer(UsbCmd.WRITE_FILE_EX);
     	data[5] = (byte) 0;
-    	String sdname = "0:/"+filename;
+    	String sdname = filename;
     	buildBytes(data, sdname);
     	ConnectionHandle usb = connect(this.address);    
         try {
