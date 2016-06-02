@@ -669,7 +669,7 @@ public class PinDmdEditor implements EventHandler {
 			ani.actFrame = 0;
 			DMD tmp = new DMD(128, 32);
 			for (int i = 0; i <= ani.end; i++) {
-				Frame frame = ani.render(tmp, false);
+				Frame frame = new Frame( ani.render(tmp, false) ); // copy frames to not remove in org
 				// remove planes not in mask
 				int pl = 0;
 				for (Iterator<Plane> iter = frame.planes.iterator(); iter.hasNext();) {
