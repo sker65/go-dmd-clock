@@ -78,6 +78,7 @@ import com.rinke.solutions.pinball.animation.AnimationCompiler;
 import com.rinke.solutions.pinball.animation.AnimationFactory;
 import com.rinke.solutions.pinball.animation.AnimationModel;
 import com.rinke.solutions.pinball.animation.AnimationType;
+import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.animation.EventHandler;
 import com.rinke.solutions.pinball.api.BinaryExporter;
 import com.rinke.solutions.pinball.api.BinaryExporterFactory;
@@ -263,6 +264,7 @@ public class PinDmdEditor implements EventHandler {
 	private GoDmdGroup goDmdGroup;
 	private MenuItem mntmUploadProject;
 	private MenuItem mntmUploadPalettes;
+	private Button btnCopyFromPrev;
 
 	public PinDmdEditor() {
 		super();
@@ -367,6 +369,7 @@ public class PinDmdEditor implements EventHandler {
 	private void enableDrawing(boolean e) {
 		drawToolBar.setEnabled(e);
 		btnColorMask.setEnabled(e);
+		btnCopyFromPrev.setEnabled(e);
 	}
 
 	private boolean animationIsEditable() {
@@ -1350,12 +1353,45 @@ public class PinDmdEditor implements EventHandler {
 		maskSpinner = new Spinner(grpDrawing, SWT.BORDER);
 		maskSpinner.setMinimum(0);
 		maskSpinner.setMaximum(9);
-				
-						btnMask = new Button(grpDrawing, SWT.CHECK);
-						btnMask.setText("Show Mask");
-						btnMask.addListener(SWT.Selection, e -> switchMask(btnMask.getSelection()));
 		maskSpinner.addListener(SWT.Selection, e -> maskNumberChanged(e));
+				
+		btnMask = new Button(grpDrawing, SWT.CHECK);
+		btnMask.setText("Show Mask");
+		btnMask.addListener(SWT.Selection, e -> switchMask(btnMask.getSelection()));
 
+		new Label(grpDrawing, SWT.NONE);
+		new Label(grpDrawing, SWT.NONE);
+		
+		btnCopyFromPrev = new Button(grpDrawing, SWT.NONE);
+		btnCopyFromPrev.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 2, 1));
+		btnCopyFromPrev.setText("Copy from Prev");
+		btnCopyFromPrev.addListener(SWT.Selection, e->copyFromPreviousFrame());
+		
+		new Label(grpDrawing, SWT.NONE);
+		new Label(grpDrawing, SWT.NONE);
+
+	}
+
+	private void copyFromPreviousFrame() {
+		Animation ani = selectedAnimation.get();
+		if( ani.getActFrame() > ani.getStart() ) {
+			CompiledAnimation cani = (CompiledAnimation) ani;
+			int n = ani.getActFrame();
+			Frame prevFrame = cani.frames.get(n-1);
+			Frame actFrame = cani.frames.get(n);
+			int drawMask = dmd.getDrawMask();
+			dmd.addUndoBuffer();
+			for( int i = 0; i < actFrame.planes.size(); i++) {
+				if( (drawMask&1) != 0) {
+					int size = prevFrame.planes.get(i).plane.length;
+					System.arraycopy(
+							prevFrame.planes.get(i).plane, 0,
+							dmd.getFrame().planes.get(i).plane, 0, size);
+					dmdRedraw();
+				}
+				drawMask >>= 1;
+			}
+		}
 	}
 
 	private void sortKeyFrames() {
