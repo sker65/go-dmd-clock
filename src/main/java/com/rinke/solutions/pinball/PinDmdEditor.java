@@ -258,7 +258,7 @@ public class PinDmdEditor implements EventHandler {
 	private Button btnAddColormaskKeyFrame;
 	private MenuItem mntmGodmd;
 
-	private PaletteHandler paletteHandler;
+	PaletteHandler paletteHandler;
 	AnimationActionHandler aniAction;
 
 	private GoDmdGroup goDmdGroup;
@@ -494,6 +494,9 @@ public class PinDmdEditor implements EventHandler {
 	private Animation cutScene(Animation animation, int start, int end, String name) {
 		Animation cutScene = animation.cutScene(start, end, 4);
 		// TODO improve to make it selectable how many planes
+		
+		paletteHandler.copyPalettePlaneUpgrade();
+		
 		cutScene.setDesc(name);
 		cutScene.setPalIndex(activePalette.index);
 		animations.put(name, cutScene);
@@ -1220,17 +1223,7 @@ public class PinDmdEditor implements EventHandler {
 
 		btnNewPalette = new Button(grpPalettes, SWT.NONE);
 		btnNewPalette.setText("New");
-		btnNewPalette.addListener(SWT.Selection, e -> {
-			String name = this.paletteComboViewer.getCombo().getText();
-			if (!isNewPaletteName(name)) {
-				name = "new" + UUID.randomUUID().toString().substring(0, 4);
-			}
-			activePalette = new Palette(activePalette.colors, project.palettes.size(), name);
-			project.palettes.add(activePalette);
-			paletteTool.setPalette(activePalette);
-			paletteComboViewer.refresh();
-			paletteComboViewer.setSelection(new StructuredSelection(activePalette), true);
-		});
+		btnNewPalette.addListener(SWT.Selection, e -> paletteHandler.newPalette());
 
 		btnRenamePalette = new Button(grpPalettes, SWT.NONE);
 		btnRenamePalette.setText("Rename");
@@ -1898,13 +1891,6 @@ public class PinDmdEditor implements EventHandler {
 		return hexString.toString();
 	}
 
-	private boolean isNewPaletteName(String text) {
-		for (Palette pal : project.palettes) {
-			if (pal.name.equals(text))
-				return false;
-		}
-		return true;
-	}
 
 	@Override
 	public void notifyAni(AniEvent evt) {

@@ -2,6 +2,7 @@ package com.rinke.solutions.pinball;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -15,6 +16,7 @@ import com.rinke.solutions.pinball.io.FileHelper;
 import com.rinke.solutions.pinball.io.PaletteImporter;
 import com.rinke.solutions.pinball.io.SmartDMDImporter;
 import com.rinke.solutions.pinball.model.Palette;
+import com.rinke.solutions.pinball.model.RGB;
 import com.rinke.solutions.pinball.util.FileChooserUtil;
 
 @Slf4j
@@ -28,6 +30,58 @@ public class PaletteHandler {
 		super();
 		this.editor = editor;
 		fileChooserUtil = new FileChooserUtil(shell);
+	}
+	
+	private boolean isNewPaletteName(String text) {
+		for (Palette pal : editor.project.palettes) {
+			if (pal.name.equals(text))
+				return false;
+		}
+		return true;
+	}
+	
+	public void copyPalettePlaneUpgrade() {
+		String name = editor.paletteComboViewer.getCombo().getText();
+		if (!isNewPaletteName(name)) {
+			name = "new" + UUID.randomUUID().toString().substring(0, 4);
+		}
+		
+		RGB[] actCols = editor.activePalette.colors;
+		RGB[] cols = new RGB[actCols.length];
+		// copy
+		for( int i = 0; i< cols.length; i++) cols[i] = 
+				new RGB(actCols[0].red, actCols[0].green, actCols[0].blue );
+		cols[1] = new RGB(actCols[1].red, actCols[1].green, actCols[1].blue );
+		cols[2] = new RGB(actCols[4].red, actCols[4].green, actCols[4].blue );
+		cols[3] = new RGB(actCols[15].red, actCols[15].green, actCols[15].blue );
+		
+		Palette newPalette = new Palette(cols, editor.project.palettes.size(), name);
+		for( Palette pal : editor.project.palettes ) {
+			if( pal.sameColors(cols)) {
+				editor.activePalette = pal;
+				editor.paletteTool.setPalette(editor.activePalette);	
+				editor.paletteComboViewer.setSelection(new StructuredSelection(editor.activePalette), true);
+				return;
+			}
+		}
+		
+		editor.activePalette = newPalette;
+		editor.project.palettes.add(editor.activePalette);
+		editor.paletteTool.setPalette(editor.activePalette);
+		editor.paletteComboViewer.refresh();
+		editor.paletteComboViewer.setSelection(new StructuredSelection(editor.activePalette), true);
+	}
+	
+	public void newPalette() {
+		String name = editor.paletteComboViewer.getCombo().getText();
+		if (!isNewPaletteName(name)) {
+			name = "new" + UUID.randomUUID().toString().substring(0, 4);
+		}
+		editor.activePalette = new Palette(editor.activePalette.colors, editor.project.palettes.size(), name);
+		editor.project.palettes.add(editor.activePalette);
+		editor.paletteTool.setPalette(editor.activePalette);
+		editor.paletteComboViewer.refresh();
+		editor.paletteComboViewer.setSelection(new StructuredSelection(editor.activePalette), true);
 	}
 
 	public void savePalette() {
