@@ -148,6 +148,7 @@ public abstract class Pin2DmdConnector {
         		data[5] = (byte) 1;
         		data[6] = (byte) (read >> 8);
         		data[7] = (byte) (read & 0xFF);
+        		System.arraycopy(buffer, 0, data, 8, read);
         		send(data, usb);
         		doHandShake(usb);
         	}
