@@ -1,7 +1,6 @@
 # go-dmd-clock
 
-Tools project for goDMD clock and pin2dmd project. [![Build Status](https://travis-ci.org/sker65/go-dmd-clock.svg?branch=feature%2Fpin2dmd)](https://travis-ci.org/sker65/go-dmd-clock)
-![codecov.io](https://codecov.io/github/sker65/go-dmd-clock/branch.svg?branch=feature%2Fpin2dmd)
+Tools project for goDMD clock and pin2dmd project. [![Build Status](https://drone.io/github.com/sker65/go-dmd-clock/status.png)](https://drone.io/github.com/sker65/go-dmd-clock/latest)
 
 Firmware see https://github.com/sker65/goDMD
 
