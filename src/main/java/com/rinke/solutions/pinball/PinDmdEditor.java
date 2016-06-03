@@ -133,7 +133,7 @@ public class PinDmdEditor implements EventHandler {
 	private static final int FRAME_RATE = 40;
 	private static final String HELP_URL = "http://pin2dmd.com/editor/";
 
-	DMD dmd;// = new DMD(128, 32);
+	DMD dmd = new DMD(128, 32); // for sake of window builder
 	MaskDmdObserver maskDmdObserver;
 
 	AnimationHandler animationHandler = null;
@@ -211,8 +211,7 @@ public class PinDmdEditor implements EventHandler {
 	Button btnMarkStart;
 	Button btnMarkEnd;
 	Button btnCut;
-	Button btnStart;
-	Button btnStop;
+	Button btnStartStop;
 	Button btnAddFrameSeq;
 	DMDWidget previewDmd;
 	ObservableList<Animation> frameSeqList = new ObservableList<>(new ArrayList<>());
@@ -346,9 +345,6 @@ public class PinDmdEditor implements EventHandler {
 		editAniObserver = ObserverManager.bind(animationHandler, e -> this.enableDrawing(e), () -> animationIsEditable());
 		ObserverManager.bind(animationHandler, e -> dmdWidget.setDrawingEnabled(e), () -> animationHandler.isStopped());
 
-		ObserverManager.bind(animationHandler, e -> btnStop.setEnabled(e), () -> !animationHandler.isStopped());
-		ObserverManager.bind(animationHandler, e -> btnStart.setEnabled(e), () -> animationHandler.isStopped());
-
 		ObserverManager.bind(animationHandler, e -> btnPrev.setEnabled(e), () -> animationHandler.isStopped());
 		ObserverManager.bind(animationHandler, e -> btnNext.setEnabled(e), () -> animationHandler.isStopped());
 
@@ -356,7 +352,7 @@ public class PinDmdEditor implements EventHandler {
 
 		ObserverManager.bind(cutInfo, e -> btnMarkEnd.setEnabled(e), () -> (cutInfo.getStart() > 0));
 
-		ObserverManager.bind(animations, e -> btnStart.setEnabled(e), () -> !this.animations.isEmpty() && animationHandler.isStopped());
+		ObserverManager.bind(animations, e -> btnStartStop.setEnabled(e), () -> !this.animations.isEmpty() && animationHandler.isStopped());
 		ObserverManager.bind(animations, e -> btnPrev.setEnabled(e), () -> !this.animations.isEmpty());
 		ObserverManager.bind(animations, e -> btnNext.setEnabled(e), () -> !this.animations.isEmpty());
 		ObserverManager.bind(animations, e -> btnMarkStart.setEnabled(e), () -> !this.animations.isEmpty());
@@ -915,8 +911,8 @@ public class PinDmdEditor implements EventHandler {
 		dmdWidget = new DMDWidget(shell, SWT.DOUBLE_BUFFERED, this.dmd, true);
 		// dmdWidget.setBounds(0, 0, 700, 240);
 		GridData gd_dmdWidget = new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1);
-		gd_dmdWidget.heightHint = 210;
-		gd_dmdWidget.widthHint = 790;
+		gd_dmdWidget.heightHint = 231;
+		gd_dmdWidget.widthHint = 826;
 		dmdWidget.setLayoutData(gd_dmdWidget);
 		dmdWidget.setPalette(activePalette);
 		dmdWidget.addListeners(l -> frameChanged(l));
@@ -1008,12 +1004,14 @@ public class PinDmdEditor implements EventHandler {
 		new Label(grpKeyframe, SWT.NONE);
 		
 		btnAddColormaskKeyFrame = new Button(grpKeyframe, SWT.NONE);
+		btnAddColormaskKeyFrame.setToolTipText("Adds a key frame that trigger a color masking scene to be overlayed");
 		btnAddColormaskKeyFrame.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
 		btnAddColormaskKeyFrame.setText("Add ColorMask");
 		btnAddColormaskKeyFrame.setEnabled(false);
 		btnAddColormaskKeyFrame.addListener(SWT.Selection, e -> addFrameSeq(SwitchMode.ADD));
 
 		btnAddKeyframe = new Button(grpKeyframe, SWT.NONE);
+		btnAddKeyframe.setToolTipText("Adds a key frame that switches palette");
 		btnAddKeyframe.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, false, false, 1, 1));
 		btnAddKeyframe.setText("Add PalSwitch");
 		btnAddKeyframe.setEnabled(false);
@@ -1037,6 +1035,7 @@ public class PinDmdEditor implements EventHandler {
 		});
 		
 		btnFetchDuration = new Button(grpKeyframe, SWT.NONE);
+		btnFetchDuration.setToolTipText("Fetches duration for palette switches by calculating the difference between actual timestamp and keyframe timestamp");
 		btnFetchDuration.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
 		btnFetchDuration.setText("Fetch Duration");
 		btnFetchDuration.setEnabled(false);
@@ -1054,6 +1053,7 @@ public class PinDmdEditor implements EventHandler {
 
 		frameSeqViewer = new ComboViewer(grpKeyframe, SWT.NONE);
 		Combo frameSeqCombo = frameSeqViewer.getCombo();
+		frameSeqCombo.setToolTipText("Choose frame sequence to use with key frame");
 		GridData gd_frameSeqCombo = new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1);
 		gd_frameSeqCombo.widthHint = 100;
 		frameSeqCombo.setLayoutData(gd_frameSeqCombo);
@@ -1063,6 +1063,7 @@ public class PinDmdEditor implements EventHandler {
 		frameSeqViewer.addSelectionChangedListener(event -> frameSeqChanged(event));
 
 		btnAddFrameSeq = new Button(grpKeyframe, SWT.NONE);
+		btnAddFrameSeq.setToolTipText("Adds a keyframe that triggers playback of a replacement scene");
 		btnAddFrameSeq.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
 		btnAddFrameSeq.setText("Add FrameSeq");
 		btnAddFrameSeq.addListener(SWT.Selection, e -> addFrameSeq(SwitchMode.REPLACE));
@@ -1113,26 +1114,17 @@ public class PinDmdEditor implements EventHandler {
 		new Label(grpDetails, SWT.NONE);
 
 		btnLivePreview = new Button(grpDetails, SWT.CHECK);
+		btnLivePreview.setToolTipText("controls live preview to real display device");
 		btnLivePreview.setText("Live Preview");
 		btnLivePreview.addListener(SWT.Selection, e -> switchLivePreview(e));
 
 		Composite composite = new Composite(shell, SWT.NONE);
-		composite.setLayout(new GridLayout(10, false));
+		composite.setLayout(new GridLayout(9, false));
 		composite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 2, 1));
 
-		btnStart = new Button(composite, SWT.NONE);
-		btnStop = new Button(composite, SWT.NONE);
-		btnStart.setText("Start");
-		btnStart.addListener(SWT.Selection, e -> {
-			selectedAnimation.orElse(defaultAnimation).commitDMDchanges(dmd);
-			animationHandler.start();
-			display.timerExec(animationHandler.getRefreshDelay(), cyclicRedraw);
-		});
-
-		btnStop.setText("Stop");
-		btnStop.addListener(SWT.Selection, e -> {
-			animationHandler.stop();
-		});
+		btnStartStop = new Button(composite, SWT.NONE);
+		btnStartStop.setText("Start");
+		btnStartStop.addListener(SWT.Selection, e -> startStop(animationHandler.isStopped()));
 
 		btnPrev = new Button(composite, SWT.NONE);
 		btnPrev.setText("<");
@@ -1146,8 +1138,10 @@ public class PinDmdEditor implements EventHandler {
 		btnNext.addListener(SWT.Selection, e -> nextFrame());
 
 		btnMarkStart = new Button(composite, SWT.NONE);
+		btnMarkStart.setToolTipText("Marks start of scene for cutting");
 		btnMarkEnd = new Button(composite, SWT.NONE);
 		btnCut = new Button(composite, SWT.NONE);
+		btnCut.setToolTipText("Cuts out a new scene for editing and use a replacement or color mask");
 
 		btnMarkStart.setText("Mark Start");
 		btnMarkStart.addListener(SWT.Selection, e -> {
@@ -1191,7 +1185,7 @@ public class PinDmdEditor implements EventHandler {
 		Group grpPalettes = new Group(shell, SWT.NONE);
 		grpPalettes.setLayout(new GridLayout(4, false));
 		GridData gd_grpPalettes = new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1);
-		gd_grpPalettes.widthHint = 448;
+		gd_grpPalettes.widthHint = 479;
 		gd_grpPalettes.heightHint = 71;
 		grpPalettes.setLayoutData(gd_grpPalettes);
 		grpPalettes.setText("Palettes");
@@ -1213,6 +1207,7 @@ public class PinDmdEditor implements EventHandler {
 
 		paletteTypeComboViewer = new ComboViewer(grpPalettes, SWT.READ_ONLY);
 		Combo combo_1 = paletteTypeComboViewer.getCombo();
+		combo_1.setToolTipText("Type of palette. Default palette is choosen at start and after timed switch is expired");
 		GridData gd_combo_1 = new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1);
 		gd_combo_1.widthHint = 85;
 		combo_1.setLayoutData(gd_combo_1);
@@ -1222,10 +1217,12 @@ public class PinDmdEditor implements EventHandler {
 		paletteTypeComboViewer.addSelectionChangedListener(e -> paletteTypeChanged(e));
 
 		btnNewPalette = new Button(grpPalettes, SWT.NONE);
+		btnNewPalette.setToolTipText("Creates a new palette by copying the actual colors");
 		btnNewPalette.setText("New");
 		btnNewPalette.addListener(SWT.Selection, e -> paletteHandler.newPalette());
 
 		btnRenamePalette = new Button(grpPalettes, SWT.NONE);
+		btnRenamePalette.setToolTipText("Confirms the new palette name");
 		btnRenamePalette.setText("Rename");
 		btnRenamePalette.addListener(SWT.Selection, e -> {
 			String newName = paletteComboViewer.getCombo().getText();
@@ -1243,7 +1240,7 @@ public class PinDmdEditor implements EventHandler {
 		Composite grpPal = new Composite(grpPalettes, SWT.NONE);
 		grpPal.setLayout(new GridLayout(1, false));
 		GridData gd_grpPal = new GridData(SWT.LEFT, SWT.TOP, false, false, 2, 1);
-		gd_grpPal.widthHint = 298;
+		gd_grpPal.widthHint = 313;
 		gd_grpPal.heightHint = 22;
 		grpPal.setLayoutData(gd_grpPal);
 		// GridData gd_grpPal = new GridData(SWT.LEFT, SWT.CENTER, false, false,
@@ -1277,7 +1274,7 @@ public class PinDmdEditor implements EventHandler {
 		grpDrawing.setLayout(new GridLayout(6, false));
 		GridData gd_grpDrawing = new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1);
 		gd_grpDrawing.heightHint = 63;
-		gd_grpDrawing.widthHint = 446;
+		gd_grpDrawing.widthHint = 479;
 		grpDrawing.setLayoutData(gd_grpDrawing);
 		grpDrawing.setText("Drawing");
 
@@ -1322,6 +1319,7 @@ public class PinDmdEditor implements EventHandler {
 		new Label(grpDrawing, SWT.NONE);
 
 		btnColorMask = new Button(grpDrawing, SWT.CHECK);
+		btnColorMask.setToolTipText("limits drawing to upper planes, so that this will just add coloring layers");
 		btnColorMask.setText("ColMask");
 		btnColorMask.addListener(SWT.Selection, e -> switchColorMask(btnColorMask.getSelection()));
 
@@ -1329,6 +1327,7 @@ public class PinDmdEditor implements EventHandler {
 		lblMaskNo.setText("Mask No:");
 
 		maskSpinner = new Spinner(grpDrawing, SWT.BORDER);
+		maskSpinner.setToolTipText("select the mask to use");
 		maskSpinner.setMinimum(0);
 		maskSpinner.setMaximum(9);
 		maskSpinner.addListener(SWT.Selection, e -> maskNumberChanged(e));
@@ -1341,6 +1340,7 @@ public class PinDmdEditor implements EventHandler {
 		new Label(grpDrawing, SWT.NONE);
 		
 		btnCopyFromPrev = new Button(grpDrawing, SWT.NONE);
+		btnCopyFromPrev.setToolTipText("copy the actual scene / color mask to next frame and move forward");
 		btnCopyFromPrev.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 2, 1));
 		btnCopyFromPrev.setText("CopyToNext");
 		btnCopyFromPrev.addListener(SWT.Selection, e->copyAndMoveToNextFrame());
@@ -1356,6 +1356,19 @@ public class PinDmdEditor implements EventHandler {
 		ObserverManager.bind(maskDmdObserver, e -> btnUndo.setEnabled(e), () -> maskDmdObserver.canUndo());
 		ObserverManager.bind(maskDmdObserver, e -> btnRedo.setEnabled(e), () -> maskDmdObserver.canRedo());
 
+	}
+
+	private void startStop(boolean stopped) {
+		if( stopped )
+		{
+			selectedAnimation.orElse(defaultAnimation).commitDMDchanges(dmd);
+			animationHandler.start();
+			display.timerExec(animationHandler.getRefreshDelay(), cyclicRedraw);
+			btnStartStop.setText("Stop");
+		} else {
+			animationHandler.stop();
+			btnStartStop.setText("Start");
+		}
 	}
 
 	private void nextFrame(){
