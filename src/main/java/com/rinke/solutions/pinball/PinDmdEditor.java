@@ -263,9 +263,10 @@ public class PinDmdEditor implements EventHandler {
 	private GoDmdGroup goDmdGroup;
 	private MenuItem mntmUploadProject;
 	private MenuItem mntmUploadPalettes;
-	private Button btnCopyFromPrev;
+	private Button btnCopyToNext;
 	private Button btnUndo;
 	private Button btnRedo;
+	private Button btnCopyToPrev;
 
 	public PinDmdEditor() {
 		super();
@@ -367,7 +368,8 @@ public class PinDmdEditor implements EventHandler {
 	private void enableDrawing(boolean e) {
 		drawToolBar.setEnabled(e);
 		btnColorMask.setEnabled(e);
-		btnCopyFromPrev.setEnabled(e);
+		btnCopyToNext.setEnabled(e);
+		btnCopyToPrev.setEnabled(e);
 	}
 
 	private boolean animationIsEditable() {
@@ -611,7 +613,7 @@ public class PinDmdEditor implements EventHandler {
 		String filename = fileChooserUtil.choose(SWT.SAVE, project.name, new String[] { "*.dat" }, new String[] { "Export dat" });
 		if (filename != null) {
 			exportProject(filename, f -> new FileOutputStream(f));
-			warn("Hint", "Remember to rename your export file to palettes.dat if you want to use it" + " in a real pinballs sdcard of pin2dmd.");
+			warn("Hint", "Remember to rename your export file to pin2dmd.pal if you want to use it" + " in a real pinballs sdcard of pin2dmd.");
 		}
 	}
 
@@ -634,7 +636,7 @@ public class PinDmdEditor implements EventHandler {
 			return stream;
 		});
 
-		connector.transferFile("palettes.dat", new ByteArrayInputStream(captureOutput.get("a.dat").toByteArray()));
+		connector.transferFile("pin2dmd.pal", new ByteArrayInputStream(captureOutput.get("a.dat").toByteArray()));
 		if (captureOutput.containsKey("a.fsq")) {
 			connector.transferFile("pin2dmd.fsq", new ByteArrayInputStream(captureOutput.get("a.fsq").toByteArray()));
 		}
@@ -1128,10 +1130,7 @@ public class PinDmdEditor implements EventHandler {
 
 		btnPrev = new Button(composite, SWT.NONE);
 		btnPrev.setText("<");
-		btnPrev.addListener(SWT.Selection, e -> {
-			selectedAnimation.orElse(defaultAnimation).commitDMDchanges(dmd);
-			animationHandler.prev();
-		});
+		btnPrev.addListener(SWT.Selection, e -> prevFrame());
 
 		btnNext = new Button(composite, SWT.NONE);
 		btnNext.setText(">");
@@ -1335,15 +1334,19 @@ public class PinDmdEditor implements EventHandler {
 		btnMask = new Button(grpDrawing, SWT.CHECK);
 		btnMask.setText("Show Mask");
 		btnMask.addListener(SWT.Selection, e -> switchMask(btnMask.getSelection()));
-
-		new Label(grpDrawing, SWT.NONE);
+		
+		btnCopyToPrev = new Button(grpDrawing, SWT.NONE);
+		btnCopyToPrev.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+		btnCopyToPrev.setText("CopyToPrev");
+		btnCopyToPrev.addListener(SWT.Selection, e->copyAndMoveToPrevFrame());
+		
 		new Label(grpDrawing, SWT.NONE);
 		
-		btnCopyFromPrev = new Button(grpDrawing, SWT.NONE);
-		btnCopyFromPrev.setToolTipText("copy the actual scene / color mask to next frame and move forward");
-		btnCopyFromPrev.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 2, 1));
-		btnCopyFromPrev.setText("CopyToNext");
-		btnCopyFromPrev.addListener(SWT.Selection, e->copyAndMoveToNextFrame());
+		btnCopyToNext = new Button(grpDrawing, SWT.NONE);
+		btnCopyToNext.setToolTipText("copy the actual scene / color mask to next frame and move forward");
+		btnCopyToNext.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 2, 1));
+		btnCopyToNext.setText("CopyToNext");
+		btnCopyToNext.addListener(SWT.Selection, e->copyAndMoveToNextFrame());
 		
 		btnUndo = new Button(grpDrawing, SWT.NONE);
 		btnUndo.setText("&Undo");
@@ -1371,31 +1374,46 @@ public class PinDmdEditor implements EventHandler {
 		}
 	}
 
-	private void nextFrame(){
+	private void prevFrame() {
+		selectedAnimation.orElse(defaultAnimation).commitDMDchanges(dmd);
+		animationHandler.prev();
+	}
+	
+	private void nextFrame() {
 		selectedAnimation.orElse(defaultAnimation).commitDMDchanges(dmd);
 		animationHandler.next();
 	}
-
+	
 	private void copyAndMoveToNextFrame() {
 		nextFrame();
-		Animation ani = selectedAnimation.get();
+		CompiledAnimation ani = (CompiledAnimation) selectedAnimation.get();
+		if( !ani.hasEnded() ) {
+			copyFrame(ani, ani.getActFrame(), -1);
+		}
+	}
+	
+	private void copyAndMoveToPrevFrame() {
+		prevFrame();
+		CompiledAnimation ani = (CompiledAnimation) selectedAnimation.get();
 		if( ani.getActFrame() > ani.getStart() ) {
-			CompiledAnimation cani = (CompiledAnimation) ani;
-			int n = ani.getActFrame();
-			Frame prevFrame = cani.frames.get(n-1);
-			Frame actFrame = cani.frames.get(n);
-			int drawMask = dmd.getDrawMask();
-			dmd.addUndoBuffer();
-			for( int i = 0; i < actFrame.planes.size(); i++) {
-				if( (drawMask&1) != 0) {
-					int size = prevFrame.planes.get(i).plane.length;
-					System.arraycopy(
-							prevFrame.planes.get(i).plane, 0,
-							dmd.getFrame().planes.get(i).plane, 0, size);
-					dmdRedraw();
-				}
-				drawMask >>= 1;
+			copyFrame(ani, ani.getActFrame(), 1);
+		}
+	}
+
+	private void copyFrame(CompiledAnimation cani, int n, int offset) {
+		Frame srcFrame = cani.frames.get(n+offset);
+		Frame actFrame = cani.frames.get(n);
+		int drawMask = dmd.getDrawMask();
+		dmd.addUndoBuffer();
+		for( int i = 0; i < actFrame.planes.size(); i++) {
+			if( (drawMask&1) != 0) {
+				int size = srcFrame.planes.get(i).plane.length;
+				System.arraycopy(
+						srcFrame.planes.get(i).plane, 0,
+						dmd.getFrame().planes.get(i).plane, 0, size);
+				dmdRedraw();
 			}
+			drawMask >>= 1;
 		}
 	}
 

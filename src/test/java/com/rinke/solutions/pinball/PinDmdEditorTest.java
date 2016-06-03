@@ -175,7 +175,7 @@ public class PinDmdEditorTest {
 		uut.project.palMappings.add(p);
 		uut.uploadProject();
 		
-		verify(connector).transferFile(eq("palettes.dat"), any(InputStream.class));
+		verify(connector).transferFile(eq("pin2dmd.pal"), any(InputStream.class));
 	}
 
 	@Test
