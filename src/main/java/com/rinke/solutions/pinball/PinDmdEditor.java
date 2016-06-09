@@ -1513,6 +1513,9 @@ public class PinDmdEditor implements EventHandler {
 				connector.switchToMode(DeviceMode.PinMame_RGB.ordinal(), null);
 				handle = connector.connect(pin2dmdAdress);
 				livePreviewActive = selection;
+				for( Palette pal : project.palettes ) {
+					connector.upload(pal,handle);
+				}
 				setEnableUsbTooling(!selection);
 			} catch (RuntimeException ex) {
 				warn("usb problem", "Message was: " + ex.getMessage());
