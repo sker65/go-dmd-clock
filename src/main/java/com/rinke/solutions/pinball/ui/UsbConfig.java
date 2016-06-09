@@ -79,7 +79,7 @@ public class UsbConfig extends Dialog {
 		Button btnSetDeviceMode = new Button(shell, SWT.NONE);
 		btnSetDeviceMode.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
 		btnSetDeviceMode.setText("Set Device Mode");
-		btnSetDeviceMode.addListener(SWT.Selection, e->connector.switchToMode(deviceModeCombo.getSelectionIndex()));
+		btnSetDeviceMode.addListener(SWT.Selection, e->connector.switchToMode(deviceModeCombo.getSelectionIndex(),null));
 		
 		Label lblPalette = new Label(shell, SWT.NONE);
 		lblPalette.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
@@ -97,7 +97,7 @@ public class UsbConfig extends Dialog {
 		Button btnSetPalette = new Button(shell, SWT.NONE);
 		btnSetPalette.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
 		btnSetPalette.setText("Set Palette");
-		btnSetPalette.addListener(SWT.Selection, e->connector.switchToPal(comboDefaultPalette.getSelectionIndex()));
+		btnSetPalette.addListener(SWT.Selection, e->connector.switchToPal(comboDefaultPalette.getSelectionIndex(), null));
 		
 		Label lblNewLabel = new Label(shell, SWT.NONE);
 		lblNewLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.TOP, false, false, 1, 1));
