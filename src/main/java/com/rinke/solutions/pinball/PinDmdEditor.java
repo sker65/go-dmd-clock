@@ -1488,7 +1488,7 @@ public class PinDmdEditor implements EventHandler {
 		log.info("new palette is {}", activePalette);
 		paletteTypeComboViewer.setSelection(new StructuredSelection(activePalette.type));
 		if (livePreviewActive)
-			connector.upload(activePalette, handle);
+			connector.switchToPal(activePalette.index, handle);
 	}
 
 	void updateAnimationMapKey(String oldKey, String newKey) {
@@ -1510,7 +1510,7 @@ public class PinDmdEditor implements EventHandler {
 		boolean selection = btnLivePreview.getSelection();
 		if (selection) {
 			try {
-				connector.switchToMode(DeviceMode.PinMame_RGB.ordinal());
+				connector.switchToMode(DeviceMode.PinMame_RGB.ordinal(), null);
 				handle = connector.connect(pin2dmdAdress);
 				livePreviewActive = selection;
 				setEnableUsbTooling(!selection);

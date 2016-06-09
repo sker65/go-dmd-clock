@@ -221,19 +221,27 @@ public abstract class Pin2DmdConnector {
     /* (non-Javadoc)
 	 * @see com.rinke.solutions.pinball.io.Pin2DmdConnector#switchToPal(int)
 	 */
-    public void switchToPal( int standardPalNumber ) {
+    public void switchToPal( int standardPalNumber, ConnectionHandle handle ) {
     	byte[] res = buildBuffer(UsbCmd.SWITCH_PALETTE);
     	res[5] = (byte) standardPalNumber;
-    	bulk(res);
+	    if( handle == null ) {
+	    	bulk(res);
+	    } else {
+	    	send(res, handle);
+	    }
     }
 
     /* (non-Javadoc)
 	 * @see com.rinke.solutions.pinball.io.Pin2DmdConnector#switchToMode(int)
 	 */
-    public void switchToMode( int deviceMode ) {
+    public void switchToMode( int deviceMode, ConnectionHandle handle ) {
     	byte[] res = buildBuffer(UsbCmd.SWITCH_DEVICEMODE);
     	res[5] = (byte) deviceMode;
-    	bulk(res);
+	    if( handle == null ) {
+	    	bulk(res);
+	    } else {
+	    	send(res, handle);
+	    }
     }
     
 
