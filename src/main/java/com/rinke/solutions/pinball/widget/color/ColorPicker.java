@@ -134,6 +134,7 @@ public class ColorPicker {
 	public ColorPicker() {
 		display = Display.getDefault();
 		shell = new Shell(SWT.CLOSE | SWT.TITLE | SWT.MIN);
+		initDelayedActions();
 	}
 	
 	public void close() {
@@ -731,24 +732,42 @@ public class ColorPicker {
 		sp.setIncrement(5);
 		return sp;
 	}
+
+	DelayedInfrequentAction spinnerActionRgb;
+	DelayedInfrequentAction spinnerActionHue;
 	
+	private void initDelayedActions() {
+		spinnerActionRgb = new DelayedInfrequentAction(this.display, 400) {
+	
+			@Override
+			public void run() {
+				setRGB( red.getSelection(),
+						green.getSelection(),
+						blue.getSelection() );
+			}
+		};			
+		spinnerActionHue = new DelayedInfrequentAction(this.display, 400) {
+
+			@Override
+			public void run() {
+				setHSB( hue.getSelection()/360f,
+						sat.getSelection()/100f,
+						bri.getSelection()/100f );
+			}
+			
+		};
+	}
+
 	private void updateSpinner(ModifyEvent e) {
 		Spinner src = (Spinner) e.getSource();
 		if(src.equals(hue) || src.equals(bri) || src.equals(sat) ) {
 			if(adjustingSpinners>0)
 				return;
-			
-			setHSB( hue.getSelection()/360f,
-					sat.getSelection()/100f,
-					bri.getSelection()/100f );
+			spinnerActionHue.kick();			
 		} else {
 			if(adjustingSpinners>0)
 				return;
-			
-			setRGB( red.getSelection(),
-					green.getSelection(),
-					blue.getSelection() );
-			
+			spinnerActionRgb.kick();
 		}
 	}
 
