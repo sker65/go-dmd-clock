@@ -134,6 +134,10 @@ public class ColorPicker {
 	public ColorPicker() {
 		display = Display.getDefault();
 		shell = new Shell(SWT.CLOSE | SWT.TITLE | SWT.MIN);
+		shell.addListener(SWT.Close, e -> {
+			e.doit = false;
+			close();
+		});
 		initDelayedActions();
 	}
 	
