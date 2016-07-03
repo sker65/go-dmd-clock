@@ -26,7 +26,12 @@ import com.rinke.solutions.pinball.model.RGB;
 public class AnimationCompiler {
 
 	private static Logger LOG = LoggerFactory.getLogger(AnimationCompiler.class);
-	private int startOfIndex; 
+	private int startOfIndex;
+	
+	public int unsignedByte(byte b) {
+	    return b & 0xFF;
+	}
+
 	
 	public List<Animation> readFromCompiledFile(String filename) {
 		List<Animation> anis = new ArrayList<>();
@@ -40,7 +45,7 @@ public class AnimationCompiler {
 			version = is.readShort(); // version
 			int count = is.readShort();
 			LOG.info("reading {} animations from {}",count, filename);
-			if( version > 2 ) {
+			if( version >= 2 ) {
 				// skip index of animations
 				for( int i=0; i< count; i++) is.readInt();
 			}
@@ -72,14 +77,19 @@ public class AnimationCompiler {
 				int frames = is.readShort();
 				if( frames < 0 ) frames += 65536;
 
-				if( version > 2 ) {
+				if( version >= 2 ) {
 					a.setPalIndex(is.readShort());
 					int numberOfColors = is.readShort();
-					RGB[] rgb = new RGB[numberOfColors];
-					for( int i = 0; i < numberOfColors; i++) {
-						rgb[i] = new RGB(is.readByte(),is.readByte(),is.readByte());
+					if( numberOfColors > 0) {
+						RGB[] rgb = new RGB[numberOfColors];
+						for( int i = 0; i < numberOfColors; i++) {
+							rgb[i] = new RGB(
+									unsignedByte(is.readByte()),
+									unsignedByte(is.readByte()),
+									unsignedByte(is.readByte()));
+						}
+						a.setAniColors(rgb);
 					}
-					a.setAniColors(rgb);
 				}
 
 				LOG.info("reading {} frames for {}",frames, desc);
@@ -139,7 +149,7 @@ public class AnimationCompiler {
 			os.writeShort(version); // version
 			os.writeShort(anis.size());
 			LOG.info("writing {} animations", anis.size());
-			if( version > 2 ) {
+			if( version >= 2 ) {
 				writeIndexPlaceholder(anis.size(),os);
 			}
 			int aniIndex = 0;
@@ -149,6 +159,8 @@ public class AnimationCompiler {
 			    LOG.info("writing {}",a);
 				// write meta data
 				os.writeUTF(a.getDesc());
+				// write transition name???
+				//os.writeUTF();
 				os.writeShort(a.getCycles());
 				os.writeShort(a.getHoldCycles());
 				// clock while animating
@@ -167,7 +179,7 @@ public class AnimationCompiler {
 				
 				int count = a.getFrameCount(dmd);
 				os.writeShort(count);
-				if( version > 2 ) {
+				if( version >= 2 ) {
 					// write palette idx
 					if( a.getPalIndex() <= 8 ) {
 						os.writeShort(a.getPalIndex()); // standard palette is always 0 for now
@@ -221,7 +233,7 @@ public class AnimationCompiler {
 				}
 				aniIndex++;
 			}
-			rewriteIndex(aniOffset, os, fos);
+			if( version >= 2 ) rewriteIndex(aniOffset, os, fos);
 			os.close();
 			LOG.info("done");
 		} catch (IOException e) {
