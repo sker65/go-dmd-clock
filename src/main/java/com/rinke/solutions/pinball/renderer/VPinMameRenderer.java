@@ -32,7 +32,7 @@ public class VPinMameRenderer extends Renderer {
 		BufferedReader stream = null;
 		int frameNo = 0;
 		int timecode = 0;
-		int lastTimeStamp = 0;
+		long lastTimeStamp = 0;
 		try {
 			stream = new BufferedReader(
 					new InputStreamReader(new GZIPInputStream(
@@ -48,7 +48,7 @@ public class VPinMameRenderer extends Renderer {
 			int vmax = 0;
 			while (line != null) {
 				if (line.startsWith("0x")) {
-					int newTs = Integer.parseInt(line.substring(2), 16);
+					long newTs = Long.parseLong(line.substring(2), 16);
 					if (frameNo > 0 && lastTimeStamp > 0) {
 						frames.get(frameNo - 1).delay = (int) (newTs - lastTimeStamp);
 						timecode += (newTs - lastTimeStamp);
