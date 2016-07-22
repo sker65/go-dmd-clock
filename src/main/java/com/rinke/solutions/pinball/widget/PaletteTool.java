@@ -84,6 +84,7 @@ public class PaletteTool implements ColorModifiedListener {
 	}
 
 	public void setNumberOfPlanes(int planes) {
+		log.info("setting number of planes: {}",planes);
 		switch (planes) {
 		case 1:
 			for (int i = 0; i < colBtn.length; i++)

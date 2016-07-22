@@ -1462,6 +1462,7 @@ public class PinDmdEditor implements EventHandler {
 				goDmdGroup.transitionCombo.select(0);
 			}
 			dmd.setNumberOfSubframes(numberOfPlanes);
+			paletteTool.setNumberOfPlanes(useMask?1:numberOfPlanes);
 			//planesComboViewer.setSelection(new StructuredSelection(PlaneNumber.valueOf(numberOfPlanes)));
 			playingAnis.clear();
 			playingAnis.add(selectedAnimation.get());
