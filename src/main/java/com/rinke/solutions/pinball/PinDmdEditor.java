@@ -1814,16 +1814,20 @@ public class PinDmdEditor implements EventHandler {
 		mntmAnimations.setMenu(menu_2);
 
 		MenuItem mntmLoadAnimation = new MenuItem(menu_2, SWT.NONE);
-		mntmLoadAnimation.setText("Load Animation");
+		mntmLoadAnimation.setText("Load Animation(s)");
 		mntmLoadAnimation.addListener(SWT.Selection, e -> aniAction.loadAniWithFC(true));
 
 		MenuItem mntmSaveAnimation = new MenuItem(menu_2, SWT.NONE);
-		mntmSaveAnimation.setText("Save Animation");
+		mntmSaveAnimation.setText("Save Animation(s)");
 		mntmSaveAnimation.addListener(SWT.Selection, e -> aniAction.saveAniWithFC(1));
 
 		MenuItem mntmSaveAniExt = new MenuItem(menu_2, SWT.NONE);
-		mntmSaveAniExt.setText("Save Ani Ext");
+		mntmSaveAniExt.setText("Save Animation(s) v2");
 		mntmSaveAniExt.addListener(SWT.Selection, e -> aniAction.saveAniWithFC(2));
+		
+		MenuItem mntmSaveSingleAnimation = new MenuItem(menu_2, SWT.NONE);
+		mntmSaveSingleAnimation.setText("Save single Animation");
+		mntmSaveSingleAnimation.addListener(SWT.Selection, e -> aniAction.saveSingleAniWithFC(2));
 
 		MenuItem mntmRecentAnimationsItem = new MenuItem(menu_2, SWT.CASCADE);
 		mntmRecentAnimationsItem.setText("Recent Animations");

@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Shell;
 
+import com.google.common.collect.Lists;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.AnimationCompiler;
 import com.rinke.solutions.pinball.animation.AnimationFactory;
@@ -123,5 +124,12 @@ public class AnimationActionHandler {
 		editor.project.dirty = true;
 	}
 
+	public void saveSingleAniWithFC(int version) {
+		String filename = fileChooserUtil.choose(SWT.SAVE, editor.selectedAnimation.get().getDesc(), new String[] { "*.ani" }, new String[] { "Animations" });
+		if (filename != null) {
+			log.info("store animation to {}", filename);
+			storeAnimations(Lists.newArrayList(editor.selectedAnimation.get()), filename, version);
+		}
+	}
 
 }
