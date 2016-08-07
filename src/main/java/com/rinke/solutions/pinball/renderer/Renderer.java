@@ -3,6 +3,7 @@ package com.rinke.solutions.pinball.renderer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.OptionalInt;
+import java.util.Properties;
 
 import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.model.Frame;
@@ -13,6 +14,7 @@ public abstract class Renderer {
 	protected int midThreshold = 120;
 	protected int highThreshold = 200;
 	protected int maxFrame = 0;
+	protected Properties props = new Properties();
 
 	List<Frame> frames = new ArrayList<>();
 
@@ -53,6 +55,14 @@ public abstract class Renderer {
 	public int getNumberOfPlanes() {
 		OptionalInt optionalInt = frames.stream().mapToInt(f->f.planes.size()).max();
 		return optionalInt.orElse(2);
+	}
+
+	public Properties getProps() {
+		return props;
+	}
+
+	public void setProps(Properties props) {
+		this.props = props;
 	}
 
 }

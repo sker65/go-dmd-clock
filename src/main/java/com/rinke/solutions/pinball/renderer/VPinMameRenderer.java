@@ -6,7 +6,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.zip.GZIPInputStream;
 
 import org.slf4j.Logger;
@@ -46,6 +48,8 @@ public class VPinMameRenderer extends Renderer {
 
 			int j = 0;
 			int vmax = 0;
+			Map<Integer,Integer> count1 = new HashMap<>();
+			Map<Integer,Integer> count2 = new HashMap<>();
 			while (line != null) {
 				if (line.startsWith("0x")) {
 					long newTs = Long.parseLong(line.substring(2), 16);
@@ -58,7 +62,8 @@ public class VPinMameRenderer extends Renderer {
 					line = stream.readLine();
 					continue;
 				}
-				if (line.length() == 0) {
+				int lineLenght = line.length();
+				if (lineLenght == 0) {
 					frames.add(res);
 					frameNo++;
 					res = new Frame(
@@ -72,12 +77,23 @@ public class VPinMameRenderer extends Renderer {
 					line = stream.readLine();
 					continue;
 				}
-				for (int i = 0; i < line.length(); i++) {
+				
+				for (int i = 0; i<line.length(); i++) {
 					//char c = line.charAt(i);
-					int bit = (i % 8);
-					int b = i / 8;
+					int k = i;
+					int v1 = 0;
+					if( lineLenght > 128){
+						//v1 = Integer.parseInt(line.substring(i,i+1), 16);
+						//inc(count1,v1);
+						i++; // skip every other byte
+						k >>= 1;
+					}
+					int bit = (k % 8);
+					int b = k / 8;
 					int mask = 128 >> bit;
-					int v = Integer.parseInt(line.substring(i,i+1), 16);
+					int v = Integer.parseInt(line.substring(i,i+1), 16)-2;
+//					if( v1 == 7 ) v += 8;
+//					inc(count2,v);
 					if( v > vmax ) vmax = v;
 					if( (v & 1) != 0 )
 						res.planes.get(0).plane[j + b] |= mask;
@@ -93,7 +109,7 @@ public class VPinMameRenderer extends Renderer {
 			}
 			// check maximum value for v
 			// if never ever more than 3 reduce number of planes
-			if( vmax == 3 ) reducePlanes(frames,2);
+			if( vmax <= 3 ) reducePlanes(frames,2);
 		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {
@@ -105,6 +121,15 @@ public class VPinMameRenderer extends Renderer {
 				}
 		}
 		this.maxFrame = frameNo;
+	}
+
+	private void inc(Map<Integer, Integer> map, int v) {
+		if( map.containsKey(v)) {
+			map.put(v, map.get(v)+1);
+		} else {
+			map.put(v, 1);
+		}
+		
 	}
 
 	private void reducePlanes(List<Frame> frames, int maxNumberOfPlanes) {
