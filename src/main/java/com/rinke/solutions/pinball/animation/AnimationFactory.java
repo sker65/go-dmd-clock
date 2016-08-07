@@ -5,7 +5,6 @@ import java.io.File;
 import static java.lang.Boolean.parseBoolean;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -13,8 +12,6 @@ import java.util.List;
 import java.util.Properties;
 
 import com.rinke.solutions.pinball.renderer.Renderer;
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
 
 /**
  * class that creates a list of animations read from a property file
@@ -23,8 +20,6 @@ import com.typesafe.config.ConfigFactory;
  */
 public class AnimationFactory {
 	
-    private static final String GETAWAY = "Getaway";
-    
     private static AnimationCompiler animationCompiler = new AnimationCompiler();
 
 	public static List<Animation> createAnimationsFromProperties(String filename) throws IOException {
