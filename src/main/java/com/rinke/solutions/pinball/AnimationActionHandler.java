@@ -1,5 +1,6 @@
 package com.rinke.solutions.pinball;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.stream.Collectors;
@@ -63,6 +64,7 @@ public class AnimationActionHandler {
 	public void loadAni(String filename, boolean append, boolean populateProject) {
 		AnimationCompiler compiler = new AnimationCompiler();
 		java.util.List<Animation> loadedList = new ArrayList<>();
+		try {
 		if (filename.endsWith(".ani")) {
 			loadedList.addAll(compiler.readFromCompiledFile(filename));
 		} else if (filename.endsWith(".txt.gz")) {
@@ -77,7 +79,9 @@ public class AnimationActionHandler {
 			loadedList.add(Animation.buildAnimationFromFile(filename, AnimationType.VIDEO));
 		}
 		log.info("loaded {} animations from {}", loadedList.size(), filename);
-
+		} catch( IOException e) {
+			log.error("error load anis from {}", filename, e);
+		}
 		if (populateProject) {
 			if (!append)
 				editor.project.inputFiles.clear();

@@ -3,6 +3,7 @@ package com.rinke.solutions.pinball.animation;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -222,6 +223,7 @@ public class Animation {
 	}
 
 	Renderer renderer = null;
+	Properties props = new Properties();
 	Frame last;
 	Renderer transitionRenderer = null;
 	List<Frame> transitions = new ArrayList<>();
@@ -332,6 +334,7 @@ public class Animation {
 		default:
 			break;
 		}
+		renderer.setProps(props);
 	}
 
 	public boolean hasEnded() {
@@ -476,6 +479,14 @@ public class Animation {
 
 	public void setPalIndex(int palIndex) {
 		this.palIndex = palIndex;
+	}
+
+	public Properties getProps() {
+		return props;
+	}
+
+	public void setProps(Properties props) {
+		 this.props = props;
 	}
 
 }

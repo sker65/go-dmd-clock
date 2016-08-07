@@ -145,6 +145,10 @@ public class GoDmdGroup {
 		IObservableValue clockInFrontAniModelObserveValue = BeanProperties.value("clockInFront").observe(aniModel);
 		bindingContext.bindValue(observeSelectionBtnFrontObserveWidget, clockInFrontAniModelObserveValue, null, null);
 		//
+		IObservableValue observeSelectionBtnSmallObserveWidget = WidgetProperties.selection().observe(btnSmall);
+		IObservableValue clockSmallAniModelObserveValue = BeanProperties.value("clockSmall").observe(aniModel);
+		bindingContext.bindValue(observeSelectionBtnSmallObserveWidget, clockSmallAniModelObserveValue, null, null);
+		//
 		IObservableValue observeTextTransitionFromObserveWidget = WidgetProperties.text(SWT.Modify).observe(transitionFrom);
 		IObservableValue transitionFromAniModelObserveValue = BeanProperties.value("transitionFrom").observe(aniModel);
 		bindingContext.bindValue(observeTextTransitionFromObserveWidget, transitionFromAniModelObserveValue, new UpdateValueStrategy(UpdateValueStrategy.POLICY_NEVER), null);
