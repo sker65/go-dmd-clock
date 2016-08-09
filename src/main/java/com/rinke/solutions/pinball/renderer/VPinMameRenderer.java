@@ -81,7 +81,6 @@ public class VPinMameRenderer extends Renderer {
 				for (int i = 0; i<line.length(); i++) {
 					//char c = line.charAt(i);
 					int k = i;
-					int v1 = 0;
 					if( lineLenght > 128){
 						//v1 = Integer.parseInt(line.substring(i,i+1), 16);
 						//inc(count1,v1);
@@ -91,8 +90,7 @@ public class VPinMameRenderer extends Renderer {
 					int bit = (k % 8);
 					int b = k / 8;
 					int mask = 128 >> bit;
-					int v = Integer.parseInt(line.substring(i,i+1), 16)-2;
-//					if( v1 == 7 ) v += 8;
+					int v = Integer.parseInt(line.substring(i,i+1), 16);
 //					inc(count2,v);
 					if( v > vmax ) vmax = v;
 					if( (v & 1) != 0 )
