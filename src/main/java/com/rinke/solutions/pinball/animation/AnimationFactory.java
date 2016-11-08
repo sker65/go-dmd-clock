@@ -61,14 +61,15 @@ public class AnimationFactory {
 					conf.getProperty(animationName+".path"),
 					getInt(conf,animationName+".start"),
 					getInt(conf,animationName+".end"),
-					getInt(conf, animationName+".step"),
+					getInt(conf, animationName+".step",1),
 					cycles,
-					getInt(conf,animationName+".hold"));
+					getInt(conf,animationName+".hold",1));
 			
 			animation.setDesc(animationName);
 			animation.setBasePath(basePath);
 			
 			animation.setProps(createPropsForAniname(conf, animationName));
+			animation.setMutable(Boolean.parseBoolean(conf.getProperty(animationName+".mutable", "false")));
 			
 			if( conf.containsKey(animationName+".millisPerCycle")) {
 				animation.setRefreshDelay(getInt(conf, animationName+".millisPerCycle"));
@@ -168,6 +169,11 @@ public class AnimationFactory {
 		} else {
 			return Integer.parseInt(v);
 		}
+	}
+	
+	private static int getInt(Properties conf, String key, int defValue) {
+		if( conf.contains(key) ) return getInt(conf,key);
+		return defValue;
 	}
 
 	private static AnimationType typeFor(String type) {

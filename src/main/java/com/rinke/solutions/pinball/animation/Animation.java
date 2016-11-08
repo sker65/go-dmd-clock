@@ -56,9 +56,12 @@ public class Animation {
 	private String transitionName = null;
 	private int transitionCount = 1;
 	private int transitionDelay = 50;
+	
 	private boolean mutable = false;
 	private int palIndex = 0;
 	private RGB[] aniColors;
+	
+	private boolean trueColor;
 
 	public void setAniColors(RGB[] rgb) {
 		this.aniColors = rgb;
@@ -131,7 +134,7 @@ public class Animation {
         Animation ani = new Animation(type, base, 0, 0, 1, 1, 0);
         ani.setBasePath(file.getParent() + "/");
         ani.setDesc(base.substring(0, base.indexOf('.')));
-        ani.setMutable(type.equals(AnimationType.COMPILED));
+        ani.setMutable(type.equals(AnimationType.COMPILED)||type.equals(AnimationType.VIDEO));
         return ani;
     }
 
@@ -487,6 +490,14 @@ public class Animation {
 
 	public void setProps(Properties props) {
 		 this.props = props;
+	}
+
+	public boolean isTrueColor() {
+		return trueColor;
+	}
+
+	public void setTrueColor(boolean trueColor) {
+		 this.trueColor = trueColor;
 	}
 
 }

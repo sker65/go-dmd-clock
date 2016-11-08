@@ -158,6 +158,7 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
     	int numberOfSubframes = dmd.getNumberOfPlanes();
     	boolean useColorIndex = numberOfSubframes < 8;
         Color cols[] = {};
+        if( mask != null ) cols = new Color[1<<numberOfSubframes];
         if( useColorIndex ) {
             cols = new Color[1<<numberOfSubframes];
             if( numberOfSubframes == 2) {
@@ -213,9 +214,9 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
                 	gcImage.setBackground(cols[v]);
                 } else {
                 	// v is rgb directly
-                	int r = (v >> 8) << 4;
-                    int g = ( ( v >> 4 ) & 0xF ) << 4;
-                    int b = ( v & 0x0F ) << 4;
+                	int r = (v >> 10) << 3;
+                    int g = ( ( v >> 5 ) & 0x1F ) << 3;
+                    int b = ( v & 0x1F ) << 3;
                 	Color c = resourceManager.createColor(new RGB(r,g,b));
                 	gcImage.setBackground(c);
                 }

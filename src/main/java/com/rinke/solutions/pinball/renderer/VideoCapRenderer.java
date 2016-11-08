@@ -1,10 +1,14 @@
 package com.rinke.solutions.pinball.renderer;
 
 import java.awt.Graphics;
+import java.awt.geom.AffineTransform;
+import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferByte;
 import java.awt.image.DataBufferInt;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.Java2DFrameConverter;
@@ -15,9 +19,11 @@ import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Plane;
 
+@Slf4j
 public class VideoCapRenderer extends Renderer {
 
 	private static Logger LOG = LoggerFactory.getLogger(VideoCapRenderer.class);
+	private int skip = 0;
 
 	public VideoCapRenderer(int start, int end) {
 	}
@@ -28,10 +34,20 @@ public class VideoCapRenderer extends Renderer {
 		FFmpegFrameGrabber g = new FFmpegFrameGrabber(name);
 		int w = dmd.getWidth();
 		int h = dmd.getHeight();
-		int frameNo = 0;
+		skip = getInt("start", 0);
+		int end = getInt("end",0);
+		AffineTransformOp op = null;
+		if( getProps().containsKey("scalex") || getProps().containsKey("scaley")) {
+			AffineTransform tx = new AffineTransform(); 
+			double sx = getDouble("scalex", 1.0);
+			double sy = getDouble("scaley", 1.0);
+			log.info("scaling image by {},{}",sx,sy);
+			tx.scale(sx, sy);
+			op = new AffineTransformOp(tx, AffineTransformOp.TYPE_BILINEAR);
+		}
 		try {
 			g.start();
-			for (int i = 0; i < 700; i++) {
+			for (int i = 0; i <end+1; i++) {
 				org.bytedeco.javacv.Frame frame;
 				do {
 					frame = g.grab();
@@ -39,17 +55,20 @@ public class VideoCapRenderer extends Renderer {
 				} while( frame.image == null );
 
 				if( frame == null ) break;
+				if( i < skip-1 ) continue;
 				
 				BufferedImage image = converter.convert(frame);
-				int sh = image.getHeight();
-				int sw = image.getWidth();
+				//int sh = image.getHeight();
+				//int sw = image.getWidth();
 				
+				if( op != null ) image = op.filter(image, null);
+				// extract clipping from props
 				
 				BufferedImage dmdImage = new BufferedImage(w,
 						h, BufferedImage.TYPE_INT_RGB);
 
 				Graphics graphics = dmdImage.createGraphics();
-				graphics.drawImage(image.getSubimage(0, 35, sw, sh-40), 0, 0, w,
+				graphics.drawImage(image.getSubimage(getInt("clipx",0), getInt("clipy",0), getInt("clipw",128), getInt("cliph",32)), 0, 0, w,
 						h, null);
 				graphics.dispose();
 				
@@ -60,19 +79,15 @@ public class VideoCapRenderer extends Renderer {
 //					e.printStackTrace();
 //				}
 
-				/*
-				 * AffineTransform tx = new AffineTransform(); tx.scale(1, 2);
-				 * AffineTransformOp op = new AffineTransformOp(tx,
-				 * AffineTransformOp.TYPE_BILINEAR); bufferedImage =
-				 * op.filter(bufferedImage, null);
-				 */
+				
+				 
 
 //				int[][] image2d = convertTo2D(dmdImage);
 				// int[] palette = Quantize.quantizeImage(image2d, 255);
 
 				// create 
 				Frame res = new Frame();
-				for( int j = 0; j < 12 ; j++) {
+				for( int j = 0; j < 15 ; j++) {
 					res.planes.add(new Plane((byte)j, new byte[dmd.getFrameSizeInByte()]));
 				}
 				res.timecode = (int)( g.getTimestamp() / 1000 );
@@ -82,12 +97,12 @@ public class VideoCapRenderer extends Renderer {
 
 						int rgb = dmdImage.getRGB(x, y);
 						
-						// reduce color depth to 12 bit
-						int nrgb = ( rgb >> 4 ) & 0x0F;
-						nrgb |= ( ( rgb >> 12 ) & 0x0F ) << 4;
-						nrgb |= ( ( rgb >> 20 ) & 0x0F ) << 8;
+						// reduce color depth to 15 bit
+						int nrgb = ( rgb >> 3 ) & 0x1F;
+						nrgb |= ( ( rgb >> 11 ) & 0x1F ) << 5;
+						nrgb |= ( ( rgb >> 19 ) & 0x1F ) << 10;
 						
-						for( int j = 0; j < 12 ; j++) {
+						for( int j = 0; j < 15 ; j++) {
 							if( (nrgb & (1<<j)) != 0)
 								res.planes.get(j).plane[y * dmd.getBytesPerRow() + x / 8] |= (128 >> (x % 8));
 						}
@@ -95,13 +110,24 @@ public class VideoCapRenderer extends Renderer {
 					}
 				}
 				frames.add(res);
-				frameNo++;
-			}
+			} // stop cap
 			g.stop();
 		} catch (Exception e) {
 			LOG.error("problems grabbing {}", name, e);
 		}
-		this.maxFrame = frameNo;
+		this.maxFrame = frames.size();
+	}
+
+	private double getDouble(String propName, double defValue) {
+		return Double.parseDouble(
+				getProps().getProperty(propName, String.valueOf(defValue))
+				);
+	}
+
+	private int getInt(String propName, int defVal) {
+		return Integer.parseInt(
+			getProps().getProperty(propName, String.valueOf(defVal))
+			);
 	}
 
 	private int[][] convertTo2D(BufferedImage image) {
@@ -161,6 +187,11 @@ public class VideoCapRenderer extends Renderer {
 		}
 
 		return result;
+	}
+
+	@Override
+	public Frame convert(String filename, DMD dmd, int frameNo) {
+		return super.convert(filename, dmd, frameNo-skip);
 	}
 
 }
