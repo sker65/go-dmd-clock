@@ -608,7 +608,7 @@ public class PinDmdEditor implements EventHandler {
 
 	private void exportProject() {
 
-		licManager.requireOneOf(Capability.VPIN, Capability.REALPIN);
+		licManager.requireOneOf(Capability.VPIN, Capability.REALPIN, Capability.GODMD);
 
 		String filename = fileChooserUtil.choose(SWT.SAVE, project.name, new String[] { "*.dat" }, new String[] { "Export dat" });
 		if (filename != null) {
@@ -653,7 +653,7 @@ public class PinDmdEditor implements EventHandler {
 
 	void exportProject(String filename, OutputStreamProvider streamProvider) {
 
-		licManager.requireOneOf(Capability.VPIN, Capability.REALPIN);
+		licManager.requireOneOf(Capability.VPIN, Capability.REALPIN, Capability.GODMD);
 
 		for (PalMapping p : project.palMappings) {
 			if (p.frameSeqName != null) {
@@ -720,7 +720,10 @@ public class PinDmdEditor implements EventHandler {
 		if (numberOfStoredAnis > 0 && !project.inputFiles.contains(baseName)) {
 			project.inputFiles.add(baseName);
 		}
+		Map<String,FrameSeq> frameSeqMapSave = project.frameSeqMap;
+		project.frameSeqMap = null; // remove this for saving
 		fileHelper.storeObject(project, filename);
+		project.frameSeqMap = frameSeqMapSave;
 		project.dirty = false;
 	}
 

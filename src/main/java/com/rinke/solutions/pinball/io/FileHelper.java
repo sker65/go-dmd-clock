@@ -111,8 +111,16 @@ public class FileHelper {
     
     public void storeObject(Model obj,  String filename) {
     	try( OutputStream out = new FileOutputStream(filename)) {
+    		storeObject(obj, out, Format.byFilename(filename));
+    	} catch( IOException e) {
+    	    log.error("error on storing "+filename, e);
+    	    throw new RuntimeException("error on storing "+filename,e);
+    	}
+    }
+    
+    public void storeObject(Model obj,  OutputStream out, Format format) throws IOException {
             HierarchicalStreamWriter writer = null;
-            switch (Format.byFilename(filename)) {
+            switch (format) {
             case XML:
                 xstream.toXML(obj, out);
                 break;
@@ -123,15 +131,11 @@ public class FileHelper {
                 writer = driver.createWriter(out);
                 bstream.marshal(obj, writer);
                 break;
-                
             default:
-                throw new RuntimeException("unsupported filetype / extension " +filename);
+                throw new RuntimeException("unsupported filetype ");
             }
-            if(writer!=null) writer.close(); else out.close();
-    	} catch( IOException e) {
-    	    log.error("error on storing "+filename, e);
-    	    throw new RuntimeException("error on storing "+filename,e);
-    	}
+            if(writer!=null) writer.close(); 
+            else out.close();
     }
     
     public Object loadObject(String filename) {
