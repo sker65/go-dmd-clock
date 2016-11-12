@@ -602,7 +602,8 @@ public class PinDmdEditor implements EventHandler {
 		}
 	}
 
-	private String buildRelFilename(String parent, String file) {
+	String buildRelFilename(String parent, String file) {
+		if( file.contains(File.separator)) return file;
 		return new File(parent).getParent() + File.separator + new File(file).getName();
 	}
 
