@@ -1,6 +1,6 @@
 # go-dmd-clock
 
-Tools project for goDMD clock and pin2dmd project. [![Build Status](https://drone.io/github.com/sker65/go-dmd-clock/status.png)](https://drone.io/github.com/sker65/go-dmd-clock/latest)
+Tools project for goDMD clock and pin2dmd project. [![Build Status](https://drone.io/github.com/sker65/go-dmd-clock/status.png)](https://drone.io/github.com/sker65/go-dmd-clock/latest) [![Coverage Status](https://coveralls.io/repos/github/sker65/go-dmd-clock/badge.svg?branch=master)](https://coveralls.io/github/sker65/go-dmd-clock?branch=master)
 
 Firmware see https://github.com/sker65/goDMD
 
@@ -16,5 +16,6 @@ and here http://go-dmd.de/2015/03/17/go-dmd-animationen-aufnehmen-mit-visualpinb
 A Display replacement for virtual pinball replacing a 3th LCD or for real pinball machines replacing the DMD
 
 Firmware, doc and sources see here: https://github.com/lucky01/PIN2DMD
+
 
 
