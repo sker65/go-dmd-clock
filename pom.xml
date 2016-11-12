@@ -479,7 +479,7 @@
 		<dependency>
 	       <groupId>com.rinke.solutions.pinball</groupId>
     	    <artifactId>pin2dmd-tools</artifactId>
-        	<version>0.0.2-SNAPSHOT</version>
+        	<version>0.0.3-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 	<build>
