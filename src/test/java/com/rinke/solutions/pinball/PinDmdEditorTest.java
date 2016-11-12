@@ -2,6 +2,7 @@ package com.rinke.solutions.pinball;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -186,6 +187,14 @@ public class PinDmdEditorTest {
 		
 		uut.updateAnimationMapKey("old", "new");
 		assertTrue(uut.animations.get("new")!=null);
+	}
+
+	@Test
+	public void testBuildRelFilename() throws Exception {
+		String filename = uut.buildRelFilename("/foo/test/tes.dat", "foo.ani");
+		assertEquals("/foo/test/foo.ani", filename);
+		filename = uut.buildRelFilename("/foo/test/tes.dat", "/foo.ani");
+		assertEquals("/foo.ani", filename);
 	}
 
 
