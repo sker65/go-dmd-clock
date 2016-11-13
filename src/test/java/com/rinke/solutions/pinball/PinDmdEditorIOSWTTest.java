@@ -21,7 +21,7 @@ import com.rinke.solutions.pinball.test.Util;
 import com.rinke.solutions.pinball.util.RecentMenuManager;
 
 @RunWith(MockitoJUnitRunner.class)
-public class PinDmdEditorIOTest {
+public class PinDmdEditorIOSWTTest {
 	
 	@Mock
 	Shell shell;
