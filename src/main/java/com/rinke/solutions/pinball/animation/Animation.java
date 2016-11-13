@@ -63,7 +63,7 @@ public class Animation {
 	private RGB[] aniColors;
 	
 	private boolean trueColor;
-	enum EditMode {
+	public enum EditMode {
 		REPLACE, MASK, FIXED
 	}
 	

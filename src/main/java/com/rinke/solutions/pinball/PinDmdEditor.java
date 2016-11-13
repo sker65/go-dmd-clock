@@ -75,6 +75,7 @@ import org.kohsuke.args4j.Option;
 
 import com.rinke.solutions.pinball.animation.AniEvent;
 import com.rinke.solutions.pinball.animation.Animation;
+import com.rinke.solutions.pinball.animation.Animation.EditMode;
 import com.rinke.solutions.pinball.animation.AnimationCompiler;
 import com.rinke.solutions.pinball.animation.AnimationFactory;
 import com.rinke.solutions.pinball.animation.AnimationModel;
@@ -1435,6 +1436,8 @@ public class PinDmdEditor implements EventHandler {
 
 	private void switchColorMask(boolean on) {
 		dmd.setDrawMask(on ? 0b11111100 : 0xFFFF);
+		selectedAnimation.get().setEditMode( on ? EditMode.MASK: EditMode.REPLACE);
+		aniListViewer.refresh();
 	}
 
 	/**
@@ -1467,6 +1470,7 @@ public class PinDmdEditor implements EventHandler {
 			} else {
 				goDmdGroup.transitionCombo.select(0);
 			}
+			btnColorMask.setSelection(a.getEditMode()==EditMode.MASK);
 			dmd.setNumberOfSubframes(numberOfPlanes);
 			paletteTool.setNumberOfPlanes(useMask?1:numberOfPlanes);
 			//planesComboViewer.setSelection(new StructuredSelection(PlaneNumber.valueOf(numberOfPlanes)));
