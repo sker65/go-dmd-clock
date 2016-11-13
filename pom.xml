@@ -91,6 +91,7 @@
 		                <configuration>
 		                    <includes>
 		                        <include>**/*Test.java</include>
+                                <include>**/*SWTTest.java</include>
 		                    </includes>
 		                </configuration>
 		            </plugin>
