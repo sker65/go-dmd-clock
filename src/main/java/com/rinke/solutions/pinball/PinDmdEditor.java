@@ -559,6 +559,16 @@ public class PinDmdEditor implements EventHandler {
 			project.palMappings.add(palMapping);
 		}
 	}
+	
+	protected void setupUIonProjectLoad() {
+		paletteComboViewer.setInput(project.palettes);
+		paletteComboViewer.setSelection(new StructuredSelection(project.palettes.get(0)));
+		keyframeTableViewer.setInput(project.palMappings);
+		for (Animation ani : animations.values()) {
+			selectedAnimation = Optional.of(animations.isEmpty() ? defaultAnimation : ani);
+			break;
+		}
+	}
 
 	void loadProject(String filename) {
 		log.info("load project from {}", filename);
@@ -577,14 +587,7 @@ public class PinDmdEditor implements EventHandler {
 				// project.scenes.get(i).end, animations.get(0));
 				log.info("cutting out " + project.scenes.get(i));
 			}
-
-			paletteComboViewer.setInput(project.palettes);
-			paletteComboViewer.setSelection(new StructuredSelection(project.palettes.get(0)));
-			keyframeTableViewer.setInput(project.palMappings);
-			for (Animation ani : animations.values()) {
-				selectedAnimation = Optional.of(animations.isEmpty() ? defaultAnimation : ani);
-				break;
-			}
+			setupUIonProjectLoad();
 			ensureDefault();
 			recentProjectsMenuManager.populateRecent(filename);
 		}
@@ -620,7 +623,7 @@ public class PinDmdEditor implements EventHandler {
 		}
 	}
 
-	private void saveProject() {
+	void saveProject() {
 		String filename = fileChooserUtil.choose(SWT.SAVE, project.name, new String[] { "*.xml", "*.json" }, new String[] { "Project XML", "Project JSON" });
 		if (filename != null)
 			saveProject(filename);
@@ -708,7 +711,7 @@ public class PinDmdEditor implements EventHandler {
 		}
 	}
 
-	private void saveProject(String filename) {
+	void saveProject(String filename) {
 		log.info("write project to {}", filename);
 		String aniFilename = replaceExtensionTo("ani", filename);
 		String baseName = new File(aniFilename).getName();
@@ -719,7 +722,7 @@ public class PinDmdEditor implements EventHandler {
 			// save as
 			project.inputFiles.remove(project.name + ".ani");
 		}
-		int numberOfStoredAnis = aniAction.storeAnimations(animations.values(), aniFilename, 1);
+		int numberOfStoredAnis = aniAction.storeAnimations(animations.values(), aniFilename, 3);
 		if (numberOfStoredAnis > 0 && !project.inputFiles.contains(baseName)) {
 			project.inputFiles.add(baseName);
 		}
