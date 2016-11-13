@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.core.databinding.DataBindingContext;
 import org.eclipse.core.databinding.observable.Realm;
 import org.eclipse.jface.databinding.swt.SWTObservables;
@@ -891,7 +892,7 @@ public class PinDmdEditor implements EventHandler {
 		}));
 
 		viewerCol1.getColumn().setWidth(220);
-		viewerCol1.setLabelProvider(new ColumnLabelProviderAdapter(o -> ((Animation) o).getDesc()));
+		viewerCol1.setLabelProvider(new IconLabelProvider(shell, o -> ((Animation) o).getIconAndText() ));
 
 		keyframeTableViewer = new TableViewer(shell, SWT.SINGLE | SWT.V_SCROLL);
 		Table keyframeList = keyframeTableViewer.getTable();
@@ -912,7 +913,8 @@ public class PinDmdEditor implements EventHandler {
 		}));
 
 		viewerColumn.getColumn().setWidth(200);
-		viewerColumn.setLabelProvider(new KeyframeLabelProvider(shell));
+		viewerColumn.setLabelProvider(new IconLabelProvider(shell, o -> Pair.of(
+				((PalMapping)o).switchMode.name().toLowerCase(), ((PalMapping)o).name ) ));
 
 		dmdWidget = new DMDWidget(shell, SWT.DOUBLE_BUFFERED, this.dmd, true);
 		// dmdWidget.setBounds(0, 0, 700, 240);

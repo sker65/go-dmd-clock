@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,6 +63,11 @@ public class Animation {
 	private RGB[] aniColors;
 	
 	private boolean trueColor;
+	enum EditMode {
+		REPLACE, MASK, FIXED
+	}
+	
+	private EditMode editMode = EditMode.FIXED;
 
 	public void setAniColors(RGB[] rgb) {
 		this.aniColors = rgb;
@@ -455,6 +461,11 @@ public class Animation {
     public void setTransitionsPath(String transitionsPath) {
         this.transitionsPath = transitionsPath;
     }
+    
+    public Pair<String,String> getIconAndText() {
+    	if( !isMutable() ) return Pair.of("fixed", desc);
+    	return Pair.of(editMode == EditMode.MASK?"add":"replace", desc);
+    }
 
     @Override
     public String toString() {
@@ -498,6 +509,14 @@ public class Animation {
 
 	public void setTrueColor(boolean trueColor) {
 		 this.trueColor = trueColor;
+	}
+
+	public EditMode getEditMode() {
+		return editMode;
+	}
+
+	public void setEditMode(EditMode editMode) {
+		this.editMode = editMode;
 	}
 
 }

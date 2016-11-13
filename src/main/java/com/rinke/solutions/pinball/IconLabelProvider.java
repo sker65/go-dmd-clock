@@ -1,45 +1,48 @@
 package com.rinke.solutions.pinball;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.resource.LocalResourceManager;
-import org.eclipse.jface.viewers.ColumnLabelProvider;
-import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.OwnerDrawLabelProvider;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 
-import com.rinke.solutions.pinball.model.PalMapping;
-
-public class KeyframeLabelProvider extends OwnerDrawLabelProvider {
+public class IconLabelProvider extends OwnerDrawLabelProvider {
 
     private LocalResourceManager resManager;
+	private IconResolver resolver;
+    
+    @FunctionalInterface
+    public interface IconResolver {
+    	public Pair<String,String> resolve(Object o);
+    }
 
-	public KeyframeLabelProvider(Composite parent) {
+	public IconLabelProvider(Composite parent, IconResolver resolver) {
 		super();
+		this.resolver = resolver;
 		resManager = new LocalResourceManager(JFaceResources.getResources(),
 				parent);	}
 
     public String getText(Object o) {
-        return ((PalMapping)o).name;
+        return resolver.resolve(o).getRight();
     }
 
 	public Image getImage(Object o) {
-		PalMapping p = (PalMapping)o;
-		String icon = "/icons/"+p.switchMode.name().toLowerCase()+".png";
+		String icon = "/icons/"+resolver.resolve(o).getLeft()+".png";
 		return resManager.createImage(
-				ImageDescriptor.createFromFile(KeyframeLabelProvider.class, icon));
+				ImageDescriptor.createFromFile(IconLabelProvider.class, icon));
 	}
 
 	@Override
 	protected void measure(Event event, Object element) {
 		Rectangle rectangle = new Rectangle(0,0,16,16);
-        if( event != null && element != null)
-		event.setBounds(new Rectangle(event.x, event.y, rectangle.width + 200 , 
-            rectangle.height));		
+        if( event != null ) {
+    		event.setBounds(new Rectangle(event.x, event.y, rectangle.width + 200 , 
+    	            rectangle.height));		
+        }
 	}
 
 	@Override
@@ -49,8 +52,6 @@ public class KeyframeLabelProvider extends OwnerDrawLabelProvider {
         //Point point = event.gc.stringExtent(text);
         event.gc.drawImage(getImage(item), bounds.x + 2, bounds.y+2);
         event.gc.drawText(text, bounds.x+20, bounds.y, true);
-		
 	}
-
 
 }
