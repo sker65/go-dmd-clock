@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.rinke.solutions.pinball</groupId>
 	<artifactId>go-dmd-clock</artifactId>
-	<version>1.0.21.0</version>
+	<version>1.0.22.0</version>
 	<repositories>
 		<repository>
     	    <id>maven-eclipse-repo</id>
@@ -391,6 +391,12 @@
 			<artifactId>junit</artifactId>
 			<version>4.12</version>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+		    <groupId>xmlunit</groupId>
+		    <artifactId>xmlunit</artifactId>
+		    <version>1.6</version>
+            <scope>test</scope>
 		</dependency>
 
 		<dependency>
