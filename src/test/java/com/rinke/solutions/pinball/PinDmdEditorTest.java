@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Observer;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -31,7 +30,6 @@ import com.rinke.solutions.pinball.animation.AnimationType;
 import com.rinke.solutions.pinball.io.Pin2DmdConnector;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.FrameSeq;
-import com.rinke.solutions.pinball.model.Mask;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.PalMapping.SwitchMode;
 import com.rinke.solutions.pinball.test.Util;
@@ -65,14 +63,13 @@ public class PinDmdEditorTest {
 		uut.licManager.verify("src/test/resources/#3E002400164732.key");
 	}
 
-	@Test @Ignore
+	@Test
 	public void testReplaceExtensionTo() throws Exception {
 		String newName = uut.replaceExtensionTo("ani", "foo.xml");
 		assertThat(newName, equalTo("foo.ani"));
 	}
 
 	@Test
-	@Ignore
 	public void testExportProjectWithFrameMapping() throws Exception {
 
 		File tempFile = testFolder.newFile("test.dat");
@@ -117,7 +114,6 @@ public class PinDmdEditorTest {
 	}
 
 	@Test
-	@Ignore
 	public void testExportProjectWithMapping() throws Exception {
 
 		File tempFile = testFolder.newFile("test.dat");
@@ -130,8 +126,6 @@ public class PinDmdEditorTest {
 		uut.project.palMappings.add(p);
 
 		uut.exportProject(filename, f->new FileOutputStream(f));
-
-		// System.out.println(filename);
 
 		// create a reference file and compare against
 		assertNull(Util.isBinaryIdentical(filename,
