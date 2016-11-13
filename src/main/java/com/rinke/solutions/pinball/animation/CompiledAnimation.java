@@ -27,10 +27,6 @@ public class CompiledAnimation extends Animation {
 		return last;
 	}
 
-	public void addPlane( int act, Plane f1 ) {
-		frames.get(act).planes.add(f1);
-	}
-	
 	public void addFrame(Frame f) {
 		frames.add(f);
 		this.end++;

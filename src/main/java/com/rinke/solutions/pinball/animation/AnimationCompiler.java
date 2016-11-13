@@ -1,10 +1,13 @@
 package com.rinke.solutions.pinball.animation;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
@@ -13,7 +16,12 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.rinke.solutions.io.HeatShrinkDecoder;
+import com.rinke.solutions.io.HeatShrinkEncoder;
+import com.rinke.solutions.io.Result;
+import com.rinke.solutions.io.Result.Code;
 import com.rinke.solutions.pinball.DMD;
+import com.rinke.solutions.pinball.animation.Animation.EditMode;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.Plane;
@@ -90,6 +98,10 @@ public class AnimationCompiler {
 						}
 						a.setAniColors(rgb);
 					}
+				} // version 2
+				if( version >= 3 ) {
+					byte editMode = is.readByte();
+					a.setEditMode(EditMode.fromOrdinal(editMode));
 				}
 
 				LOG.info("reading {} frames for {}",frames, desc);
@@ -98,25 +110,29 @@ public class AnimationCompiler {
 					int size = is.readShort(); // framesize in byte
 					int delay = is.readShort();
 					int numberOfPlanes = is.readByte();
-					int np = numberOfPlanes;
 					Frame f = new Frame();
 					f.delay = delay;
 					a.addFrame(f);
-					Plane mask = null;
-					while( np>0) {
-						byte[] f1 = new byte[size];
-						byte marker = is.readByte(); // type of plane
-						is.readFully(f1);
-						Plane p = new Plane(marker, f1);
-						if( marker < numberOfPlanes ) a.addPlane(i, p );
-						else mask = p;
-						np--;
+					boolean foundMask = false;
+					if( version >= 3 ) {
+						boolean compressed = is.readBoolean();
+						if( compressed ) {
+							int compressedSize = is.readInt();
+							byte[] inBuffer = new byte[compressedSize];
+							is.read(inBuffer);
+							ByteArrayOutputStream b2 = new ByteArrayOutputStream();
+							ByteArrayInputStream bis = new ByteArrayInputStream(inBuffer);
+							HeatShrinkDecoder dec = new HeatShrinkDecoder(10,5,1024);
+							dec.decode(bis, b2);
+							DataInputStream is2 = new DataInputStream(new ByteArrayInputStream(b2.toByteArray()));
+							foundMask = readPlanes(f, numberOfPlanes, size, is2);
+						} else {
+							foundMask = readPlanes(f, numberOfPlanes, size, is);
+						}
+					} else {
+						foundMask = readPlanes(f, numberOfPlanes, size, is);
 					}
-					// mask plane is the last in list but first in file
-					if( mask != null ) {
-					    a.addPlane(i, mask );
-					    if( a.getTransitionFrom()==0) a.setTransitionFrom(i);
-					}
+					if( foundMask && a.getTransitionFrom()==0) a.setTransitionFrom(i);
 					i++;
 					frames--;
 				}
@@ -138,6 +154,27 @@ public class AnimationCompiler {
 		LOG.info("successful read {} anis", anis.size());
 		return anis;
 	}
+
+	private boolean readPlanes(Frame f, int numberOfPlanes, int size, DataInputStream is) throws IOException {
+		Plane mask = null;
+		int np = numberOfPlanes;
+		while( np>0) {
+			byte[] f1 = new byte[size];
+			byte marker = is.readByte(); // type of plane
+			is.readFully(f1);
+			Plane p = new Plane(marker, f1);
+			if( marker < numberOfPlanes ) f.planes.add( p );
+			else mask = p;
+			np--;
+		}
+		// mask plane is the last in list but first in file
+		if( mask != null ) {
+		    f.planes.add( mask );
+		    return true;
+		}
+		return false;
+	}
+
 
 	public void writeToCompiledFile(List<Animation> anis, String filename, int version, List<Palette> palettes) {
 		DataOutputStream os = null;
@@ -199,6 +236,9 @@ public class AnimationCompiler {
 						}
 					}
 				}
+				if( version >= 3 ) {
+					os.writeByte(a.getEditMode().ordinal());
+				}
 				
 				a.restart();
 				// write frames
@@ -212,6 +252,7 @@ public class AnimationCompiler {
 					if( r.planes.size()==3) {
 						os.writeShort(a.getTransitionDelay());
 						os.writeByte(3);
+						// if mask, use plane type 0x6d
 						os.writeByte(0x6d); // mask marker
 						os.write(r.planes.get(2).plane);
 					} else {
@@ -220,16 +261,28 @@ public class AnimationCompiler {
 						os.writeByte(r.planes.size());
 					}
 					
-					// if mask, use plane type 0x6d
-					
-					// transform in target format
-					//os.write(dmd.transformFrame1(frameSet.frame1));
-					//os.write(dmd.transformFrame1(frameSet.frame2));
-					for(int j = 0; j < r.planes.size(); j++) {
-	                    // plane type (normal bit depth)
-	                    os.writeByte(j);
-	                    os.write(r.planes.get(j).plane);
+					if( version < 3 ) {
+						writePlanes(os, r);
+					} else {
+						// for version 3 add optional compression
+						boolean compress = ( r.planes.size() > 4 );
+						os.writeBoolean(compress);
+						if( !compress ) {
+							writePlanes(os, r);
+						} else {
+							ByteArrayOutputStream bos = new ByteArrayOutputStream();
+							DataOutputStream dos = new DataOutputStream(bos);
+							writePlanes(dos, r);
+							dos.close();
+							ByteArrayOutputStream b2 = new ByteArrayOutputStream();
+							ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray());
+							HeatShrinkEncoder enc = new HeatShrinkEncoder(10,5);
+							enc.encode(bis, b2);
+							os.writeInt(b2.size());
+							os.write(b2.toByteArray());
+						}
 					}
+					
 				}
 				aniIndex++;
 			}
@@ -246,6 +299,17 @@ public class AnimationCompiler {
 					LOG.error("problems when closing file {}", filename);
 				}
 			}
+		}
+	}
+
+	private void writePlanes(DataOutputStream os, Frame r) throws IOException {
+		// transform in target format
+		//os.write(dmd.transformFrame1(frameSet.frame1));
+		//os.write(dmd.transformFrame1(frameSet.frame2));
+		for(int j = 0; j < r.planes.size(); j++) {
+		    // plane type (normal bit depth)
+		    os.writeByte(j);
+		    os.write(r.planes.get(j).plane);
 		}
 	}
 

@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.rinke.solutions.pinball.DMD;
+import com.rinke.solutions.pinball.animation.Animation.EditMode;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Plane;
 import com.rinke.solutions.pinball.model.RGB;
@@ -64,7 +65,14 @@ public class Animation {
 	
 	private boolean trueColor;
 	public enum EditMode {
-		REPLACE, MASK, FIXED
+		REPLACE, MASK, FIXED;
+
+		public static EditMode fromOrdinal(byte emo) {
+			for (EditMode em : values()) {
+				if( em.ordinal() == emo ) return em;
+			}
+			return null;
+		}
 	}
 	
 	private EditMode editMode = EditMode.FIXED;
