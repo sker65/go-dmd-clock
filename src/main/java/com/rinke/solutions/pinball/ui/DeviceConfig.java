@@ -34,6 +34,7 @@ import com.rinke.solutions.pinball.model.DeviceMode;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.widgets.Scale;
 
 @Slf4j
 public class DeviceConfig extends Dialog {
@@ -77,18 +78,24 @@ public class DeviceConfig extends Dialog {
         String filename = fileChooser.open();
         lastPath = fileChooser.getFilterPath();        
         if (filename != null) {
-            writeDeviceConfig(filename, deviceModeCombo.getSelectionIndex(), comboDefaultPalette.getSelectionIndex());
+            writeDeviceConfig(filename, deviceModeCombo.getSelectionIndex(), comboDefaultPalette.getSelectionIndex(),
+            		btnInvertClock.getSelection(), scBrightness.getSelection());
         }
         shell.close();
     }
 
-    void writeDeviceConfig(String filename, int mode, int defPalette) {
-        byte[] dummy = {0x0F,0x0A,0x0F,0x0C,0x0F,0x00,0x0F,0x0F,0,0};
+    void writeDeviceConfig(String filename, int mode, int defPalette, boolean invertClock, int brightness) {
+        byte[] dummy = {
+        		0x0F,0x0A,0x0F,0x0C, 0x0F,0x00,0x0F,0x0F, // dummy dmd sig
+        		0,0, 0,0,0,0, 0,0,0,0, 0};
+        
         try(FileOutputStream 
             fos = new FileOutputStream(filename) ) {
             fos.write(mode);
             fos.write(defPalette);
             fos.write(dummy);
+            fos.write(invertClock?0:1);
+            fos.write(brightness);
         } catch(IOException e) {
             log.error("problems writing {}", filename,e);
             throw new RuntimeException("error writing "+filename, e);
@@ -96,6 +103,8 @@ public class DeviceConfig extends Dialog {
     }
     
     private String address;
+	private Button btnInvertClock;
+	private Scale scBrightness;
 
     /**
      * Open the dialog.
@@ -123,7 +132,7 @@ public class DeviceConfig extends Dialog {
      */
     void createContents() {
         shell = new Shell(getParent(), getStyle());
-        shell.setSize(480, 231);
+        shell.setSize(480, 360);
         shell.setText("Device Configuration");
         shell.setLayout(new FormLayout());
         
@@ -169,14 +178,33 @@ public class DeviceConfig extends Dialog {
         btnCancel.addListener(SWT.Selection, e->shell.close());
         
         Group grpWifi = new Group(shell, SWT.NONE);
-        fd_grpConfig.bottom = new FormAttachment(grpWifi, -6);
+        fd_grpConfig.bottom = new FormAttachment(grpWifi, -56);
+        
+        Label lblInvertClock = new Label(grpConfig, SWT.NONE);
+        lblInvertClock.setText("Invert Clock");
+        
+        btnInvertClock = new Button(grpConfig, SWT.CHECK);
+        new Label(grpConfig, SWT.NONE);
+        
+        Label lblBrightness = new Label(grpConfig, SWT.NONE);
+        lblBrightness.setText("Brightness");
+        
+        scBrightness = new Scale(grpConfig, SWT.NONE);
+        GridData gd_scale = new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1);
+        gd_scale.heightHint = 18;
+        scBrightness.setLayoutData(gd_scale);
+        scBrightness.setMinimum(2);
+        scBrightness.setMaximum(20);
+        scBrightness.setIncrement(1);
+        
+        new Label(grpConfig, SWT.NONE);
         grpWifi.setText("WiFi");
         grpWifi.setLayout(new GridLayout(3, false));
         FormData fd_grpWifi = new FormData();
-        fd_grpWifi.bottom = new FormAttachment(100, -10);
-        fd_grpWifi.top = new FormAttachment(0, 114);
         fd_grpWifi.left = new FormAttachment(0, 10);
         fd_grpWifi.right = new FormAttachment(100, -8);
+        fd_grpWifi.bottom = new FormAttachment(100, -10);
+        fd_grpWifi.top = new FormAttachment(0, 244);
         grpWifi.setLayoutData(fd_grpWifi);
         
         Label lblAdress = new Label(grpWifi, SWT.NONE);
@@ -198,6 +226,8 @@ public class DeviceConfig extends Dialog {
         lblEnterIpAddress.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 2, 1));
         lblEnterIpAddress.setText("Enter IP address or hostname for WiFi (default port is "
         		+IpConnector.DEFAULT_PORT+")");
+        new Label(grpWifi, SWT.NONE);
+        new Label(grpWifi, SWT.NONE);
         new Label(grpWifi, SWT.NONE);
         new Label(grpWifi, SWT.NONE);
     }
