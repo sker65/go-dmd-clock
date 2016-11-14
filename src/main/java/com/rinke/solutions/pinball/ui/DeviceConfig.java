@@ -194,7 +194,7 @@ public class DeviceConfig extends Dialog {
         gd_scale.heightHint = 18;
         scBrightness.setLayoutData(gd_scale);
         scBrightness.setMinimum(0);
-        scBrightness.setMaximum(20);
+        scBrightness.setMaximum(255);
         scBrightness.setIncrement(1);
         
         new Label(grpConfig, SWT.NONE);

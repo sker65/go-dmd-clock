@@ -6,29 +6,23 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import javax.swing.SwingUtilities;
-import javax.swing.event.DocumentEvent;
-
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.resource.LocalResourceManager;
 import org.eclipse.jface.resource.ResourceManager;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.ColorDialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
+
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.swt.widgets.Canvas;
 
-import com.rinke.solutions.pinball.widget.color.ColorPicker.Mode;
 
 
 public class ColorPicker {
@@ -131,10 +125,12 @@ public class ColorPicker {
 	 * @param parent
 	 * @param style
 	 */
-	public ColorPicker() {
-		display = Display.getDefault();
-		shell = new Shell(SWT.CLOSE | SWT.TITLE | SWT.MIN);
-		shell.addListener(SWT.Close, e -> {
+	public ColorPicker(Display display, Shell shell) {
+		if( shell == null )
+			this.shell = new Shell(SWT.CLOSE | SWT.TITLE | SWT.MIN);
+		else
+			this.shell = shell;
+		this.shell.addListener(SWT.Close, e -> {
 			e.doit = false;
 			close();
 		});
@@ -535,7 +531,7 @@ public class ColorPicker {
 	/**
 	 * Create contents of the dialog.
 	 */
-	private void createContents() {
+	void createContents() {
 	    
 		shell.setSize(490, 444);
 		shell.setText("Color Picker");
@@ -782,7 +778,7 @@ public class ColorPicker {
 	}
 
 	public static void main( String[] args ) {
-		new ColorPicker().open(new RGB(255, 0, 0));
+		new ColorPicker(Display.getDefault(), null).open(new RGB(255, 0, 0));
 	}
 
 	public ColorPickerPanel getColorPanel() {

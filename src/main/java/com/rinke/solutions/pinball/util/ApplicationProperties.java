@@ -32,7 +32,7 @@ public class ApplicationProperties {
 
 	private Properties props = new Properties();
 
-	private String getFilename() {
+	String getFilename() {
 		String homeDir = System.getProperty("user.home");
 		String filename = homeDir + File.separator + propertiesFilename;
 		return filename;
@@ -55,7 +55,7 @@ public class ApplicationProperties {
 	}
 
 	public static void put(String key, String value) {
-		log.info("setting prop {} to '{}'", key, value);
+		log.debug("setting prop {} to '{}'", key, value);
 		String old = getInstance().props.getProperty(key);
 		if( !value.equals(old) ) {
 			log.info("value for prop {} changed {} -> {}", key, old, value);
@@ -76,7 +76,7 @@ public class ApplicationProperties {
 
 	public static String get(String key) {
 		String val = getInstance().props.getProperty(key);
-		log.info("get prop {} = '{}' ", key, val);
+		log.debug("get prop {} = '{}' ", key, val);
 		return val;
 	}
 

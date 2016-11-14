@@ -1,6 +1,5 @@
 package com.rinke.solutions.pinball.widget;
 
-import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Shell;
 import org.junit.Before;
 import org.junit.Rule;

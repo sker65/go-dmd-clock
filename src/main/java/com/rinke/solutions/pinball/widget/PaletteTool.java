@@ -48,7 +48,7 @@ public class PaletteTool implements ColorModifiedListener {
 	Map<RGB, Image> colImageCache = new HashMap<>();
 	List<ColorChangedListerner> colorChangedListeners = new ArrayList<>();
 	List<ColorIndexChangedListerner> indexChangedListeners = new ArrayList<>();
-	ColorPicker colorPicker = new ColorPicker();
+	ColorPicker colorPicker = new ColorPicker(Display.getDefault(), null);
 
 	@FunctionalInterface
 	public static interface ColorChangedListerner {
