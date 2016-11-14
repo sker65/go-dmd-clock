@@ -94,7 +94,7 @@ public class DeviceConfig extends Dialog {
             fos.write(mode);
             fos.write(defPalette);
             fos.write(dummy);
-            fos.write(invertClock?0:1);
+            fos.write(invertClock?1:0);
             fos.write(brightness);
         } catch(IOException e) {
             log.error("problems writing {}", filename,e);
@@ -181,7 +181,7 @@ public class DeviceConfig extends Dialog {
         fd_grpConfig.bottom = new FormAttachment(grpWifi, -56);
         
         Label lblInvertClock = new Label(grpConfig, SWT.NONE);
-        lblInvertClock.setText("Invert Clock");
+        lblInvertClock.setText("Enhancer");
         
         btnInvertClock = new Button(grpConfig, SWT.CHECK);
         new Label(grpConfig, SWT.NONE);
@@ -193,7 +193,7 @@ public class DeviceConfig extends Dialog {
         GridData gd_scale = new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1);
         gd_scale.heightHint = 18;
         scBrightness.setLayoutData(gd_scale);
-        scBrightness.setMinimum(2);
+        scBrightness.setMinimum(0);
         scBrightness.setMaximum(20);
         scBrightness.setIncrement(1);
         
