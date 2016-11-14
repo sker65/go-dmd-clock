@@ -32,8 +32,8 @@ public class RegisterLicense extends Dialog {
 	private Text licFileText;
 	private List capList;
 	private String lastPath;
-	private String filename;
-	private LicenseManager licManager = LicenseManagerFactory.getInstance();
+	String filename;
+	LicenseManager licManager = LicenseManagerFactory.getInstance();
 
 	public RegisterLicense(Shell parent) {
 		super(parent, SWT.CLOSE | SWT.TITLE | SWT.BORDER | SWT.OK
@@ -126,7 +126,7 @@ public class RegisterLicense extends Dialog {
 
 	}
 
-	private Object uploadLicense() {
+	Object uploadLicense() {
 		String licFile = licFileText.getText();
 		LOG.info("uploading license file: {}", licFile);
 		if( !StringUtils.isEmpty(licFile)) {
@@ -161,7 +161,7 @@ public class RegisterLicense extends Dialog {
 		return null;
 	}
 
-	private Object load() {
+	Object load() {
 		licManager.load();
 		if (licManager.getLicenseFile() != null) {
 			filename = licManager.getLicenseFile();
@@ -182,7 +182,7 @@ public class RegisterLicense extends Dialog {
 		}
 	}
 
-	private Object save() {
+	Object save() {
 		if( filename != null && licManager.getLicense().valid ) {
 			licManager.save(filename);
 		}
