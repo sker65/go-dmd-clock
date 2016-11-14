@@ -126,6 +126,7 @@ public class ColorPicker {
 	 * @param style
 	 */
 	public ColorPicker(Display display, Shell shell) {
+		this.display = display;
 		if( shell == null )
 			this.shell = new Shell(SWT.CLOSE | SWT.TITLE | SWT.MIN);
 		else
