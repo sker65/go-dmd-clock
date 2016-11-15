@@ -4,7 +4,9 @@ import static org.junit.Assert.assertNull;
 
 import java.io.FileReader;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.custommonkey.xmlunit.XMLUnit;
+
 import static org.custommonkey.xmlunit.XMLAssert.*;
 
 import org.eclipse.swt.widgets.Shell;
@@ -17,6 +19,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import com.rinke.solutions.pinball.animation.Animation;
+import com.rinke.solutions.pinball.animation.AnimationCompiler;
+import com.rinke.solutions.pinball.animation.AnimationType;
+import com.rinke.solutions.pinball.animation.CompiledAnimation;
+import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.test.Util;
 import com.rinke.solutions.pinball.util.RecentMenuManager;
 
@@ -63,7 +70,33 @@ public class PinDmdEditorIOSWTTest {
 		uut.saveProject(tempFile);
 		XMLUnit.setIgnoreWhitespace(true);
 		assertXMLEqual(new FileReader("./src/test/resources/ex1.xml"), new FileReader(tempFile));
-//		assertNull(Util.isBinaryIdentical(testFolder.getRoot()+"/ex1.ani", "./src/test/resources/ex1.ani"));
+		AnimationCompiler compiler = new AnimationCompiler();
+		Animation ani = compiler.readFromCompiledFile(testFolder.getRoot()+"/ex1.ani").get(0);
+		Animation ani2 = compiler.readFromCompiledFile("./src/test/resources/ex1.ani").get(0);
+		compare(ani,ani2);
+		assertNull(Util.isBinaryIdentical(testFolder.getRoot()+"/ex1.ani", "./src/test/resources/ex1.ani"));
+	}
+
+	private void compare(Animation ani, Animation ani2) {
+		int i = ani.getStart();
+		ani.restart(); ani2.restart();
+		DMD dmd = new DMD(128,32);
+		while( i < ani.end ) {
+			Frame f = ani.render(dmd, false);
+			Frame f2 = ani2.render(dmd, false);
+			if( EqualsBuilder.reflectionEquals(f, f2, false) ) fail("frame different @ "+i);
+			if( ani.getRefreshDelay() != ani2.getRefreshDelay() ) fail( "delay at "+i);
+			i++;
+		}
+		if( ani.getAniColors() != null && ani2.getAniColors() == null ) fail("different colors set");
+		if( ani2.getAniColors() != null && ani.getAniColors() == null ) fail("different colors set");
+		
+		if( ani.getAniColors().length == ani2.getAniColors().length ) fail("different number of colors");
+		for (int j = 0; j < ani.getAniColors().length; j++) {
+			if( !ani.getAniColors()[j].equals(ani2.getAniColors()[j])) fail("different color @"+j);
+		}
+		boolean eq = EqualsBuilder.reflectionEquals(ani, ani2, "basePath", "name");
+		if( !eq ) fail( "not equal");
 	}
 	
 }

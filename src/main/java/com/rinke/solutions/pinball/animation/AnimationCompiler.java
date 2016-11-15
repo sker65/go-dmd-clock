@@ -51,6 +51,7 @@ public class AnimationCompiler {
 			byte[] magic = new byte[4];
 			is.read(magic); //
 			version = is.readShort(); // version
+			LOG.info("version is {}",version);
 			int count = is.readShort();
 			LOG.info("reading {} animations from {}",count, filename);
 			if( version >= 2 ) {
@@ -81,13 +82,16 @@ public class AnimationCompiler {
 				a.setFsk(fsk);
 				a.setDesc(desc);
 				a.setBasePath(filename);
+				LOG.info("reading {}",a);
 				
 				int frames = is.readShort();
 				if( frames < 0 ) frames += 65536;
 
 				if( version >= 2 ) {
 					a.setPalIndex(is.readShort());
+					LOG.info("reading pal index {}",a.getPalIndex());
 					int numberOfColors = is.readShort();
+					LOG.info("reading {} custom colors {}", numberOfColors);
 					if( numberOfColors > 0) {
 						RGB[] rgb = new RGB[numberOfColors];
 						for( int i = 0; i < numberOfColors; i++) {
@@ -184,6 +188,7 @@ public class AnimationCompiler {
 			os = new DataOutputStream(fos);
 			os.writeBytes("ANIM"); // magic header
 			os.writeShort(version); // version
+			LOG.info("writing version {}",version);
 			os.writeShort(anis.size());
 			LOG.info("writing {} animations", anis.size());
 			if( version >= 2 ) {
@@ -219,13 +224,16 @@ public class AnimationCompiler {
 				if( version >= 2 ) {
 					// write palette idx
 					if( a.getPalIndex() <= 8 ) {
+						LOG.info("writing pal index: {}",a.getPalIndex());
 						os.writeShort(a.getPalIndex()); // standard palette is always 0 for now
 						os.writeShort(0); // number of colors on custom palette is also 0
 					} else {
 						os.writeShort(Short.MAX_VALUE); // as custom pallette use index short max 
+						LOG.info("writing pal index: {}",Short.MAX_VALUE);
 						if( a.getPalIndex() < palettes.size() ) {
 							Palette pal = palettes.get(a.getPalIndex());
 							os.writeShort(pal.numberOfColors);
+							LOG.info("writing {} custom colors",pal.numberOfColors);
 							for(RGB col: pal.colors) {
 								os.writeByte(col.red);
 								os.writeByte(col.green);

@@ -137,7 +137,7 @@ public class PaletteTool implements ColorModifiedListener {
 					changeColor();
 				}
 			});
-			if( i % 4 == 3) new ToolItem(toolBar, SWT.SEPARATOR);
+			if( i % 4 == 3 && i < colBtn.length-1) new ToolItem(toolBar, SWT.SEPARATOR);
 		}
 	}
 

@@ -49,11 +49,10 @@ public class PaletteHandler {
 		RGB[] actCols = editor.activePalette.colors;
 		RGB[] cols = new RGB[actCols.length];
 		// copy
-		for( int i = 0; i< cols.length; i++) cols[i] = 
-				new RGB(actCols[0].red, actCols[0].green, actCols[0].blue );
-		cols[1] = new RGB(actCols[1].red, actCols[1].green, actCols[1].blue );
-		cols[2] = new RGB(actCols[4].red, actCols[4].green, actCols[4].blue );
-		cols[3] = new RGB(actCols[15].red, actCols[15].green, actCols[15].blue );
+		for( int i = 0; i< cols.length; i++) cols[i] = RGB.of(actCols[i]);
+		
+		cols[2] = RGB.of(actCols[4]);
+		cols[3] = RGB.of(actCols[15]);
 		
 		Palette newPalette = new Palette(cols, editor.project.palettes.size(), name);
 		for( Palette pal : editor.project.palettes ) {
