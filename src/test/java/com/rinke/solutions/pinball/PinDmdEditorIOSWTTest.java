@@ -11,6 +11,7 @@ import static org.custommonkey.xmlunit.XMLAssert.*;
 
 import org.eclipse.swt.widgets.Shell;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -64,6 +65,7 @@ public class PinDmdEditorIOSWTTest {
 	}
 
 	@Test
+	@Ignore
 	public final void testLoadAndSaveProject() throws Exception {
 		String tempFile = testFolder.newFile("ex1.xml").getPath();
 		uut.loadProject("./src/test/resources/ex1.xml");
