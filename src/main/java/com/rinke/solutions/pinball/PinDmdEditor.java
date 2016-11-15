@@ -58,6 +58,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.MessageBox;
@@ -106,6 +107,8 @@ import com.rinke.solutions.pinball.model.Plane;
 import com.rinke.solutions.pinball.model.PlaneNumber;
 import com.rinke.solutions.pinball.model.Project;
 import com.rinke.solutions.pinball.model.Scene;
+import com.rinke.solutions.pinball.swt.ActionAdapter;
+import com.rinke.solutions.pinball.swt.CocoaGuiEnhancer;
 import com.rinke.solutions.pinball.ui.About;
 import com.rinke.solutions.pinball.ui.DeviceConfig;
 import com.rinke.solutions.pinball.ui.FileChooser;
@@ -408,13 +411,20 @@ public class PinDmdEditor implements EventHandler {
 			System.err.println();
 			System.exit(1);
 		}
-
+		
 		display = Display.getDefault();
 		shell = new Shell();
 		fileChooserUtil = new FileChooserUtil(shell);
 		paletteHandler = new PaletteHandler(this, shell);
 		aniAction = new AnimationActionHandler(this, shell);
 
+		if (SWT.getPlatform().equals("cocoa")) {
+			CocoaGuiEnhancer enhancer = new CocoaGuiEnhancer("Pin2dmd Editor");
+			enhancer.hookApplicationMenu(display, e -> e.doit = dirtyCheck(),
+					new ActionAdapter(() -> new About(shell).open() ),
+					new ActionAdapter(() -> new DeviceConfig(shell).open(null)) );
+		}
+		
 		createContents(shell);
 
 		createNewProject();
@@ -1249,7 +1259,7 @@ public class PinDmdEditor implements EventHandler {
 		Composite grpPal = new Composite(grpPalettes, SWT.NONE);
 		grpPal.setLayout(new GridLayout(1, false));
 		GridData gd_grpPal = new GridData(SWT.LEFT, SWT.TOP, false, false, 2, 1);
-		gd_grpPal.widthHint = 313;
+		gd_grpPal.widthHint = 333;
 		gd_grpPal.heightHint = 22;
 		grpPal.setLayoutData(gd_grpPal);
 		// GridData gd_grpPal = new GridData(SWT.LEFT, SWT.CENTER, false, false,
@@ -1263,8 +1273,8 @@ public class PinDmdEditor implements EventHandler {
 		paletteTool.addListener(dmdWidget);
 
 		Label lblCtrlclickToEdit = new Label(grpPalettes, SWT.NONE);
-		GridData gd_lblCtrlclickToEdit = new GridData(SWT.LEFT, SWT.CENTER, false, false, 2, 1);
-		gd_lblCtrlclickToEdit.widthHint = 139;
+		GridData gd_lblCtrlclickToEdit = new GridData(SWT.CENTER, SWT.CENTER, false, false, 2, 1);
+		gd_lblCtrlclickToEdit.widthHint = 131;
 		lblCtrlclickToEdit.setLayoutData(gd_lblCtrlclickToEdit);
 		lblCtrlclickToEdit.setText("Ctrl-Click to edit color");
 		
