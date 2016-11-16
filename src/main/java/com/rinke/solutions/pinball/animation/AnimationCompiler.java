@@ -13,6 +13,7 @@ import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +29,7 @@ import com.rinke.solutions.pinball.model.Plane;
 import com.rinke.solutions.pinball.model.RGB;
 
 /**
- * class that compiles an animation into a binary file 
+ * class that compiles an animation into a binary file and can read it back from ani file
  * @author sr
  */
 public class AnimationCompiler {
@@ -52,112 +53,121 @@ public class AnimationCompiler {
 			is.read(magic); //
 			version = is.readShort(); // version
 			LOG.info("version is {}",version);
-			int count = is.readShort();
-			LOG.info("reading {} animations from {}",count, filename);
+			int numberOfAnimations = is.readShort();
+			LOG.info("reading {} animations from {}",numberOfAnimations, filename);
 			if( version >= 2 ) {
 				// skip index of animations
-				for( int i=0; i< count; i++) is.readInt();
+				for( int i=0; i< numberOfAnimations; i++) is.readInt();
 			}
-			while(count>0) {
-				String desc = is.readUTF();
-				int cycles = is.readShort();
-				int holdCycles = is.readShort();
-				int clockFrom = is.readShort();
-				boolean clockSmall = is.readBoolean();
-				boolean front = is.readBoolean();
-				int clockXOffset = is.readShort();
-				int clockYOffset = is.readShort();
-				int refreshDelay = is.readShort();
-				is.readByte(); // ignore type (when reread its always compiled)
-				int fsk = is.readByte();
-				
-				// read complied animations
-				CompiledAnimation a = new CompiledAnimation(AnimationType.COMPILED, filename, 0, 0, 1, cycles, holdCycles);
-				a.setRefreshDelay(refreshDelay);
-				a.setClockFrom(clockFrom);
-				a.setClockSmall(clockSmall);
-				a.setClockXOffset(clockXOffset);
-				a.setClockYOffset(clockYOffset);
-				a.setClockInFront(front);
-				a.setFsk(fsk);
-				a.setDesc(desc);
-				a.setBasePath(filename);
-				LOG.info("reading {}",a);
+			while(numberOfAnimations>0) {
+				CompiledAnimation a = readAnimation(is, filename);
 				
 				int frames = is.readShort();
 				if( frames < 0 ) frames += 65536;
 
 				if( version >= 2 ) {
-					a.setPalIndex(is.readShort());
-					LOG.info("reading pal index {}",a.getPalIndex());
-					int numberOfColors = is.readShort();
-					LOG.info("reading {} custom colors {}", numberOfColors);
-					if( numberOfColors > 0) {
-						RGB[] rgb = new RGB[numberOfColors];
-						for( int i = 0; i < numberOfColors; i++) {
-							rgb[i] = new RGB(
-									unsignedByte(is.readByte()),
-									unsignedByte(is.readByte()),
-									unsignedByte(is.readByte()));
-						}
-						a.setAniColors(rgb);
-					}
+					readPalettesAndColors(is, a);
 				} // version 2
 				if( version >= 3 ) {
 					byte editMode = is.readByte();
 					a.setEditMode(EditMode.fromOrdinal(editMode));
 				}
-
-				LOG.info("reading {} frames for {}",frames, desc);
-				int i = 0;
-				while(frames>0) {
-					int size = is.readShort(); // framesize in byte
-					int delay = is.readShort();
-					int numberOfPlanes = is.readByte();
-					Frame f = new Frame();
-					f.delay = delay;
-					a.addFrame(f);
-					boolean foundMask = false;
-					if( version >= 3 ) {
-						boolean compressed = is.readBoolean();
-						if( compressed ) {
-							int compressedSize = is.readInt();
-							byte[] inBuffer = new byte[compressedSize];
-							is.read(inBuffer);
-							ByteArrayOutputStream b2 = new ByteArrayOutputStream();
-							ByteArrayInputStream bis = new ByteArrayInputStream(inBuffer);
-							HeatShrinkDecoder dec = new HeatShrinkDecoder(10,5,1024);
-							dec.decode(bis, b2);
-							DataInputStream is2 = new DataInputStream(new ByteArrayInputStream(b2.toByteArray()));
-							foundMask = readPlanes(f, numberOfPlanes, size, is2);
-						} else {
-							foundMask = readPlanes(f, numberOfPlanes, size, is);
-						}
-					} else {
-						foundMask = readPlanes(f, numberOfPlanes, size, is);
-					}
-					if( foundMask && a.getTransitionFrom()==0) a.setTransitionFrom(i);
-					i++;
-					frames--;
-				}
-				count--;
+				readFrames( is, a, frames, version );
+				numberOfAnimations--;
                 LOG.info("reading {}",a);
 				anis.add(a);
 			}
 		} catch (IOException e) {
 			LOG.error("problems when reading file {}", filename,e);
 		} finally {
-			if( is != null ) {
-				try {
-					is.close();
-				} catch (IOException e) {
-					LOG.error("problems when closing file {}", filename);
-				}
-			}
+			IOUtils.closeQuietly(is);
 		}
 		LOG.info("successful read {} anis", anis.size());
 		return anis;
 	}
+
+	private CompiledAnimation readAnimation(DataInputStream is, String name) throws IOException {
+		String desc = is.readUTF();
+		int cycles = is.readShort();
+		int holdCycles = is.readShort();
+		int clockFrom = is.readShort();
+		boolean clockSmall = is.readBoolean();
+		boolean front = is.readBoolean();
+		int clockXOffset = is.readShort();
+		int clockYOffset = is.readShort();
+		int refreshDelay = is.readShort();
+		is.readByte(); // ignore type (when reread its always compiled)
+		int fsk = is.readByte();
+		
+		// read complied animations
+		CompiledAnimation a = new CompiledAnimation(AnimationType.COMPILED, name, 0, 0, 1, cycles, holdCycles);
+		a.setRefreshDelay(refreshDelay);
+		a.setClockFrom(clockFrom);
+		a.setClockSmall(clockSmall);
+		a.setClockXOffset(clockXOffset);
+		a.setClockYOffset(clockYOffset);
+		a.setClockInFront(front);
+		a.setFsk(fsk);
+		a.setDesc(desc);
+		a.setBasePath(name);
+		LOG.info("reading {}",a);
+		return a;
+	}
+
+
+	private void readPalettesAndColors(DataInputStream is, CompiledAnimation a) throws IOException {
+		a.setPalIndex(is.readShort());
+		LOG.info("reading pal index {}",a.getPalIndex());
+		int numberOfColors = is.readShort();
+		LOG.info("reading {} custom colors {}", numberOfColors);
+		if( numberOfColors > 0) {
+			RGB[] rgb = new RGB[numberOfColors];
+			for( int i = 0; i < numberOfColors; i++) {
+				rgb[i] = new RGB(
+						unsignedByte(is.readByte()),
+						unsignedByte(is.readByte()),
+						unsignedByte(is.readByte()));
+			}
+			a.setAniColors(rgb);
+		}
+	}
+
+
+	private void readFrames(DataInputStream is, CompiledAnimation a, int frames, int version) throws IOException {
+		LOG.info("reading {} frames for {}",frames, a.getDesc());
+		int i = 0;
+		while(frames>0) {
+			int size = is.readShort(); // framesize in byte
+			int delay = is.readShort();
+			int numberOfPlanes = is.readByte();
+			Frame f = new Frame();
+			f.delay = delay;
+			a.addFrame(f);
+			boolean foundMask = false;
+			if( version >= 3 ) {
+				boolean compressed = is.readBoolean();
+				if( compressed ) {
+					int compressedSize = is.readInt();
+					byte[] inBuffer = new byte[compressedSize];
+					is.read(inBuffer);
+					ByteArrayOutputStream b2 = new ByteArrayOutputStream();
+					ByteArrayInputStream bis = new ByteArrayInputStream(inBuffer);
+					HeatShrinkDecoder dec = new HeatShrinkDecoder(10,5,1024);
+					dec.decode(bis, b2);
+					DataInputStream is2 = new DataInputStream(new ByteArrayInputStream(b2.toByteArray()));
+					foundMask = readPlanes(f, numberOfPlanes, size, is2);
+				} else {
+					foundMask = readPlanes(f, numberOfPlanes, size, is);
+				}
+			} else {
+				foundMask = readPlanes(f, numberOfPlanes, size, is);
+			}
+			if( foundMask && a.getTransitionFrom()==0) a.setTransitionFrom(i);
+			i++;
+			frames--;
+		}
+	}
+
 
 	private boolean readPlanes(Frame f, int numberOfPlanes, int size, DataInputStream is) throws IOException {
 		Plane mask = null;
