@@ -8,23 +8,21 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 
-public class AnimationCompilerTest {
+public class AniReaderTest {
 	
-	AnimationCompiler uut = new AnimationCompiler();
-
 	@Rule
     public TemporaryFolder testFolder = new TemporaryFolder();
 	
 	@Test
-	public void testReadFromCompiledFile() throws Exception {
-		uut.readFromCompiledFile("./src/test/resources/test.ani");
-	}
+		public void testReadFromFile() throws Exception {
+			AniReader.readFromFile("./src/test/resources/test.ani");
+		}
 
 	@Test
 	public void testWriteToCompiledFile() throws Exception {
-		List<Animation> list = uut.readFromCompiledFile("./src/test/resources/test.ani");
+		List<Animation> list = AniReader.readFromFile("./src/test/resources/test.ani");
 		String filename = testFolder.newFile().getAbsolutePath();
-		uut.writeToCompiledFile(list, filename, 1, Collections.emptyList());
+		AniWriter.writeToFile(list, filename, 1, Collections.emptyList());
 	}
 
 }

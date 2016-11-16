@@ -20,8 +20,6 @@ import com.rinke.solutions.pinball.renderer.Renderer;
  */
 public class AnimationFactory {
 	
-    private static AnimationCompiler animationCompiler = new AnimationCompiler();
-
 	public static List<Animation> createAnimationsFromProperties(String filename) throws IOException {
 		
 		Properties conf = new Properties();
@@ -34,7 +32,7 @@ public class AnimationFactory {
 		// load compiled file if any
 		if( conf.containsKey("compiled")) {
 			String file = conf.getProperty("compiled");
-			result.addAll(animationCompiler.readFromCompiledFile(file));
+			result.addAll(CompiledAnimation.read(file));
 		}
 		
 		if( conf.containsKey("base")) {

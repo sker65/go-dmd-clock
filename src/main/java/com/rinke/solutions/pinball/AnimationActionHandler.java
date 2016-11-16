@@ -11,10 +11,11 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Shell;
 
 import com.google.common.collect.Lists;
+import com.rinke.solutions.pinball.animation.AniWriter;
 import com.rinke.solutions.pinball.animation.Animation;
-import com.rinke.solutions.pinball.animation.AnimationCompiler;
 import com.rinke.solutions.pinball.animation.AnimationFactory;
 import com.rinke.solutions.pinball.animation.AnimationType;
+import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.util.FileChooserUtil;
 
@@ -39,8 +40,7 @@ public class AnimationActionHandler {
 
 	public int storeAnimations(Collection<Animation> anis, String filename, int version) {
 		java.util.List<Animation> anisToSave = anis.stream().filter(a -> a.isMutable()).collect(Collectors.toList());
-		AnimationCompiler animationCompiler = new AnimationCompiler();
-		animationCompiler.writeToCompiledFile(anisToSave, filename, version, editor.project.palettes);
+		AniWriter.writeToFile(anisToSave, filename, version, editor.project.palettes);
 		return anisToSave.size();
 	}
 
@@ -62,11 +62,10 @@ public class AnimationActionHandler {
 	}
 
 	public void loadAni(String filename, boolean append, boolean populateProject) {
-		AnimationCompiler compiler = new AnimationCompiler();
 		java.util.List<Animation> loadedList = new ArrayList<>();
 		try {
 		if (filename.endsWith(".ani")) {
-			loadedList.addAll(compiler.readFromCompiledFile(filename));
+			loadedList.addAll(CompiledAnimation.read(filename));
 		} else if (filename.endsWith(".txt.gz")) {
 			loadedList.add(Animation.buildAnimationFromFile(filename, AnimationType.MAME));
 		} else if (filename.endsWith(".properties")) {

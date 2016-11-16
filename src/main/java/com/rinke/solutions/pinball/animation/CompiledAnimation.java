@@ -1,9 +1,11 @@
 package com.rinke.solutions.pinball.animation;
 
+import java.util.Collection;
 import java.util.List;
 
 import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.model.Frame;
+import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.Plane;
 
 public class CompiledAnimation extends Animation {
@@ -68,4 +70,11 @@ public class CompiledAnimation extends Animation {
 		return l<l2?l:l2;
 	}
 
+	public static List<Animation> read(String file) {
+		return AniReader.readFromFile(file);
+	}
+
+	public static void write(List<Animation> anis, String filename, int version, List<Palette> palettes) {
+		AniWriter.writeToFile(anis, filename, version, palettes);
+	}
 }

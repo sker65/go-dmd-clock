@@ -21,7 +21,6 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import com.rinke.solutions.pinball.animation.Animation;
-import com.rinke.solutions.pinball.animation.AnimationCompiler;
 import com.rinke.solutions.pinball.animation.AnimationType;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.model.Frame;
@@ -72,9 +71,8 @@ public class PinDmdEditorIOSWTTest {
 		uut.saveProject(tempFile);
 		XMLUnit.setIgnoreWhitespace(true);
 		assertXMLEqual(new FileReader("./src/test/resources/ex1.xml"), new FileReader(tempFile));
-		AnimationCompiler compiler = new AnimationCompiler();
-		Animation ani = compiler.readFromCompiledFile(testFolder.getRoot()+"/ex1.ani").get(0);
-		Animation ani2 = compiler.readFromCompiledFile("./src/test/resources/ex1.ani").get(0);
+		Animation ani = CompiledAnimation.read(testFolder.getRoot()+"/ex1.ani").get(0);
+		Animation ani2 = CompiledAnimation.read("./src/test/resources/ex1.ani").get(0);
 		compare(ani,ani2);
 		assertNull(Util.isBinaryIdentical(testFolder.getRoot()+"/ex1.ani", "./src/test/resources/ex1.ani"));
 	}
