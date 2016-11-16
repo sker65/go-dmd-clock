@@ -62,15 +62,15 @@ public class PaletteHandlerTest {
 
 
 	@Test
-	public void testLoadPaletteString() throws Exception {
-		editor.project.palettes.clear();
-		uut.loadPalette("./src/test/resources/smartdmd.txt");
-	}
+			public void testLoadPaletteString() throws Exception {
+				editor.project.palettes.clear();
+				uut.loadPalette("./src/test/resources/smartdmd.txt");
+			}
 	
 	@Test
-	public void testLoadPaletteXml() throws Exception {
-		uut.loadPalette("./src/test/resources/defaultPalette.xml");
-	}
+			public void testLoadPaletteXml() throws Exception {
+				uut.loadPalette("./src/test/resources/defaultPalette.xml");
+			}
 
 
 

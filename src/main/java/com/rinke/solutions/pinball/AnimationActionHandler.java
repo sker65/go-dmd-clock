@@ -29,7 +29,7 @@ public class AnimationActionHandler {
 		fileChooserUtil = new FileChooserUtil(shell);
 	}
 
-	public void saveAniWithFC(int version) {
+	public void onSaveAniWithFC(int version) {
 		String filename = fileChooserUtil.choose(SWT.SAVE, editor.selectedAnimation.get().getDesc(), new String[] { "*.ani" }, new String[] { "Animations" });
 		if (filename != null) {
 			log.info("store animation to {}", filename);
@@ -44,7 +44,7 @@ public class AnimationActionHandler {
 		return anisToSave.size();
 	}
 
-	protected void loadAniWithFC(boolean append) {
+	protected void onLoadAniWithFC(boolean append) {
 		String filename = fileChooserUtil.choose(SWT.OPEN, null, new String[] { "*.properties;*.ani;*.txt.gz;*.pcap;*.pcap.gz;*.*" }, new String[] { "Animationen",
 				"properties, txt.gz, ani, mov" });
 
@@ -128,7 +128,7 @@ public class AnimationActionHandler {
 		editor.project.dirty = true;
 	}
 
-	public void saveSingleAniWithFC(int version) {
+	public void onSaveSingleAniWithFC(int version) {
 		String filename = fileChooserUtil.choose(SWT.SAVE, editor.selectedAnimation.get().getDesc(), new String[] { "*.ani" }, new String[] { "Animations" });
 		if (filename != null) {
 			log.info("store animation to {}", filename);

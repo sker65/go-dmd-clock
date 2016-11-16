@@ -524,7 +524,7 @@ public class PinDmdEditor implements EventHandler {
 		selectedAnimation = Optional.of(defaultAnimation);
 	}
 
-	private void loadProject() {
+	private void onLoadProjectSelected() {
 		String filename = fileChooserUtil.choose(SWT.OPEN, null, new String[] { "*.xml;*.json;" }, new String[] { "Project XML", "Project JSON" });
 
 		if (filename != null)
@@ -534,7 +534,7 @@ public class PinDmdEditor implements EventHandler {
 	/**
 	 * imports a secondary project to implement a merge functionality
 	 */
-	void importProject() {
+	void onImportProjectSelected() {
 		String filename = fileChooserUtil.choose(SWT.OPEN, null, new String[] { "*.xml;*.json;" }, new String[] { "Project XML", "Project JSON" });
 
 		if (filename != null)
@@ -569,9 +569,14 @@ public class PinDmdEditor implements EventHandler {
 		}
 	}
 	
+	protected void setPaletteViewerByIndex( int palIndex) {
+		Optional<Palette> optPal = project.palettes.stream().filter(p -> p.index==palIndex).findFirst();
+		paletteComboViewer.setSelection(new StructuredSelection(optPal.orElse(activePalette)));
+	}
+	
 	protected void setupUIonProjectLoad() {
 		paletteComboViewer.setInput(project.palettes);
-		paletteComboViewer.setSelection(new StructuredSelection(project.palettes.get(0)));
+		setPaletteViewerByIndex(0);
 		keyframeTableViewer.setInput(project.palMappings);
 		for (Animation ani : animations.values()) {
 			selectedAnimation = Optional.of(animations.isEmpty() ? defaultAnimation : ani);
@@ -621,7 +626,7 @@ public class PinDmdEditor implements EventHandler {
 		return new File(parent).getParent() + File.separator + new File(file).getName();
 	}
 
-	private void exportProject() {
+	private void onExportProjectSelected() {
 
 		licManager.requireOneOf(Capability.VPIN, Capability.REALPIN, Capability.GODMD);
 
@@ -632,7 +637,7 @@ public class PinDmdEditor implements EventHandler {
 		}
 	}
 
-	void saveProject() {
+	void onSaveProjectSelected() {
 		String filename = fileChooserUtil.choose(SWT.SAVE, project.name, new String[] { "*.xml", "*.json" }, new String[] { "Project XML", "Project JSON" });
 		if (filename != null)
 			saveProject(filename);
@@ -643,7 +648,7 @@ public class PinDmdEditor implements EventHandler {
 		OutputStream buildStream(String name) throws IOException;
 	}
 
-	void uploadProject() {
+	void onUploadProjectSelected() {
 		Map<String, ByteArrayOutputStream> captureOutput = new HashMap<>();
 		exportProject("a.dat", f -> {
 			ByteArrayOutputStream stream = new ByteArrayOutputStream();
@@ -773,7 +778,7 @@ public class PinDmdEditor implements EventHandler {
 		}
 	}
 
-	public void addKeyFrame(SwitchMode switchMode) {
+	public void onAddKeyFrameClicked(SwitchMode switchMode) {
 		PalMapping palMapping = new PalMapping(activePalette.index, "KeyFrame " + (project.palMappings.size() + 1));
 		if (selectedHashIndex != -1) {
 			palMapping.setDigest(hashes.get(selectedHashIndex));
@@ -785,7 +790,7 @@ public class PinDmdEditor implements EventHandler {
 			palMapping.withMask = useMask;
 			palMapping.maskNumber = actMaskNumber;
 			project.masks.get(actMaskNumber).locked = true;
-			switchMask(true);
+			onMaskChecked(true);
 		}
 
 		if (!checkForDuplicateKeyFrames(palMapping)) {
@@ -873,7 +878,7 @@ public class PinDmdEditor implements EventHandler {
 		//keyframeTableViewer.setLabelProvider(new KeyframeLabelProvider(shell));
 		keyframeTableViewer.setContentProvider(ArrayContentProvider.getInstance());
 		keyframeTableViewer.setInput(project.palMappings);
-		keyframeTableViewer.addSelectionChangedListener(event -> keyFrameChanged(event));
+		keyframeTableViewer.addSelectionChangedListener(event -> onKeyframeChanged(event));
 
 		TableViewerColumn viewerColumn = new TableViewerColumn(keyframeTableViewer, SWT.LEFT);
 		viewerColumn.setEditingSupport(new GenericTextCellEditor(keyframeTableViewer, e -> ((PalMapping) e).name, (e, v) -> {
@@ -891,7 +896,7 @@ public class PinDmdEditor implements EventHandler {
 		gd_dmdWidget.widthHint = 826;
 		dmdWidget.setLayoutData(gd_dmdWidget);
 		dmdWidget.setPalette(activePalette);
-		dmdWidget.addListeners(l -> frameChanged(l));
+		dmdWidget.addListeners(l -> onFrameChanged(l));
 
 		Composite composite_1 = new Composite(shell, SWT.NONE);
 		composite_1.setLayout(new GridLayout(2, false));
@@ -922,7 +927,7 @@ public class PinDmdEditor implements EventHandler {
 		btnSortAni = new Button(composite_1, SWT.NONE);
 		btnSortAni.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
 		btnSortAni.setText("Sort");
-		btnSortAni.addListener(SWT.Selection, e -> sortAnimations());
+		btnSortAni.addListener(SWT.Selection, e -> onSortAnimations());
 
 		Composite composite_2 = new Composite(shell, SWT.NONE);
 		composite_2.setLayout(new GridLayout(3, false));
@@ -947,7 +952,7 @@ public class PinDmdEditor implements EventHandler {
 
 		Button btnSortKeyFrames = new Button(composite_2, SWT.NONE);
 		btnSortKeyFrames.setText("Sort");
-		btnSortKeyFrames.addListener(SWT.Selection, e -> sortKeyFrames());
+		btnSortKeyFrames.addListener(SWT.Selection, e -> onSortKeyFrames());
 		new Label(composite_2, SWT.NONE);
 
 		scale = new Scale(shell, SWT.NONE);
@@ -984,14 +989,14 @@ public class PinDmdEditor implements EventHandler {
 		btnAddColormaskKeyFrame.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
 		btnAddColormaskKeyFrame.setText("Add ColorMask");
 		btnAddColormaskKeyFrame.setEnabled(false);
-		btnAddColormaskKeyFrame.addListener(SWT.Selection, e -> addFrameSeq(SwitchMode.ADD));
+		btnAddColormaskKeyFrame.addListener(SWT.Selection, e -> onAddFrameSeqClicked(SwitchMode.ADD));
 
 		btnAddKeyframe = new Button(grpKeyframe, SWT.NONE);
 		btnAddKeyframe.setToolTipText("Adds a key frame that switches palette");
 		btnAddKeyframe.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, false, false, 1, 1));
 		btnAddKeyframe.setText("Add PalSwitch");
 		btnAddKeyframe.setEnabled(false);
-		btnAddKeyframe.addListener(SWT.Selection, e -> addKeyFrame(SwitchMode.PALETTE));
+		btnAddKeyframe.addListener(SWT.Selection, e -> onAddKeyFrameClicked(SwitchMode.PALETTE));
 
 		Label lblDuration = new Label(grpKeyframe, SWT.NONE);
 		lblDuration.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
@@ -1036,13 +1041,13 @@ public class PinDmdEditor implements EventHandler {
 		frameSeqViewer.setLabelProvider(new LabelProviderAdapter(o -> ((Animation) o).getDesc()));
 		frameSeqViewer.setContentProvider(ArrayContentProvider.getInstance());
 		frameSeqViewer.setInput(frameSeqList);
-		frameSeqViewer.addSelectionChangedListener(event -> frameSeqChanged(event));
+		frameSeqViewer.addSelectionChangedListener(event -> onFrameSeqChanged(event));
 
 		btnAddFrameSeq = new Button(grpKeyframe, SWT.NONE);
 		btnAddFrameSeq.setToolTipText("Adds a keyframe that triggers playback of a replacement scene");
 		btnAddFrameSeq.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
 		btnAddFrameSeq.setText("Add FrameSeq");
-		btnAddFrameSeq.addListener(SWT.Selection, e -> addFrameSeq(SwitchMode.REPLACE));
+		btnAddFrameSeq.addListener(SWT.Selection, e -> onAddFrameSeqClicked(SwitchMode.REPLACE));
 		btnAddFrameSeq.setEnabled(false);
 
 		Group grpDetails = new Group(shell, SWT.NONE);
@@ -1100,15 +1105,15 @@ public class PinDmdEditor implements EventHandler {
 
 		btnStartStop = new Button(composite, SWT.NONE);
 		btnStartStop.setText("Start");
-		btnStartStop.addListener(SWT.Selection, e -> startStop(animationHandler.isStopped()));
+		btnStartStop.addListener(SWT.Selection, e -> onStartStopClicked(animationHandler.isStopped()));
 
 		btnPrev = new Button(composite, SWT.NONE);
 		btnPrev.setText("<");
-		btnPrev.addListener(SWT.Selection, e -> prevFrame());
+		btnPrev.addListener(SWT.Selection, e -> onPrevFrameClicked());
 
 		btnNext = new Button(composite, SWT.NONE);
 		btnNext.setText(">");
-		btnNext.addListener(SWT.Selection, e -> nextFrame());
+		btnNext.addListener(SWT.Selection, e -> onNextFrameClicked());
 
 		btnMarkStart = new Button(composite, SWT.NONE);
 		btnMarkStart.setToolTipText("Marks start of scene for cutting");
@@ -1174,7 +1179,7 @@ public class PinDmdEditor implements EventHandler {
 		paletteComboViewer.addSelectionChangedListener(event -> {
 			IStructuredSelection selection = (IStructuredSelection) event.getSelection();
 			if (selection.size() > 0) {
-				paletteChanged((Palette) selection.getFirstElement());
+				onPaletteChanged((Palette) selection.getFirstElement());
 			}
 		});
 
@@ -1187,7 +1192,7 @@ public class PinDmdEditor implements EventHandler {
 		paletteTypeComboViewer.setContentProvider(ArrayContentProvider.getInstance());
 		paletteTypeComboViewer.setInput(PaletteType.values());
 		paletteTypeComboViewer.setSelection(new StructuredSelection(activePalette.type));
-		paletteTypeComboViewer.addSelectionChangedListener(e -> paletteTypeChanged(e));
+		paletteTypeComboViewer.addSelectionChangedListener(e -> onPaletteTypeChanged(e));
 
 		btnNewPalette = new Button(grpPalettes, SWT.NONE);
 		btnNewPalette.setToolTipText("Creates a new palette by copying the actual colors");
@@ -1201,7 +1206,7 @@ public class PinDmdEditor implements EventHandler {
 			String newName = paletteComboViewer.getCombo().getText();
 			if (newName.contains(" - ")) {
 				activePalette.name = newName.split(" - ")[1];
-				paletteComboViewer.setSelection(new StructuredSelection(activePalette));
+				setPaletteViewerByIndex(activePalette.index);
 				paletteComboViewer.refresh();
 			} else {
 				warn("Illegal palette name", "Palette names must consist of palette index and name.\nName format therefore must be '<idx> - <name>'");
@@ -1294,7 +1299,7 @@ public class PinDmdEditor implements EventHandler {
 		btnColorMask = new Button(grpDrawing, SWT.CHECK);
 		btnColorMask.setToolTipText("limits drawing to upper planes, so that this will just add coloring layers");
 		btnColorMask.setText("ColMask");
-		btnColorMask.addListener(SWT.Selection, e -> switchColorMask(btnColorMask.getSelection()));
+		btnColorMask.addListener(SWT.Selection, e -> onColorMaskChecked(btnColorMask.getSelection()));
 
 		Label lblMaskNo = new Label(grpDrawing, SWT.NONE);
 		lblMaskNo.setText("Mask No:");
@@ -1303,16 +1308,16 @@ public class PinDmdEditor implements EventHandler {
 		maskSpinner.setToolTipText("select the mask to use");
 		maskSpinner.setMinimum(0);
 		maskSpinner.setMaximum(9);
-		maskSpinner.addListener(SWT.Selection, e -> maskNumberChanged(e));
+		maskSpinner.addListener(SWT.Selection, e -> onMaskNumberChanged(e));
 				
 		btnMask = new Button(grpDrawing, SWT.CHECK);
 		btnMask.setText("Show Mask");
-		btnMask.addListener(SWT.Selection, e -> switchMask(btnMask.getSelection()));
+		btnMask.addListener(SWT.Selection, e -> onMaskChecked(btnMask.getSelection()));
 		
 		btnCopyToPrev = new Button(grpDrawing, SWT.NONE);
 		btnCopyToPrev.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
 		btnCopyToPrev.setText("CopyToPrev");
-		btnCopyToPrev.addListener(SWT.Selection, e->copyAndMoveToPrevFrame());
+		btnCopyToPrev.addListener(SWT.Selection, e->onCopyAndMoveToPrevFrameClicked());
 		
 		new Label(grpDrawing, SWT.NONE);
 		
@@ -1320,22 +1325,22 @@ public class PinDmdEditor implements EventHandler {
 		btnCopyToNext.setToolTipText("copy the actual scene / color mask to next frame and move forward");
 		btnCopyToNext.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 2, 1));
 		btnCopyToNext.setText("CopyToNext");
-		btnCopyToNext.addListener(SWT.Selection, e->copyAndMoveToNextFrame());
+		btnCopyToNext.addListener(SWT.Selection, e->onCopyAndMoveToNextFrameClicked());
 		
 		btnUndo = new Button(grpDrawing, SWT.NONE);
 		btnUndo.setText("&Undo");
-		btnUndo.addListener(SWT.Selection, e -> undo());
+		btnUndo.addListener(SWT.Selection, e -> onUndoClicked());
 
 		btnRedo = new Button(grpDrawing, SWT.NONE);
 		btnRedo.setText("&Redo");
-		btnRedo.addListener(SWT.Selection, e -> redo());
+		btnRedo.addListener(SWT.Selection, e -> onRedoClicked());
 
 		ObserverManager.bind(maskDmdObserver, e -> btnUndo.setEnabled(e), () -> maskDmdObserver.canUndo());
 		ObserverManager.bind(maskDmdObserver, e -> btnRedo.setEnabled(e), () -> maskDmdObserver.canRedo());
 
 	}
 
-	private void startStop(boolean stopped) {
+	private void onStartStopClicked(boolean stopped) {
 		if( stopped )
 		{
 			selectedAnimation.orElse(defaultAnimation).commitDMDchanges(dmd);
@@ -1348,26 +1353,26 @@ public class PinDmdEditor implements EventHandler {
 		}
 	}
 
-	private void prevFrame() {
+	private void onPrevFrameClicked() {
 		selectedAnimation.orElse(defaultAnimation).commitDMDchanges(dmd);
 		animationHandler.prev();
 	}
 	
-	private void nextFrame() {
+	private void onNextFrameClicked() {
 		selectedAnimation.orElse(defaultAnimation).commitDMDchanges(dmd);
 		animationHandler.next();
 	}
 	
-	private void copyAndMoveToNextFrame() {
-		nextFrame();
+	private void onCopyAndMoveToNextFrameClicked() {
+		onNextFrameClicked();
 		CompiledAnimation ani = (CompiledAnimation) selectedAnimation.get();
 		if( !ani.hasEnded() ) {
 			copyFrame(ani, ani.getActFrame(), -1);
 		}
 	}
 	
-	private void copyAndMoveToPrevFrame() {
-		prevFrame();
+	private void onCopyAndMoveToPrevFrameClicked() {
+		onPrevFrameClicked();
 		CompiledAnimation ani = (CompiledAnimation) selectedAnimation.get();
 		if( ani.getActFrame() > ani.getStart() ) {
 			copyFrame(ani, ani.getActFrame(), 1);
@@ -1391,7 +1396,7 @@ public class PinDmdEditor implements EventHandler {
 		}
 	}
 
-	private void sortKeyFrames() {
+	private void onSortKeyFrames() {
 		Collections.sort(project.palMappings, new Comparator<PalMapping>() {
 			@Override
 			public int compare(PalMapping o1, PalMapping o2) {
@@ -1401,7 +1406,7 @@ public class PinDmdEditor implements EventHandler {
 		keyframeTableViewer.refresh();
 	}
 
-	private void switchColorMask(boolean on) {
+	private void onColorMaskChecked(boolean on) {
 		dmd.setDrawMask(on ? 0b11111100 : 0xFFFF);
 		selectedAnimation.get().setEditMode( on ? EditMode.MASK: EditMode.REPLACE);
 		aniListViewer.refresh();
@@ -1420,7 +1425,7 @@ public class PinDmdEditor implements EventHandler {
 		for (int i = 0; i < project.masks.size(); i++) {
 			project.masks.get(i).locked = useMasks.contains(i);
 		}
-		switchMask(useMask);
+		onMaskChecked(useMask);
 	}
 
 	private void onAnimationSelectionChanged(Animation a) {
@@ -1444,6 +1449,7 @@ public class PinDmdEditor implements EventHandler {
 			playingAnis.clear();
 			playingAnis.add(selectedAnimation.get());
 			animationHandler.setAnimations(playingAnis);
+			setPaletteViewerByIndex(selectedAnimation.get().getPalIndex());
 			dmdRedraw();
 		} else {
 			selectedAnimation = Optional.of(defaultAnimation);
@@ -1453,7 +1459,7 @@ public class PinDmdEditor implements EventHandler {
 		btnAddKeyframe.setEnabled(a != null);
 	}
 
-	private void paletteChanged(Palette newPalette) {
+	private void onPaletteChanged(Palette newPalette) {
 		activePalette = newPalette;
 		if (selectedPalMapping != null)
 			selectedPalMapping.palIndex = activePalette.index;
@@ -1478,7 +1484,7 @@ public class PinDmdEditor implements EventHandler {
 		}
 	}
 
-	private void frameChanged(Frame frame) {
+	private void onFrameChanged(Frame frame) {
 		if (livePreviewActive) {
 			connector.sendFrame(frame, handle);
 		}
@@ -1519,7 +1525,7 @@ public class PinDmdEditor implements EventHandler {
 		mntmUploadProject.setEnabled(enabled);
 	}
 
-	private void addFrameSeq(SwitchMode switchMode) {
+	private void onAddFrameSeqClicked(SwitchMode switchMode) {
 		if (!frameSeqViewer.getSelection().isEmpty()) {
 			if (selectedHashIndex != -1) {
 				Animation ani = (Animation) ((IStructuredSelection) frameSeqViewer.getSelection()).getFirstElement();
@@ -1535,7 +1541,7 @@ public class PinDmdEditor implements EventHandler {
 					palMapping.withMask = useMask;
 					palMapping.maskNumber = actMaskNumber;
 					project.masks.get(actMaskNumber).locked = true;
-					switchMask(true);
+					onMaskChecked(true);
 				}
 				if (!checkForDuplicateKeyFrames(palMapping)) {
 					project.palMappings.add(palMapping);
@@ -1556,7 +1562,7 @@ public class PinDmdEditor implements EventHandler {
 		messageBox.open();
 	}
 
-	private void switchMask(boolean useMask) {
+	private void onMaskChecked(boolean useMask) {
 		this.useMask = useMask;
 		Mask maskToUse = project.masks.get(maskSpinner.getSelection());
 		if (useMask) {
@@ -1589,7 +1595,7 @@ public class PinDmdEditor implements EventHandler {
 		animationHandler.setMask(mask.data);
 	}
 
-	void maskNumberChanged(Event e) {
+	void onMaskNumberChanged(Event e) {
 		int newMaskNumber = ((Spinner) e.widget).getSelection();
 		if (useMask && newMaskNumber != actMaskNumber) {
 			log.info("mask number changed {} -> {}", actMaskNumber, newMaskNumber);
@@ -1600,7 +1606,7 @@ public class PinDmdEditor implements EventHandler {
 		}
 	}
 
-	private void sortAnimations() {
+	private void onSortAnimations() {
 		ArrayList<Entry<String, Animation>> list = new ArrayList<>(animations.entrySet());
 		Collections.sort(list, new Comparator<Entry<String, Animation>>() {
 
@@ -1620,13 +1626,13 @@ public class PinDmdEditor implements EventHandler {
 		previewDmd.redraw();
 	}
 	
-	void frameSeqChanged(SelectionChangedEvent event) {
+	void onFrameSeqChanged(SelectionChangedEvent event) {
 		IStructuredSelection selection = (IStructuredSelection) event.getSelection();
 		btnAddFrameSeq.setEnabled(selection.size() > 0);
 		btnAddColormaskKeyFrame.setEnabled(selection.size() > 0);
 	}
 
-	void keyFrameChanged(SelectionChangedEvent event) {
+	void onKeyframeChanged(SelectionChangedEvent event) {
 		IStructuredSelection selection = (IStructuredSelection) event.getSelection();
 		if (selection.size() > 0) {
 			if (((PalMapping) selection.getFirstElement()).equals(selectedPalMapping)) {
@@ -1646,7 +1652,7 @@ public class PinDmdEditor implements EventHandler {
 			// btnMask.notifyListeners(SWT.Selection, new Event());
 
 			txtDuration.setText(selectedPalMapping.durationInMillis + "");
-			paletteComboViewer.setSelection(new StructuredSelection(project.palettes.get(selectedPalMapping.palIndex)));
+			setPaletteViewerByIndex(selectedPalMapping.palIndex);
 			for (int j = 0; j < numberOfHashes; j++) {
 				btnHash[j].setSelection(j == selectedHashIndex);
 			}
@@ -1672,7 +1678,7 @@ public class PinDmdEditor implements EventHandler {
 		btnFetchDuration.setEnabled(selection.size() > 0);
 	}
 
-	void paletteTypeChanged(SelectionChangedEvent e) {
+	void onPaletteTypeChanged(SelectionChangedEvent e) {
 		IStructuredSelection selection = (IStructuredSelection) e.getSelection();
 		PaletteType palType = (PaletteType) selection.getFirstElement();
 		activePalette.type = palType;
@@ -1730,12 +1736,12 @@ public class PinDmdEditor implements EventHandler {
 		});
 
 		MenuItem mntmLoadProject = new MenuItem(menu_1, SWT.NONE);
-		mntmLoadProject.addListener(SWT.Selection, e -> loadProject());
+		mntmLoadProject.addListener(SWT.Selection, e -> onLoadProjectSelected());
 		mntmLoadProject.setText("Load Project");
 
 		MenuItem mntmSaveProject = new MenuItem(menu_1, SWT.NONE);
 		mntmSaveProject.setText("Save Project");
-		mntmSaveProject.addListener(SWT.Selection, e -> saveProject());
+		mntmSaveProject.addListener(SWT.Selection, e -> onSaveProjectSelected());
 
 		MenuItem mntmRecentProjects = new MenuItem(menu_1, SWT.CASCADE);
 		mntmRecentProjects.setText("Recent Projects");
@@ -1747,15 +1753,15 @@ public class PinDmdEditor implements EventHandler {
 
 		MenuItem mntmImportProject = new MenuItem(menu_1, SWT.NONE);
 		mntmImportProject.setText("Import Project");
-		mntmImportProject.addListener(SWT.Selection, e -> importProject());
+		mntmImportProject.addListener(SWT.Selection, e -> onImportProjectSelected());
 
 		MenuItem mntmExportProject = new MenuItem(menu_1, SWT.NONE);
 		mntmExportProject.setText("Export Project");
-		mntmExportProject.addListener(SWT.Selection, e -> exportProject());
+		mntmExportProject.addListener(SWT.Selection, e -> onExportProjectSelected());
 
 		mntmUploadProject = new MenuItem(menu_1, SWT.NONE);
 		mntmUploadProject.setText("Upload Project");
-		mntmUploadProject.addListener(SWT.Selection, e -> uploadProject());
+		mntmUploadProject.addListener(SWT.Selection, e -> onUploadProjectSelected());
 
 		new MenuItem(menu_1, SWT.SEPARATOR);
 
@@ -1776,12 +1782,12 @@ public class PinDmdEditor implements EventHandler {
 
 		MenuItem mntmUndo = new MenuItem(menu_5, SWT.NONE);
 		mntmUndo.setText("Undo");
-		mntmUndo.addListener(SWT.Selection, e -> undo());
+		mntmUndo.addListener(SWT.Selection, e -> onUndoClicked());
 		ObserverManager.bind(maskDmdObserver, e -> mntmUndo.setEnabled(e), () -> maskDmdObserver.canUndo());
 
 		MenuItem mntmRedo = new MenuItem(menu_5, SWT.NONE);
 		mntmRedo.setText("Redo");
-		mntmRedo.addListener(SWT.Selection, e -> redo());
+		mntmRedo.addListener(SWT.Selection, e -> onRedoClicked());
 		ObserverManager.bind(maskDmdObserver, e -> mntmRedo.setEnabled(e), () -> maskDmdObserver.canRedo());
 
 		MenuItem mntmAnimations = new MenuItem(menu, SWT.CASCADE);
@@ -1792,19 +1798,19 @@ public class PinDmdEditor implements EventHandler {
 
 		MenuItem mntmLoadAnimation = new MenuItem(menu_2, SWT.NONE);
 		mntmLoadAnimation.setText("Load Animation(s)");
-		mntmLoadAnimation.addListener(SWT.Selection, e -> aniAction.loadAniWithFC(true));
+		mntmLoadAnimation.addListener(SWT.Selection, e -> aniAction.onLoadAniWithFC(true));
 
 		MenuItem mntmSaveAnimation = new MenuItem(menu_2, SWT.NONE);
 		mntmSaveAnimation.setText("Save Animation(s)");
-		mntmSaveAnimation.addListener(SWT.Selection, e -> aniAction.saveAniWithFC(1));
+		mntmSaveAnimation.addListener(SWT.Selection, e -> aniAction.onSaveAniWithFC(1));
 
 		MenuItem mntmSaveAniExt = new MenuItem(menu_2, SWT.NONE);
 		mntmSaveAniExt.setText("Save Animation(s) v2");
-		mntmSaveAniExt.addListener(SWT.Selection, e -> aniAction.saveAniWithFC(2));
+		mntmSaveAniExt.addListener(SWT.Selection, e -> aniAction.onSaveAniWithFC(2));
 		
 		MenuItem mntmSaveSingleAnimation = new MenuItem(menu_2, SWT.NONE);
 		mntmSaveSingleAnimation.setText("Save single Animation");
-		mntmSaveSingleAnimation.addListener(SWT.Selection, e -> aniAction.saveSingleAniWithFC(1));
+		mntmSaveSingleAnimation.addListener(SWT.Selection, e -> aniAction.onSaveSingleAniWithFC(1));
 
 		MenuItem mntmRecentAnimationsItem = new MenuItem(menu_2, SWT.CASCADE);
 		mntmRecentAnimationsItem.setText("Recent Animations");
@@ -1890,12 +1896,12 @@ public class PinDmdEditor implements EventHandler {
 		mntmAbout.addListener(SWT.Selection, e -> new About(shell).open());
 	}
 
-	private void redo() {
+	private void onRedoClicked() {
 		maskDmdObserver.redo();
 		dmdRedraw();
 	}
 
-	private void undo() {
+	private void onUndoClicked() {
 		maskDmdObserver.undo();
 		dmdRedraw();
 	}

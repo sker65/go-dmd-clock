@@ -175,7 +175,7 @@ public class PinDmdEditorSWTTest {
 	public void testPaletteTypeChanged() throws Exception {
 		ISelection s = new StructuredSelection(PaletteType.DEFAULT);
 		SelectionChangedEvent e = new SelectionChangedEvent(uut.paletteTypeComboViewer, s );
-		uut.paletteTypeChanged(e);
+		uut.onPaletteTypeChanged(e);
 	}
 	
 	@Test
@@ -290,7 +290,7 @@ public class PinDmdEditorSWTTest {
 	public void testMaskNumberChanged() throws Exception {
 		Event e = new Event();
 		e.widget = Mockito.mock(Spinner.class);
-		uut.maskNumberChanged(e);
+		uut.onMaskNumberChanged(e);
 	}
 
 	@Test
@@ -300,7 +300,7 @@ public class PinDmdEditorSWTTest {
 		e.widget = s;
 		uut.useMask = true;
 		when(s.getSelection()).thenReturn(Integer.valueOf(1));
-		uut.maskNumberChanged(e);
+		uut.onMaskNumberChanged(e);
 	}
 
 	@Test
