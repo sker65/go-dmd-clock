@@ -114,6 +114,7 @@ public class AnimationActionHandler {
 				for (Palette p : editor.project.palettes) {
 					if (p.sameColors(ani.getAniColors())) {
 						colorsMatch = true;
+						ani.setPalIndex(p.index);
 						break;
 					}
 				}
