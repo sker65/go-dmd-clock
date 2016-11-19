@@ -107,7 +107,7 @@ public class AniReader {
 		a.setPalIndex(is.readShort());
 		log.info("reading pal index {}",a.getPalIndex());
 		int numberOfColors = is.readShort();
-		log.info("reading {} custom colors {}", numberOfColors);
+		log.info("reading {} custom colors", numberOfColors);
 		if( numberOfColors > 0) {
 			RGB[] rgb = new RGB[numberOfColors];
 			for( int i = 0; i < numberOfColors; i++) {
