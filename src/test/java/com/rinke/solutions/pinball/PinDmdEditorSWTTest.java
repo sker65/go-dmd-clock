@@ -81,7 +81,7 @@ public class PinDmdEditorSWTTest {
 			
 		});
 		
-		uut.createNewProject();
+		uut.onNewProject();
 		
 		DMD dmd = new DMD(128,32);
 		uut.animationHandler = new  AnimationHandler(null,uut.clock,dmd);
