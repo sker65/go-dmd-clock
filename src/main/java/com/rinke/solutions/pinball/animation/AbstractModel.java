@@ -20,7 +20,7 @@ public abstract class AbstractModel {
 	 */
 	public void addPropertyChangeListener(final PropertyChangeListener listener) {
 		propertyChangeSupport.addPropertyChangeListener(listener);
-		log.info("property change support listener added");
+		//log.debug("property change support listener added");
 	}
 
 	/**
