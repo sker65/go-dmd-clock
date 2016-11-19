@@ -13,7 +13,7 @@ import com.rinke.solutions.pinball.model.RGB;
 public class DMCImporterTest {
 	
 	DMCImporter uut;
-
+	
 	@Before
 	public void setUp() throws Exception {
 		uut = new DMCImporter();
