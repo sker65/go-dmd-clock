@@ -31,7 +31,7 @@ public class CompiledAnimation extends Animation {
 
 	public void addFrame(Frame f) {
 		frames.add(f);
-		this.end++;
+		this.end = frames.size()-1;
 	}
 
 	@Override
