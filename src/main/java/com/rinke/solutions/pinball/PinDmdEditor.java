@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -94,15 +93,12 @@ import com.rinke.solutions.pinball.model.PalMapping.SwitchMode;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.PaletteType;
 import com.rinke.solutions.pinball.model.Plane;
-import com.rinke.solutions.pinball.model.PlaneNumber;
 import com.rinke.solutions.pinball.model.Project;
 import com.rinke.solutions.pinball.model.Scene;
 import com.rinke.solutions.pinball.swt.ActionAdapter;
 import com.rinke.solutions.pinball.swt.CocoaGuiEnhancer;
 import com.rinke.solutions.pinball.ui.About;
 import com.rinke.solutions.pinball.ui.DeviceConfig;
-import com.rinke.solutions.pinball.ui.FileChooser;
-import com.rinke.solutions.pinball.ui.FileDialogDelegate;
 import com.rinke.solutions.pinball.ui.GifExporter;
 import com.rinke.solutions.pinball.ui.RegisterLicense;
 import com.rinke.solutions.pinball.ui.UsbConfig;
@@ -341,14 +337,14 @@ public class PinDmdEditor implements EventHandler {
 		editAniObserver = ObserverManager.bind(animationHandler, e -> this.enableDrawing(e), () -> animationIsEditable());
 		ObserverManager.bind(animationHandler, e -> dmdWidget.setDrawingEnabled(e), () -> animationHandler.isStopped());
 
-		ObserverManager.bind(animationHandler, e -> btnPrev.setEnabled(e), () -> animationHandler.isStopped());
-		ObserverManager.bind(animationHandler, e -> btnNext.setEnabled(e), () -> animationHandler.isStopped());
+		ObserverManager.bind(animationHandler, e -> btnPrev.setEnabled(e), () -> animationHandler.isStopped() && animationHandler.hasAnimations());
+		ObserverManager.bind(animationHandler, e -> btnNext.setEnabled(e), () -> animationHandler.isStopped() && animationHandler.hasAnimations());
 
 		ObserverManager.bind(cutInfo, e -> btnCut.setEnabled(e), () -> (cutInfo.getStart() > 0 && cutInfo.getEnd() > 0));
 
 		ObserverManager.bind(cutInfo, e -> btnMarkEnd.setEnabled(e), () -> (cutInfo.getStart() > 0));
 
-		ObserverManager.bind(animations, e -> btnStartStop.setEnabled(e), () -> !this.animations.isEmpty() && animationHandler.isStopped());
+		//ObserverManager.bind(animations, e -> btnStartStop.setEnabled(e), () -> !this.animations.isEmpty() && animationHandler.isStopped());
 		ObserverManager.bind(animations, e -> btnPrev.setEnabled(e), () -> !this.animations.isEmpty());
 		ObserverManager.bind(animations, e -> btnNext.setEnabled(e), () -> !this.animations.isEmpty());
 		ObserverManager.bind(animations, e -> btnMarkStart.setEnabled(e), () -> !this.animations.isEmpty());
@@ -417,16 +413,15 @@ public class PinDmdEditor implements EventHandler {
 		
 		createContents(shell);
 
-		createNewProject();
-
-		paletteComboViewer.getCombo().select(0);
-		paletteTool.setPalette(activePalette);
-
 		animationHandler = new AnimationHandler(playingAnis, clock, dmd);
-
 		animationHandler.setScale(scale);
 		animationHandler.setEventHandler(this);
 		animationHandler.setMask(project.mask);
+
+		onNewProject();
+
+		paletteComboViewer.getCombo().select(0);
+		paletteTool.setPalette(activePalette);
 
 		createBindings();
 
@@ -505,7 +500,7 @@ public class PinDmdEditor implements EventHandler {
 		return cutScene;
 	}
 
-	void createNewProject() {
+	void onNewProject() {
 		project.clear();
 		activePalette = project.palettes.get(0);
 		paletteComboViewer.refresh();
@@ -513,6 +508,7 @@ public class PinDmdEditor implements EventHandler {
 		animations.clear();
 		playingAnis.clear();
 		selectedAnimation = Optional.of(defaultAnimation);
+		animationHandler.setAnimations(playingAnis);
 	}
 
 	private void onLoadProjectSelected() {
@@ -1722,7 +1718,7 @@ public class PinDmdEditor implements EventHandler {
 		mntmNewProject.setText("New Project");
 		mntmNewProject.addListener(SWT.Selection, e -> {
 			if (dirtyCheck()) {
-				createNewProject();
+				onNewProject();
 			}
 		});
 
