@@ -53,6 +53,13 @@ public class AnimationHandler extends Observable implements Runnable{
 	    }
 	}
 	
+	public void startClock() {
+		clockActive = true;
+		clockCycles = 0;
+		clock.restart();
+		run();
+	}
+	
 	public void runInner() {
 		if( clockActive ) {
 			if( clockCycles == 0 ) dmd.clear();
@@ -157,11 +164,13 @@ public class AnimationHandler extends Observable implements Runnable{
 	}
 
 	public void prev() {
+		if( index <0 || index >= anis.size() ) return;
 		anis.get(index).prev();
 		run();
 	}
 
 	public void next() {
+		if( index <0 || index >= anis.size() ) return;
 		anis.get(index).next();
 		run();
 	}
@@ -171,7 +180,7 @@ public class AnimationHandler extends Observable implements Runnable{
 	}
 
 	public void setPos(int pos) {
-		if( !anis.isEmpty() ) {
+		if( index <0 || index >= anis.size() ) {
 		    anis.get(index).setPos(pos);
 	        run();
 		}
@@ -181,14 +190,16 @@ public class AnimationHandler extends Observable implements Runnable{
 		return anis;
 	}
 
-	public void setAnimations(java.util.List<Animation> anis2) {
-		this.anis = anis2;
+	public void setAnimations(java.util.List<Animation> anisToSet) {
+		this.anis = anisToSet;
 		clockActive=false;
 		index = 0;
 		if( !anis.isEmpty() ) {
 			forceRerender = true;
 		    anis.get(index).restart();
 		    run();
+		} else {
+			startClock();
 		}
 		setChanged();
 		notifyObservers();
@@ -220,6 +231,10 @@ public class AnimationHandler extends Observable implements Runnable{
 			forceRerender = true;
 			run();
 		}
+	}
+
+	public boolean hasAnimations() {
+		return !anis.isEmpty();
 	}
 
 }
