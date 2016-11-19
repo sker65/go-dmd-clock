@@ -12,6 +12,7 @@ import com.rinke.solutions.io.HeatShrinkEncoder;
 import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Palette;
+import com.rinke.solutions.pinball.model.Plane;
 import com.rinke.solutions.pinball.model.RGB;
 
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +20,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AniWriter {
 	
+	private static final int MASK_MARKER = 0x6D;
+
 	public static void writeToFile(List<Animation> anis, String filename, int version, List<Palette> palettes) {
 		
 		DataOutputStream os = null;
@@ -61,19 +64,10 @@ public class AniWriter {
 					os.writeShort(dmd.getFrameSizeInByte());
 					
 					Frame frame =  a.render(dmd,false);
-					
-					// number of planes (normally 2, and mask optionally)
-					if( frame.planes.size()==3) {
-						os.writeShort(a.getTransitionDelay());
-						os.writeByte(3);
-						// if mask, use plane type 0x6d
-						os.writeByte(0x6d); // mask marker
-						os.write(frame.planes.get(2).plane);
-					} else {
-						// delay is set per frame, equal delay is just one possibility
-						os.writeShort(frame.delay);
-						os.writeByte(frame.planes.size());
-					}
+
+					// delay is set per frame, equal delay is just one possibility
+					os.writeShort(frame.delay);
+					os.writeByte(frame.planes.size());
 					
 					if( version < 3 ) {
 						writePlanes(os, frame);
@@ -162,14 +156,26 @@ public class AniWriter {
 	}
 
 	private static void writePlanes(DataOutputStream os, Frame r) throws IOException {
-		// transform in target format
-		//os.write(dmd.transformFrame1(frameSet.frame1));
-		//os.write(dmd.transformFrame1(frameSet.frame2));
+		// ensure that if mask plane is contained, it is written first
+		int maskPlane = searchMaskPlane(r.planes);
+		if( maskPlane >= 0) {
+			os.writeByte(MASK_MARKER);
+		    os.write(r.planes.get(maskPlane).plane);
+		}
 		for(int j = 0; j < r.planes.size(); j++) {
 		    // plane type (normal bit depth)
-		    os.writeByte(j);
-		    os.write(r.planes.get(j).plane);
+			if( j != maskPlane) {
+			    os.writeByte(j);
+			    os.write(r.planes.get(j).plane);
+			}
 		}
+	}
+
+	private static int searchMaskPlane(List<Plane> planes) {
+		for (int i = 0; i < planes.size(); i++) {
+			if( planes.get(i).marker == MASK_MARKER ) return i;
+		}
+		return -1;
 	}
 
 	private static void rewriteIndex(int[] aniOffset, DataOutputStream os,
