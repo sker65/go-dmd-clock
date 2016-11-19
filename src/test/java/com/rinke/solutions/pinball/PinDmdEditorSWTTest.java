@@ -81,13 +81,14 @@ public class PinDmdEditorSWTTest {
 			
 		});
 		
-		uut.onNewProject();
-		
 		DMD dmd = new DMD(128,32);
+		
 		uut.animationHandler = new  AnimationHandler(null,uut.clock,dmd);
 		uut.animationHandler.setScale(uut.scale);
 		uut.animationHandler.setEventHandler(eventHandler);
 		uut.paletteHandler = new PaletteHandler(uut, shell);
+
+		uut.onNewProject();
 		
 		uut.createBindings();
 		
