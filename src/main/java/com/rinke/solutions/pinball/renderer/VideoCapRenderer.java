@@ -10,14 +10,14 @@ import java.awt.image.DataBufferInt;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.bytedeco.javacv.FFmpegFrameGrabber;
-import org.bytedeco.javacv.Java2DFrameConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Plane;
+import com.rinke.solutions.pinball.renderer.video.FFmpegFrameGrabber;
+import com.rinke.solutions.pinball.renderer.video.Java2DFrameConverter;
 
 @Slf4j
 public class VideoCapRenderer extends Renderer {
@@ -48,11 +48,11 @@ public class VideoCapRenderer extends Renderer {
 		try {
 			g.start();
 			for (int i = 0; i <end+1; i++) {
-				org.bytedeco.javacv.Frame frame;
+				Object frame;
 				do {
 					frame = g.grab();
 					if( frame == null ) break;
-				} while( frame.image == null );
+				} while( !g.containsData(frame) );
 
 				if( frame == null ) break;
 				if( i < skip-1 ) continue;

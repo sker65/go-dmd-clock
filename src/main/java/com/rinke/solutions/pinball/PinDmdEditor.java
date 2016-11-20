@@ -6,8 +6,14 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.lang.reflect.Method;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -16,6 +22,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Observer;
@@ -71,7 +78,6 @@ import org.kohsuke.args4j.Option;
 import com.rinke.solutions.pinball.animation.AniEvent;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.Animation.EditMode;
-
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.animation.EventHandler;
 import com.rinke.solutions.pinball.api.BinaryExporter;
@@ -258,6 +264,8 @@ public class PinDmdEditor implements EventHandler {
 	private Button btnUndo;
 	private Button btnRedo;
 	private Button btnCopyToPrev;
+	private String pluginsPath;
+	private List<String> loadedPlugins = new ArrayList<>();
 
 	public PinDmdEditor() {
 		super();
@@ -269,9 +277,34 @@ public class PinDmdEditor implements EventHandler {
 		licManager = LicenseManagerFactory.getInstance();
 		Arrays.fill(emptyMask, (byte) 0xFF);
 		pin2dmdAdress = ApplicationProperties.get(ApplicationProperties.PIN2DMD_ADRESS_PROP_KEY);
+		checkForPlugins();
 		connector = ConnectorFactory.create(pin2dmdAdress);
 	}
 
+	private void checkForPlugins() {
+		Path currentRelativePath = Paths.get("");
+		pluginsPath = currentRelativePath.toAbsolutePath().toString()+File.separator+"plugins";
+		String[] fileList = new File(pluginsPath).list((dir, name) -> name.endsWith(".jar"));
+		if( fileList!=null) Arrays.stream(fileList).forEach(file -> addSoftwareLibrary(new File(pluginsPath+File.separatorChar+file)));
+		try {
+			Class.forName("org.bytedeco.javacv.Java2DFrameConverter");
+			log.info("successfully loaded video plugin classes");
+			loadedPlugins.add("Video");
+		} catch (ClassNotFoundException e) {
+		}
+	}
+	
+	private  void addSoftwareLibrary(File file) {
+		try {
+		    Method method = URLClassLoader.class.getDeclaredMethod("addURL", new Class[]{URL.class});
+		    method.setAccessible(true);
+		    method.invoke(ClassLoader.getSystemClassLoader(), new Object[]{file.toURI().toURL()});
+		    log.info("adding {} to classpath", file.toURI().toURL());
+		} catch( Exception e) {
+			log.warn("adding {} to classpath failed", file.getPath());
+		}
+	}
+	
 	public void refreshPin2DmdHost(String address) {
 		if (address != null && !address.equals(pin2dmdAdress)) {
 			if (handle != null) {
@@ -407,7 +440,7 @@ public class PinDmdEditor implements EventHandler {
 		if (SWT.getPlatform().equals("cocoa")) {
 			CocoaGuiEnhancer enhancer = new CocoaGuiEnhancer("Pin2dmd Editor");
 			enhancer.hookApplicationMenu(display, e -> e.doit = dirtyCheck(),
-					new ActionAdapter(() -> new About(shell).open() ),
+					new ActionAdapter(() -> new About(shell).open(pluginsPath, loadedPlugins) ),
 					new ActionAdapter(() -> new DeviceConfig(shell).open(null)) );
 		}
 		
@@ -1880,7 +1913,7 @@ public class PinDmdEditor implements EventHandler {
 
 		MenuItem mntmAbout = new MenuItem(menu_4, SWT.NONE);
 		mntmAbout.setText("About");
-		mntmAbout.addListener(SWT.Selection, e -> new About(shell).open());
+		mntmAbout.addListener(SWT.Selection, e -> new About(shell).open(pluginsPath, loadedPlugins));
 	}
 
 	private void onRedoClicked() {

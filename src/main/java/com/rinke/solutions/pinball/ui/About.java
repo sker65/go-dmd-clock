@@ -3,6 +3,7 @@ package com.rinke.solutions.pinball.ui;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.List;
 import java.util.Properties;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
@@ -34,10 +35,11 @@ public class About extends Dialog {
 
 	/**
 	 * Open the dialog.
+	 * @param pluginsPath 
 	 * @return the result
 	 */
-	public void open() {
-		createContents();
+	public void open(String pluginsPath, List<String> plugins) {
+		createContents(pluginsPath, plugins);
 		shlAboutPindmdEditor.open();
 		shlAboutPindmdEditor.layout();
 		Display display = getParent().getDisplay();
@@ -50,12 +52,14 @@ public class About extends Dialog {
 
 	/**
 	 * Create contents of the dialog.
+	 * @param pluginsPath 
+	 * @param plugins 
 	 */
-	private void createContents() {
+	private void createContents(String pluginsPath, List<String> plugins) {
 	    
 	    
 		shlAboutPindmdEditor = new Shell(getParent(), getStyle());
-		shlAboutPindmdEditor.setSize(385, 237);
+		shlAboutPindmdEditor.setSize(385, 259);
 		shlAboutPindmdEditor.setText("About pin2dmd editor");
 
 		ResourceManager resManager = 
@@ -67,7 +71,7 @@ public class About extends Dialog {
 		
 		Button btnOk = new Button(shlAboutPindmdEditor, SWT.NONE);
 		btnOk.addListener(SWT.Selection, e->shlAboutPindmdEditor.close());
-		btnOk.setBounds(147, 177, 94, 28);
+		btnOk.setBounds(147, 199, 94, 28);
 		btnOk.setText("OK");
 		
 		Label lblBySteve = new Label(shlAboutPindmdEditor, SWT.NONE);
@@ -75,9 +79,13 @@ public class About extends Dialog {
 		lblBySteve.setText("by Steve\n(C) 2016\n\n\nhttp://github.com/\nsker65/go-dmd-clock");
 		
 		Label lblVersion = new Label(shlAboutPindmdEditor, SWT.NONE);
-		lblVersion.setBounds(160, 126, 195, 45);
-		lblVersion.setText(getVersion());
-
+		lblVersion.setBounds(72, 126, 283, 67);
+		String lbl = getVersion()+"\nPluginPath: "+pluginsPath+"\nLoaded Plugins:";
+		for( String p : plugins ) {
+			lbl += "\n"+p;
+		}
+		lblVersion.setText(lbl);
+		
 	}
 	
 	public synchronized String getVersion() {
