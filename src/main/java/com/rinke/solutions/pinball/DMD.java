@@ -290,7 +290,7 @@ public class DMD extends Observable {
 	public void updateActualBuffer(int i) {
 		this.actualBuffer = i;
 		frame = buffers.get(actualBuffer);
-		log.info("actual buffer is: {}, {}", actualBuffer, frame);
+		log.trace("actual buffer is: {}, {}", actualBuffer, frame);
     	setChanged();
     	notifyObservers();
 	}

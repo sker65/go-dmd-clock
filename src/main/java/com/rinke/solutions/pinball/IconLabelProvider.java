@@ -39,7 +39,7 @@ public class IconLabelProvider extends OwnerDrawLabelProvider {
 	@Override
 	protected void measure(Event event, Object element) {
 		Rectangle rectangle = new Rectangle(0,0,16,16);
-        if( event != null ) {
+        if( event != null && element != null) {
     		event.setBounds(new Rectangle(event.x, event.y, rectangle.width + 200 , 
     	            rectangle.height));		
         }
