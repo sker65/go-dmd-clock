@@ -24,7 +24,6 @@ import com.rinke.solutions.pinball.renderer.Renderer;
 import com.rinke.solutions.pinball.renderer.VPinMameRenderer;
 import com.rinke.solutions.pinball.renderer.VideoCapRenderer;
 
-
 public class Animation {
     
     private static Logger LOG = LoggerFactory.getLogger(Animation.class); 
@@ -237,6 +236,7 @@ public class Animation {
 		this.holdCycles = holdCycles;
 		this.type = type;
 		this.clockFrom = Integer.MAX_VALUE;
+		this.editMode = EditMode.FIXED;
 	}
 
 	Renderer renderer = null;

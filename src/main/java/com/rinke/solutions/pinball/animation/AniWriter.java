@@ -8,8 +8,11 @@ import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.util.List;
 
+import org.apache.commons.io.IOUtils;
+
 import com.rinke.solutions.io.HeatShrinkEncoder;
 import com.rinke.solutions.pinball.DMD;
+import com.rinke.solutions.pinball.Worker;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.Plane;
@@ -18,15 +21,34 @@ import com.rinke.solutions.pinball.model.RGB;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class AniWriter {
+public class AniWriter extends Worker {
+	
+	private List<Palette> palettes;
+	private int version;
+	private String filename;
+	private List<Animation> anis;
 	
 	private static final int MASK_MARKER = 0x6D;
+	
+	public AniWriter(List<Animation> anis, String filename, int version, List<Palette> palettes, ProgressEventListener progressEvt) {
+		super(progressEvt);
+		this.anis = anis;
+		this.filename = filename;
+		this.version = version;
+		this.palettes = palettes;
+	}
 
 	public static void writeToFile(List<Animation> anis, String filename, int version, List<Palette> palettes) {
-		
+		new AniWriter(anis,filename,version,palettes, null).run();
+	}
+
+	public void run() {
+		int planesCompressed = 0;
+		int planesRaw = 0;
 		DataOutputStream os = null;
 		try {
 			log.info("writing animations to {}",filename);
+			notify(0,"writing animations to " + filename);
 			FileOutputStream fos = new FileOutputStream(filename);
 			os = new DataOutputStream(fos);
 			os.writeBytes("ANIM"); // magic header
@@ -40,6 +62,7 @@ public class AniWriter {
 			}
 			int aniIndex = 0;
 			int aniOffset[] = new int[anis.size()];
+			int aniProgressInc = 100 / anis.size();
 			for (Animation a : anis) {
 				aniOffset[aniIndex] = os.size();
 			    writeAnimation(os, a);
@@ -50,7 +73,7 @@ public class AniWriter {
 				os.writeShort(numberOfFrames);
 				
 				if( version >= 2 ) {
-					writePaletteAndColor(os, a, palettes);
+					writePaletteAndColor(os, a);
 				}
 				if( version >= 3 ) {
 					os.writeByte(a.getEditMode().ordinal());
@@ -62,7 +85,7 @@ public class AniWriter {
 				for(int i = 0; i<numberOfFrames;i++) {
 					dmd = new DMD(128, 32);
 					os.writeShort(dmd.getFrameSizeInByte());
-					
+					notify(aniIndex*aniProgressInc + (int)((float)i/numberOfFrames * aniProgressInc), "writing animation "+a.getDesc());
 					Frame frame =  a.render(dmd,false);
 
 					// delay is set per frame, equal delay is just one possibility
@@ -76,41 +99,44 @@ public class AniWriter {
 						boolean compress = ( frame.planes.size() > 4 );
 						os.writeBoolean(compress);
 						if( !compress ) {
-							writePlanes(os, frame);
+							int size = writePlanes(os, frame);
+							planesCompressed += size;
+							planesRaw += size;
 						} else {
 							ByteArrayOutputStream bos = new ByteArrayOutputStream();
 							DataOutputStream dos = new DataOutputStream(bos);
 							writePlanes(dos, frame);
+							dos.flush();
 							dos.close();
 							ByteArrayOutputStream b2 = new ByteArrayOutputStream();
 							ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray());
 							HeatShrinkEncoder enc = new HeatShrinkEncoder(10,5);
 							enc.encode(bis, b2);
+							//log.info("writing compressed planes: {} / {}", b2.size(), bos.size());
+							planesCompressed += b2.size();
+							planesRaw += bos.size();
 							os.writeInt(b2.size());
 							os.write(b2.toByteArray());
 						}
 					}
-					
+					if( cancelRequested ) break;
 				}
+				if( cancelRequested ) break;
 				aniIndex++;
+				notify(aniIndex*aniProgressInc, "animation "+a.getDesc()+" written");
 			}
 			if( version >= 2 ) rewriteIndex(aniOffset, os, fos, startOfIndex);
 			os.close();
+			log.info("frame compression {}/{} = {}", planesRaw,planesCompressed, (float)planesCompressed/(float)planesRaw);
 			log.info("done");
 		} catch (IOException e) {
 			log.error("problems when wrinting file {}", filename);
 		} finally {
-			if( os != null ) {
-				try {
-					os.close();
-				} catch (IOException e) {
-					log.error("problems when closing file {}", filename);
-				}
-			}
+			IOUtils.closeQuietly(os);
 		}
 	}
 
-	private static void writePaletteAndColor(DataOutputStream os, Animation a, List<Palette> palettes) throws IOException {
+	private void writePaletteAndColor(DataOutputStream os, Animation a) throws IOException {
 		// write palette idx
 		if( a.getPalIndex() <= 8 ) {
 			log.info("writing pal index: {}",a.getPalIndex());
@@ -134,7 +160,7 @@ public class AniWriter {
 		}
 	}
 
-	private static void writeAnimation(DataOutputStream os, Animation a) throws IOException {
+	private void writeAnimation(DataOutputStream os, Animation a) throws IOException {
 		log.info("writing {}",a);
 		// write meta data
 		os.writeUTF(a.getDesc());
@@ -155,8 +181,9 @@ public class AniWriter {
 		os.writeByte(a.getFsk());
 	}
 
-	private static void writePlanes(DataOutputStream os, Frame r) throws IOException {
+	private int writePlanes(DataOutputStream os, Frame r) throws IOException {
 		// ensure that if mask plane is contained, it is written first
+		int start = os.size();
 		int maskPlane = searchMaskPlane(r.planes);
 		if( maskPlane >= 0) {
 			os.writeByte(MASK_MARKER);
@@ -169,16 +196,17 @@ public class AniWriter {
 			    os.write(r.planes.get(j).plane);
 			}
 		}
+		return os.size()-start;
 	}
 
-	private static int searchMaskPlane(List<Plane> planes) {
+	private int searchMaskPlane(List<Plane> planes) {
 		for (int i = 0; i < planes.size(); i++) {
 			if( planes.get(i).marker == MASK_MARKER ) return i;
 		}
 		return -1;
 	}
 
-	private static void rewriteIndex(int[] aniOffset, DataOutputStream os,
+	private void rewriteIndex(int[] aniOffset, DataOutputStream os,
 			FileOutputStream fos, int startOfIndex) throws IOException {
 		FileChannel channel = fos.getChannel();
 		channel.position(startOfIndex);
@@ -187,7 +215,7 @@ public class AniWriter {
 		}
 	}
 
-	private static int writeIndexPlaceholder(int count, DataOutputStream os) throws IOException {
+	private int writeIndexPlaceholder(int count, DataOutputStream os) throws IOException {
 		int startOfIndex = os.size();
 		for(int i = 0; i<count; i++) os.writeInt(0);
 		return startOfIndex;

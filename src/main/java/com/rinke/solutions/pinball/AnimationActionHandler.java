@@ -17,6 +17,8 @@ import com.rinke.solutions.pinball.animation.AnimationFactory;
 import com.rinke.solutions.pinball.animation.AnimationType;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.model.Palette;
+import com.rinke.solutions.pinball.ui.Progress;
+import com.rinke.solutions.pinball.Worker;
 import com.rinke.solutions.pinball.util.FileChooserUtil;
 
 @Slf4j
@@ -24,9 +26,11 @@ public class AnimationActionHandler {
 	
 	PinDmdEditor editor;
 	FileChooserUtil fileChooserUtil;
+	private Shell shell;
 	
 	public AnimationActionHandler(PinDmdEditor pinDmdEditor, Shell shell) {
 		editor = pinDmdEditor;
+		this.shell = shell;
 		fileChooserUtil = new FileChooserUtil(shell);
 	}
 
@@ -40,7 +44,9 @@ public class AnimationActionHandler {
 
 	public int storeAnimations(Collection<Animation> anis, String filename, int version) {
 		java.util.List<Animation> anisToSave = anis.stream().filter(a -> a.isMutable()).collect(Collectors.toList());
-		AniWriter.writeToFile(anisToSave, filename, version, editor.project.palettes);
+		Progress progress = new Progress(shell);
+		AniWriter aniWriter = new AniWriter(anisToSave, filename, version, editor.project.palettes, progress);
+		progress.open(aniWriter);
 		return anisToSave.size();
 	}
 

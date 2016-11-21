@@ -31,7 +31,7 @@ public class VideoCapRenderer extends Renderer {
 	protected void readImage(String name, DMD dmd) {
 
 		Java2DFrameConverter converter = new Java2DFrameConverter();
-		FFmpegFrameGrabber g = new FFmpegFrameGrabber(name);
+		FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(name);
 		int w = dmd.getWidth();
 		int h = dmd.getHeight();
 		skip = getInt("start", 0);
@@ -46,13 +46,13 @@ public class VideoCapRenderer extends Renderer {
 			op = new AffineTransformOp(tx, AffineTransformOp.TYPE_BILINEAR);
 		}
 		try {
-			g.start();
+			grabber.start();
 			for (int i = 0; i <end+1; i++) {
 				Object frame;
 				do {
-					frame = g.grab();
+					frame = grabber.grab();
 					if( frame == null ) break;
-				} while( !g.containsData(frame) );
+				} while( !grabber.containsData(frame) );
 
 				if( frame == null ) break;
 				if( i < skip-1 ) continue;
@@ -79,8 +79,6 @@ public class VideoCapRenderer extends Renderer {
 //					e.printStackTrace();
 //				}
 
-				
-				 
 
 //				int[][] image2d = convertTo2D(dmdImage);
 				// int[] palette = Quantize.quantizeImage(image2d, 255);
@@ -90,7 +88,7 @@ public class VideoCapRenderer extends Renderer {
 				for( int j = 0; j < 15 ; j++) {
 					res.planes.add(new Plane((byte)j, new byte[dmd.getFrameSizeInByte()]));
 				}
-				res.timecode = (int)( g.getTimestamp() / 1000 );
+				res.timecode = (int)( grabber.getTimestamp() / 1000 );
 				
 				for (int x = 0; x < dmd.getWidth(); x++) {
 					for (int y = 0; y < dmd.getHeight(); y++) {
@@ -111,7 +109,8 @@ public class VideoCapRenderer extends Renderer {
 				}
 				frames.add(res);
 			} // stop cap
-			g.stop();
+			grabber.stop();
+			grabber.release();
 		} catch (Exception e) {
 			LOG.error("problems grabbing {}", name, e);
 		}
