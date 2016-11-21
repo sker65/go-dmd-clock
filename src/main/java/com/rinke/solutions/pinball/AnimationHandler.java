@@ -180,10 +180,9 @@ public class AnimationHandler extends Observable implements Runnable{
 	}
 
 	public void setPos(int pos) {
-		if( index <0 || index >= anis.size() ) {
-		    anis.get(index).setPos(pos);
-	        run();
-		}
+		if( index <0 || index >= anis.size() ) return;
+	    anis.get(index).setPos(pos);
+        run();
 	}
 	
 	public java.util.List<Animation> getAnimations() {
