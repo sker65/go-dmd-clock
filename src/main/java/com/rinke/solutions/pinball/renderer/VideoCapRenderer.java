@@ -10,6 +10,7 @@ import java.awt.image.DataBufferInt;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,18 +19,37 @@ import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Plane;
 import com.rinke.solutions.pinball.renderer.video.FFmpegFrameGrabber;
 import com.rinke.solutions.pinball.renderer.video.Java2DFrameConverter;
+import com.rinke.solutions.pinball.ui.Progress;
 
 @Slf4j
 public class VideoCapRenderer extends Renderer {
 
 	private static Logger LOG = LoggerFactory.getLogger(VideoCapRenderer.class);
 	private int skip = 0;
+	String name;
+	DMD dmd;
 
-	public VideoCapRenderer(int start, int end) {
+	protected void readImage(String name, DMD dmd, Shell shell) {
+		this.name = name;
+		this.dmd = dmd;
+		if( shell != null) {
+			Progress progress = new Progress(shell);
+			progress.setText("rendering video");
+			setProgressEvt(progress);
+			setInterval(100);
+			progress.open(this);
+		} else {
+			doReadImage();
+		}
 	}
 
-	protected void readImage(String name, DMD dmd) {
+	@Override
+	public void run() {
+		doReadImage();
+	}
 
+	protected void doReadImage() {
+		notify(0, "init grabber");
 		Java2DFrameConverter converter = new Java2DFrameConverter();
 		FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(name);
 		int w = dmd.getWidth();
@@ -55,6 +75,7 @@ public class VideoCapRenderer extends Renderer {
 				} while( !grabber.containsData(frame) );
 
 				if( frame == null ) break;
+				notify(i*100 / end, "importing "+i+"/"+end+" frames");
 				if( i < skip-1 ) continue;
 				
 				BufferedImage image = converter.convert(frame);
@@ -84,29 +105,8 @@ public class VideoCapRenderer extends Renderer {
 				// int[] palette = Quantize.quantizeImage(image2d, 255);
 
 				// create 
-				Frame res = new Frame();
-				for( int j = 0; j < 15 ; j++) {
-					res.planes.add(new Plane((byte)j, new byte[dmd.getFrameSizeInByte()]));
-				}
+				Frame res = convertToFrame(dmdImage, dmd);
 				res.timecode = (int)( grabber.getTimestamp() / 1000 );
-				
-				for (int x = 0; x < dmd.getWidth(); x++) {
-					for (int y = 0; y < dmd.getHeight(); y++) {
-
-						int rgb = dmdImage.getRGB(x, y);
-						
-						// reduce color depth to 15 bit
-						int nrgb = ( rgb >> 3 ) & 0x1F;
-						nrgb |= ( ( rgb >> 11 ) & 0x1F ) << 5;
-						nrgb |= ( ( rgb >> 19 ) & 0x1F ) << 10;
-						
-						for( int j = 0; j < 15 ; j++) {
-							if( (nrgb & (1<<j)) != 0)
-								res.planes.get(j).plane[y * dmd.getBytesPerRow() + x / 8] |= (128 >> (x % 8));
-						}
-
-					}
-				}
 				frames.add(res);
 			} // stop cap
 			grabber.stop();
@@ -189,8 +189,12 @@ public class VideoCapRenderer extends Renderer {
 	}
 
 	@Override
-	public Frame convert(String filename, DMD dmd, int frameNo) {
-		return super.convert(filename, dmd, frameNo-skip);
+	public Frame convert(String filename, DMD dmd, int frameNo, Shell shell) {
+		if (frames.isEmpty()) {
+			readImage(filename, dmd, shell);
+		}
+		return frames.get(frameNo-skip);
 	}
+
 
 }
