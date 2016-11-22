@@ -11,6 +11,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
 
+import org.eclipse.swt.widgets.Shell;
+
 import com.rinke.solutions.pinball.renderer.Renderer;
 
 /**
@@ -20,7 +22,7 @@ import com.rinke.solutions.pinball.renderer.Renderer;
  */
 public class AnimationFactory {
 	
-	public static List<Animation> createAnimationsFromProperties(String filename) throws IOException {
+	public static List<Animation> createAnimationsFromProperties(String filename, Shell shell) throws IOException {
 		
 		Properties conf = new Properties();
 		conf.load(new FileInputStream(filename));
@@ -119,7 +121,7 @@ public class AnimationFactory {
 			if( conf.containsKey(animationName+".transitionName") ) {
 				animation.setTransitionName(conf.getProperty(animationName+".transitionName"));
 			}
-			
+			animation.setShell(shell);
 			result.add(animation);
 		}
 		return result;

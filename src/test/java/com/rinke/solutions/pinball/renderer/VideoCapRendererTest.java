@@ -7,7 +7,7 @@ import com.rinke.solutions.pinball.DMD;
 
 public class VideoCapRendererTest {
 	
-	VideoCapRenderer uut = new VideoCapRenderer(0,0);
+	VideoCapRenderer uut = new VideoCapRenderer();
 
 	@Test
 	

@@ -11,15 +11,11 @@ public abstract class Worker implements Runnable {
 	protected boolean cancelRequested;
 	private ProgressEventListener progressEvt;
 	private long lastUpdate;
+	private long interval = 300;
 
-	public Worker(ProgressEventListener progressEvt) {
-		super();
-		this.progressEvt = progressEvt;
-	}
-	
 	public void notify(int progress, String job) {
 		if( progressEvt != null ) {
-			if( System.currentTimeMillis() - lastUpdate > 500 ) {
+			if( System.currentTimeMillis() - lastUpdate > interval ) {
 				log.info("notify progress {}/{}", progress,job);
 				progressEvt.notify(new ProgressEvent(progress, job));
 				lastUpdate = System.currentTimeMillis();
@@ -29,5 +25,13 @@ public abstract class Worker implements Runnable {
 
 	public void requestCancel() {
 		this.cancelRequested = true;
+	}
+
+	public void setProgressEvt(ProgressEventListener progressEvt) {
+		this.progressEvt = progressEvt;
+	}
+
+	public void setInterval(long interval) {
+		 this.interval = interval;
 	}
 }

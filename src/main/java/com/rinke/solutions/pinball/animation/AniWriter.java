@@ -31,11 +31,11 @@ public class AniWriter extends Worker {
 	private static final int MASK_MARKER = 0x6D;
 	
 	public AniWriter(List<Animation> anis, String filename, int version, List<Palette> palettes, ProgressEventListener progressEvt) {
-		super(progressEvt);
 		this.anis = anis;
 		this.filename = filename;
 		this.version = version;
 		this.palettes = palettes;
+		setProgressEvt(progressEvt);
 	}
 
 	public static void writeToFile(List<Animation> anis, String filename, int version, List<Palette> palettes) {

@@ -6,11 +6,12 @@ import java.util.List;
 import java.util.Properties;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.rinke.solutions.pinball.DMD;
-import com.rinke.solutions.pinball.animation.Animation.EditMode;
+import com.rinke.solutions.pinball.Worker;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Plane;
 import com.rinke.solutions.pinball.model.RGB;
@@ -107,6 +108,8 @@ public class Animation {
 	int holdCount = 0;
 	
 	private String desc;
+
+	private Shell shell;
 	
 	public Animation cutScene( int start, int end, int actualNumberOfPlanes) {
 		// create a copy of the animation
@@ -138,7 +141,7 @@ public class Animation {
 		return dest;
 	}
 
-    public static Animation buildAnimationFromFile(String filename, AnimationType type) {
+    public static Animation buildAnimationFromFile(String filename, AnimationType type, Shell shell) {
         File file = new File(filename);
         if( !file.canRead() ) {
             throw new RuntimeException("Could not read '"+filename+"' to load animation");
@@ -148,8 +151,15 @@ public class Animation {
         ani.setBasePath(file.getParent() + "/");
         ani.setDesc(base.substring(0, base.indexOf('.')));
         ani.setMutable(type.equals(AnimationType.COMPILED)||type.equals(AnimationType.VIDEO));
+        ani.shell = shell;
         return ani;
     }
+   
+
+	public static Animation buildAnimationFromFile(String filename, AnimationType type) {
+		return buildAnimationFromFile(filename,type,null);
+	}
+
 
 	public String getDesc() {
 		return desc;
@@ -225,7 +235,6 @@ public class Animation {
 
 	public Animation(AnimationType type, String name, int start, int end, int skip,
 			int cycles, int holdCycles) {
-		super();
 		this.start = start;
 		this.actFrame = start;
 		this.end = end;
@@ -245,8 +254,8 @@ public class Animation {
 	Renderer transitionRenderer = null;
 	List<Frame> transitions = new ArrayList<>();
 	
-	protected Frame renderFrame(String name, DMD dmd, int act) {
-		return renderer.convert(name, dmd, act);
+	protected Frame renderFrame(String name, DMD dmd, int act) {	
+		return renderer.convert(name, dmd, act, shell);
 	}
 	
 	public Renderer getRenderer() {
@@ -346,7 +355,7 @@ public class Animation {
 			renderer = new PinDumpRenderer();
 			break;
 		case VIDEO:
-			renderer = new VideoCapRenderer(start,end);
+			renderer = new VideoCapRenderer();
 			break;
 		default:
 			break;
@@ -525,6 +534,10 @@ public class Animation {
 
 	public void setEditMode(EditMode editMode) {
 		this.editMode = editMode;
+	}
+
+	public void setShell(Shell shell) {
+		 this.shell = shell;
 	}
 
 }

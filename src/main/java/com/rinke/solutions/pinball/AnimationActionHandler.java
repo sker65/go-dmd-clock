@@ -3,6 +3,7 @@ package com.rinke.solutions.pinball;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
@@ -43,7 +44,8 @@ public class AnimationActionHandler {
 	}
 
 	public int storeAnimations(Collection<Animation> anis, String filename, int version) {
-		java.util.List<Animation> anisToSave = anis.stream().filter(a -> a.isMutable()).collect(Collectors.toList());
+		java.util.List<Animation> anisToSave = anis.stream().collect(Collectors.toList());
+		// filter(a -> a.isMutable()).
 		Progress progress = new Progress(shell);
 		AniWriter aniWriter = new AniWriter(anisToSave, filename, version, editor.project.palettes, progress);
 		progress.open(aniWriter);
@@ -51,10 +53,10 @@ public class AnimationActionHandler {
 	}
 
 	protected void onLoadAniWithFC(boolean append) {
-		String filename = fileChooserUtil.choose(SWT.OPEN, null, new String[] { "*.properties;*.ani;*.txt.gz;*.pcap;*.pcap.gz;*.*" }, new String[] { "Animationen",
+		List<String> filenames = fileChooserUtil.chooseMulti(SWT.OPEN|SWT.MULTI, null, new String[] { "*.properties;*.ani;*.txt.gz;*.pcap;*.pcap.gz;*.*" }, new String[] { "Animationen",
 				"properties, txt.gz, ani, mov" });
 
-		if (filename != null) {
+		for(String filename : filenames) {
 			loadAni(filename, append, true);
 		}
 	}
@@ -75,13 +77,15 @@ public class AnimationActionHandler {
 		} else if (filename.endsWith(".txt.gz")) {
 			loadedList.add(Animation.buildAnimationFromFile(filename, AnimationType.MAME));
 		} else if (filename.endsWith(".properties")) {
-			loadedList.addAll(AnimationFactory.createAnimationsFromProperties(filename));
+			loadedList.addAll(AnimationFactory.createAnimationsFromProperties(filename,shell));
 		} else if (extensionIs(filename, ".pcap", ".pcap.gz")) {
 			loadedList.add(Animation.buildAnimationFromFile(filename, AnimationType.PCAP));
 		} else if (extensionIs(filename, ".dump", ".dump.gz")) {
-			loadedList.add(Animation.buildAnimationFromFile(filename, AnimationType.PINDUMP));
+			loadedList.add(Animation.buildAnimationFromFile(filename, AnimationType.PINDUMP, shell));
+		} else if (extensionIs(filename, ".gif")) {
+			loadedList.add(Animation.buildAnimationFromFile(filename, AnimationType.GIF));
 		} else if (extensionIs(filename, ".mp4", ".3gp", ".avi")) {
-			loadedList.add(Animation.buildAnimationFromFile(filename, AnimationType.VIDEO));
+			loadedList.add(Animation.buildAnimationFromFile(filename, AnimationType.VIDEO, shell));
 		}
 		log.info("loaded {} animations from {}", loadedList.size(), filename);
 		} catch( IOException e) {
