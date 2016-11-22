@@ -39,4 +39,9 @@ public class FileDialogDelegate implements FileChooser {
 		delegate.setFileName(name);
 	}
 
+	@Override
+	public String[] getFileNames() {
+		return delegate.getFileNames();
+	}
+
 }

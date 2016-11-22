@@ -17,5 +17,7 @@ public interface FileChooser {
 
 	void setFileName(String name);
 
+	String[] getFileNames();
+
 
 }
