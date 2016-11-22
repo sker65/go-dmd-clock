@@ -39,12 +39,11 @@ public class AnimatedGIFRenderer extends Renderer {
             };
 
 		try {
-			ImageReader reader = (ImageReader) ImageIO
-					.getImageReadersByFormatName("gif").next();
+			ImageReader reader = null;//(ImageReader) ImageIO.getImageReadersByFormatName("gif").next();
 
-			ImageInputStream ciis = ImageIO
-					.createImageInputStream(new FileInputStream(filename));
+			ImageInputStream ciis = ImageIO.createImageInputStream(new FileInputStream(filename));
 
+			reader = new PatchedGIFImageReader(null);
 			reader.setInput(ciis, false);
 
 			BufferedImage master = null;
@@ -57,9 +56,6 @@ public class AnimatedGIFRenderer extends Renderer {
 			int frameNo = 0;
 			while (frameNo < noi) {
 				
-				byte[] f1 = new byte[dmd.getFrameSizeInByte()];
-				byte[] f2 = new byte[dmd.getFrameSizeInByte()];
-
 				BufferedImage image;
 				IIOMetadata metadata;
 				try {
@@ -67,7 +63,7 @@ public class AnimatedGIFRenderer extends Renderer {
 					metadata = reader.getImageMetadata(frameNo);
 				} catch( RuntimeException e) {
 					LOG.error("reading img resulted in error", e);
-					frames.add(new Frame(f1, f2));
+//					frames.add(new Frame(f1, f2));
 					frameNo++;
 					continue;
 				}
@@ -118,7 +114,7 @@ public class AnimatedGIFRenderer extends Renderer {
 	            	toScan = resize(toScan, 128, 32);
 	            }
 	            
-				for (int x = 0; x < 128; x++) {
+/*				for (int x = 0; x < 128; x++) {
 					for (int y = 0; y < 32; y++) {
 						int rgb = toScan.getRGB(x, y) & 0X00FFFFFF; // cut alpha
 						int gray = (int) ((0.299f * (rgb >> 24)) + 0.587f
@@ -150,7 +146,9 @@ public class AnimatedGIFRenderer extends Renderer {
 					LOG.debug("Grauwert " + v + " = "
 							+ grayCounts.get(v));
 				}
-				frames.add(new Frame(f1, f2));
+				frames.add(new Frame(f1, f2));*/
+	            Frame f = convertToFrame(toScan, dmd);
+	            frames.add(f);
 				frameNo++;
 			}
 
