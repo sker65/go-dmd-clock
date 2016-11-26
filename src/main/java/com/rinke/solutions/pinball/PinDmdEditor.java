@@ -6,7 +6,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.Method;
@@ -32,7 +31,6 @@ import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.core.databinding.observable.Realm;
 import org.eclipse.jface.databinding.swt.SWTObservables;
@@ -266,6 +264,7 @@ public class PinDmdEditor implements EventHandler {
 	private Button btnCopyToPrev;
 	private String pluginsPath;
 	private List<String> loadedPlugins = new ArrayList<>();
+	private boolean keyframeChangeActive;
 
 	public PinDmdEditor() {
 		super();
@@ -589,9 +588,11 @@ public class PinDmdEditor implements EventHandler {
 		}
 	}
 	
-	protected void setPaletteViewerByIndex( int palIndex) {
+	protected void setPaletteViewerByIndex(int palIndex) {
+//		if( keyframeChangeActive ) return;
 		Optional<Palette> optPal = project.palettes.stream().filter(p -> p.index==palIndex).findFirst();
 		paletteComboViewer.setSelection(new StructuredSelection(optPal.orElse(activePalette)));
+		log.info("setting pal.index to {}",palIndex);
 	}
 	
 	protected void setupUIonProjectLoad() {
@@ -613,8 +614,9 @@ public class PinDmdEditor implements EventHandler {
 			project = projectToLoad;
 			animations.clear();
 
-			for (String file : project.inputFiles)
+			for (String file : project.inputFiles) {
 				aniAction.loadAni(buildRelFilename(filename, file), true, false);
+			}
 
 			for (int i = 1; i < project.scenes.size(); i++) {
 				// cutOutNewAnimation(project.scenes.get(i).start,
@@ -658,7 +660,7 @@ public class PinDmdEditor implements EventHandler {
 	}
 
 	void onSaveProjectSelected() {
-		String filename = fileChooserUtil.choose(SWT.SAVE, project.name, new String[] { "*.xml", "*.json" }, new String[] { "Project XML", "Project JSON" });
+		String filename = fileChooserUtil.choose(SWT.SAVE, project.name, new String[] { "*.xml" }, new String[] { "Project XML" });
 		if (filename != null)
 			saveProject(filename);
 	}
@@ -756,6 +758,7 @@ public class PinDmdEditor implements EventHandler {
 			// save as
 			project.inputFiles.remove(project.name + ".ani");
 		}
+		
 		int numberOfStoredAnis = aniAction.storeAnimations(animations.values(), aniFilename, 3);
 		if (numberOfStoredAnis > 0 && !project.inputFiles.contains(baseName)) {
 			project.inputFiles.add(baseName);
@@ -1481,11 +1484,15 @@ public class PinDmdEditor implements EventHandler {
 
 	private void onPaletteChanged(Palette newPalette) {
 		activePalette = newPalette;
-		if (selectedPalMapping != null)
-			selectedPalMapping.palIndex = activePalette.index;
-		// change palette in ANI file
-		if (selectedAnimation.get().isMutable()) {
-			selectedAnimation.get().setPalIndex(activePalette.index);
+		if( !keyframeChangeActive ) {
+			if (selectedPalMapping != null) {
+				selectedPalMapping.palIndex = activePalette.index;
+				log.info("change index in Keyframe {} to {}", selectedPalMapping.name, activePalette.index);
+			}
+			// change palette in ANI file
+			if (selectedAnimation.get().isMutable()) {
+				selectedAnimation.get().setPalIndex(activePalette.index);
+			}
 		}
 		dmdWidget.setPalette(activePalette);
 		paletteTool.setPalette(activePalette);
@@ -1672,13 +1679,16 @@ public class PinDmdEditor implements EventHandler {
 			// btnMask.notifyListeners(SWT.Selection, new Event());
 
 			txtDuration.setText(selectedPalMapping.durationInMillis + "");
+			keyframeChangeActive = true;
 			setPaletteViewerByIndex(selectedPalMapping.palIndex);
+			
 			for (int j = 0; j < numberOfHashes; j++) {
 				btnHash[j].setSelection(j == selectedHashIndex);
 			}
 
 			selectedAnimation = Optional.of(animations.get(selectedPalMapping.animationName));
 			aniListViewer.setSelection(new StructuredSelection(selectedAnimation.get()));
+			keyframeChangeActive = false;
 
 			if (selectedPalMapping.frameSeqName != null)
 				frameSeqViewer.setSelection(new StructuredSelection(animations.get(selectedPalMapping.frameSeqName)));
