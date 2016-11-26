@@ -55,6 +55,10 @@ public class CompiledAnimation extends Animation {
 
 	@Override
 	public void commitDMDchanges(DMD dmd) {
+		if( clockWasAdded ) {		// never commit a frame were clock was rendered
+			clockWasAdded = false;
+			return;
+		}
 	    if( actFrame >= 0 && actFrame < frames.size()) {
 	        List<Plane> planes = frames.get(actFrame).planes;
 	        Frame frame = dmd.getFrame();
