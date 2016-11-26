@@ -89,6 +89,7 @@ public class AnimationHandler extends Observable implements Runnable{
 				forceRerender = false;
 				dmd.clear();
 				if( ani.addClock() ) {
+					ani.setClockWasAdded(true);
 				    if( ani.isClockSmall())
 				        clock.renderTime(dmd, ani.isClockSmall(), ani.getClockXOffset(),ani.getClockYOffset(),false);
 				    else
