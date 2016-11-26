@@ -64,6 +64,7 @@ public class Animation {
 	private RGB[] aniColors;
 	
 	private boolean trueColor;
+	protected boolean clockWasAdded;
 	public enum EditMode {
 		REPLACE, MASK, FIXED;
 
@@ -328,7 +329,7 @@ public class Animation {
 	}
 
 	public boolean addClock() {
-		return actFrame>clockFrom || (transitionFrom>0 && actFrame>=transitionFrom);
+		return  actFrame>clockFrom || (transitionFrom>0 && actFrame>=transitionFrom) ;
 	}
 
 	protected void init() {
@@ -538,6 +539,14 @@ public class Animation {
 
 	public void setShell(Shell shell) {
 		 this.shell = shell;
+	}
+
+	public boolean isClockWasAdded() {
+		return clockWasAdded;
+	}
+
+	public void setClockWasAdded(boolean clockWasAdded) {
+		this.clockWasAdded = clockWasAdded;
 	}
 
 }
