@@ -112,6 +112,7 @@ public class FileHelper {
     public void storeObject(Model obj,  String filename) {
     	try( OutputStream out = new FileOutputStream(filename)) {
     		storeObject(obj, out, Format.byFilename(filename));
+    		out.close();
     	} catch( IOException e) {
     	    log.error("error on storing "+filename, e);
     	    throw new RuntimeException("error on storing "+filename,e);
@@ -134,8 +135,8 @@ public class FileHelper {
             default:
                 throw new RuntimeException("unsupported filetype ");
             }
-            if(writer!=null) writer.close(); 
-            else out.close();
+//            if(writer!=null) writer.close(); 
+//            else out.close();
     }
     
     public Object loadObject(String filename) {
