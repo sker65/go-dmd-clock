@@ -1,6 +1,7 @@
 package com.rinke.solutions.pinball;
 
 import java.awt.SplashScreen;
+import java.beans.PropertyChangeSupport;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
@@ -265,9 +266,10 @@ public class PinDmdEditor implements EventHandler {
 	private String pluginsPath;
 	private List<String> loadedPlugins = new ArrayList<>();
 	private boolean keyframeChangeActive;
+	private MenuItem mntmSaveProject;
+	private String projectFilename;
 
 	public PinDmdEditor() {
-		super();
 		dmd = new DMD(128, 32);
 		maskDmdObserver = new MaskDmdObserver();
 		maskDmdObserver.setDmd(dmd);
@@ -541,13 +543,14 @@ public class PinDmdEditor implements EventHandler {
 		playingAnis.clear();
 		selectedAnimation = Optional.of(defaultAnimation);
 		animationHandler.setAnimations(playingAnis);
+		setProjectFilename(null);
 	}
 
 	private void onLoadProjectSelected() {
 		String filename = fileChooserUtil.choose(SWT.OPEN, null, new String[] { "*.xml;*.json;" }, new String[] { "Project XML", "Project JSON" });
-
-		if (filename != null)
+		if (filename != null) {
 			loadProject(filename);
+		}
 	}
 
 	/**
@@ -607,6 +610,7 @@ public class PinDmdEditor implements EventHandler {
 
 	void loadProject(String filename) {
 		log.info("load project from {}", filename);
+		setProjectFilename(filename);
 		Project projectToLoad = (Project) fileHelper.loadObject(filename);
 
 		if (projectToLoad != null) {
@@ -659,10 +663,14 @@ public class PinDmdEditor implements EventHandler {
 		}
 	}
 
-	void onSaveProjectSelected() {
-		String filename = fileChooserUtil.choose(SWT.SAVE, project.name, new String[] { "*.xml" }, new String[] { "Project XML" });
-		if (filename != null)
-			saveProject(filename);
+	void onSaveProjectSelected(boolean saveAs) {
+		if( saveAs ) {
+			String filename = fileChooserUtil.choose(SWT.SAVE, project.name, new String[] { "*.xml" }, new String[] { "Project XML" });
+			if (filename != null)
+				saveProject(filename);
+		} else {
+			saveProject(getProjectFilename());
+		}
 	}
 
 	@FunctionalInterface
@@ -842,6 +850,8 @@ public class PinDmdEditor implements EventHandler {
 		shell.setLayout(new GridLayout(4, false));
 
 		createMenu(shell);
+		
+		setProjectFilename(null);
 
 		recentProjectsMenuManager = new RecentMenuManager("recentProject", 4, menuPopRecentProjects, e -> loadProject((String) e.widget.getData()));
 		recentProjectsMenuManager.loadRecent();
@@ -1769,9 +1779,13 @@ public class PinDmdEditor implements EventHandler {
 		mntmLoadProject.addListener(SWT.Selection, e -> onLoadProjectSelected());
 		mntmLoadProject.setText("Load Project");
 
-		MenuItem mntmSaveProject = new MenuItem(menu_1, SWT.NONE);
+		mntmSaveProject = new MenuItem(menu_1, SWT.NONE);
 		mntmSaveProject.setText("Save Project");
-		mntmSaveProject.addListener(SWT.Selection, e -> onSaveProjectSelected());
+		mntmSaveProject.addListener(SWT.Selection, e -> onSaveProjectSelected(false));
+
+		MenuItem mntmSaveAsProject = new MenuItem(menu_1, SWT.NONE);
+		mntmSaveAsProject.setText("Save Project as");
+		mntmSaveAsProject.addListener(SWT.Selection, e -> onSaveProjectSelected(true));
 
 		MenuItem mntmRecentProjects = new MenuItem(menu_1, SWT.CASCADE);
 		mntmRecentProjects.setText("Recent Projects");
@@ -2002,5 +2016,14 @@ public class PinDmdEditor implements EventHandler {
 			break;
 		}
 		dmdRedraw();
+	}
+
+	public String getProjectFilename() {
+		return projectFilename;
+	}
+
+	public void setProjectFilename(String projectFilename) {
+		mntmSaveProject.setEnabled(projectFilename!=null);
+		this.projectFilename = projectFilename;
 	}
 }
