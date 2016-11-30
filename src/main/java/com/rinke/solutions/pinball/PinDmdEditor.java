@@ -682,7 +682,7 @@ public class PinDmdEditor implements EventHandler {
 		if (captureOutput.containsKey("a.fsq")) {
 			connector.transferFile("pin2dmd.fsq", new ByteArrayInputStream(captureOutput.get("a.fsq").toByteArray()));
 		}
-		sleep(200);
+		sleep(1500);
 		connector.sendCmd(UsbCmd.RESET);
 	}
 

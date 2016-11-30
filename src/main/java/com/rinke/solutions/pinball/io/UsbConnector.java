@@ -58,7 +58,8 @@ public class UsbConnector extends Pin2DmdConnector {
     public ConnectionHandle connect(String address) {
         Context ctx = initCtx();
         Device device = findDevice(ctx, (short) 0x314, (short)0xE457);
-        if( device == null ) throw new LibUsbException("pin2dmd device not found",-1);
+        if( device != null ) log.info("libusb device found for pin2dmd");
+        else throw new LibUsbException("pin2dmd device not found",-1);
         DeviceHandle handle = new DeviceHandle();
         int result = LibUsb.open(device, handle);
         if (result != LibUsb.SUCCESS)

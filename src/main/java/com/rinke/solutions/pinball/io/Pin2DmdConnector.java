@@ -6,6 +6,8 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.tuple.Pair;
 import org.usb4java.Context;
 import org.usb4java.DeviceHandle;
@@ -15,6 +17,7 @@ import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.Plane;
 
+@Slf4j
 public abstract class Pin2DmdConnector {
 
 	public static enum UsbCmd {
@@ -126,6 +129,7 @@ public abstract class Pin2DmdConnector {
     }
     
 	public void upload(Palette palette) { 
+		log.info("uploading palette {}", palette);
 		upload(palette, null);
     }
     
@@ -133,6 +137,7 @@ public abstract class Pin2DmdConnector {
 	 * @see com.rinke.solutions.pinball.io.Pin2DmdConnector#transferFile(java.lang.String, java.io.InputStream)
 	 */
 	public void transferFile(String filename, InputStream is) {
+		log.info("tranfering file {}", filename);
     	byte[] data = buildBuffer(UsbCmd.WRITE_FILE_EX);
     	data[5] = (byte) 0;
     	String sdname = filename;
@@ -165,7 +170,7 @@ public abstract class Pin2DmdConnector {
     }
 
 	private void doHandShake(ConnectionHandle usb) {
-		byte[] res = receive(usb,64);
+		byte[] res = receive(usb,1);
 		if( res[0] != 0) throw new RuntimeException("handshake error");
 	}
 
