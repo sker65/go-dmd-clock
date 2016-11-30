@@ -78,7 +78,7 @@ public class AniWriter extends Worker {
 				if( version >= 3 ) {
 					os.writeByte(a.getEditMode().ordinal());
 				}
-				
+				int preserveAct = a.getActFrame();
 				a.restart();
 				// write frames
 				log.info("writing {} frames", numberOfFrames);
@@ -119,6 +119,7 @@ public class AniWriter extends Worker {
 							os.write(b2.toByteArray());
 						}
 					}
+					a.setActFrame(preserveAct);
 					if( cancelRequested ) break;
 				}
 				if( cancelRequested ) break;
