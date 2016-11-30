@@ -47,8 +47,11 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ControlEvent;
+import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.program.Program;
@@ -268,6 +271,7 @@ public class PinDmdEditor implements EventHandler {
 	private boolean keyframeChangeActive;
 	private MenuItem mntmSaveProject;
 	private String projectFilename;
+	private Button btnDeleteColMask;
 
 	public PinDmdEditor() {
 		dmd = new DMD(128, 32);
@@ -395,6 +399,7 @@ public class PinDmdEditor implements EventHandler {
 		btnColorMask.setEnabled(e);
 		btnCopyToNext.setEnabled(e);
 		btnCopyToPrev.setEnabled(e);
+		btnDeleteColMask.setEnabled(btnColorMask.getSelection());
 	}
 
 	private boolean animationIsEditable() {
@@ -1282,7 +1287,7 @@ public class PinDmdEditor implements EventHandler {
 		goDmdGroup = new GoDmdGroup(composite_3);
 
 		Group grpDrawing = new Group(shell, SWT.NONE);
-		grpDrawing.setLayout(new GridLayout(6, false));
+		grpDrawing.setLayout(new GridLayout(5, false));
 		GridData gd_grpDrawing = new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1);
 		gd_grpDrawing.heightHint = 63;
 		gd_grpDrawing.widthHint = 479;
@@ -1327,12 +1332,12 @@ public class PinDmdEditor implements EventHandler {
 				connector.upload(activePalette, handle);
 			}
 		});
-		new Label(grpDrawing, SWT.NONE);
-
+		
 		btnColorMask = new Button(grpDrawing, SWT.CHECK);
 		btnColorMask.setToolTipText("limits drawing to upper planes, so that this will just add coloring layers");
 		btnColorMask.setText("ColMask");
 		btnColorMask.addListener(SWT.Selection, e -> onColorMaskChecked(btnColorMask.getSelection()));
+		//btnColorMask.add
 
 		Label lblMaskNo = new Label(grpDrawing, SWT.NONE);
 		lblMaskNo.setText("Mask No:");
@@ -1342,8 +1347,11 @@ public class PinDmdEditor implements EventHandler {
 		maskSpinner.setMinimum(0);
 		maskSpinner.setMaximum(9);
 		maskSpinner.addListener(SWT.Selection, e -> onMaskNumberChanged(e));
-				
+		
 		btnMask = new Button(grpDrawing, SWT.CHECK);
+		GridData gd_btnMask = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+		gd_btnMask.widthHint = 93;
+		btnMask.setLayoutData(gd_btnMask);
 		btnMask.setText("Show Mask");
 		btnMask.addListener(SWT.Selection, e -> onMaskChecked(btnMask.getSelection()));
 		
@@ -1352,25 +1360,38 @@ public class PinDmdEditor implements EventHandler {
 		btnCopyToPrev.setText("CopyToPrev");
 		btnCopyToPrev.addListener(SWT.Selection, e->onCopyAndMoveToPrevFrameClicked());
 		
-		new Label(grpDrawing, SWT.NONE);
-		
 		btnCopyToNext = new Button(grpDrawing, SWT.NONE);
 		btnCopyToNext.setToolTipText("copy the actual scene / color mask to next frame and move forward");
-		btnCopyToNext.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 2, 1));
 		btnCopyToNext.setText("CopyToNext");
 		btnCopyToNext.addListener(SWT.Selection, e->onCopyAndMoveToNextFrameClicked());
 		
 		btnUndo = new Button(grpDrawing, SWT.NONE);
 		btnUndo.setText("&Undo");
 		btnUndo.addListener(SWT.Selection, e -> onUndoClicked());
-
+		
 		btnRedo = new Button(grpDrawing, SWT.NONE);
 		btnRedo.setText("&Redo");
 		btnRedo.addListener(SWT.Selection, e -> onRedoClicked());
+		
+		btnDeleteColMask = new Button(grpDrawing, SWT.NONE);
+		btnDeleteColMask.setText("Delete");
+		btnDeleteColMask.setEnabled(false);
+		btnDeleteColMask.addListener(SWT.Selection, e -> onDeleteColMaskClicked());
 
 		ObserverManager.bind(maskDmdObserver, e -> btnUndo.setEnabled(e), () -> maskDmdObserver.canUndo());
 		ObserverManager.bind(maskDmdObserver, e -> btnRedo.setEnabled(e), () -> maskDmdObserver.canRedo());
 
+	}
+
+	private void onDeleteColMaskClicked() {
+		dmd.addUndoBuffer();
+		Frame frame = dmd.getFrame();
+		// delete plane 2 und 3
+		if( frame.planes.size() == 4) {
+			Arrays.fill( frame.planes.get(2).plane, (byte)0 );
+			Arrays.fill( frame.planes.get(3).plane, (byte)0 );
+		}
+		dmdRedraw();
 	}
 
 	private void onStartStopClicked(boolean stopped) {
@@ -1443,6 +1464,7 @@ public class PinDmdEditor implements EventHandler {
 		dmd.setDrawMask(on ? 0b11111100 : 0xFFFF);
 		selectedAnimation.get().setEditMode( on ? EditMode.MASK: EditMode.REPLACE);
 		aniListViewer.refresh();
+		btnDeleteColMask.setEnabled(on);
 	}
 
 	/**
@@ -1476,6 +1498,7 @@ public class PinDmdEditor implements EventHandler {
 				goDmdGroup.transitionCombo.select(0);
 			}
 			btnColorMask.setSelection(a.getEditMode()==EditMode.MASK);
+			onColorMaskChecked(a.getEditMode()==EditMode.MASK);// doesnt fire event?????
 			dmd.setNumberOfSubframes(numberOfPlanes);
 			paletteTool.setNumberOfPlanes(useMask?1:numberOfPlanes);
 			//planesComboViewer.setSelection(new StructuredSelection(PlaneNumber.valueOf(numberOfPlanes)));
