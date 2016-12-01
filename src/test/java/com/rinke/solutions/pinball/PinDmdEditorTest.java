@@ -4,6 +4,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.*;
@@ -189,6 +190,15 @@ public class PinDmdEditorTest {
 		assertEquals("/foo/test/foo.ani", filename);
 		filename = uut.buildRelFilename("/foo/test/tes.dat", "/foo.ani");
 		assertEquals("/foo.ani", filename);
+	}
+
+	@Test
+	public void testBuildUniqueName() throws Exception {
+		Animation animation = new Animation(AnimationType.COMPILED, "foo", 0, 1, 0, 1, 1);
+		animation.setDesc("new");
+		uut.animations.put("Scene 1", animation);
+		String actual = uut.buildUniqueName(uut.animations);
+		assertNotEquals("Scene 1", actual);
 	}
 
 

@@ -1172,7 +1172,7 @@ public class PinDmdEditor implements EventHandler {
 		btnCut.setText("Cut");
 		btnCut.addListener(SWT.Selection, e -> {
 			// respect number of planes while cutting / copying
-				Animation ani = cutScene(selectedAnimation.get(), cutInfo.getStart(), cutInfo.getEnd(), "Scene " + animations.size());
+				Animation ani = cutScene(selectedAnimation.get(), cutInfo.getStart(), cutInfo.getEnd(), buildUniqueName(animations));
 				log.info("cutting out scene from {} to {}", cutInfo);
 				cutInfo.reset();
 
@@ -1381,6 +1381,21 @@ public class PinDmdEditor implements EventHandler {
 		ObserverManager.bind(maskDmdObserver, e -> btnUndo.setEnabled(e), () -> maskDmdObserver.canUndo());
 		ObserverManager.bind(maskDmdObserver, e -> btnRedo.setEnabled(e), () -> maskDmdObserver.canRedo());
 
+	}
+
+	/**
+	 * creates a unique key name for scenes
+	 * @param anis the map containing the keys
+	 * @return the new unique name
+	 */
+	String buildUniqueName(ObservableMap<String, Animation> anis) {
+		int no = anis.size();
+		String name = "Scene " + no;
+		while( anis.containsKey(name)) {
+			no++;
+			name = "Scene " + no;
+		}
+		return name;
 	}
 
 	private void onDeleteColMaskClicked() {
