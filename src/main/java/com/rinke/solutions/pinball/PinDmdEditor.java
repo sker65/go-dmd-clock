@@ -1443,7 +1443,7 @@ public class PinDmdEditor implements EventHandler {
 	private void onCopyAndMoveToPrevFrameClicked() {
 		onPrevFrameClicked();
 		CompiledAnimation ani = (CompiledAnimation) selectedAnimation.get();
-		if( ani.getActFrame() > ani.getStart() ) {
+		if( ani.getActFrame() >= ani.getStart() ) {
 			copyFrame(ani, ani.getActFrame(), 1);
 		}
 	}
