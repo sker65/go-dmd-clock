@@ -39,13 +39,12 @@ public class AnimationActionHandler {
 		String filename = fileChooserUtil.choose(SWT.SAVE, editor.selectedAnimation.get().getDesc(), new String[] { "*.ani" }, new String[] { "Animations" });
 		if (filename != null) {
 			log.info("store animation to {}", filename);
-			storeAnimations(editor.animations.values(), filename, version);
+			storeAnimations(editor.animations.values(), filename, version, true);
 		}
 	}
 
-	public int storeAnimations(Collection<Animation> anis, String filename, int version) {
-		java.util.List<Animation> anisToSave = anis.stream().collect(Collectors.toList());
-		// filter(a -> a.isMutable()).
+	public int storeAnimations(Collection<Animation> anis, String filename, int version, boolean saveAll) {
+		java.util.List<Animation> anisToSave = anis.stream().filter(a -> saveAll || a.isMutable()).collect(Collectors.toList());
 		Progress progress = new Progress(shell);
 		AniWriter aniWriter = new AniWriter(anisToSave, filename, version, editor.project.palettes, progress);
 		progress.open(aniWriter);
@@ -142,7 +141,7 @@ public class AnimationActionHandler {
 		String filename = fileChooserUtil.choose(SWT.SAVE, editor.selectedAnimation.get().getDesc(), new String[] { "*.ani" }, new String[] { "Animations" });
 		if (filename != null) {
 			log.info("store animation to {}", filename);
-			storeAnimations(Lists.newArrayList(editor.selectedAnimation.get()), filename, version);
+			storeAnimations(Lists.newArrayList(editor.selectedAnimation.get()), filename, version, true);
 		}
 	}
 

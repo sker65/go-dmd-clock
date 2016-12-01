@@ -772,7 +772,7 @@ public class PinDmdEditor implements EventHandler {
 			project.inputFiles.remove(project.name + ".ani");
 		}
 		
-		int numberOfStoredAnis = aniAction.storeAnimations(animations.values(), aniFilename, 3);
+		int numberOfStoredAnis = aniAction.storeAnimations(animations.values(), aniFilename, 3, false);
 		if (numberOfStoredAnis > 0 && !project.inputFiles.contains(baseName)) {
 			project.inputFiles.add(baseName);
 		}
