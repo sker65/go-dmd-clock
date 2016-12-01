@@ -456,7 +456,9 @@ public class PinDmdEditor implements EventHandler {
 		animationHandler.setScale(scale);
 		animationHandler.setEventHandler(this);
 		animationHandler.setMask(project.mask);
-
+		boolean goDMDenabled = ApplicationProperties.getBoolean(ApplicationProperties.GODMD_ENABLED_PROP_KEY);
+		animationHandler.setSuppressClock(!goDMDenabled);
+		
 		onNewProject();
 
 		paletteComboViewer.getCombo().select(0);
@@ -1967,6 +1969,7 @@ public class PinDmdEditor implements EventHandler {
 		mntmGodmd.addListener(SWT.Selection, e -> {
 			boolean goDMDenabled = mntmGodmd.getSelection();
 			goDmdGroup.grpGoDMDCrtls.setVisible(goDMDenabled);
+			animationHandler.setSuppressClock(!goDMDenabled);
 			ApplicationProperties.put(ApplicationProperties.GODMD_ENABLED_PROP_KEY, Boolean.toString(goDMDenabled));
 		});
 		mntmGodmd.setSelection(ApplicationProperties.getBoolean(ApplicationProperties.GODMD_ENABLED_PROP_KEY));
