@@ -268,7 +268,6 @@ public class PinDmdEditor implements EventHandler {
 	private Button btnCopyToPrev;
 	private String pluginsPath;
 	private List<String> loadedPlugins = new ArrayList<>();
-	private boolean keyframeChangeActive;
 	private MenuItem mntmSaveProject;
 	private String projectFilename;
 	private Button btnDeleteColMask;
@@ -457,7 +456,7 @@ public class PinDmdEditor implements EventHandler {
 		animationHandler.setEventHandler(this);
 		animationHandler.setMask(project.mask);
 		boolean goDMDenabled = ApplicationProperties.getBoolean(ApplicationProperties.GODMD_ENABLED_PROP_KEY);
-		animationHandler.setSuppressClock(!goDMDenabled);
+		animationHandler.setEnableClock(goDMDenabled);
 		
 		onNewProject();
 
@@ -598,8 +597,9 @@ public class PinDmdEditor implements EventHandler {
 		}
 	}
 	
+	private int setPaletteDepth = 0;
+	
 	protected void setPaletteViewerByIndex(int palIndex) {
-//		if( keyframeChangeActive ) return;
 		Optional<Palette> optPal = project.palettes.stream().filter(p -> p.index==palIndex).findFirst();
 		paletteComboViewer.setSelection(new StructuredSelection(optPal.orElse(activePalette)));
 		log.info("setting pal.index to {}",palIndex);
@@ -1522,7 +1522,8 @@ public class PinDmdEditor implements EventHandler {
 			playingAnis.clear();
 			playingAnis.add(selectedAnimation.get());
 			animationHandler.setAnimations(playingAnis);
-			setPaletteViewerByIndex(selectedAnimation.get().getPalIndex());
+			if(selectedAnimation.get().isMutable() )
+				setPaletteViewerByIndex(selectedAnimation.get().getPalIndex());
 			dmdRedraw();
 		} else {
 			selectedAnimation = Optional.of(defaultAnimation);
@@ -1534,15 +1535,13 @@ public class PinDmdEditor implements EventHandler {
 
 	private void onPaletteChanged(Palette newPalette) {
 		activePalette = newPalette;
-		if( !keyframeChangeActive ) {
-			if (selectedPalMapping != null) {
-				selectedPalMapping.palIndex = activePalette.index;
-				log.info("change index in Keyframe {} to {}", selectedPalMapping.name, activePalette.index);
-			}
-			// change palette in ANI file
-			if (selectedAnimation.get().isMutable()) {
-				selectedAnimation.get().setPalIndex(activePalette.index);
-			}
+		if (selectedPalMapping != null) {
+			selectedPalMapping.palIndex = activePalette.index;
+			log.info("change index in Keyframe {} to {}", selectedPalMapping.name, activePalette.index);
+		}
+		// change palette in ANI file
+		if (selectedAnimation.get().isMutable()) {
+			selectedAnimation.get().setPalIndex(activePalette.index);
 		}
 		dmdWidget.setPalette(activePalette);
 		paletteTool.setPalette(activePalette);
@@ -1729,7 +1728,6 @@ public class PinDmdEditor implements EventHandler {
 			// btnMask.notifyListeners(SWT.Selection, new Event());
 
 			txtDuration.setText(selectedPalMapping.durationInMillis + "");
-			keyframeChangeActive = true;
 			setPaletteViewerByIndex(selectedPalMapping.palIndex);
 			
 			for (int j = 0; j < numberOfHashes; j++) {
@@ -1738,7 +1736,6 @@ public class PinDmdEditor implements EventHandler {
 
 			selectedAnimation = Optional.of(animations.get(selectedPalMapping.animationName));
 			aniListViewer.setSelection(new StructuredSelection(selectedAnimation.get()));
-			keyframeChangeActive = false;
 
 			if (selectedPalMapping.frameSeqName != null)
 				frameSeqViewer.setSelection(new StructuredSelection(animations.get(selectedPalMapping.frameSeqName)));
@@ -1969,7 +1966,7 @@ public class PinDmdEditor implements EventHandler {
 		mntmGodmd.addListener(SWT.Selection, e -> {
 			boolean goDMDenabled = mntmGodmd.getSelection();
 			goDmdGroup.grpGoDMDCrtls.setVisible(goDMDenabled);
-			animationHandler.setSuppressClock(!goDMDenabled);
+			animationHandler.setEnableClock(goDMDenabled);
 			ApplicationProperties.put(ApplicationProperties.GODMD_ENABLED_PROP_KEY, Boolean.toString(goDMDenabled));
 		});
 		mntmGodmd.setSelection(ApplicationProperties.getBoolean(ApplicationProperties.GODMD_ENABLED_PROP_KEY));

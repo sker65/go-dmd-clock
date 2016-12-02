@@ -35,7 +35,7 @@ public class AnimationHandler extends Observable implements Runnable{
 	private byte[] mask;
 
 	private boolean forceRerender;
-	private boolean suppressClock;
+	private boolean enableClock;
 	
 	public AnimationHandler(List<Animation> anis, DMDClock clock, DMD dmd) {
 		this.anis = anis;
@@ -55,7 +55,7 @@ public class AnimationHandler extends Observable implements Runnable{
 	}
 	
 	public void startClock() {
-		if( !suppressClock ) {
+		if( enableClock ) {
 			setClockActive(true);
 			clockCycles = 0;
 			clock.restart();
@@ -91,7 +91,7 @@ public class AnimationHandler extends Observable implements Runnable{
 				
 				forceRerender = false;
 				dmd.clear();
-				if( !suppressClock && ani.addClock() ) {
+				if( enableClock && ani.addClock() ) {
 					ani.setClockWasAdded(true);
 				    if( ani.isClockSmall())
 				        clock.renderTime(dmd, ani.isClockSmall(), ani.getClockXOffset(),ani.getClockYOffset(),false);
@@ -115,7 +115,7 @@ public class AnimationHandler extends Observable implements Runnable{
                     dmd.writeOr(tmp.getFrame()); // merge
                 } else {
                     // now if clock was rendered, use font mask to mask out digits in animation
-                    if( !suppressClock && ani.addClock() ) {
+                    if( enableClock && ani.addClock() ) {
                         DMD tmp = new DMD(dmd.getWidth(), dmd.getHeight());
                         tmp.writeOr(res);
                         clock.renderTime(tmp,true); // mask out time
@@ -225,8 +225,7 @@ public class AnimationHandler extends Observable implements Runnable{
 	}
 
 	public void setClockActive(boolean clockActive) {
-		if( !suppressClock )
-			this.clockActive = clockActive;
+		this.clockActive = enableClock && clockActive;
 	}
 
 	public void setMask(byte[] mask) {
@@ -241,12 +240,12 @@ public class AnimationHandler extends Observable implements Runnable{
 		return !anis.isEmpty();
 	}
 
-	public boolean isSuppressClock() {
-		return suppressClock;
+	public boolean isEnableClock() {
+		return enableClock;
 	}
 
-	public void setSuppressClock(boolean suppressClock) {
-		this.suppressClock = suppressClock;
+	public void setEnableClock(boolean b) {
+		this.enableClock = b;
 	}
 
 }
