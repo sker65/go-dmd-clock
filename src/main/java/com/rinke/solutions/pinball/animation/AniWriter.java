@@ -119,9 +119,9 @@ public class AniWriter extends Worker {
 							os.write(b2.toByteArray());
 						}
 					}
-					a.setActFrame(preserveAct);
 					if( cancelRequested ) break;
 				}
+				a.setActFrame(preserveAct);
 				if( cancelRequested ) break;
 				aniIndex++;
 				notify(aniIndex*aniProgressInc, "animation "+a.getDesc()+" written");
