@@ -884,7 +884,8 @@ public class PinDmdEditor implements EventHandler {
 
 		aniListViewer = new TableViewer(shell, SWT.BORDER | SWT.V_SCROLL);
 		Table aniList = aniListViewer.getTable();
-		GridData gd_aniList = new GridData(SWT.LEFT, SWT.FILL, false, false, 1, 1);
+		GridData gd_aniList = new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1);
+		gd_aniList.heightHint = 231;
 		gd_aniList.widthHint = 189;
 		aniList.setLayoutData(gd_aniList);
 		aniList.setLinesVisible(true);
@@ -909,7 +910,8 @@ public class PinDmdEditor implements EventHandler {
 
 		keyframeTableViewer = new TableViewer(shell, SWT.SINGLE | SWT.V_SCROLL);
 		Table keyframeList = keyframeTableViewer.getTable();
-		GridData gd_keyframeList = new GridData(SWT.LEFT, SWT.FILL, false, false, 1, 1);
+		GridData gd_keyframeList = new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1);
+		gd_keyframeList.heightHint = 231;
 		gd_keyframeList.widthHint = 137;
 		keyframeList.setLinesVisible(true);
 		keyframeList.setLayoutData(gd_keyframeList);
