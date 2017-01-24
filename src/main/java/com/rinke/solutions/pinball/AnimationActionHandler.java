@@ -70,7 +70,7 @@ public class AnimationActionHandler {
 		return false;
 	}
 
-	public void loadAni(String filename, boolean append, boolean populateProject) {
+	public java.util.List<Animation> loadAni(String filename, boolean append, boolean populateProject) {
 		java.util.List<Animation> loadedList = new ArrayList<>();
 		try {
 		if (filename.endsWith(".ani")) {
@@ -137,6 +137,7 @@ public class AnimationActionHandler {
 		}
 		editor.recentAnimationsMenuManager.populateRecent(filename);
 		editor.project.dirty = true;
+		return loadedList;
 	}
 
 	public void onSaveSingleAniWithFC(int version) {

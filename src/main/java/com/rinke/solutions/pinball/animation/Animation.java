@@ -61,6 +61,7 @@ public class Animation {
 	
 	private boolean mutable = false;
 	private boolean dirty = false;
+	private boolean projectAnimation = false; // true if this animation is only part of the project workspace (no separate file)
 	private int palIndex = 0;
 	private RGB[] aniColors;
 	
@@ -558,6 +559,14 @@ public class Animation {
 
 	public void setDirty(boolean dirty) {
 		 this.dirty = dirty;
+	}
+
+	public boolean isProjectAnimation() {
+		return projectAnimation;
+	}
+
+	public void setProjectAnimation(boolean projectAnimation) {
+		this.projectAnimation = projectAnimation;
 	}
 
 }

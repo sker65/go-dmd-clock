@@ -534,6 +534,7 @@ public class PinDmdEditor implements EventHandler {
 		
 		cutScene.setDesc(name);
 		cutScene.setPalIndex(activePalette.index);
+		cutScene.setProjectAnimation(true);
 		animations.put(name, cutScene);
 		aniListViewer.setSelection(new StructuredSelection(cutScene));
 
@@ -624,16 +625,19 @@ public class PinDmdEditor implements EventHandler {
 			shell.setText(frameTextPrefix + " - " + new File(filename).getName());
 			project = projectToLoad;
 			animations.clear();
-
+			
+			// if inputFiles contain project filename remove it
+			String aniFilename = replaceExtensionTo("ani", filename);
+			project.inputFiles.remove(aniFilename); // full name
+			project.inputFiles.remove(new File(aniFilename).getName()); // simple name
+			
 			for (String file : project.inputFiles) {
 				aniAction.loadAni(buildRelFilename(filename, file), true, false);
 			}
-
-			for (int i = 1; i < project.scenes.size(); i++) {
-				// cutOutNewAnimation(project.scenes.get(i).start,
-				// project.scenes.get(i).end, animations.get(0));
-				log.info("cutting out " + project.scenes.get(i));
-			}
+			
+			List<Animation> loadedWithProject = aniAction.loadAni(aniFilename, true, false);
+			loadedWithProject.stream().forEach(a->a.setProjectAnimation(true));
+			
 			setupUIonProjectLoad();
 			ensureDefault();
 			recentProjectsMenuManager.populateRecent(filename);
@@ -776,6 +780,10 @@ public class PinDmdEditor implements EventHandler {
 			project.inputFiles.remove(project.name + ".ani");
 		}
 		
+		// we need to "tag" the projects animations that are always stored in the projects ani file
+		// the project ani file is not included in the inputFile list but animations gets loaded
+		// implicitly
+		
 		String path = new File(filename).getParent(); 
 		// so first check directly included anis in project inputfiles
 		for( String inFile : project.inputFiles) {
@@ -786,24 +794,15 @@ public class PinDmdEditor implements EventHandler {
 			}});
 		}
 		
-		// only need to save ani's that are fresh cutted (dirty) in this project
-		// if mutable ani come from any other file, these should not be included
-		int numberOfStoredAnis = aniAction.storeAnimations(animations.values(), aniFilename, 3, false);
-		if (numberOfStoredAnis > 0 && !project.inputFiles.contains(baseName)) {
-			project.inputFiles.add(baseName);
+		// only need to save ani's that are 'project' animations
+		List<Animation> prjAnis = animations.values().stream().filter(a->a.isProjectAnimation()).collect(Collectors.toList());
+		if( !prjAnis.isEmpty() ) {
+			aniAction.storeAnimations(prjAnis,aniFilename, 3, true);
+		} else {
+			new File(aniFilename).delete(); // delete project ani file
 		}
-		java.util.List<Animation> unmutableAnis = animations.values().stream().filter(a -> !a.isMutable()).collect(Collectors.toList());
-		
-		for( Animation a : unmutableAnis ) {
-			String anipath = a.getBasePath() + a.getName();
-			//  check rel path
-			if( filename.startsWith(a.getBasePath())) {
-				anipath = a.getName();
-			}
-			if( !project.inputFiles.contains(anipath)) {
-				project.inputFiles.add(anipath);
-			}
-		}
+
+
 		Map<String,FrameSeq> frameSeqMapSave = project.frameSeqMap;
 		project.frameSeqMap = null; // remove this for saving
 		fileHelper.storeObject(project, filename);
@@ -984,7 +983,9 @@ public class PinDmdEditor implements EventHandler {
 		btnRemoveAni.setEnabled(false);
 		btnRemoveAni.addListener(SWT.Selection, e -> {
 			if (selectedAnimation.isPresent()) {
-				String key = selectedAnimation.get().getDesc();
+				Animation a = selectedAnimation.get();
+				String key = a.getDesc();
+				if( a.isProjectAnimation() ) project.dirty = true;
 				animations.remove(key);
 				playingAnis.clear();
 				animationHandler.setAnimations(playingAnis);
@@ -1205,17 +1206,6 @@ public class PinDmdEditor implements EventHandler {
 				Animation ani = cutScene(selectedAnimation.get(), cutInfo.getStart(), cutInfo.getEnd(), buildUniqueName(animations));
 				log.info("cutting out scene from {} to {}", cutInfo);
 				cutInfo.reset();
-
-				// TODO mark such a scene somehow, to copy it to the
-				// projects frames sequence for later export
-				// alternatively introduce a dedicated flag for scenes that
-				// should be exported
-				// also define a way that a keyframe triggers a replacement
-				// sequence instead of switching
-				// the palette only
-				// TODO NEED TO ADD a reference to the animation in the list
-				// / map
-				project.scenes.add(new Scene(ani.getDesc(), ani.start, ani.end, activePalette.index));
 			});
 
 		new Label(composite, SWT.NONE);
