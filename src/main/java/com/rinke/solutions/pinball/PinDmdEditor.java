@@ -776,15 +776,22 @@ public class PinDmdEditor implements EventHandler {
 			project.inputFiles.remove(project.name + ".ani");
 		}
 		
+		// only need to save ani's that are fresh cutted (dirty) in this project
+		// if mutable ani come from any other file, these should not be included
 		int numberOfStoredAnis = aniAction.storeAnimations(animations.values(), aniFilename, 3, false);
 		if (numberOfStoredAnis > 0 && !project.inputFiles.contains(baseName)) {
 			project.inputFiles.add(baseName);
 		}
 		java.util.List<Animation> unmutableAnis = animations.values().stream().filter(a -> !a.isMutable()).collect(Collectors.toList());
+		
 		for( Animation a : unmutableAnis ) {
-			String path = a.getBasePath() + a.getName();
-			if( !project.inputFiles.contains(path)) {
-				project.inputFiles.add(path);
+			String anipath = a.getBasePath() + a.getName();
+			//  check rel path
+			if( filename.startsWith(a.getBasePath())) {
+				anipath = a.getName();
+			}
+			if( !project.inputFiles.contains(anipath)) {
+				project.inputFiles.add(anipath);
 			}
 		}
 		Map<String,FrameSeq> frameSeqMapSave = project.frameSeqMap;

@@ -44,11 +44,12 @@ public class AnimationActionHandler {
 	}
 
 	public int storeAnimations(Collection<Animation> anis, String filename, int version, boolean saveAll) {
-		java.util.List<Animation> anisToSave = anis.stream().filter(a -> saveAll || a.isMutable()).collect(Collectors.toList());
+		java.util.List<Animation> anisToSave = anis.stream().filter(a -> saveAll || a.isDirty()).collect(Collectors.toList());
 		if( anisToSave.isEmpty() ) return 0;
 		Progress progress = new Progress(shell);
 		AniWriter aniWriter = new AniWriter(anisToSave, filename, version, editor.project.palettes, progress);
 		progress.open(aniWriter);
+		anisToSave.forEach(a->a.setDirty(false));
 		return anisToSave.size();
 	}
 

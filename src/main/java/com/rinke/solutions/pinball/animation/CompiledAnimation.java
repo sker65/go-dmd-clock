@@ -67,6 +67,7 @@ public class CompiledAnimation extends Animation {
 	            int len = min(planeBytes.length,planes.get(i).plane.length);
 	            System.arraycopy(planeBytes, 0, planes.get(i).plane, 0, len );
 	        }
+	        setDirty(true);
 	    }
 	}
 

@@ -60,11 +60,13 @@ public class Animation {
 	private int transitionDelay = 50;
 	
 	private boolean mutable = false;
+	private boolean dirty = false;
 	private int palIndex = 0;
 	private RGB[] aniColors;
 	
 	private boolean trueColor;
 	protected boolean clockWasAdded;
+	
 	public enum EditMode {
 		REPLACE, MASK, FIXED;
 
@@ -119,6 +121,7 @@ public class Animation {
 				AnimationType.COMPILED, this.getName(),
 				0, end-start, this.skip, 1, 0);
 		dest.setMutable(true);
+		dest.setDirty(true);
 		dest.setClockFrom(Short.MAX_VALUE);
 		// rerender and thereby copy all frames
 		this.actFrame = start;
@@ -547,6 +550,14 @@ public class Animation {
 
 	public void setClockWasAdded(boolean clockWasAdded) {
 		this.clockWasAdded = clockWasAdded;
+	}
+
+	public boolean isDirty() {
+		return dirty;
+	}
+
+	public void setDirty(boolean dirty) {
+		 this.dirty = dirty;
 	}
 
 }
