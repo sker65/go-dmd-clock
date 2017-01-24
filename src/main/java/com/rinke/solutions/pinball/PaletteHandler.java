@@ -1,5 +1,7 @@
 package com.rinke.solutions.pinball;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -99,12 +101,18 @@ public class PaletteHandler {
 	}
 
 	void loadPalette(String filename) {
+		java.util.List<Palette> palettesImported = null;
 		if (filename.toLowerCase().endsWith(".txt") || filename.toLowerCase().endsWith(".dmc")) {
-			java.util.List<Palette> palettesImported = getImporterByFilename(filename).importFromFile(filename);
+			palettesImported = getImporterByFilename(filename).importFromFile(filename);
+		} else {
+			Palette pal = (Palette) fileHelper.loadObject(filename);
+			log.info("load palette from {}", filename);
+			palettesImported = Arrays.asList(pal);
+		}
+		if( palettesImported != null ) {
 			String override = checkOverride(editor.project.palettes, palettesImported);
 			if (!override.isEmpty()) {
 				MessageBox messageBox = new MessageBox(editor.shell, SWT.ICON_WARNING | SWT.OK | SWT.IGNORE | SWT.ABORT);
-
 				messageBox.setText("Override warning");
 				messageBox.setMessage("importing these palettes will override palettes: " + override + "\n");
 				int res = messageBox.open();
@@ -114,15 +122,11 @@ public class PaletteHandler {
 			} else {
 				importPalettes(palettesImported, true);
 			}
-		} else {
-			Palette pal = (Palette) fileHelper.loadObject(filename);
-			log.info("load palette from {}", filename);
-			editor.project.palettes.add(pal);
-			editor.activePalette = pal;
+			
+			editor.paletteComboViewer.setSelection(new StructuredSelection(editor.activePalette));
+			editor.paletteComboViewer.refresh();
+			editor.recentPalettesMenuManager.populateRecent(filename);
 		}
-		editor.paletteComboViewer.setSelection(new StructuredSelection(editor.activePalette));
-		editor.paletteComboViewer.refresh();
-		editor.recentPalettesMenuManager.populateRecent(filename);
 	}
 
 	private PaletteImporter getImporterByFilename(String filename) {
