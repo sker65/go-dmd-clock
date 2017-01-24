@@ -776,6 +776,16 @@ public class PinDmdEditor implements EventHandler {
 			project.inputFiles.remove(project.name + ".ani");
 		}
 		
+		String path = new File(filename).getParent(); 
+		// so first check directly included anis in project inputfiles
+		for( String inFile : project.inputFiles) {
+			Optional<Animation> optAni = animations.values().stream().filter(a -> a.getName().equals(path+File.separator+inFile)).findFirst();
+			optAni.ifPresent(a-> {if( a.isDirty()) {
+				aniAction.storeAnimations(Arrays.asList(a), a.getName(), 3, false);
+				a.setDirty(false);
+			}});
+		}
+		
 		// only need to save ani's that are fresh cutted (dirty) in this project
 		// if mutable ani come from any other file, these should not be included
 		int numberOfStoredAnis = aniAction.storeAnimations(animations.values(), aniFilename, 3, false);
