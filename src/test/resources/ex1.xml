@@ -2,7 +2,6 @@
   <version>1</version>
   <inputFiles>
     <string>drwho-dump.txt.gz</string>
-    <string>ex1.ani</string>
   </inputFiles>
   <palettes>
     <palette>

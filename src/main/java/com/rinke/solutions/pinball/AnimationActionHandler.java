@@ -19,7 +19,6 @@ import com.rinke.solutions.pinball.animation.AnimationType;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.ui.Progress;
-import com.rinke.solutions.pinball.Worker;
 import com.rinke.solutions.pinball.util.FileChooserUtil;
 
 @Slf4j
@@ -34,6 +33,10 @@ public class AnimationActionHandler {
 		this.shell = shell;
 		fileChooserUtil = new FileChooserUtil(shell);
 	}
+	
+	protected Progress getProgress() {
+		return new Progress(shell);
+	}
 
 	public void onSaveAniWithFC(int version) {
 		String filename = fileChooserUtil.choose(SWT.SAVE, editor.selectedAnimation.get().getDesc(), new String[] { "*.ani" }, new String[] { "Animations" });
@@ -46,9 +49,12 @@ public class AnimationActionHandler {
 	public int storeAnimations(Collection<Animation> anis, String filename, int version, boolean saveAll) {
 		java.util.List<Animation> anisToSave = anis.stream().filter(a -> saveAll || a.isDirty()).collect(Collectors.toList());
 		if( anisToSave.isEmpty() ) return 0;
-		Progress progress = new Progress(shell);
+		Progress progress = getProgress();
 		AniWriter aniWriter = new AniWriter(anisToSave, filename, version, editor.project.palettes, progress);
-		progress.open(aniWriter);
+		if( progress != null ) 
+			progress.open(aniWriter);
+		else
+			aniWriter.run();
 		anisToSave.forEach(a->a.setDirty(false));
 		return anisToSave.size();
 	}

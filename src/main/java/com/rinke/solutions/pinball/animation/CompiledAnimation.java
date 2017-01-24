@@ -1,6 +1,5 @@
 package com.rinke.solutions.pinball.animation;
 
-import java.util.Collection;
 import java.util.List;
 
 import com.rinke.solutions.pinball.DMD;
@@ -11,7 +10,6 @@ import com.rinke.solutions.pinball.model.Plane;
 public class CompiledAnimation extends Animation {
 
 	public List<Frame> frames;
-	Frame last = null;
 	
 	public CompiledAnimation(AnimationType type, String name, int start,
 			int end, int skip, int cycles, int holdCycles) {
