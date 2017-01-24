@@ -663,10 +663,12 @@ public class PinDmdEditor implements EventHandler {
 
 		licManager.requireOneOf(Capability.VPIN, Capability.REALPIN, Capability.GODMD);
 
-		String filename = fileChooserUtil.choose(SWT.SAVE, project.name, new String[] { "*.dat" }, new String[] { "Export dat" });
+		String filename = fileChooserUtil.choose(SWT.SAVE, project.name, new String[] { "*.pal" }, new String[] { "Export pal" });
 		if (filename != null) {
 			exportProject(filename, f -> new FileOutputStream(f));
-			warn("Hint", "Remember to rename your export file to pin2dmd.pal if you want to use it" + " in a real pinballs sdcard of pin2dmd.");
+			if( !filename.endsWith("pin2dmd.pal")) {
+				warn("Hint", "Remember to rename your export file to pin2dmd.pal if you want to use it" + " in a real pinballs sdcard of pin2dmd.");
+			}
 		}
 	}
 
