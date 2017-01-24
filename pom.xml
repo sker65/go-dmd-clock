@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.rinke.solutions.pinball</groupId>
 	<artifactId>go-dmd-clock</artifactId>
-	<version>1.0.23.0</version>
+	<version>1.0.24.0</version>
 	<repositories>
 		<repository>
     	    <id>maven-eclipse-repo</id>
@@ -76,7 +76,7 @@
 								</manifest>
 								<manifestEntries>
 									<SplashScreen-Image>images/pin2dmd-splash.png</SplashScreen-Image>
-		             				<drone>${env.DRONE_BUILD_NUMBER}</drone>
+		             				<drone>${env.BUILD_NUMBER}</drone>
 								</manifestEntries>
 							</archive>
 							<descriptorRefs>
@@ -131,7 +131,7 @@
 								<manifestEntries>
 		             				<buildNumber>${maven.build.timestamp}</buildNumber>
 		             				<version>${project.version}</version>
-		             				<drone>${env.DRONE_BUILD_NUMBER}</drone>
+		             				<drone>${env.BUILD_NUMBER}</drone>
 		            			</manifestEntries>								
 							</archive>
 							<descriptorRefs>
@@ -192,7 +192,7 @@
 								<manifestEntries>
 		             				<buildNumber>${maven.build.timestamp}</buildNumber>
 		             				<version>${project.version}</version>
-		             				<drone>${env.DRONE_BUILD_NUMBER}</drone>
+		             				<drone>${env.BUILD_NUMBER}</drone>
 		            			</manifestEntries>
 							</archive>
 							<descriptorRefs>
@@ -236,7 +236,7 @@
 								<manifestEntries>
 		             				<buildNumber>${maven.build.timestamp}</buildNumber>
 		             				<version>${project.version}</version>
-		             				<drone>${env.DRONE_BUILD_NUMBER}</drone>
+		             				<drone>${env.BUILD_NUMBER}</drone>
 		            			</manifestEntries>
 							</archive>
 							<descriptorRefs>
@@ -317,7 +317,7 @@
 								<manifestEntries>
 		             				<buildNumber>${maven.build.timestamp}</buildNumber>
 		             				<version>${project.version}</version>
-		             				<drone>${env.DRONE_BUILD_NUMBER}</drone>
+		             				<drone>${env.BUILD_NUMBER}</drone>
 		            			</manifestEntries>
 							</archive>
 							<descriptorRefs>
