@@ -778,6 +778,13 @@ public class PinDmdEditor implements EventHandler {
 		if (numberOfStoredAnis > 0 && !project.inputFiles.contains(baseName)) {
 			project.inputFiles.add(baseName);
 		}
+		java.util.List<Animation> unmutableAnis = animations.values().stream().filter(a -> !a.isMutable()).collect(Collectors.toList());
+		for( Animation a : unmutableAnis ) {
+			String path = a.getBasePath() + a.getName();
+			if( !project.inputFiles.contains(path)) {
+				project.inputFiles.add(path);
+			}
+		}
 		Map<String,FrameSeq> frameSeqMapSave = project.frameSeqMap;
 		project.frameSeqMap = null; // remove this for saving
 		fileHelper.storeObject(project, filename);
