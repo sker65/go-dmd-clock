@@ -268,7 +268,7 @@ public class PinDmdEditor implements EventHandler {
 	private Button btnCopyToPrev;
 	private String pluginsPath;
 	private List<String> loadedPlugins = new ArrayList<>();
-	private MenuItem mntmSaveProject;
+	MenuItem mntmSaveProject;
 	private String projectFilename;
 	private Button btnDeleteColMask;
 
@@ -597,8 +597,6 @@ public class PinDmdEditor implements EventHandler {
 			project.palMappings.add(palMapping);
 		}
 	}
-	
-	private int setPaletteDepth = 0;
 	
 	protected void setPaletteViewerByIndex(int palIndex) {
 		Optional<Palette> optPal = project.palettes.stream().filter(p -> p.index==palIndex).findFirst();

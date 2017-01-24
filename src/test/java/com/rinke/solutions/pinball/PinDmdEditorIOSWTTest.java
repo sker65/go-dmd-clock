@@ -9,6 +9,9 @@ import org.custommonkey.xmlunit.XMLUnit;
 
 import static org.custommonkey.xmlunit.XMLAssert.*;
 
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -39,6 +42,9 @@ public class PinDmdEditorIOSWTTest {
 	@Mock
 	RecentMenuManager recentProjectsMenuManager;
 	
+	@Mock
+	MenuItem menuItemMock;
+	
 	@Rule
 	public TemporaryFolder testFolder = new TemporaryFolder();
 	
@@ -56,6 +62,7 @@ public class PinDmdEditorIOSWTTest {
 		uut.recentAnimationsMenuManager = recentAnimationsMenuManager;
 		uut.shell = shell;
 		uut.recentProjectsMenuManager = recentProjectsMenuManager;
+		uut.mntmSaveProject = menuItemMock;
 	}
 
 	@Test

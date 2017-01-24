@@ -155,9 +155,9 @@ public class PinDmdEditorSWTTest {
 		uut.shell = shell;
 		uut.aniAction = new AnimationActionHandler(uut,shell);
 		uut.loadProject("./src/test/resources/test.xml");
-		assertThat(uut.animations.size(), equalTo(1));
+		assertThat(uut.animations.size(), equalTo(2));
 		uut.loadProject("./src/test/resources/test.xml");
-		assertThat(uut.animations.size(), equalTo(1));
+		assertThat(uut.animations.size(), equalTo(2));
 	}
 	
 	@Test
