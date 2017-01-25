@@ -1252,7 +1252,7 @@ public class PinDmdEditor implements EventHandler {
 						
 		Button btnApplyPalette = new Button(grpPalettes, SWT.NONE);
 		btnApplyPalette.setText("Apply");
-		btnNewPalette.addListener(SWT.Selection, e -> onApplyPalette(activePalette));
+		btnApplyPalette.addListener(SWT.Selection, e -> onApplyPalette(activePalette));
 		
 		btnNewPalette = new Button(grpPalettes, SWT.NONE);
 		btnNewPalette.setToolTipText("Creates a new palette by copying the actual colors");
