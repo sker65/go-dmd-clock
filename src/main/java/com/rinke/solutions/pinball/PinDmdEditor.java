@@ -1217,9 +1217,9 @@ public class PinDmdEditor implements EventHandler {
 		btnDecPitch.addListener(SWT.Selection, e -> dmdWidget.decPitch());
 
 		Group grpPalettes = new Group(shell, SWT.NONE);
-		grpPalettes.setLayout(new GridLayout(4, false));
+		grpPalettes.setLayout(new GridLayout(5, false));
 		GridData gd_grpPalettes = new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1);
-		gd_grpPalettes.widthHint = 479;
+		gd_grpPalettes.widthHint = 505;
 		gd_grpPalettes.heightHint = 71;
 		grpPalettes.setLayoutData(gd_grpPalettes);
 		grpPalettes.setText("Palettes");
@@ -1242,14 +1242,18 @@ public class PinDmdEditor implements EventHandler {
 		paletteTypeComboViewer = new ComboViewer(grpPalettes, SWT.READ_ONLY);
 		Combo combo_1 = paletteTypeComboViewer.getCombo();
 		combo_1.setToolTipText("Type of palette. Default palette is choosen at start and after timed switch is expired");
-		GridData gd_combo_1 = new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1);
-		gd_combo_1.widthHint = 85;
+		GridData gd_combo_1 = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+		gd_combo_1.widthHint = 96;
 		combo_1.setLayoutData(gd_combo_1);
 		paletteTypeComboViewer.setContentProvider(ArrayContentProvider.getInstance());
 		paletteTypeComboViewer.setInput(PaletteType.values());
 		paletteTypeComboViewer.setSelection(new StructuredSelection(activePalette.type));
 		paletteTypeComboViewer.addSelectionChangedListener(e -> onPaletteTypeChanged(e));
-
+						
+		Button btnApplyPalette = new Button(grpPalettes, SWT.NONE);
+		btnApplyPalette.setText("Apply");
+		btnNewPalette.addListener(SWT.Selection, e -> onApplyPalette(activePalette));
+		
 		btnNewPalette = new Button(grpPalettes, SWT.NONE);
 		btnNewPalette.setToolTipText("Creates a new palette by copying the actual colors");
 		btnNewPalette.setText("New");
@@ -1273,7 +1277,7 @@ public class PinDmdEditor implements EventHandler {
 
 		Composite grpPal = new Composite(grpPalettes, SWT.NONE);
 		grpPal.setLayout(new GridLayout(1, false));
-		GridData gd_grpPal = new GridData(SWT.LEFT, SWT.TOP, false, false, 2, 1);
+		GridData gd_grpPal = new GridData(SWT.LEFT, SWT.TOP, false, false, 3, 1);
 		gd_grpPal.widthHint = 333;
 		gd_grpPal.heightHint = 22;
 		grpPal.setLayoutData(gd_grpPal);
@@ -1286,19 +1290,24 @@ public class PinDmdEditor implements EventHandler {
 		paletteTool = new PaletteTool(shell, grpPal, SWT.FLAT | SWT.RIGHT, activePalette);
 
 		paletteTool.addListener(dmdWidget);
-
+								
 		Label lblCtrlclickToEdit = new Label(grpPalettes, SWT.NONE);
 		GridData gd_lblCtrlclickToEdit = new GridData(SWT.CENTER, SWT.CENTER, false, false, 2, 1);
 		gd_lblCtrlclickToEdit.widthHint = 131;
 		lblCtrlclickToEdit.setLayoutData(gd_lblCtrlclickToEdit);
 		lblCtrlclickToEdit.setText("Ctrl-Click to edit color");
+		new Label(grpPalettes, SWT.NONE);
+		new Label(grpPalettes, SWT.NONE);
+		new Label(grpPalettes, SWT.NONE);
+		new Label(grpPalettes, SWT.NONE);
+		new Label(grpPalettes, SWT.NONE);
 		
 		Composite composite_3 = new Composite(shell, SWT.NONE);
 		GridLayout gl_composite_3 = new GridLayout(1, false);
 		gl_composite_3.marginWidth = 0;
 		gl_composite_3.marginHeight = 0;
 		composite_3.setLayout(gl_composite_3);
-		GridData gd_composite_3 = new GridData(SWT.LEFT, SWT.FILL, false, false, 1, 2);
+		GridData gd_composite_3 = new GridData(SWT.RIGHT, SWT.FILL, false, false, 1, 2);
 		gd_composite_3.heightHint = 190;
 		gd_composite_3.widthHint = 338;
 		composite_3.setLayoutData(gd_composite_3);
@@ -1308,7 +1317,7 @@ public class PinDmdEditor implements EventHandler {
 		grpDrawing.setLayout(new GridLayout(5, false));
 		GridData gd_grpDrawing = new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1);
 		gd_grpDrawing.heightHint = 63;
-		gd_grpDrawing.widthHint = 479;
+		gd_grpDrawing.widthHint = 505;
 		grpDrawing.setLayoutData(gd_grpDrawing);
 		grpDrawing.setText("Drawing");
 
@@ -1548,9 +1557,8 @@ public class PinDmdEditor implements EventHandler {
 		btnRemoveAni.setEnabled(a != null);
 		btnAddKeyframe.setEnabled(a != null);
 	}
-
-	private void onPaletteChanged(Palette newPalette) {
-		activePalette = newPalette;
+	
+	private void onApplyPalette(Palette selectedPalette) {
 		if (selectedPalMapping != null) {
 			selectedPalMapping.palIndex = activePalette.index;
 			log.info("change index in Keyframe {} to {}", selectedPalMapping.name, activePalette.index);
@@ -1559,6 +1567,11 @@ public class PinDmdEditor implements EventHandler {
 		if (selectedAnimation.get().isMutable()) {
 			selectedAnimation.get().setPalIndex(activePalette.index);
 		}
+		
+	}
+
+	private void onPaletteChanged(Palette newPalette) {
+		activePalette = newPalette;
 		dmdWidget.setPalette(activePalette);
 		paletteTool.setPalette(activePalette);
 		log.info("new palette is {}", activePalette);
