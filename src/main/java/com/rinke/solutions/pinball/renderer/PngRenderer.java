@@ -2,6 +2,7 @@ package com.rinke.solutions.pinball.renderer;
 
 import java.io.File;
 
+import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +41,12 @@ public class PngRenderer extends Renderer {
 
 	public PngRenderer() {
 	}
+	
+	public Frame convert(String filename, DMD dmd, int frameNo, Shell shell) {
+		return convert(filename, dmd, frameNo);
+	}
 
+	// TODO use color
 	public Frame convert(String name, DMD dmd, int frameNo) {
 
 		String filename = getFilename(name, frameNo);
@@ -56,6 +62,7 @@ public class PngRenderer extends Renderer {
 		int channels = pngr.imgInfo.channels;
 		if (channels < 3 || pngr.imgInfo.bitDepth != 8)
 			throw new RuntimeException("This method is for RGB8/RGBA8 images");
+		boolean hasAlpha = pngr.imgInfo.alpha;
 
 		byte[] f1 = new byte[dmd.getFrameSizeInByte()];
 		byte[] f2 = new byte[dmd.getFrameSizeInByte()];
@@ -63,7 +70,6 @@ public class PngRenderer extends Renderer {
 		for (int row = 0; row < pngr.imgInfo.rows; row++) { // also:
 			ImageLineInt imageLine = (ImageLineInt) pngr.readRow();
 			int[] scanline = imageLine.getScanline();
-			
 			// indexed
 //			ChunksList chunksList = pngr.getChunksList();
 //			PngChunkPLTE pal = (PngChunkPLTE) chunksList.getById("PLTE");
@@ -76,9 +82,8 @@ public class PngRenderer extends Renderer {
 			}
 			int rowOffset = dmd.getBytesPerRow() * row;
 			for (int j = 0; j < pngr.imgInfo.cols; j++) {
-				
 				if( autoMerge ) {
-					if (scanline[j * channels + 3] > 0 || 
+					if (!hasAlpha || scanline[j * channels + 3] > 0 || 
 							scanlineMerge[j * channels + 3] > 0	) {
 						int v = scanline[j * channels + 0] + scanlineMerge[j * channels + 0]*2;
 						if( v == 255 ) {
@@ -91,7 +96,7 @@ public class PngRenderer extends Renderer {
 						}
 					}
 				} else {
-					if( scanline[j * channels + 3] > 0) { //
+					if( !hasAlpha || scanline[j * channels + 3] > 0) { //
 						// grau wert berechnen
 						// 0 85 170 255
 						float x = 0.299f * scanline[j * channels + 0] + 0.587f
