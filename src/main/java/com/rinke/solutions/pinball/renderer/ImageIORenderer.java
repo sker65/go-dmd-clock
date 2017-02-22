@@ -10,6 +10,7 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 
+import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +29,11 @@ public class ImageIORenderer extends Renderer {
 		return filename;
 	}
 
+	@Override
+	public Frame convert(String name, DMD dmd, int frameNo, Shell shell) {
+		return readImage( name, dmd, frameNo);
+	}
+	
 	@Override
 	public Frame convert(String name, DMD dmd, int frameNo) {
 		return readImage( name, dmd, frameNo);
@@ -132,6 +138,8 @@ public class ImageIORenderer extends Renderer {
 		DMD dmd = new DMD(128, 32);
 		renderer.convert(base + "pin", dmd, 0);
 	}
+
+
 
 
 }
