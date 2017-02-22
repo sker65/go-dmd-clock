@@ -163,11 +163,15 @@ public class AnimationFactory {
 	}
 
 	private static int getInt(Properties conf, String key) {
-		String v = conf.getProperty(key);
-		if( v.startsWith("0x")) {
-			return Integer.parseInt(v.substring(2), 16);
-		} else {
-			return Integer.parseInt(v);
+		try {
+			String v = conf.getProperty(key);
+			if( v.startsWith("0x")) {
+				return Integer.parseInt(v.substring(2), 16);
+			} else {
+				return Integer.parseInt(v);
+			}
+		} catch( RuntimeException e) {
+			throw new RuntimeException("couldn't find correct value for: "+key);
 		}
 	}
 	
