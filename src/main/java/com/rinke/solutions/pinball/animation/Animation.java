@@ -364,7 +364,7 @@ public class Animation {
 			renderer = new VideoCapRenderer();
 			break;
 		case IMGIO:
-			renderer = new ImageIORenderer();
+			renderer = new ImageIORenderer(pattern);
 			break;
 		default:
 			break;

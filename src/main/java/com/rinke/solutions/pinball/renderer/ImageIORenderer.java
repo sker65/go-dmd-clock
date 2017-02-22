@@ -23,10 +23,18 @@ public class ImageIORenderer extends Renderer {
 	
     private String pattern = "Image-0x%04X.jpg";
     
+	public ImageIORenderer(String pat) {
+		if( pat != null ) this.pattern = pat;
+	}
+
 	private String getFilename(String name, int frameNo) {
 		String filename = name + "/"+ String.format(pattern,
 				new Object[] { Integer.valueOf(frameNo) });
 		return filename;
+	}
+	
+	public void setPattern(String pattern) {
+		this.pattern = pattern;
 	}
 
 	@Override
@@ -133,7 +141,7 @@ public class ImageIORenderer extends Renderer {
 	}
 
 	public static void main(String[] args) {
-		Renderer renderer = new ImageIORenderer();
+		Renderer renderer = new ImageIORenderer(null);
 		String base = "/Users/stefanri/Downloads/";
 		DMD dmd = new DMD(128, 32);
 		renderer.convert(base + "pin", dmd, 0);
