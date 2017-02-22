@@ -52,56 +52,74 @@ public class ImageIORenderer extends Renderer {
 			LOG.debug("found " + noi + " images");
 			this.maxFrame = noi;
 			
-			Map<Integer, Integer> grayCounts = new HashMap<>();
-				
-				byte[] f1 = new byte[dmd.getFrameSizeInByte()];
-				byte[] f2 = new byte[dmd.getFrameSizeInByte()];
-
-				Frame res = new Frame(f1, f2);
-
-				BufferedImage image = reader.read(0);
-                master = new BufferedImage(image.getWidth(),image.getHeight(), BufferedImage.TYPE_INT_ARGB);
-	            master.getGraphics().drawImage(image, 0, 0, null);
-	            
-				for (int x = 0; x < 128; x++) {
-					for (int y = 0; y < 32; y++) {
-						int rgb = master.getRGB(x, y);
-						int gray = (int) ((0.299f * (rgb >> 24)) + 0.587f
-								* ((rgb >> 16) & 0xFF) + 0.114f * ((rgb >> 8) & 0xFF));
-						// < 20 -> schwarz
-						// >= 20 && < 100 ->low						
-						// > 100 <180 - mid
-						// > 180 - high
-						// ironman 20,100,125
-						// WCS 20,50,100
-						if (gray > lowThreshold && gray < midThreshold) {
-							// set f1
-							f1[y*dmd.getBytesPerRow() + x / 8] |= (128 >> (x % 8));
-						} else if (gray >= midThreshold && gray < highThreshold) {
-							f2[y*dmd.getBytesPerRow() + x / 8] |= (128 >> (x % 8));
-						} else if (gray >= highThreshold ) {
-							f1[y*dmd.getBytesPerRow() + x / 8] |= (128 >> (x % 8));
-							f2[y*dmd.getBytesPerRow() + x / 8] |= (128 >> (x % 8));
-						}
-						if (!grayCounts.containsKey(gray)) {
-							grayCounts.put(gray, 0);
-						}
-
-						grayCounts.put(gray, grayCounts.get(gray) + 1);
-					}
-				}
-				LOG.debug("----");
-				for (int v : grayCounts.keySet()) {
-					LOG.debug("Grauwert " + v + " = "
-							+ grayCounts.get(v));
-				}
-				return res;
+			BufferedImage image = reader.read(0);
+            master = new BufferedImage(image.getWidth(),image.getHeight(), BufferedImage.TYPE_INT_ARGB);
+            master.getGraphics().drawImage(image, 0, 0, null);
+            
+            int planes = getInt("planes", 2);
+            
+            if( planes == 2 ) {
+    			return convertTo4Color(master, dmd);
+            } else {
+            	return convertToFrame(master, dmd);
+            }
+            
 
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		return null;
 	}
+
+	private Frame convertTo4Color(BufferedImage master, DMD dmd) {
+		Map<Integer, Integer> grayCounts = new HashMap<>();
+		
+		byte[] f1 = new byte[dmd.getFrameSizeInByte()];
+		byte[] f2 = new byte[dmd.getFrameSizeInByte()];
+
+		Frame res = new Frame(f1, f2);
+
+		for (int x = 0; x < 128; x++) {
+			for (int y = 0; y < 32; y++) {
+				int rgb = master.getRGB(x, y);
+				int gray = (int) ((0.299f * (rgb >> 24)) + 0.587f
+						* ((rgb >> 16) & 0xFF) + 0.114f * ((rgb >> 8) & 0xFF));
+				// < 20 -> schwarz
+				// >= 20 && < 100 ->low						
+				// > 100 <180 - mid
+				// > 180 - high
+				// ironman 20,100,125
+				// WCS 20,50,100
+				if (gray > lowThreshold && gray < midThreshold) {
+					// set f1
+					f1[y*dmd.getBytesPerRow() + x / 8] |= (128 >> (x % 8));
+				} else if (gray >= midThreshold && gray < highThreshold) {
+					f2[y*dmd.getBytesPerRow() + x / 8] |= (128 >> (x % 8));
+				} else if (gray >= highThreshold ) {
+					f1[y*dmd.getBytesPerRow() + x / 8] |= (128 >> (x % 8));
+					f2[y*dmd.getBytesPerRow() + x / 8] |= (128 >> (x % 8));
+				}
+				if (!grayCounts.containsKey(gray)) {
+					grayCounts.put(gray, 0);
+				}
+
+				grayCounts.put(gray, grayCounts.get(gray) + 1);
+			}
+		}
+		LOG.debug("----");
+		for (int v : grayCounts.keySet()) {
+			LOG.debug("Grauwert " + v + " = "
+					+ grayCounts.get(v));
+		}
+		return res;
+	}
+	
+	private int getInt(String propName, int defVal) {
+		return Integer.parseInt(
+			getProps().getProperty(propName, String.valueOf(defVal))
+			);
+	}
+
 
 	private String getExtension(String name) {
 		int p = name.lastIndexOf(".");
