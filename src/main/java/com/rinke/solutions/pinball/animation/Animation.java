@@ -18,6 +18,7 @@ import com.rinke.solutions.pinball.model.RGB;
 import com.rinke.solutions.pinball.renderer.AnimatedGIFRenderer;
 import com.rinke.solutions.pinball.renderer.DMDFRenderer;
 import com.rinke.solutions.pinball.renderer.DummyRenderer;
+import com.rinke.solutions.pinball.renderer.ImageIORenderer;
 import com.rinke.solutions.pinball.renderer.PcapRenderer;
 import com.rinke.solutions.pinball.renderer.PinDumpRenderer;
 import com.rinke.solutions.pinball.renderer.PngRenderer;
@@ -361,6 +362,9 @@ public class Animation {
 			break;
 		case VIDEO:
 			renderer = new VideoCapRenderer();
+			break;
+		case IMGIO:
+			renderer = new ImageIORenderer();
 			break;
 		default:
 			break;
