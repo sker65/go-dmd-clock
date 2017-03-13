@@ -125,25 +125,29 @@ public class AnimationActionHandler {
 			}
 			editor.animations.put(ani.getDesc(), ani);
 
-			if (ani.getAniColors() != null) {
-				// if loaded colors with animations propagate as palette
-				boolean colorsMatch = false;
-				for (Palette p : editor.project.palettes) {
-					if (p.sameColors(ani.getAniColors())) {
-						colorsMatch = true;
-						ani.setPalIndex(p.index);
-						break;
-					}
-				}
-				if (!colorsMatch) {
-					Palette aniPalette = new Palette(ani.getAniColors(), editor.project.palettes.size(), ani.getDesc());
-					editor.project.palettes.add(aniPalette);
-				}
-			}
+			populatePalette(ani, editor.project.palettes);
 		}
 		editor.recentAnimationsMenuManager.populateRecent(filename);
 		editor.project.dirty = true;
 		return loadedList;
+	}
+
+	private void populatePalette(Animation ani, List<Palette> palettes) {
+		if (ani.getAniColors() != null) {
+			// if loaded colors with animations propagate as palette
+			boolean colorsMatch = false;
+			for (Palette p : palettes) {
+				if (p.sameColors(ani.getAniColors())) {
+					colorsMatch = true;
+					ani.setPalIndex(p.index);
+					break;
+				}
+			}
+			if (!colorsMatch) {
+				Palette aniPalette = new Palette(ani.getAniColors(), palettes.size(), ani.getDesc());
+				palettes.add(aniPalette);
+			}
+		}
 	}
 
 	public void onSaveSingleAniWithFC(int version) {
