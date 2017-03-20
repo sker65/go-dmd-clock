@@ -49,6 +49,8 @@ import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.ControlListener;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -227,7 +229,7 @@ public class PinDmdEditor implements EventHandler {
 
 	//PlaneNumber planeNumber;
 	Label lblPlanesVal;
-	Label lblDelayVal;
+	Text txtDelayVal;
 	private Button btnSortAni;
 	LicenseManager licManager;
 
@@ -1148,11 +1150,35 @@ public class PinDmdEditor implements EventHandler {
 		Label lblDelay = new Label(grpDetails, SWT.NONE);
 		lblDelay.setText("Delay:");
 
-		lblDelayVal = new Label(grpDetails, SWT.NONE);
+		txtDelayVal = new Text(grpDetails, SWT.NONE);
 		GridData gd_lblDelayVal = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
 		gd_lblDelayVal.widthHint = 53;
-		lblDelayVal.setLayoutData(gd_lblDelayVal);
-		lblDelayVal.setText("---");
+		txtDelayVal.setLayoutData(gd_lblDelayVal);
+		txtDelayVal.setText("---");
+		txtDelayVal.addListener(SWT.Modify, e-> {
+				int delay = Integer.parseInt(txtDelayVal.getText());
+				if( selectedAnimation.isPresent() ) {
+					Animation ani = selectedAnimation.get();
+					if( ani.isMutable() && ani instanceof CompiledAnimation ) {
+						CompiledAnimation cani = (CompiledAnimation)ani;
+						cani.frames.get(actFrameOfSelectedAni).delay = delay;
+						project.dirty = true;
+					}
+				};
+			}
+		);
+		txtDelayVal.addListener(SWT.Verify, e-> {
+			e.doit = false;
+			if( e.text.equals("---") || e.text.isEmpty() ) {
+				e.doit = true;
+			} else {
+				try {
+					Integer.parseInt( e.text );
+					e.doit = true;
+				} catch( NumberFormatException ex) {}
+			}
+		}
+	);
 
 		Label lblPlanes = new Label(grpDetails, SWT.NONE);
 		lblPlanes.setText("Planes:");
@@ -2027,6 +2053,8 @@ public class PinDmdEditor implements EventHandler {
 			hexString.append(String.format("%02X", p[j]));
 		return hexString.toString();
 	}
+	
+	int actFrameOfSelectedAni = 0;
 
 
 	@Override
@@ -2034,8 +2062,9 @@ public class PinDmdEditor implements EventHandler {
 		switch (evt.evtType) {
 		case ANI:
 			lblFrameNo.setText("" + evt.actFrame);
+			actFrameOfSelectedAni = evt.actFrame;
 			lblTcval.setText("" + evt.timecode);
-			lblDelayVal.setText("" + evt.delay);
+			txtDelayVal.setText("" + evt.delay);
 			lblPlanesVal.setText("" + evt.nPlanes);
 			// hashLabel.setText(
 			int i = 0;
