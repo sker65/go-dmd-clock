@@ -261,7 +261,12 @@ public class Animation {
 	List<Frame> transitions = new ArrayList<>();
 	
 	protected Frame renderFrame(String name, DMD dmd, int act) {	
-		return renderer.convert(name, dmd, act, shell);
+		Frame f = renderer.convert(name, dmd, act, shell);
+		int noFrames = renderer.getFrames().size();
+		if( start == 0 && end > noFrames ) {
+			end = noFrames-1;
+		}
+		return f;
 	}
 	
 	public Renderer getRenderer() {

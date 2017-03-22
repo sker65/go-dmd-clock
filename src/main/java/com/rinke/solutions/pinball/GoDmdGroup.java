@@ -165,13 +165,16 @@ public class GoDmdGroup {
 	}
 
 	public void updateAniModel(Animation a) {
-		try {
-			BeanUtils.copyProperties(aniModel, a);
-			log.info("ani hold: {}, fsk: {}, cycles: {}, from: {}", a.getHoldCycles(), a.getFsk(), a.getCycles(), a.getClockFrom());
-		} catch (Exception e1) {
-			log.warn("mapping problems reading ani", e1);
+		if( a != null ) {
+			try {
+				BeanUtils.copyProperties(aniModel, a);
+				log.info("ani hold: {}, fsk: {}, cycles: {}, from: {}", a.getHoldCycles(), a.getFsk(), a.getCycles(), a.getClockFrom());
+			} catch (Exception e1) {
+				log.warn("mapping problems reading ani", e1);
+			}
+		} else {
+			
 		}
-
 	}
 
 

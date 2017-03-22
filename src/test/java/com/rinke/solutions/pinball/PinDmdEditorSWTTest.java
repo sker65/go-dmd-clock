@@ -3,19 +3,15 @@ package com.rinke.solutions.pinball;
 import static com.fappel.swt.SWTEventHelper.trigger;
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.OptionalInt;
+
 
 import org.eclipse.core.databinding.observable.Realm;
 import org.eclipse.jface.databinding.swt.SWTObservables;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.viewers.ListViewer;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
@@ -26,16 +22,12 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TestWatcher;
 import org.junit.rules.Verifier;
-import org.junit.runner.Description;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import com.fappel.swt.DisplayHelper;
-import com.fappel.swt.JFaceViewerHelper;
-import com.fappel.swt.SWTEventHelper;
 import com.rinke.solutions.pinball.animation.AniEvent;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.AnimationType;
@@ -185,7 +177,7 @@ public class PinDmdEditorSWTTest {
 		animation.setDesc("foo");
 		animation.setMutable(false);
 		uut.animations.put("foo", animation );
-		uut.selectedAnimation = Optional.of(animation);
+		uut.selectedAnimation.set(animation);
 		trigger(SWT.Selection).on(uut.btnRemoveAni);
 		
 		assertThat( uut.animations.isEmpty(), equalTo(true));

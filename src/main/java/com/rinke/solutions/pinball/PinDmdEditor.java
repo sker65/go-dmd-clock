@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.core.databinding.observable.Realm;
 import org.eclipse.jface.databinding.swt.SWTObservables;
@@ -116,6 +117,7 @@ import com.rinke.solutions.pinball.util.ApplicationProperties;
 import com.rinke.solutions.pinball.util.FileChooserUtil;
 import com.rinke.solutions.pinball.util.ObservableList;
 import com.rinke.solutions.pinball.util.ObservableMap;
+import com.rinke.solutions.pinball.util.ObservableProperty;
 import com.rinke.solutions.pinball.util.RecentMenuManager;
 import com.rinke.solutions.pinball.widget.CircleTool;
 import com.rinke.solutions.pinball.widget.ColorizeTool;
@@ -173,8 +175,8 @@ public class PinDmdEditor implements EventHandler {
 	private FileChooserUtil fileChooserUtil;
 
 	private String frameTextPrefix = "Pin2dmd Editor ";
-	private Animation defaultAnimation = new Animation(null, "", 0, 0, 1, 1, 1);
-	Optional<Animation> selectedAnimation = Optional.of(defaultAnimation);
+	//private Animation defaultAnimation = new Animation(null, "", 0, 0, 1, 1, 1);
+	ObservableProperty<Animation> selectedAnimation = new ObservableProperty<Animation>(null);
 	java.util.List<Animation> playingAnis = new ArrayList<Animation>();
 	Palette activePalette;
 
@@ -550,7 +552,7 @@ public class PinDmdEditor implements EventHandler {
 		keyframeTableViewer.refresh();
 		animations.clear();
 		playingAnis.clear();
-		selectedAnimation = Optional.of(defaultAnimation);
+		selectedAnimation.set(null);
 		animationHandler.setAnimations(playingAnis);
 		setProjectFilename(null);
 	}
@@ -611,7 +613,7 @@ public class PinDmdEditor implements EventHandler {
 		setPaletteViewerByIndex(0);
 		keyframeTableViewer.setInput(project.palMappings);
 		for (Animation ani : animations.values()) {
-			selectedAnimation = Optional.of(animations.isEmpty() ? defaultAnimation : ani);
+			selectedAnimation.set(animations.isEmpty() ? null : ani);
 			break;
 		}
 	}
@@ -1076,7 +1078,7 @@ public class PinDmdEditor implements EventHandler {
 		gd_txtDuration.widthHint = 93;
 		txtDuration.setLayoutData(gd_txtDuration);
 		txtDuration.setText("0");
-		txtDuration.addListener(SWT.Verify, e -> e.doit = Pattern.matches("^[0-9]*$", e.text));
+		txtDuration.addListener(SWT.Verify, e -> e.doit = Pattern.matches("^[0-9]+$", e.text));
 		txtDuration.addListener(SWT.Modify, e -> {
 			if (selectedPalMapping != null) {
 				selectedPalMapping.durationInMillis = Integer.parseInt(txtDuration.getText());
@@ -1154,31 +1156,22 @@ public class PinDmdEditor implements EventHandler {
 		GridData gd_lblDelayVal = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
 		gd_lblDelayVal.widthHint = 53;
 		txtDelayVal.setLayoutData(gd_lblDelayVal);
-		txtDelayVal.setText("---");
+		txtDelayVal.setText("");
 		txtDelayVal.addListener(SWT.Modify, e-> {
-				int delay = Integer.parseInt(txtDelayVal.getText());
-				if( selectedAnimation.isPresent() ) {
-					Animation ani = selectedAnimation.get();
-					if( ani.isMutable() && ani instanceof CompiledAnimation ) {
-						CompiledAnimation cani = (CompiledAnimation)ani;
+			String val = txtDelayVal.getText();
+			int delay = StringUtils.isEmpty(val)?0:Integer.parseInt(val);
+			if( selectedAnimation.isPresent() ) {
+				Animation ani = selectedAnimation.get();
+				if( ani.isMutable() && ani instanceof CompiledAnimation ) {
+					CompiledAnimation cani = (CompiledAnimation)ani;
+					if( actFrameOfSelectedAni<cani.frames.size() ) {
 						cani.frames.get(actFrameOfSelectedAni).delay = delay;
-						project.dirty = true;
 					}
-				};
+					project.dirty = true;
+				}
 			}
-		);
-		txtDelayVal.addListener(SWT.Verify, e-> {
-			e.doit = false;
-			if( e.text.equals("---") || e.text.isEmpty() ) {
-				e.doit = true;
-			} else {
-				try {
-					Integer.parseInt( e.text );
-					e.doit = true;
-				} catch( NumberFormatException ex) {}
-			}
-		}
-	);
+		} );
+		txtDelayVal.addListener(SWT.Verify, e -> e.doit = Pattern.matches("^[0-9]*$", e.text));
 
 		Label lblPlanes = new Label(grpDetails, SWT.NONE);
 		lblPlanes.setText("Planes:");
@@ -1465,7 +1458,7 @@ public class PinDmdEditor implements EventHandler {
 	private void onStartStopClicked(boolean stopped) {
 		if( stopped )
 		{
-			selectedAnimation.orElse(defaultAnimation).commitDMDchanges(dmd);
+			selectedAnimation.ifPresent(a->a.commitDMDchanges(dmd));
 			animationHandler.start();
 			display.timerExec(animationHandler.getRefreshDelay(), cyclicRedraw);
 			btnStartStop.setText("Stop");
@@ -1476,12 +1469,12 @@ public class PinDmdEditor implements EventHandler {
 	}
 
 	private void onPrevFrameClicked() {
-		selectedAnimation.orElse(defaultAnimation).commitDMDchanges(dmd);
+		selectedAnimation.ifPresent(a->a.commitDMDchanges(dmd));
 		animationHandler.prev();
 	}
 	
 	private void onNextFrameClicked() {
-		selectedAnimation.orElse(defaultAnimation).commitDMDchanges(dmd);
+		selectedAnimation.ifPresent(a->a.commitDMDchanges(dmd));
 		animationHandler.next();
 	}
 	
@@ -1550,14 +1543,20 @@ public class PinDmdEditor implements EventHandler {
 		}
 		onMaskChecked(useMask);
 	}
+	
+	// TODO !!! make selected animation observable to bind change handler to it (maybe remove) Optional
+	// make this the general change handler, and let the click handler only set selected animation
 
 	private void onAnimationSelectionChanged(Animation a) {
+		log.info("onAnimationSelectionChanged: {}", a);
 		Animation current = selectedAnimation.get();
-		if (current.isMutable()) {
+		if(a!= null && current != null && a.getDesc().equals(current.getDesc())) return;
+		
+		if( selectedAnimation.isPresent() && current.isMutable()) {
 			goDmdGroup.updateAnimation(current);
 		}
 		if (a != null) {
-			selectedAnimation = Optional.of(a);
+			selectedAnimation.set(a);
 			int numberOfPlanes = selectedAnimation.get().getRenderer().getNumberOfPlanes();
 			if (numberOfPlanes == 3) {
 				numberOfPlanes = 2;
@@ -1577,7 +1576,7 @@ public class PinDmdEditor implements EventHandler {
 				setPaletteViewerByIndex(selectedAnimation.get().getPalIndex());
 			dmdRedraw();
 		} else {
-			selectedAnimation = Optional.of(defaultAnimation);
+			selectedAnimation.set(null);
 		}
 		goDmdGroup.updateAniModel(selectedAnimation.get());
 		btnRemoveAni.setEnabled(a != null);
@@ -1789,7 +1788,7 @@ public class PinDmdEditor implements EventHandler {
 				btnHash[j].setSelection(j == selectedHashIndex);
 			}
 
-			selectedAnimation = Optional.of(animations.get(selectedPalMapping.animationName));
+			selectedAnimation.set(animations.get(selectedPalMapping.animationName));
 			aniListViewer.setSelection(new StructuredSelection(selectedAnimation.get()));
 
 			if (selectedPalMapping.frameSeqName != null)

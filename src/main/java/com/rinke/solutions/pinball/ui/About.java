@@ -1,10 +1,7 @@
 package com.rinke.solutions.pinball.ui;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.util.List;
-import java.util.Properties;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
@@ -17,6 +14,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Shell;
 
 public class About extends Dialog {
@@ -74,9 +72,9 @@ public class About extends Dialog {
 		btnOk.setBounds(147, 199, 94, 28);
 		btnOk.setText("OK");
 		
-		Label lblBySteve = new Label(shlAboutPindmdEditor, SWT.NONE);
+		Link lblBySteve = new Link(shlAboutPindmdEditor, SWT.NONE);
 		lblBySteve.setBounds(211, 22, 144, 103);
-		lblBySteve.setText("by Steve\n(C) 2016\n\n\nhttp://github.com/\nsker65/go-dmd-clock");
+		lblBySteve.setText("by Steve\n(C) 2016/2017\n\n\n<a href=\"https://github.com/sker65/go-dmd-clock\">https://github.com/sker65/go-dmd-clock</a>");
 		
 		Label lblVersion = new Label(shlAboutPindmdEditor, SWT.NONE);
 		lblVersion.setBounds(72, 126, 283, 67);
