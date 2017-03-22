@@ -175,7 +175,7 @@ public class PinDmdEditor implements EventHandler {
 	private FileChooserUtil fileChooserUtil;
 
 	private String frameTextPrefix = "Pin2dmd Editor ";
-	//private Animation defaultAnimation = new Animation(null, "", 0, 0, 1, 1, 1);
+	private Animation defaultAnimation = new Animation(null, "", 0, 0, 1, 1, 1);
 	ObservableProperty<Animation> selectedAnimation = new ObservableProperty<Animation>(null);
 	java.util.List<Animation> playingAnis = new ArrayList<Animation>();
 	Palette activePalette;
