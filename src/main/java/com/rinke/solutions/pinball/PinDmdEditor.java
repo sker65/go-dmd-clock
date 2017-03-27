@@ -671,7 +671,7 @@ public class PinDmdEditor implements EventHandler {
 
 		String filename = fileChooserUtil.choose(SWT.SAVE, project.name, new String[] { "*.pal" }, new String[] { "Export pal" });
 		if (filename != null) {
-			exportProject(filename, f -> new FileOutputStream(f));
+			exportProject(filename, f -> new FileOutputStream(f), true);
 			if( !filename.endsWith("pin2dmd.pal")) {
 				warn("Hint", "Remember to rename your export file to pin2dmd.pal if you want to use it" + " in a real pinballs sdcard of pin2dmd.");
 			}
@@ -699,7 +699,7 @@ public class PinDmdEditor implements EventHandler {
 			ByteArrayOutputStream stream = new ByteArrayOutputStream();
 			captureOutput.put(f, stream);
 			return stream;
-		});
+		}, true);
 
 		connector.transferFile("pin2dmd.pal", new ByteArrayInputStream(captureOutput.get("a.dat").toByteArray()));
 		if (captureOutput.containsKey("a.fsq")) {
@@ -716,7 +716,7 @@ public class PinDmdEditor implements EventHandler {
 		}
 	}
 
-	void exportProject(String filename, OutputStreamProvider streamProvider) {
+	void exportProject(String filename, OutputStreamProvider streamProvider, boolean realPin) {
 
 		licManager.requireOneOf(Capability.VPIN, Capability.REALPIN, Capability.GODMD);
 
@@ -729,7 +729,12 @@ public class PinDmdEditor implements EventHandler {
 				project.frameSeqMap.put(p.frameSeqName, frameSeq);
 			}
 		}
-
+		
+		if( !realPin ) {
+			String aniFilename = replaceExtensionTo("ani", filename);
+			storeOrDeleteProjectAnimations(aniFilename);
+		}
+		
 		// for all referenced frame mapping we must also copy the frame data as
 		// there are two models
 		for (FrameSeq p : project.frameSeqMap.values()) {
@@ -796,6 +801,16 @@ public class PinDmdEditor implements EventHandler {
 			}});
 		}
 		
+		storeOrDeleteProjectAnimations(aniFilename);
+
+		Map<String,FrameSeq> frameSeqMapSave = project.frameSeqMap;
+		project.frameSeqMap = null; // remove this for saving
+		fileHelper.storeObject(project, filename);
+		project.frameSeqMap = frameSeqMapSave;
+		project.dirty = false;
+	}
+
+	private void storeOrDeleteProjectAnimations(String aniFilename) {
 		// only need to save ani's that are 'project' animations
 		List<Animation> prjAnis = animations.values().stream().filter(a->a.isProjectAnimation()).collect(Collectors.toList());
 		if( !prjAnis.isEmpty() ) {
@@ -803,13 +818,6 @@ public class PinDmdEditor implements EventHandler {
 		} else {
 			new File(aniFilename).delete(); // delete project ani file
 		}
-
-
-		Map<String,FrameSeq> frameSeqMapSave = project.frameSeqMap;
-		project.frameSeqMap = null; // remove this for saving
-		fileHelper.storeObject(project, filename);
-		project.frameSeqMap = frameSeqMapSave;
-		project.dirty = false;
 	}
 
 	String replaceExtensionTo(String newExt, String filename) {

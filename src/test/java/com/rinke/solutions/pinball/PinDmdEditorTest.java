@@ -46,16 +46,15 @@ public class PinDmdEditorTest {
 
 	@Mock
 	RecentMenuManager recentAnimationsMenuManager;
-	
+
 	@Mock
 	Pin2DmdConnector connector;
-		
+
 	@Mock
 	AnimationHandler animationHandler;
 	@Mock
 	Observer editAniObserver;
-	
-	
+
 	@Rule
 	public TemporaryFolder testFolder = new TemporaryFolder();
 
@@ -71,117 +70,111 @@ public class PinDmdEditorTest {
 	}
 
 	@Test
-		public void testOnExportProjectSelectedWithFrameMapping() throws Exception {
-	
-			File tempFile = testFolder.newFile("test.dat");
-			String filename = tempFile.getAbsolutePath();
-	
-			PalMapping p = new PalMapping(0, "foo");
-			p.crc32 = new byte[]{1,2,3,4};		
-			p.switchMode = SwitchMode.PALETTE;
-			p.frameSeqName = "foo";
-	
-			List<Frame> frames = new ArrayList<Frame>();
-			FrameSeq fs = new FrameSeq(frames, "foo");
-			uut.project.frameSeqMap.put("foo", fs);
-	
-			uut.project.palMappings.add(p);
-	
-			// there must also be an animation called "foo"
-			Animation ani = new Animation(AnimationType.COMPILED, "foo", 0, 0, 0,
-					0, 0);
-			ani.setDesc("foo");
-			uut.animations.put("foo", ani);
-			// finally put some frame data into it
-			List<Frame> aniFrames = ani.getRenderer().getFrames();
-			byte[] plane2 = new byte[512];
-			byte[] plane1 = new byte[512];
-			for (int i = 0; i < 512; i += 2) {
-				plane1[i] = (byte) 0xFF;
-				plane1[i + 1] = (byte) i;
-				plane2[i] = (byte) 0xFF;
-			}
-			Frame frame = new Frame(plane1, plane2);
-			frame.delay = 0x77ee77ee;
-			aniFrames.add(frame);
-			uut.exportProject(filename, f->new FileOutputStream(f));
-			// System.out.println(filename);
-			assertNull(Util.isBinaryIdentical(filename,
-					"./src/test/resources/mappingWithSeq.dat"));
-			assertNull(Util.isBinaryIdentical(
-					uut.replaceExtensionTo("fsq", filename),
-					"./src/test/resources/testSeq.fsq"));
-	
+	public void testOnExportProjectSelectedWithFrameMapping() throws Exception {
+
+		File tempFile = testFolder.newFile("test.dat");
+		String filename = tempFile.getAbsolutePath();
+
+		PalMapping p = new PalMapping(0, "foo");
+		p.crc32 = new byte[] { 1, 2, 3, 4 };
+		p.switchMode = SwitchMode.PALETTE;
+		p.frameSeqName = "foo";
+
+		List<Frame> frames = new ArrayList<Frame>();
+		FrameSeq fs = new FrameSeq(frames, "foo");
+		uut.project.frameSeqMap.put("foo", fs);
+
+		uut.project.palMappings.add(p);
+
+		// there must also be an animation called "foo"
+		Animation ani = new Animation(AnimationType.COMPILED, "foo", 0, 0, 0, 0, 0);
+		ani.setDesc("foo");
+		uut.animations.put("foo", ani);
+		// finally put some frame data into it
+		List<Frame> aniFrames = ani.getRenderer().getFrames();
+		byte[] plane2 = new byte[512];
+		byte[] plane1 = new byte[512];
+		for (int i = 0; i < 512; i += 2) {
+			plane1[i] = (byte) 0xFF;
+			plane1[i + 1] = (byte) i;
+			plane2[i] = (byte) 0xFF;
 		}
+		Frame frame = new Frame(plane1, plane2);
+		frame.delay = 0x77ee77ee;
+		aniFrames.add(frame);
+		uut.exportProject(filename, f -> new FileOutputStream(f), false);
+		// System.out.println(filename);
+		assertNull(Util.isBinaryIdentical(filename, "./src/test/resources/mappingWithSeq.dat"));
+		assertNull(Util.isBinaryIdentical(uut.replaceExtensionTo("fsq", filename), "./src/test/resources/testSeq.fsq"));
+
+	}
 
 	@Test
-		public void testOnExportProjectSelectedWithMapping() throws Exception {
-	
-			File tempFile = testFolder.newFile("test.dat");
-			String filename = tempFile.getAbsolutePath();
-	
-			PalMapping p = new PalMapping(0, "foo");
-			p.crc32 = new byte[]{1,2,3,4};		
-			p.switchMode = SwitchMode.PALETTE;
-	
-			uut.project.palMappings.add(p);
-	
-			uut.exportProject(filename, f->new FileOutputStream(f));
-	
-			// create a reference file and compare against
-			assertNull(Util.isBinaryIdentical(filename,
-					"./src/test/resources/palettesOneMapping.dat"));
-		}
+	public void testOnExportProjectSelectedWithMapping() throws Exception {
+
+		File tempFile = testFolder.newFile("test.dat");
+		String filename = tempFile.getAbsolutePath();
+
+		PalMapping p = new PalMapping(0, "foo");
+		p.crc32 = new byte[] { 1, 2, 3, 4 };
+		p.switchMode = SwitchMode.PALETTE;
+
+		uut.project.palMappings.add(p);
+
+		uut.exportProject(filename, f -> new FileOutputStream(f), false);
+
+		// create a reference file and compare against
+		assertNull(Util.isBinaryIdentical(filename, "./src/test/resources/palettesOneMapping.dat"));
+	}
 
 	@Test
-		public void testOnExportProjectSelectedEmpty() throws Exception {
-	
-			File tempFile = testFolder.newFile("test.dat");
-			String filename = tempFile.getAbsolutePath();
-	
-			uut.exportProject(filename, f->new FileOutputStream(f));
-			// System.out.println(filename);
-	
-			// create a reference file and compare against
-			assertNull(Util.isBinaryIdentical(filename,
-					"./src/test/resources/defaultPalettes.dat"));
-		}
+	public void testOnExportProjectSelectedEmpty() throws Exception {
+
+		File tempFile = testFolder.newFile("test.dat");
+		String filename = tempFile.getAbsolutePath();
+
+		uut.exportProject(filename, f -> new FileOutputStream(f), false);
+		// System.out.println(filename);
+
+		// create a reference file and compare against
+		assertNull(Util.isBinaryIdentical(filename, "./src/test/resources/defaultPalettes.dat"));
+	}
 
 	@Test
-		public void testOnImportProjectSelectedString() throws Exception {
-			uut.aniAction = new AnimationActionHandler(uut,null);
-			uut.importProject("./src/test/resources/test.xml");
-			verify(recentAnimationsMenuManager).populateRecent(eq("./src/test/resources/drwho-dump.txt.gz"));
-		}
+	public void testOnImportProjectSelectedString() throws Exception {
+		uut.aniAction = new AnimationActionHandler(uut, null);
+		uut.importProject("./src/test/resources/test.xml");
+		verify(recentAnimationsMenuManager).populateRecent(eq("./src/test/resources/drwho-dump.txt.gz"));
+	}
 
 	@Test
 	public void testCheckForDuplicateKeyFrames() throws Exception {
 		PalMapping p = new PalMapping(0, "foo");
-		p.crc32 = new byte[]{1,2,3,4};
+		p.crc32 = new byte[] { 1, 2, 3, 4 };
 		assertFalse(uut.checkForDuplicateKeyFrames(p));
 		uut.project.palMappings.add(p);
 		assertTrue(uut.checkForDuplicateKeyFrames(p));
 	}
 
 	@Test
-		public void testOnUploadProjectSelected() throws Exception {
-			PalMapping p = new PalMapping(0, "foo");
-			p.crc32 = new byte[]{1,2,3,4};		
-			p.switchMode = SwitchMode.PALETTE;
-			uut.project.palMappings.add(p);
-			uut.onUploadProjectSelected();
-			
-			verify(connector).transferFile(eq("pin2dmd.pal"), any(InputStream.class));
-		}
+	public void testOnUploadProjectSelected() throws Exception {
+		PalMapping p = new PalMapping(0, "foo");
+		p.crc32 = new byte[] { 1, 2, 3, 4 };
+		p.switchMode = SwitchMode.PALETTE;
+		uut.project.palMappings.add(p);
+		uut.onUploadProjectSelected();
+
+		verify(connector).transferFile(eq("pin2dmd.pal"), any(InputStream.class));
+	}
 
 	@Test
 	public void testUpdateAnimationMapKey() throws Exception {
 		Animation animation = new Animation(AnimationType.COMPILED, "foo", 0, 1, 0, 1, 1);
 		animation.setDesc("new");
 		uut.animations.put("old", animation);
-		
+
 		uut.updateAnimationMapKey("old", "new");
-		assertTrue(uut.animations.get("new")!=null);
+		assertTrue(uut.animations.get("new") != null);
 	}
 
 	@Test
@@ -200,6 +193,5 @@ public class PinDmdEditorTest {
 		String actual = uut.buildUniqueName(uut.animations);
 		assertNotEquals("Scene 1", actual);
 	}
-
 
 }

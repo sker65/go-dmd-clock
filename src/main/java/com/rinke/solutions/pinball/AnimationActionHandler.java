@@ -3,11 +3,14 @@ package com.rinke.solutions.pinball;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Shell;
 
@@ -39,16 +42,17 @@ public class AnimationActionHandler {
 	}
 
 	public void onSaveAniWithFC(int version) {
-		String filename = fileChooserUtil.choose(SWT.SAVE, editor.selectedAnimation.get().getDesc(), new String[] { "*.ani" }, new String[] { "Animations" });
+		String defaultName = editor.selectedAnimation.isPresent() ? editor.selectedAnimation.get().getDesc() : "animation";
+		String filename = fileChooserUtil.choose(SWT.SAVE, defaultName, new String[] { "*.ani" }, new String[] { "Animations" });
 		if (filename != null) {
 			log.info("store animation to {}", filename);
 			storeAnimations(editor.animations.values(), filename, version, true);
 		}
 	}
 
-	public int storeAnimations(Collection<Animation> anis, String filename, int version, boolean saveAll) {
+	public Pair<Integer,Map<String,Integer>> storeAnimations(Collection<Animation> anis, String filename, int version, boolean saveAll) {
 		java.util.List<Animation> anisToSave = anis.stream().filter(a -> saveAll || a.isDirty()).collect(Collectors.toList());
-		if( anisToSave.isEmpty() ) return 0;
+		if( anisToSave.isEmpty() ) return Pair.of(0, Collections.emptyMap());
 		Progress progress = getProgress();
 		AniWriter aniWriter = new AniWriter(anisToSave, filename, version, editor.project.palettes, progress);
 		if( progress != null ) 
@@ -56,7 +60,7 @@ public class AnimationActionHandler {
 		else
 			aniWriter.run();
 		anisToSave.forEach(a->a.setDirty(false));
-		return anisToSave.size();
+		return Pair.of(anisToSave.size(), aniWriter.getOffsetMap());
 	}
 
 	protected void onLoadAniWithFC(boolean append) {

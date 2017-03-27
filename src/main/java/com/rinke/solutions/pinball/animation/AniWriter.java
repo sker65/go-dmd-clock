@@ -6,7 +6,9 @@ import java.io.DataOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
 
@@ -27,6 +29,7 @@ public class AniWriter extends Worker {
 	private int version;
 	private String filename;
 	private List<Animation> anis;
+	private Map<String,Integer> offsetMap;
 	
 	private static final int MASK_MARKER = 0x6D;
 	
@@ -62,9 +65,11 @@ public class AniWriter extends Worker {
 			}
 			int aniIndex = 0;
 			int aniOffset[] = new int[anis.size()];
+			offsetMap = new HashMap<>();
 			int aniProgressInc = 100 / anis.size();
 			for (Animation a : anis) {
 				aniOffset[aniIndex] = os.size();
+				offsetMap.put(a.getDesc(), os.size());
 			    writeAnimation(os, a);
 
 				DMD dmd = new DMD(128, 32);
@@ -220,6 +225,10 @@ public class AniWriter extends Worker {
 		int startOfIndex = os.size();
 		for(int i = 0; i<count; i++) os.writeInt(0);
 		return startOfIndex;
+	}
+
+	public Map<String, Integer> getOffsetMap() {
+		return offsetMap;
 	}
 
 }
