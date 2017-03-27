@@ -5,7 +5,10 @@ import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.imageio.ImageIO;
@@ -19,8 +22,11 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import com.google.common.collect.Sets;
 import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.model.Frame;
+import com.rinke.solutions.pinball.model.Palette;
+import com.rinke.solutions.pinball.model.RGB;
 
 // als parameter in der Steuerdatei sollten
 // die helligkeits schwellen angebbar sein
@@ -53,6 +59,13 @@ public class AnimatedGIFRenderer extends Renderer {
 			this.maxFrame = noi;
 			
 			Map<Integer, Integer> grayCounts = new HashMap<>();
+			
+			IIOMetadata streamMetadata = reader.getStreamMetadata("javax_imageio_1.0", Sets.newHashSet("Palette") );
+			NodeList snodes = streamMetadata.getAsTree("javax_imageio_1.0").getChildNodes();
+			snodes = find("Chroma/Palette", snodes);
+			
+			palette = buildPaletteFromNodes(snodes);
+			//System.out.println(palette);
 			int frameNo = 0;
 			while (frameNo < noi) {
 				
@@ -61,6 +74,7 @@ public class AnimatedGIFRenderer extends Renderer {
 				try {
 					image = reader.read(frameNo);
 					metadata = reader.getImageMetadata(frameNo);
+					
 				} catch( RuntimeException e) {
 					LOG.error("reading img resulted in error", e);
 //					frames.add(new Frame(f1, f2));
@@ -147,8 +161,13 @@ public class AnimatedGIFRenderer extends Renderer {
 							+ grayCounts.get(v));
 				}
 				frames.add(new Frame(f1, f2));*/
-	            Frame f = convertToFrame(toScan, dmd);
-	            frames.add(f);
+
+	            if( palette.numberOfColors < 256 ) {
+	            	frames.add(convertToFrameWithPalette(toScan, dmd, palette));
+	            } else {
+	            	frames.add(convertToFrame(toScan, dmd));
+	            }
+
 				frameNo++;
 			}
 
@@ -158,6 +177,35 @@ public class AnimatedGIFRenderer extends Renderer {
 		
 	}
 	
+	private Palette buildPaletteFromNodes(NodeList snodes) {
+		List<RGB> rgbs = new ArrayList<>();
+		for (int j = 0; j < snodes.getLength(); j++) {
+			Node item = snodes.item(j);
+			if( item.getNodeName().equals("PaletteEntry")) {
+				NamedNodeMap attr = item.getAttributes();
+				RGB rgb = new RGB(
+						Integer.parseInt(attr.getNamedItem("red").getNodeValue()),
+						Integer.parseInt(attr.getNamedItem("green").getNodeValue()),
+						Integer.parseInt(attr.getNamedItem("blue").getNodeValue()));
+				rgbs.add(rgb);
+			}
+		}
+		return new Palette(rgbs.toArray(new RGB[rgbs.size()]));
+	}
+
+	private NodeList find(String path, NodeList snodes) {
+		String[] pathElement = path.split("/");
+		if( pathElement.length>=1) {
+			for( int j = 0; j < snodes.getLength(); j++) {
+				if( snodes.item(j).getNodeName().equals(pathElement[0])) {
+					int i = path.indexOf('/');
+					return i>0 ? find(path.substring(path.indexOf('/')+1), snodes.item(j).getChildNodes() ) : snodes.item(j).getChildNodes();
+				}
+			}
+		}
+		return snodes;
+	}
+
 	private BufferedImage cropImage(BufferedImage src, int x, int y, int w, int h) {
 		w = Math.min(w, src.getWidth()-x);
 		h = Math.min(h, src.getHeight()-y);

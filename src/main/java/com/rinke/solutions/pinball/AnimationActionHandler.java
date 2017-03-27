@@ -114,6 +114,7 @@ public class AnimationActionHandler {
 			editor.animations.clear();
 			editor.playingAnis.clear();
 		}
+		DMD dmd = new DMD(128,32);
 		for (Animation ani : loadedList) {
 			if (editor.animations.containsKey(ani.getDesc())) {
 				int i = 0;
@@ -128,7 +129,7 @@ public class AnimationActionHandler {
 				}
 			}
 			editor.animations.put(ani.getDesc(), ani);
-
+			ani.init(dmd);
 			populatePalette(ani, editor.project.palettes);
 		}
 		editor.recentAnimationsMenuManager.populateRecent(filename);
@@ -150,6 +151,8 @@ public class AnimationActionHandler {
 			if (!colorsMatch) {
 				Palette aniPalette = new Palette(ani.getAniColors(), palettes.size(), ani.getDesc());
 				palettes.add(aniPalette);
+				ani.setPalIndex(aniPalette.index);
+				editor.paletteComboViewer.refresh();
 			}
 		}
 	}

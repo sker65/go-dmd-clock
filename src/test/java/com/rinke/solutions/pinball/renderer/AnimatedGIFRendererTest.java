@@ -1,5 +1,6 @@
 package com.rinke.solutions.pinball.renderer;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.rinke.solutions.pinball.DMD;
@@ -14,6 +15,12 @@ public class AnimatedGIFRendererTest {
 	public void testReadImage() throws Exception {
 		DMD dmd = new DMD(128, 32);
 		renderer.convert(base + "ezgif-645182047.gif", dmd, 0);
+	}
+
+	@Test
+	public void testReadPalette() throws Exception {
+		DMD dmd = new DMD(128, 32);
+		renderer.convert(base+"lotr_4bit.gif", dmd, 0);
 	}
 
 }

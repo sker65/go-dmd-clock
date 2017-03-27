@@ -278,16 +278,27 @@ public class Animation {
 	    return renderer.getTimeCode(actFrame);
 	}
 	
-	public Frame render(DMD dmd, boolean stop) {
-		
+	public void init(DMD dmd) {
 		if( transitionName != null && transitions.isEmpty() ) {
 			initTransition(dmd);
 		}
-		
-		Frame frame = null;
+
 		if( renderer == null ) init();
 		
+		// just to trigger image read
+		renderer.getMaxFrame(basePath+name, dmd);
+		if( renderer.getPalette() != null ) {
+			aniColors = renderer.getPalette().colors;
+		}
+
+	}
+	
+	public Frame render(DMD dmd, boolean stop) {
+		init(dmd);
+		
+		Frame frame = null;
 		int maxFrame = renderer.getMaxFrame(basePath+name, dmd);
+		
 		if(  maxFrame > 0 && end == 0) end = maxFrame-1;
 		if (actFrame <= end) {
 			ended = false;
@@ -312,7 +323,7 @@ public class Animation {
 		return frame;
 	}
 	
-    protected Frame addTransitionFrame(Frame in) {
+	protected Frame addTransitionFrame(Frame in) {
         Frame tframe = transitions.get(transitionCount < transitions.size() ? transitionCount : transitions.size() - 1);
         Frame r = new Frame(in.planes.get(0).plane, in.planes.get(1).plane);//
         r.delay = in.delay;

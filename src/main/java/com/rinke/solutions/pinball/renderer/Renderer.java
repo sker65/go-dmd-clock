@@ -11,7 +11,9 @@ import org.eclipse.swt.widgets.Shell;
 import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.Worker;
 import com.rinke.solutions.pinball.model.Frame;
+import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.Plane;
+import com.rinke.solutions.pinball.model.RGB;
 
 public abstract class Renderer extends Worker {
 
@@ -22,6 +24,7 @@ public abstract class Renderer extends Worker {
 	protected Properties props = new Properties();
 
 	List<Frame> frames = new ArrayList<>();
+	protected Palette palette = null;
 	
 	public void run() {
 	}
@@ -84,6 +87,41 @@ public abstract class Renderer extends Worker {
 		this.props = props;
 	}
 	
+	protected Frame convertToFrameWithPalette(BufferedImage dmdImage, DMD dmd, Palette palette) {
+		Frame res = new Frame();
+		int noOfPlanes = 1;
+		while( palette.numberOfColors > (1<<noOfPlanes)) noOfPlanes++;
+		for( int j = 0; j < noOfPlanes ; j++) {
+			res.planes.add(new Plane((byte)j, new byte[dmd.getFrameSizeInByte()]));
+		}
+		
+		for (int x = 0; x < dmd.getWidth(); x++) {
+			for (int y = 0; y < dmd.getHeight(); y++) {
+
+				int rgb = dmdImage.getRGB(x, y);
+				int idx = findColorIndex(rgb, palette);
+				
+				for( int j = 0; j < noOfPlanes ; j++) {
+					if( (idx & (1<<j)) != 0)
+						res.planes.get(j).plane[y * dmd.getBytesPerRow() + x / 8] |= (128 >> (x % 8));
+				}
+
+			}
+		}
+		return res;
+	}
+	
+	private int findColorIndex(int rgb, Palette palette) {
+		for (int i = 0; i < palette.colors.length; i++) {
+			RGB p = palette.colors[i];
+			if( p.red == ((rgb >> 16) & 0xFF) && p.green == ((rgb >> 8) & 0xFF) && p.blue == (rgb & 0xFF) ) {
+				return i;
+			}
+			
+		}
+		return 0;
+	}
+
 	protected Frame convertToFrame(BufferedImage dmdImage, DMD dmd) {
 		Frame res = new Frame();
 		for( int j = 0; j < 15 ; j++) {
@@ -108,6 +146,10 @@ public abstract class Renderer extends Worker {
 			}
 		}
 		return res;
+	}
+
+	public Palette getPalette() {
+		return palette;
 	}
 
 
