@@ -102,7 +102,7 @@ public class PinDmdEditorTest {
 		Frame frame = new Frame(plane1, plane2);
 		frame.delay = 0x77ee77ee;
 		aniFrames.add(frame);
-		uut.exportProject(filename, f -> new FileOutputStream(f), false);
+		uut.exportProject(filename, f -> new FileOutputStream(f), true);
 		// System.out.println(filename);
 		assertNull(Util.isBinaryIdentical(filename, "./src/test/resources/mappingWithSeq.dat"));
 		assertNull(Util.isBinaryIdentical(uut.replaceExtensionTo("fsq", filename), "./src/test/resources/testSeq.fsq"));
@@ -121,7 +121,7 @@ public class PinDmdEditorTest {
 
 		uut.project.palMappings.add(p);
 
-		uut.exportProject(filename, f -> new FileOutputStream(f), false);
+		uut.exportProject(filename, f -> new FileOutputStream(f), true);
 
 		// create a reference file and compare against
 		assertNull(Util.isBinaryIdentical(filename, "./src/test/resources/palettesOneMapping.dat"));
@@ -133,7 +133,7 @@ public class PinDmdEditorTest {
 		File tempFile = testFolder.newFile("test.dat");
 		String filename = tempFile.getAbsolutePath();
 
-		uut.exportProject(filename, f -> new FileOutputStream(f), false);
+		uut.exportProject(filename, f -> new FileOutputStream(f), true);
 		// System.out.println(filename);
 
 		// create a reference file and compare against
