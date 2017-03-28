@@ -726,6 +726,8 @@ public class PinDmdEditor implements EventHandler {
 
 		licManager.requireOneOf(Capability.VPIN, Capability.REALPIN, Capability.GODMD);
 
+		// rebuild frame seq map
+		project.frameSeqMap.clear();
 		for (PalMapping p : project.palMappings) {
 			if (p.frameSeqName != null) {
 				FrameSeq frameSeq = new FrameSeq(p.frameSeqName);
@@ -739,12 +741,14 @@ public class PinDmdEditor implements EventHandler {
 		if( !realPin ) {
 			String aniFilename = replaceExtensionTo("ani", filename);
 			Pair<Integer, Map<String, Integer>> storedAnis = storeOrDeleteProjectAnimations(aniFilename);
-			if( storedAnis.getLeft() != 1 ) {
+			if( storedAnis.getLeft() == 0 ) {
 				throw new RuntimeException("error writing " + aniFilename);
 			}
 			try {
 				BinaryExporter exporter = BinaryExporterFactory.getInstance();
 				DataOutputStream dos2 = new DataOutputStream(streamProvider.buildStream(filename));
+				// for vpins version is 2
+				project.version = 2;
 				exporter.writeTo(dos2, storedAnis.getRight(), project);
 				dos2.close();
 			} catch (IOException e) {
@@ -782,6 +786,7 @@ public class PinDmdEditor implements EventHandler {
 					dos.close();
 				}
 
+				project.version = 1;
 				DataOutputStream dos2 = new DataOutputStream(streamProvider.buildStream(filename));
 				exporter.writeTo(dos2, map, project);
 				dos2.close();
