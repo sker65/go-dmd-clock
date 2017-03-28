@@ -664,17 +664,23 @@ public class PinDmdEditor implements EventHandler {
 		if( file.contains(File.separator)) return file;
 		return new File(parent).getParent() + File.separator + new File(file).getName();
 	}
-
-	private void onExportProjectSelected() {
-
-		licManager.requireOneOf(Capability.VPIN, Capability.REALPIN, Capability.GODMD);
-
+	
+	private void onExportRealPinProject() {
+		licManager.requireOneOf( Capability.REALPIN, Capability.GODMD);
 		String filename = fileChooserUtil.choose(SWT.SAVE, project.name, new String[] { "*.pal" }, new String[] { "Export pal" });
 		if (filename != null) {
 			exportProject(filename, f -> new FileOutputStream(f), true);
 			if( !filename.endsWith("pin2dmd.pal")) {
 				warn("Hint", "Remember to rename your export file to pin2dmd.pal if you want to use it" + " in a real pinballs sdcard of pin2dmd.");
 			}
+		}
+	}
+	
+	private void onExportVirtualPinProject() {
+		licManager.requireOneOf(Capability.VPIN, Capability.GODMD);
+		String filename = fileChooserUtil.choose(SWT.SAVE, project.name, new String[] { "*.pal" }, new String[] { "Export pal" });
+		if (filename != null) {
+			exportProject(filename, f -> new FileOutputStream(f), false);
 		}
 	}
 
@@ -732,47 +738,58 @@ public class PinDmdEditor implements EventHandler {
 		
 		if( !realPin ) {
 			String aniFilename = replaceExtensionTo("ani", filename);
-			storeOrDeleteProjectAnimations(aniFilename);
-		}
-		
-		// for all referenced frame mapping we must also copy the frame data as
-		// there are two models
-		for (FrameSeq p : project.frameSeqMap.values()) {
-			Animation ani = animations.get(p.name);
-			ani.actFrame = 0;
-			DMD tmp = new DMD(128, 32);
-			for (int i = 0; i <= ani.end; i++) {
-				Frame frame = new Frame( ani.render(tmp, false) ); // copy frames to not remove in org
-				// remove planes not in mask
-				int pl = 0;
-				for (Iterator<Plane> iter = frame.planes.iterator(); iter.hasNext();) {
-					iter.next();
-					if (((1 << pl) & p.mask) == 0) {
-						iter.remove();
+			Pair<Integer, Map<String, Integer>> storedAnis = storeOrDeleteProjectAnimations(aniFilename);
+			if( storedAnis.getLeft() != 1 ) {
+				throw new RuntimeException("error writing " + aniFilename);
+			}
+			try {
+				BinaryExporter exporter = BinaryExporterFactory.getInstance();
+				DataOutputStream dos2 = new DataOutputStream(streamProvider.buildStream(filename));
+				exporter.writeTo(dos2, storedAnis.getRight(), project);
+				dos2.close();
+			} catch (IOException e) {
+				throw new RuntimeException("error writing " + filename, e);
+			}
+			
+		} else {
+			// for all referenced frame mapping we must also copy the frame data as
+			// there are two models
+			for (FrameSeq p : project.frameSeqMap.values()) {
+				Animation ani = animations.get(p.name);
+				ani.actFrame = 0;
+				DMD tmp = new DMD(128, 32);
+				for (int i = 0; i <= ani.end; i++) {
+					Frame frame = new Frame( ani.render(tmp, false) ); // copy frames to not remove in org
+					// remove planes not in mask
+					int pl = 0;
+					for (Iterator<Plane> iter = frame.planes.iterator(); iter.hasNext();) {
+						iter.next();
+						if (((1 << pl) & p.mask) == 0) {
+							iter.remove();
+						}
+						pl++;
 					}
-					pl++;
+					p.frames.add(frame);
 				}
-				p.frames.add(frame);
 			}
-		}
+			// create addtional files for frame sequences
+			try {
+				Map<String, Integer> map = new HashMap<String, Integer>();
+				BinaryExporter exporter = BinaryExporterFactory.getInstance();
+				if (!project.frameSeqMap.isEmpty()) {
+					DataOutputStream dos = new DataOutputStream(streamProvider.buildStream(replaceExtensionTo("fsq", filename)));
+					map = exporter.writeFrameSeqTo(dos, project);
+					dos.close();
+				}
 
-		// create addtional files for frame sequences
-		try {
-			Map<String, Integer> map = new HashMap<String, Integer>();
-			BinaryExporter exporter = BinaryExporterFactory.getInstance();
-			if (!project.frameSeqMap.isEmpty()) {
-				DataOutputStream dos = new DataOutputStream(streamProvider.buildStream(replaceExtensionTo("fsq", filename)));
-				map = exporter.writeFrameSeqTo(dos, project);
-				dos.close();
+				DataOutputStream dos2 = new DataOutputStream(streamProvider.buildStream(filename));
+				exporter.writeTo(dos2, map, project);
+				dos2.close();
+				// fileHelper.storeObject(project, filename);
+			} catch (IOException e) {
+				throw new RuntimeException("error writing " + filename, e);
 			}
-
-			DataOutputStream dos2 = new DataOutputStream(streamProvider.buildStream(filename));
-			exporter.writeTo(dos2, map, project);
-			dos2.close();
-			// fileHelper.storeObject(project, filename);
-		} catch (IOException e) {
-			throw new RuntimeException("error writing " + filename, e);
-		}
+		}		
 	}
 
 	void saveProject(String filename) {
@@ -810,13 +827,14 @@ public class PinDmdEditor implements EventHandler {
 		project.dirty = false;
 	}
 
-	private void storeOrDeleteProjectAnimations(String aniFilename) {
+	private Pair<Integer, Map<String, Integer>> storeOrDeleteProjectAnimations(String aniFilename) {
 		// only need to save ani's that are 'project' animations
 		List<Animation> prjAnis = animations.values().stream().filter(a->a.isProjectAnimation()).collect(Collectors.toList());
 		if( !prjAnis.isEmpty() ) {
-			aniAction.storeAnimations(prjAnis,aniFilename, 3, true);
+			return aniAction.storeAnimations(prjAnis,aniFilename, 3, true);
 		} else {
 			new File(aniFilename).delete(); // delete project ani file
+			return null;
 		}
 	}
 
@@ -1580,7 +1598,7 @@ public class PinDmdEditor implements EventHandler {
 			playingAnis.clear();
 			playingAnis.add(selectedAnimation.get());
 			animationHandler.setAnimations(playingAnis);
-			if(selectedAnimation.get().isMutable() )
+			if(a.isMutable() )
 				setPaletteViewerByIndex(selectedAnimation.get().getPalIndex());
 			dmdRedraw();
 		} else {
@@ -1898,9 +1916,13 @@ public class PinDmdEditor implements EventHandler {
 		mntmImportProject.setText("Import Project");
 		mntmImportProject.addListener(SWT.Selection, e -> onImportProjectSelected());
 
-		MenuItem mntmExportProject = new MenuItem(menu_1, SWT.NONE);
-		mntmExportProject.setText("Export Project");
-		mntmExportProject.addListener(SWT.Selection, e -> onExportProjectSelected());
+		MenuItem mntmExportRealPinProject = new MenuItem(menu_1, SWT.NONE);
+		mntmExportRealPinProject.setText("Export Project (real pin)");
+		mntmExportRealPinProject.addListener(SWT.Selection, e -> onExportRealPinProject());
+
+		MenuItem mntmExportVpinProject = new MenuItem(menu_1, SWT.NONE);
+		mntmExportVpinProject.setText("Export Project (virt pin)");
+		mntmExportVpinProject.addListener(SWT.Selection, e -> onExportVirtualPinProject());
 
 		mntmUploadProject = new MenuItem(menu_1, SWT.NONE);
 		mntmUploadProject.setText("Upload Project");
