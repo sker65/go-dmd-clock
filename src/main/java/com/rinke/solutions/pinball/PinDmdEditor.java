@@ -669,6 +669,7 @@ public class PinDmdEditor implements EventHandler {
 		licManager.requireOneOf( Capability.REALPIN, Capability.GODMD);
 		String filename = fileChooserUtil.choose(SWT.SAVE, project.name, new String[] { "*.pal" }, new String[] { "Export pal" });
 		if (filename != null) {
+			warn("Warning", "Please don´t publish projects with copyrighted material / frames");
 			exportProject(filename, f -> new FileOutputStream(f), true);
 			if( !filename.endsWith("pin2dmd.pal")) {
 				warn("Hint", "Remember to rename your export file to pin2dmd.pal if you want to use it" + " in a real pinballs sdcard of pin2dmd.");
@@ -680,6 +681,7 @@ public class PinDmdEditor implements EventHandler {
 		licManager.requireOneOf(Capability.VPIN, Capability.GODMD);
 		String filename = fileChooserUtil.choose(SWT.SAVE, project.name, new String[] { "*.pal" }, new String[] { "Export pal" });
 		if (filename != null) {
+			warn("Warning", "Please don´t publish projects with copyrighted material / frames");
 			exportProject(filename, f -> new FileOutputStream(f), false);
 		}
 	}
@@ -726,7 +728,7 @@ public class PinDmdEditor implements EventHandler {
 
 		licManager.requireOneOf(Capability.VPIN, Capability.REALPIN, Capability.GODMD);
 
-		// rebuild frame seq map
+		// rebuild frame seq map	
 		project.frameSeqMap.clear();
 		for (PalMapping p : project.palMappings) {
 			if (p.frameSeqName != null) {
