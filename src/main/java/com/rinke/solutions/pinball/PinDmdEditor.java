@@ -16,6 +16,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -740,9 +741,28 @@ public class PinDmdEditor implements EventHandler {
 			}
 		}
 		
+		// VPIN
 		if( !realPin ) {
+			List<Animation> anis = new ArrayList<>();
+			for (FrameSeq p : project.frameSeqMap.values()) {
+				Animation ani = animations.get(p.name);
+				// copy without extending frames
+				CompiledAnimation cani = (CompiledAnimation) ani.cutScene(ani.start, ani.end, 0);
+				cani.actFrame = 0;
+				cani.setDesc(ani.getDesc());
+				DMD tmp = new DMD(128, 32);
+				for (int i = cani.start; i <= cani.end; i++) {
+					Frame f = ani.render(tmp, false);
+					for( int j = 0; j < f.planes.size(); j++) {
+						if (((1 << j) & p.mask) == 0) {
+							Arrays.fill(f.planes.get(j).plane, (byte)0);
+						}
+					}
+				}
+				anis.add(cani);
+			}
 			String aniFilename = replaceExtensionTo("ani", filename);
-			Pair<Integer, Map<String, Integer>> storedAnis = storeOrDeleteProjectAnimations(aniFilename);
+			Pair<Integer, Map<String, Integer>> storedAnis = aniAction.storeAnimations(anis, aniFilename, 3, true);
 			if( storedAnis.getLeft() == 0 ) {
 				throw new RuntimeException("error writing " + aniFilename);
 			}
@@ -762,6 +782,7 @@ public class PinDmdEditor implements EventHandler {
 			// there are two models
 			for (FrameSeq p : project.frameSeqMap.values()) {
 				Animation ani = animations.get(p.name);
+				
 				ani.actFrame = 0;
 				DMD tmp = new DMD(128, 32);
 				for (int i = 0; i <= ani.end; i++) {
@@ -838,7 +859,7 @@ public class PinDmdEditor implements EventHandler {
 		// only need to save ani's that are 'project' animations
 		List<Animation> prjAnis = animations.values().stream().filter(a->a.isProjectAnimation()).collect(Collectors.toList());
 		if( !prjAnis.isEmpty() ) {
-			return aniAction.storeAnimations(prjAnis,aniFilename, 3, true);
+			return aniAction.storeAnimations(prjAnis, aniFilename, 3, true);
 		} else {
 			new File(aniFilename).delete(); // delete project ani file
 			return null;
