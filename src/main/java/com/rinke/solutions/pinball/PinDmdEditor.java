@@ -766,6 +766,7 @@ public class PinDmdEditor implements EventHandler {
 				String aniFilename = replaceExtensionTo("ani", filename);
 				AniWriter aniWriter = new AniWriter(anis, aniFilename, 3, project.palettes, null);
 				aniWriter.setHeader("VPIN");
+				aniWriter.run();
 				try {
 					BinaryExporter exporter = BinaryExporterFactory.getInstance();
 					DataOutputStream dos2 = new DataOutputStream(streamProvider.buildStream(filename));
