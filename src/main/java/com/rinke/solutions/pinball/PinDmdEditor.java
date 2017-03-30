@@ -856,14 +856,13 @@ public class PinDmdEditor implements EventHandler {
 		project.dirty = false;
 	}
 
-	private Pair<Integer, Map<String, Integer>> storeOrDeleteProjectAnimations(String aniFilename) {
+	private void storeOrDeleteProjectAnimations(String aniFilename) {
 		// only need to save ani's that are 'project' animations
 		List<Animation> prjAnis = animations.values().stream().filter(a->a.isProjectAnimation()).collect(Collectors.toList());
 		if( !prjAnis.isEmpty() ) {
-			return aniAction.storeAnimations(prjAnis, aniFilename, 3, true);
+			aniAction.storeAnimations(prjAnis, aniFilename, 3, true);
 		} else {
 			new File(aniFilename).delete(); // delete project ani file
-			return null;
 		}
 	}
 

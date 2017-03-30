@@ -50,9 +50,9 @@ public class AnimationActionHandler {
 		}
 	}
 
-	public Pair<Integer,Map<String,Integer>> storeAnimations(Collection<Animation> anis, String filename, int version, boolean saveAll) {
+	public void storeAnimations(Collection<Animation> anis, String filename, int version, boolean saveAll) {
 		java.util.List<Animation> anisToSave = anis.stream().filter(a -> saveAll || a.isDirty()).collect(Collectors.toList());
-		if( anisToSave.isEmpty() ) return Pair.of(0, Collections.emptyMap());
+		if( anisToSave.isEmpty() ) return;// Pair.of(0, Collections.emptyMap());
 		Progress progress = getProgress();
 		AniWriter aniWriter = new AniWriter(anisToSave, filename, version, editor.project.palettes, progress);
 		if( progress != null ) 
@@ -60,7 +60,6 @@ public class AnimationActionHandler {
 		else
 			aniWriter.run();
 		anisToSave.forEach(a->a.setDirty(false));
-		return Pair.of(anisToSave.size(), aniWriter.getOffsetMap());
 	}
 
 	protected void onLoadAniWithFC(boolean append) {
