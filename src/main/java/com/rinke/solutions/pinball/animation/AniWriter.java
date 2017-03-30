@@ -30,6 +30,7 @@ public class AniWriter extends Worker {
 	private String filename;
 	private List<Animation> anis;
 	private Map<String,Integer> offsetMap;
+	private String header = "ANIM";
 	
 	private static final int MASK_MARKER = 0x6D;
 	
@@ -54,7 +55,7 @@ public class AniWriter extends Worker {
 			notify(0,"writing animations to " + filename);
 			FileOutputStream fos = new FileOutputStream(filename);
 			os = new DataOutputStream(fos);
-			os.writeBytes("ANIM"); // magic header
+			os.writeBytes(header); // magic header
 			os.writeShort(version); // version
 			log.info("writing version {}",version);
 			os.writeShort(anis.size());
@@ -229,6 +230,10 @@ public class AniWriter extends Worker {
 
 	public Map<String, Integer> getOffsetMap() {
 		return offsetMap;
+	}
+
+	public void setHeader(String header) {
+		this.header = header;
 	}
 
 }

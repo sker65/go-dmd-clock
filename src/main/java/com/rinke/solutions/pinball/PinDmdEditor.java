@@ -82,6 +82,7 @@ import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
 
 import com.rinke.solutions.pinball.animation.AniEvent;
+import com.rinke.solutions.pinball.animation.AniWriter;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.Animation.EditMode;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
@@ -761,20 +762,20 @@ public class PinDmdEditor implements EventHandler {
 				}
 				anis.add(cani);
 			}
-			String aniFilename = replaceExtensionTo("ani", filename);
-			Pair<Integer, Map<String, Integer>> storedAnis = aniAction.storeAnimations(anis, aniFilename, 3, true);
-			if( storedAnis.getLeft() == 0 ) {
-				throw new RuntimeException("error writing " + aniFilename);
-			}
-			try {
-				BinaryExporter exporter = BinaryExporterFactory.getInstance();
-				DataOutputStream dos2 = new DataOutputStream(streamProvider.buildStream(filename));
-				// for vpins version is 2
-				project.version = 2;
-				exporter.writeTo(dos2, storedAnis.getRight(), project);
-				dos2.close();
-			} catch (IOException e) {
-				throw new RuntimeException("error writing " + filename, e);
+			if( !anis.isEmpty() ) {
+				String aniFilename = replaceExtensionTo("ani", filename);
+				AniWriter aniWriter = new AniWriter(anis, aniFilename, 3, project.palettes, null);
+				aniWriter.setHeader("VPIN");
+				try {
+					BinaryExporter exporter = BinaryExporterFactory.getInstance();
+					DataOutputStream dos2 = new DataOutputStream(streamProvider.buildStream(filename));
+					// for vpins version is 2
+					project.version = 2;
+					exporter.writeTo(dos2, aniWriter.getOffsetMap(), project);
+					dos2.close();
+				} catch (IOException e) {
+					throw new RuntimeException("error writing " + filename, e);
+				}
 			}
 			
 		} else {
