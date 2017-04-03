@@ -189,7 +189,9 @@ public class PinDmdEditor implements EventHandler {
 
 	/** instance level SWT widgets */
 	Button btnHash[] = new Button[numberOfHashes];
+	// stores the overall controled enabled state, actual buttons only gets enabled ever, when this is true
 	boolean[] btnHashEnabled = new boolean[numberOfHashes];
+	
 	Text txtDuration;
 	Scale scale;
 	ComboViewer paletteComboViewer;
@@ -300,9 +302,10 @@ public class PinDmdEditor implements EventHandler {
 			logFile.deleteOnExit();
 		} catch (IOException e) {
 		}
-		System.setProperty("org.slf4j.simpleLogger.logFile", logFile.getAbsolutePath());
-		System.out.println("logging to "+logFile.getAbsolutePath());
-			
+		if( System.getProperty("org.slf4j.simpleLogger.logFile") == null ) {
+			System.setProperty("org.slf4j.simpleLogger.logFile", logFile.getAbsolutePath());
+			System.out.println("logging to "+logFile.getAbsolutePath());
+		}			
 	}
 
 	private void checkForPlugins() {

@@ -1,6 +1,7 @@
 package com.rinke.solutions.pinball.util;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
@@ -13,7 +14,7 @@ import com.rinke.solutions.pinball.util.ApplicationProperties;
 
 public class RecentMenuManager {
 	
-	private int nrecent = 4;
+	private int nrecent = 8;
 
 	private Menu menu;
 
@@ -49,10 +50,12 @@ public class RecentMenuManager {
 
 	public void populateRecent(String file) {
 		// repopulate remove oldest
-		for (String recentItem : recentMenuItems) {
+		Iterator<String> i = recentMenuItems.iterator();
+		while( i.hasNext() ) {
+			String recentItem = i.next();
 			if( recentItem.equals(file)) {
-				// reorder and return
-				return;	
+				i.remove();
+				break;
 			}
 		}
 		// add and remove oldest
