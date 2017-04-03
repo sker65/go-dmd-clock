@@ -1,7 +1,11 @@
 package com.rinke.solutions.pinball;
 
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
+import org.apache.commons.io.IOUtils;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.MultiStatus;
 import org.eclipse.core.runtime.Status;
@@ -17,7 +21,8 @@ import com.rinke.solutions.pinball.api.LicenseException;
 
 public class GlobalExceptionHandler {
 
-    private static GlobalExceptionHandler instance;
+    private static final int MAX_NO_OF_LOGLINES = 500;
+	private static GlobalExceptionHandler instance;
     
     public static synchronized GlobalExceptionHandler getInstance() {
         if( instance == null ) instance = new GlobalExceptionHandler();
@@ -91,13 +96,25 @@ public class GlobalExceptionHandler {
     }
     
     private static MultiStatus createMultiStatus(String msg, Throwable t) {
-
         java.util.List<Status> childStatuses = new ArrayList<>();
         StackTraceElement[] stackTraces = t.getStackTrace();
-
+        List<String> logLines = new ArrayList<String>();
+        try {
+			logLines = IOUtils.readLines(new FileReader(PinDmdEditor.logFile));
+			if(logLines.size()>MAX_NO_OF_LOGLINES) logLines = logLines.subList(logLines.size()-MAX_NO_OF_LOGLINES, logLines.size()-1);
+		} catch (IOException e) {
+		}
         for (StackTraceElement stackTrace : stackTraces) {
             Status status = new Status(IStatus.ERROR, "com.rinke.solutions.pinball", stackTrace.toString());
             childStatuses.add(status);
+        }
+        
+        Status status = new Status(IStatus.ERROR, "com.rinke.solutions.pinball", "----- last "+MAX_NO_OF_LOGLINES+" log lines ----");
+        childStatuses.add(status);
+        
+        for(String line : logLines) {
+        	status = new Status(IStatus.INFO, "com.rinke.solutions.pinball", line);
+        	childStatuses.add(status);
         }
 
         MultiStatus ms = new MultiStatus("com.rinke.solutions.pinball", IStatus.ERROR, childStatuses.toArray(new Status[] {}),

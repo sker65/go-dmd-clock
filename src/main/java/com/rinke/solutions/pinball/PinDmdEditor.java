@@ -1,7 +1,6 @@
 package com.rinke.solutions.pinball;
 
 import java.awt.SplashScreen;
-import java.beans.PropertyChangeSupport;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
@@ -16,7 +15,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -30,6 +28,7 @@ import java.util.Observer;
 import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -49,13 +48,8 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.ControlEvent;
-import org.eclipse.swt.events.ControlListener;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.program.Program;
@@ -80,6 +74,8 @@ import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.rinke.solutions.pinball.animation.AniEvent;
 import com.rinke.solutions.pinball.animation.AniWriter;
@@ -107,7 +103,6 @@ import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.PaletteType;
 import com.rinke.solutions.pinball.model.Plane;
 import com.rinke.solutions.pinball.model.Project;
-import com.rinke.solutions.pinball.model.Scene;
 import com.rinke.solutions.pinball.swt.ActionAdapter;
 import com.rinke.solutions.pinball.swt.CocoaGuiEnhancer;
 import com.rinke.solutions.pinball.ui.About;
@@ -132,7 +127,7 @@ import com.rinke.solutions.pinball.widget.RectTool;
 import com.rinke.solutions.pinball.widget.SetPixelTool;
 
 
-@Slf4j
+//@Slf4j
 public class PinDmdEditor implements EventHandler {
 
 	private static final int FRAME_RATE = 40;
@@ -194,6 +189,7 @@ public class PinDmdEditor implements EventHandler {
 
 	/** instance level SWT widgets */
 	Button btnHash[] = new Button[numberOfHashes];
+	boolean[] btnHashEnabled = new boolean[numberOfHashes];
 	Text txtDuration;
 	Scale scale;
 	ComboViewer paletteComboViewer;
@@ -258,7 +254,6 @@ public class PinDmdEditor implements EventHandler {
 
 	private Spinner maskSpinner;
 	private int actMaskNumber;
-	private Button btnColorMask;
 	private Button btnAddColormaskKeyFrame;
 	private MenuItem mntmGodmd;
 
@@ -277,8 +272,12 @@ public class PinDmdEditor implements EventHandler {
 	MenuItem mntmSaveProject;
 	private String projectFilename;
 	private Button btnDeleteColMask;
+	private EditMode editMode;
 
 	public PinDmdEditor() {
+		if( log == null ) {
+			log = LoggerFactory.getLogger(PinDmdEditor.class);
+		}
 		dmd = new DMD(128, 32);
 		maskDmdObserver = new MaskDmdObserver();
 		maskDmdObserver.setDmd(dmd);
@@ -289,6 +288,21 @@ public class PinDmdEditor implements EventHandler {
 		pin2dmdAdress = ApplicationProperties.get(ApplicationProperties.PIN2DMD_ADRESS_PROP_KEY);
 		checkForPlugins();
 		connector = ConnectorFactory.create(pin2dmdAdress);
+	}
+	
+	static File logFile;
+	static Logger log;
+	
+	public static void configureLogging()
+	{
+		try {
+			logFile = File.createTempFile("pin2dmd-editor", ".log");
+			logFile.deleteOnExit();
+		} catch (IOException e) {
+		}
+		System.setProperty("org.slf4j.simpleLogger.logFile", logFile.getAbsolutePath());
+		System.out.println("logging to "+logFile.getAbsolutePath());
+			
 	}
 
 	private void checkForPlugins() {
@@ -353,6 +367,8 @@ public class PinDmdEditor implements EventHandler {
 	 * @param args
 	 */
 	public static void main(String[] args) {
+		configureLogging();
+		log = LoggerFactory.getLogger(PinDmdEditor.class);
 		Display display = Display.getDefault();
 		Realm.runWithDefault(SWTObservables.getRealm(display), new Runnable() {
 			public void run() {
@@ -401,10 +417,14 @@ public class PinDmdEditor implements EventHandler {
 
 	private void enableDrawing(boolean e) {
 		drawToolBar.setEnabled(e);
-		btnColorMask.setEnabled(e);
+		if( e ) {
+			if( selectedAnimation.isPresent()) editModeViewer.setSelection(new StructuredSelection(selectedAnimation.get().getEditMode()));
+		} else {
+			editModeViewer.setSelection(new StructuredSelection(EditMode.Fixed));
+		}
 		btnCopyToNext.setEnabled(e);
 		btnCopyToPrev.setEnabled(e);
-		btnDeleteColMask.setEnabled(btnColorMask.getSelection());
+		btnDeleteColMask.setEnabled(e);
 	}
 
 	private boolean animationIsEditable() {
@@ -615,7 +635,7 @@ public class PinDmdEditor implements EventHandler {
 		setPaletteViewerByIndex(0);
 		keyframeTableViewer.setInput(project.palMappings);
 		for (Animation ani : animations.values()) {
-			selectedAnimation.set(animations.isEmpty() ? null : ani);
+			aniListViewer.setSelection(new StructuredSelection(ani));
 			break;
 		}
 	}
@@ -872,6 +892,12 @@ public class PinDmdEditor implements EventHandler {
 		if (p != -1)
 			return filename.substring(0, p) + "." + newExt;
 		return filename;
+	}
+		
+	public void setEnableHashButtons(boolean enabled) {
+		Stream.of(btnHash).forEach(e->e.setEnabled(enabled));
+		if( !enabled )  Stream.of(btnHash).forEach(e->e.setSelection(false));
+		Arrays.fill(btnHashEnabled, enabled);
 	}
 
 	public void createHashButtons(Composite parent, int x, int y) {
@@ -1434,10 +1460,33 @@ public class PinDmdEditor implements EventHandler {
 			}
 		});
 		
-		btnColorMask = new Button(grpDrawing, SWT.CHECK);
-		btnColorMask.setToolTipText("limits drawing to upper planes, so that this will just add coloring layers");
-		btnColorMask.setText("ColMask");
-		btnColorMask.addListener(SWT.Selection, e -> onColorMaskChecked(btnColorMask.getSelection()));
+		editModeViewer = new ComboViewer(grpDrawing, SWT.READ_ONLY);
+		Combo combo_2 = editModeViewer.getCombo();
+		combo_2.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		editModeViewer.setContentProvider(ArrayContentProvider.getInstance());
+		
+		
+		// TODO the list depends on animation type
+		// for immutable only fixed ist selectable
+		// else replace / mask / follow
+		/*1 - Replacement
+		2 - AddCol
+		3 - AddCol mit Follow Hash
+
+		könnte man wenn Mode = 3 und Mask = checked die Maske vom Frame editieren
+		(Auswahl 1-10 wäre da ausgegraut)
+
+		In Modus 1+2 würde ich die Mask-Checkbox, Maskennummer-Dropdown und die Hash-Checkboxen alle auch ausgrauen,
+		da das alles editierten Content kein Sinn macht. 
+		-> Die wären dann alle nur bei Dumps aktiv.*/
+
+		editModeViewer.setInput(EditMode.values());
+		if( selectedAnimation.isPresent() ) {
+			editModeViewer.setSelection(new StructuredSelection(selectedAnimation.get().getEditMode()));
+		} else {
+			editModeViewer.setSelection(new StructuredSelection(EditMode.Fixed));
+		}
+		editModeViewer.addSelectionChangedListener(e -> onEditModeChanged(e));
 		//btnColorMask.add
 
 		Label lblMaskNo = new Label(grpDrawing, SWT.NONE);
@@ -1447,6 +1496,7 @@ public class PinDmdEditor implements EventHandler {
 		maskSpinner.setToolTipText("select the mask to use");
 		maskSpinner.setMinimum(0);
 		maskSpinner.setMaximum(9);
+		maskSpinner.setEnabled(false);
 		maskSpinner.addListener(SWT.Selection, e -> onMaskNumberChanged(e));
 		
 		btnMask = new Button(grpDrawing, SWT.CHECK);
@@ -1454,6 +1504,7 @@ public class PinDmdEditor implements EventHandler {
 		gd_btnMask.widthHint = 93;
 		btnMask.setLayoutData(gd_btnMask);
 		btnMask.setText("Show Mask");
+		btnMask.setEnabled(false);
 		btnMask.addListener(SWT.Selection, e -> onMaskChecked(btnMask.getSelection()));
 		
 		btnCopyToPrev = new Button(grpDrawing, SWT.NONE);
@@ -1482,6 +1533,11 @@ public class PinDmdEditor implements EventHandler {
 		ObserverManager.bind(maskDmdObserver, e -> btnUndo.setEnabled(e), () -> maskDmdObserver.canUndo());
 		ObserverManager.bind(maskDmdObserver, e -> btnRedo.setEnabled(e), () -> maskDmdObserver.canRedo());
 
+	}
+
+	private void onEditModeChanged(SelectionChangedEvent e) {
+		IStructuredSelection selection = (IStructuredSelection) e.getSelection();
+		editMode = (EditMode) selection.getFirstElement();
 	}
 
 	/**
@@ -1578,7 +1634,7 @@ public class PinDmdEditor implements EventHandler {
 
 	private void onColorMaskChecked(boolean on) {
 		dmd.setDrawMask(on ? 0b11111100 : 0xFFFF);
-		selectedAnimation.get().setEditMode( on ? EditMode.MASK: EditMode.REPLACE);
+		selectedAnimation.get().setEditMode( on ? EditMode.ColMask: EditMode.Replace);
 		aniListViewer.refresh();
 		btnDeleteColMask.setEnabled(on);
 	}
@@ -1607,8 +1663,19 @@ public class PinDmdEditor implements EventHandler {
 		Animation current = selectedAnimation.get();
 		if(a!= null && current != null && a.getDesc().equals(current.getDesc())) return;
 		
-		if( selectedAnimation.isPresent() && current.isMutable()) {
-			goDmdGroup.updateAnimation(current);
+		if( a != null &&  a.isMutable()) {
+			goDmdGroup.updateAnimation(a);
+			btnMask.setEnabled(false);
+			maskSpinner.setEnabled(false);
+			editModeViewer.setInput(mutable);
+			editModeViewer.refresh();
+			setEnableHashButtons(false);
+		} else {
+			btnMask.setEnabled(true);
+			maskSpinner.setEnabled(true);
+			editModeViewer.setInput(immutable);
+			editModeViewer.refresh();
+			setEnableHashButtons(true);
 		}
 		if (a != null) {
 			selectedAnimation.set(a);
@@ -1619,8 +1686,8 @@ public class PinDmdEditor implements EventHandler {
 			} else {
 				goDmdGroup.transitionCombo.select(0);
 			}
-			btnColorMask.setSelection(a.getEditMode()==EditMode.MASK);
-			onColorMaskChecked(a.getEditMode()==EditMode.MASK);// doesnt fire event?????
+			editModeViewer.setSelection(new StructuredSelection(a.getEditMode()));
+			onColorMaskChecked(a.getEditMode()==EditMode.ColMask);// doesnt fire event?????
 			dmd.setNumberOfSubframes(numberOfPlanes);
 			paletteTool.setNumberOfPlanes(useMask?1:numberOfPlanes);
 			//planesComboViewer.setSelection(new StructuredSelection(PlaneNumber.valueOf(numberOfPlanes)));
@@ -2113,7 +2180,9 @@ public class PinDmdEditor implements EventHandler {
 	}
 	
 	int actFrameOfSelectedAni = 0;
-
+	private ComboViewer editModeViewer;
+	private EditMode immutable[] = { EditMode.Fixed };
+	private EditMode mutable[] = { EditMode.Replace, EditMode.ColMask, EditMode.FollowHash };
 
 	@Override
 	public void notifyAni(AniEvent evt) {
@@ -2128,15 +2197,13 @@ public class PinDmdEditor implements EventHandler {
 			int i = 0;
 			for (byte[] p : evt.hashes) {
 				String hash = getPrintableHashes(p);
-				if (hash.startsWith("B2AA7578" /* "BF619EAC0CDF3F68D496EA9344137E8B" */)) { // disable
-																								// for
-																								// empty
-																								// frame
+				// disable for empty frame
+				if (hash.startsWith("B2AA7578" /* "BF619EAC0CDF3F68D496EA9344137E8B" */)) {
 					btnHash[i].setText("");
 					btnHash[i].setEnabled(false);
 				} else {
 					btnHash[i].setText(hash);
-					btnHash[i].setEnabled(true);
+					btnHash[i].setEnabled(btnHashEnabled[i]);
 				}
 				i++;
 				if (i >= btnHash.length)

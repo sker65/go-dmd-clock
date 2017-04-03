@@ -7,6 +7,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -66,8 +67,9 @@ public class AniWriter extends Worker {
 			}
 			int aniIndex = 0;
 			int aniOffset[] = new int[anis.size()];
-			offsetMap = new HashMap<>();
+			offsetMap = new HashMap<>(anis.size());
 			int aniProgressInc = 100 / anis.size();
+			boolean atLeastOneCompressed = false;
 			for (Animation a : anis) {
 				aniOffset[aniIndex] = os.size();
 				offsetMap.put(a.getDesc(), os.size());
@@ -86,6 +88,7 @@ public class AniWriter extends Worker {
 				}
 				int preserveAct = a.getActFrame();
 				a.restart();
+				
 				// write frames
 				log.info("writing {} frames", numberOfFrames);
 				for(int i = 0; i<numberOfFrames;i++) {
@@ -109,6 +112,7 @@ public class AniWriter extends Worker {
 							planesCompressed += size;
 							planesRaw += size;
 						} else {
+							atLeastOneCompressed = true;
 							ByteArrayOutputStream bos = new ByteArrayOutputStream();
 							DataOutputStream dos = new DataOutputStream(bos);
 							writePlanes(dos, frame);
@@ -134,7 +138,7 @@ public class AniWriter extends Worker {
 			}
 			if( version >= 2 ) rewriteIndex(aniOffset, os, fos, startOfIndex);
 			os.close();
-			log.info("frame compression {}/{} = {}", planesRaw,planesCompressed, (float)planesCompressed/(float)planesRaw);
+			if( atLeastOneCompressed ) log.info("frame compression {}/{} = {}", planesRaw,planesCompressed, (float)planesCompressed/(float)planesRaw);
 			log.info("done");
 		} catch (IOException e) {
 			log.error("problems when wrinting file {}", filename);
@@ -150,7 +154,7 @@ public class AniWriter extends Worker {
 			os.writeShort(a.getPalIndex()); // standard palette is always 0 for now
 			os.writeShort(0); // number of colors on custom palette is also 0
 		} else {
-			os.writeShort(Short.MAX_VALUE); // as custom pallette use index short max 
+			os.writeShort(a.getPalIndex()); // as custom pallette use index short max 
 			log.info("writing pal index: {}",Short.MAX_VALUE);
 			if( a.getPalIndex() < palettes.size() ) {
 				Palette pal = palettes.get(a.getPalIndex());
