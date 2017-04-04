@@ -794,7 +794,7 @@ public class PinDmdEditor implements EventHandler {
 				anis.add(cani);
 			}
 			if( !anis.isEmpty() ) {
-				String aniFilename = replaceExtensionTo("ani", filename);
+				String aniFilename = replaceExtensionTo("vni", filename);
 				AniWriter aniWriter = new AniWriter(anis, aniFilename, 3, project.palettes, null);
 				aniWriter.setHeader("VPIN");
 				aniWriter.run();

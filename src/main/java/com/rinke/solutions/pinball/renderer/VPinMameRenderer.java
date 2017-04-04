@@ -72,7 +72,7 @@ public class VPinMameRenderer extends Renderer {
 							new byte[dmd.getFrameSizeInByte()],
 							new byte[dmd.getFrameSizeInByte()]
 							);
-					LOG.debug("reading frame: " + frameNo);
+					LOG.trace("reading frame: " + frameNo);
 					j = 0;
 					line = stream.readLine();
 					continue;
