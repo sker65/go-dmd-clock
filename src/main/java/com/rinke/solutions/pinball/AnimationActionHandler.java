@@ -42,11 +42,11 @@ public class AnimationActionHandler {
 	}
 
 	public void onSaveAniWithFC(int version) {
-		String defaultName = editor.selectedAnimation.isPresent() ? editor.selectedAnimation.get().getDesc() : "animation";
+		String defaultName = editor.selectedRecording.isPresent() ? editor.selectedRecording.get().getDesc() : "animation";
 		String filename = fileChooserUtil.choose(SWT.SAVE, defaultName, new String[] { "*.ani" }, new String[] { "Animations" });
 		if (filename != null) {
 			log.info("store animation to {}", filename);
-			storeAnimations(editor.animations.values(), filename, version, true);
+			storeAnimations(editor.recordings.values(), filename, version, true);
 		}
 	}
 
@@ -110,24 +110,24 @@ public class AnimationActionHandler {
 
 		// animationHandler.setAnimations(sourceAnis);
 		if (!append) {
-			editor.animations.clear();
+			editor.recordings.clear();
 			editor.playingAnis.clear();
 		}
 		DMD dmd = new DMD(128,32);
 		for (Animation ani : loadedList) {
-			if (editor.animations.containsKey(ani.getDesc())) {
+			if (editor.recordings.containsKey(ani.getDesc())) {
 				int i = 0;
 				String desc = ani.getDesc();
 				while (i < 1000) {
 					String newDesc = desc + "-" + i;
-					if (!editor.animations.containsKey(newDesc)) {
+					if (!editor.recordings.containsKey(newDesc)) {
 						ani.setDesc(newDesc);
 						break;
 					}
 					i++;
 				}
 			}
-			editor.animations.put(ani.getDesc(), ani);
+			editor.recordings.put(ani.getDesc(), ani);
 			ani.init(dmd);
 			populatePalette(ani, editor.project.palettes);
 		}
@@ -157,10 +157,10 @@ public class AnimationActionHandler {
 	}
 
 	public void onSaveSingleAniWithFC(int version) {
-		String filename = fileChooserUtil.choose(SWT.SAVE, editor.selectedAnimation.get().getDesc(), new String[] { "*.ani" }, new String[] { "Animations" });
+		String filename = fileChooserUtil.choose(SWT.SAVE, editor.selectedRecording.get().getDesc(), new String[] { "*.ani" }, new String[] { "Animations" });
 		if (filename != null) {
 			log.info("store animation to {}", filename);
-			storeAnimations(Lists.newArrayList(editor.selectedAnimation.get()), filename, version, true);
+			storeAnimations(Lists.newArrayList(editor.selectedRecording.get()), filename, version, true);
 		}
 	}
 

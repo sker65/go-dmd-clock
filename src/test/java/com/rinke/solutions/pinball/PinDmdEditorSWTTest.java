@@ -147,9 +147,9 @@ public class PinDmdEditorSWTTest {
 		uut.shell = shell;
 		uut.aniAction = new AnimationActionHandler(uut,shell);
 		uut.loadProject("./src/test/resources/test.xml");
-		assertThat(uut.animations.size(), equalTo(2));
+		assertThat(uut.recordings.size(), equalTo(2));
 		uut.loadProject("./src/test/resources/test.xml");
-		assertThat(uut.animations.size(), equalTo(2));
+		assertThat(uut.recordings.size(), equalTo(2));
 	}
 	
 	@Test
@@ -176,11 +176,11 @@ public class PinDmdEditorSWTTest {
 		Animation animation = new Animation(AnimationType.PNG, "test", 0, 0, 0, 0, 0);
 		animation.setDesc("foo");
 		animation.setMutable(false);
-		uut.animations.put("foo", animation );
-		uut.selectedAnimation.set(animation);
+		uut.recordings.put("foo", animation );
+		uut.selectedRecording.set(animation);
 		trigger(SWT.Selection).on(uut.btnRemoveAni);
 		
-		assertThat( uut.animations.isEmpty(), equalTo(true));
+		assertThat( uut.recordings.isEmpty(), equalTo(true));
 	}
 	
 	@Test
@@ -265,7 +265,7 @@ public class PinDmdEditorSWTTest {
 		Animation animation = new Animation(AnimationType.PNG, "test", 0, 0, 0, 0, 0);
 		animation.setDesc("foo");
 		animation.setMutable(true);
-		uut.animations.put("foo", animation );
+		uut.recordings.put("foo", animation );
 
 		// frameSeqView must have a selection
 		uut.buildFrameSeqList();

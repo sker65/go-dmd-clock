@@ -70,7 +70,7 @@ public class Animation {
 	protected boolean clockWasAdded;
 	
 	public enum EditMode {
-		REPLACE, COLMASK, FIXED, FOLLOWHASH;
+		REPLACE, COLMASK, FIXED, FOLLOW;
 
 		public static EditMode fromOrdinal(byte emo) {
 			for (EditMode em : values()) {
@@ -506,7 +506,7 @@ public class Animation {
     
     public Pair<String,String> getIconAndText() {
     	if( !isMutable() ) return Pair.of("fixed", desc);
-    	return Pair.of(editMode == EditMode.COLMASK?"add":"replace", desc);
+    	return Pair.of(editMode.name().toLowerCase(), desc);
     }
 
     @Override

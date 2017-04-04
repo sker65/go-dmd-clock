@@ -90,7 +90,7 @@ public class PinDmdEditorTest {
 		// there must also be an animation called "foo"
 		Animation ani = new Animation(AnimationType.COMPILED, "foo", 0, 0, 0, 0, 0);
 		ani.setDesc("foo");
-		uut.animations.put("foo", ani);
+		uut.recordings.put("foo", ani);
 		// finally put some frame data into it
 		List<Frame> aniFrames = ani.getRenderer().getFrames();
 		byte[] plane2 = new byte[512];
@@ -172,10 +172,10 @@ public class PinDmdEditorTest {
 	public void testUpdateAnimationMapKey() throws Exception {
 		Animation animation = new Animation(AnimationType.COMPILED, "foo", 0, 1, 0, 1, 1);
 		animation.setDesc("new");
-		uut.animations.put("old", animation);
+		uut.recordings.put("old", animation);
 
-		uut.updateAnimationMapKey("old", "new");
-		assertTrue(uut.animations.get("new") != null);
+		uut.updateAnimationMapKey("old", "new", uut.recordings);
+		assertTrue(uut.recordings.get("new") != null);
 	}
 
 	@Test
@@ -190,8 +190,8 @@ public class PinDmdEditorTest {
 	public void testBuildUniqueName() throws Exception {
 		Animation animation = new Animation(AnimationType.COMPILED, "foo", 0, 1, 0, 1, 1);
 		animation.setDesc("new");
-		uut.animations.put("Scene 1", animation);
-		String actual = uut.buildUniqueName(uut.animations);
+		uut.recordings.put("Scene 1", animation);
+		String actual = uut.buildUniqueName(uut.recordings);
 		assertNotEquals("Scene 1", actual);
 	}
 
