@@ -90,7 +90,7 @@ public class PinDmdEditorTest {
 		// there must also be an animation called "foo"
 		Animation ani = new Animation(AnimationType.COMPILED, "foo", 0, 0, 0, 0, 0);
 		ani.setDesc("foo");
-		uut.recordings.put("foo", ani);
+		uut.scenes.put("foo", ani);
 		// finally put some frame data into it
 		List<Frame> aniFrames = ani.getRenderer().getFrames();
 		byte[] plane2 = new byte[512];

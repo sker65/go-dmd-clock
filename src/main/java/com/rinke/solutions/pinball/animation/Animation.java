@@ -123,7 +123,7 @@ public class Animation {
 				AnimationType.COMPILED, this.getName(),
 				0, end-start, this.skip, 1, 0);
 		dest.setMutable(true);
-		dest.setDirty(true);
+		//dest.setDirty(true);
 		dest.setClockFrom(Short.MAX_VALUE);
 		// rerender and thereby copy all frames
 		this.actFrame = start;
