@@ -76,7 +76,9 @@ import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.impl.SimpleLogger;
 
+import com.google.common.collect.ImmutableMap;
 import com.rinke.solutions.pinball.animation.AniEvent;
 import com.rinke.solutions.pinball.animation.AniWriter;
 import com.rinke.solutions.pinball.animation.Animation;
@@ -256,7 +258,6 @@ public class PinDmdEditor implements EventHandler {
 
 	private Spinner maskSpinner;
 	private int actMaskNumber;
-	private Button btnAddColormaskKeyFrame;
 	private MenuItem mntmGodmd;
 
 	PaletteHandler paletteHandler;
@@ -277,6 +278,7 @@ public class PinDmdEditor implements EventHandler {
 	private EditMode editMode;
 
 	public PinDmdEditor() {
+		// avoid NPE we run in test context
 		if( log == null ) {
 			log = LoggerFactory.getLogger(PinDmdEditor.class);
 		}
@@ -295,15 +297,21 @@ public class PinDmdEditor implements EventHandler {
 	static File logFile;
 	static Logger log;
 	
+	/**
+	 * create a tmp file that will be deleted on jvm exit and redirect log output to that file
+	 * this enables the 'show log lines' feature in the global crash dialog.
+	 */
 	public static void configureLogging()
 	{
 		try {
 			logFile = File.createTempFile("pin2dmd-editor", ".log");
 			logFile.deleteOnExit();
 		} catch (IOException e) {
+			System.err.println("problems with creating logfile ...");
+			e.printStackTrace();
 		}
-		if( System.getProperty("org.slf4j.simpleLogger.logFile") == null ) {
-			System.setProperty("org.slf4j.simpleLogger.logFile", logFile.getAbsolutePath());
+		if( System.getProperty(SimpleLogger.LOG_FILE_KEY) == null ) {
+			System.setProperty(SimpleLogger.LOG_FILE_KEY, logFile.getAbsolutePath());
 			System.out.println("logging to "+logFile.getAbsolutePath());
 		}			
 	}
@@ -423,7 +431,7 @@ public class PinDmdEditor implements EventHandler {
 		if( e ) {
 			if( selectedAnimation.isPresent()) editModeViewer.setSelection(new StructuredSelection(selectedAnimation.get().getEditMode()));
 		} else {
-			editModeViewer.setSelection(new StructuredSelection(EditMode.Fixed));
+			editModeViewer.setSelection(new StructuredSelection(EditMode.FIXED));
 		}
 		btnCopyToNext.setEnabled(e);
 		btnCopyToPrev.setEnabled(e);
@@ -959,6 +967,12 @@ public class PinDmdEditor implements EventHandler {
 		return false;
 	}
 	
+	Map<EditMode, String> editModeLabels = ImmutableMap.of(EditMode.FIXED, "Fixed", EditMode.COLMASK, "Color Mask", EditMode.FOLLOWHASH, "Color Mask Seq.", EditMode.REPLACE, "Replace");
+	
+	public String getLabelForEditMode(EditMode mode) {
+		return editModeLabels.get(mode);
+	}
+	
 	/**
 	 * Create contents of the window.
 	 */
@@ -1138,18 +1152,12 @@ public class PinDmdEditor implements EventHandler {
 		previewDmd.setPalette(previewPalettes.get(0));
 				
 		new Label(grpKeyframe, SWT.NONE);
-		
-		btnAddColormaskKeyFrame = new Button(grpKeyframe, SWT.NONE);
-		btnAddColormaskKeyFrame.setToolTipText("Adds a key frame that trigger a color masking scene to be overlayed");
-		btnAddColormaskKeyFrame.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
-		btnAddColormaskKeyFrame.setText("Add ColorMask");
-		btnAddColormaskKeyFrame.setEnabled(false);
-		btnAddColormaskKeyFrame.addListener(SWT.Selection, e -> onAddFrameSeqClicked(SwitchMode.ADD));
+		new Label(grpKeyframe, SWT.NONE);
 
 		btnAddKeyframe = new Button(grpKeyframe, SWT.NONE);
 		btnAddKeyframe.setToolTipText("Adds a key frame that switches palette");
 		btnAddKeyframe.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, false, false, 1, 1));
-		btnAddKeyframe.setText("Add PalSwitch");
+		btnAddKeyframe.setText("Add Palette Switch");
 		btnAddKeyframe.setEnabled(false);
 		btnAddKeyframe.addListener(SWT.Selection, e -> onAddKeyFrameClicked(SwitchMode.PALETTE));
 
@@ -1199,9 +1207,10 @@ public class PinDmdEditor implements EventHandler {
 		frameSeqViewer.addSelectionChangedListener(event -> onFrameSeqChanged(event));
 
 		btnAddFrameSeq = new Button(grpKeyframe, SWT.NONE);
-		btnAddFrameSeq.setToolTipText("Adds a keyframe that triggers playback of a replacement scene");
+		btnAddFrameSeq.setToolTipText("Adds a keyframe that triggers playback of a scene");
 		btnAddFrameSeq.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
-		btnAddFrameSeq.setText("Add FrameSeq");
+		btnAddFrameSeq.setText("Add ColorScene Switch");
+		// TODO add switch mode depend on ani scene
 		btnAddFrameSeq.addListener(SWT.Selection, e -> onAddFrameSeqClicked(SwitchMode.REPLACE));
 		btnAddFrameSeq.setEnabled(false);
 
@@ -1467,7 +1476,7 @@ public class PinDmdEditor implements EventHandler {
 		Combo combo_2 = editModeViewer.getCombo();
 		combo_2.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		editModeViewer.setContentProvider(ArrayContentProvider.getInstance());
-		
+		editModeViewer.setLabelProvider(new LabelProviderAdapter(o -> getLabelForEditMode((EditMode)o)));
 		
 		// TODO the list depends on animation type
 		// for immutable only fixed ist selectable
@@ -1487,7 +1496,7 @@ public class PinDmdEditor implements EventHandler {
 		if( selectedAnimation.isPresent() ) {
 			editModeViewer.setSelection(new StructuredSelection(selectedAnimation.get().getEditMode()));
 		} else {
-			editModeViewer.setSelection(new StructuredSelection(EditMode.Fixed));
+			editModeViewer.setSelection(new StructuredSelection(EditMode.FIXED));
 		}
 		editModeViewer.addSelectionChangedListener(e -> onEditModeChanged(e));
 		//btnColorMask.add
@@ -1637,7 +1646,7 @@ public class PinDmdEditor implements EventHandler {
 
 	private void onColorMaskChecked(boolean on) {
 		dmd.setDrawMask(on ? 0b11111100 : 0xFFFF);
-		selectedAnimation.get().setEditMode( on ? EditMode.ColMask: EditMode.Replace);
+		selectedAnimation.get().setEditMode( on ? EditMode.COLMASK: EditMode.REPLACE);
 		aniListViewer.refresh();
 		btnDeleteColMask.setEnabled(on);
 	}
@@ -1690,7 +1699,7 @@ public class PinDmdEditor implements EventHandler {
 				goDmdGroup.transitionCombo.select(0);
 			}
 			editModeViewer.setSelection(new StructuredSelection(a.getEditMode()));
-			onColorMaskChecked(a.getEditMode()==EditMode.ColMask);// doesnt fire event?????
+			onColorMaskChecked(a.getEditMode()==EditMode.COLMASK);// doesnt fire event?????
 			dmd.setNumberOfSubframes(numberOfPlanes);
 			paletteTool.setNumberOfPlanes(useMask?1:numberOfPlanes);
 			//planesComboViewer.setSelection(new StructuredSelection(PlaneNumber.valueOf(numberOfPlanes)));
@@ -1781,10 +1790,26 @@ public class PinDmdEditor implements EventHandler {
 	}
 
 	private void onAddFrameSeqClicked(SwitchMode switchMode) {
+		// retrieve switch mode from selected scene edit mode!!
 		if (!frameSeqViewer.getSelection().isEmpty()) {
 			if (selectedHashIndex != -1) {
 				Animation ani = (Animation) ((IStructuredSelection) frameSeqViewer.getSelection()).getFirstElement();
-				// TODO add index, add ref to framesSeq
+				//  add index, add ref to framesSeq
+				if( !switchMode.equals(SwitchMode.PALETTE)) {
+					switch(ani.getEditMode()) {
+					case REPLACE:
+						switchMode = SwitchMode.REPLACE;
+						break;
+					case COLMASK:
+						switchMode = SwitchMode.ADD;
+						break;
+					case FOLLOWHASH:
+						switchMode = SwitchMode.FOLLOW;
+						break;
+					default:
+						switchMode = SwitchMode.EVENT;
+					}
+				}
 				PalMapping palMapping = new PalMapping(0, "KeyFrame " + ani.getDesc());
 				palMapping.setDigest(hashes.get(selectedHashIndex));
 				palMapping.palIndex = activePalette.index;
@@ -1807,6 +1832,8 @@ public class PinDmdEditor implements EventHandler {
 			} else {
 				warn("no hash selected", "in order to create a key frame mapping, you must select a hash");
 			}
+		} else {
+			warn("no scene selected", "in order to create a key frame mapping, you must select a scene");
 		}
 	}
 
@@ -1884,7 +1911,7 @@ public class PinDmdEditor implements EventHandler {
 	void onFrameSeqChanged(SelectionChangedEvent event) {
 		IStructuredSelection selection = (IStructuredSelection) event.getSelection();
 		btnAddFrameSeq.setEnabled(selection.size() > 0);
-		btnAddColormaskKeyFrame.setEnabled(selection.size() > 0);
+		//btnAddColormaskKeyFrame.setEnabled(selection.size() > 0);
 	}
 
 	void onKeyframeChanged(SelectionChangedEvent event) {
@@ -2184,8 +2211,8 @@ public class PinDmdEditor implements EventHandler {
 	
 	int actFrameOfSelectedAni = 0;
 	private ComboViewer editModeViewer;
-	private EditMode immutable[] = { EditMode.Fixed };
-	private EditMode mutable[] = { EditMode.Replace, EditMode.ColMask, EditMode.FollowHash };
+	private EditMode immutable[] = { EditMode.FIXED };
+	private EditMode mutable[] = { EditMode.REPLACE, EditMode.COLMASK, EditMode.FOLLOWHASH };
 
 	@Override
 	public void notifyAni(AniEvent evt) {

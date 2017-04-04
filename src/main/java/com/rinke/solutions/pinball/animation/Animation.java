@@ -70,7 +70,7 @@ public class Animation {
 	protected boolean clockWasAdded;
 	
 	public enum EditMode {
-		Replace, ColMask, Fixed, FollowHash;
+		REPLACE, COLMASK, FIXED, FOLLOWHASH;
 
 		public static EditMode fromOrdinal(byte emo) {
 			for (EditMode em : values()) {
@@ -80,7 +80,7 @@ public class Animation {
 		}
 	}
 	
-	private EditMode editMode = EditMode.Fixed;
+	private EditMode editMode = EditMode.FIXED;
 
 	public void setAniColors(RGB[] rgb) {
 		this.aniColors = rgb;
@@ -251,7 +251,7 @@ public class Animation {
 		this.holdCycles = holdCycles;
 		this.type = type;
 		this.clockFrom = Integer.MAX_VALUE;
-		this.editMode = EditMode.Fixed;
+		this.editMode = EditMode.FIXED;
 	}
 
 	Renderer renderer = null;
@@ -506,7 +506,7 @@ public class Animation {
     
     public Pair<String,String> getIconAndText() {
     	if( !isMutable() ) return Pair.of("fixed", desc);
-    	return Pair.of(editMode == EditMode.ColMask?"add":"replace", desc);
+    	return Pair.of(editMode == EditMode.COLMASK?"add":"replace", desc);
     }
 
     @Override
