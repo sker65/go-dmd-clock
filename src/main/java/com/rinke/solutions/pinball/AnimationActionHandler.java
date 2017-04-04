@@ -23,6 +23,7 @@ import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.ui.Progress;
 import com.rinke.solutions.pinball.util.FileChooserUtil;
+import com.rinke.solutions.pinball.util.ObservableMap;
 
 @Slf4j
 public class AnimationActionHandler {
@@ -111,29 +112,39 @@ public class AnimationActionHandler {
 		// animationHandler.setAnimations(sourceAnis);
 		if (!append) {
 			editor.recordings.clear();
+			editor.scenes.clear();
 			editor.playingAnis.clear();
 		}
 		DMD dmd = new DMD(128,32);
 		for (Animation ani : loadedList) {
-			if (editor.recordings.containsKey(ani.getDesc())) {
-				int i = 0;
-				String desc = ani.getDesc();
-				while (i < 1000) {
-					String newDesc = desc + "-" + i;
-					if (!editor.recordings.containsKey(newDesc)) {
-						ani.setDesc(newDesc);
-						break;
-					}
-					i++;
-				}
-			}
-			editor.recordings.put(ani.getDesc(), ani);
+			if( ani.isMutable() ) {
+				populateAni(ani, editor.scenes);
+			} else {
+				populateAni(ani, editor.recordings);
+			}	
+			
 			ani.init(dmd);
 			populatePalette(ani, editor.project.palettes);
 		}
 		editor.recentAnimationsMenuManager.populateRecent(filename);
 		editor.project.dirty = true;
 		return loadedList;
+	}
+
+	private void populateAni( Animation ani, Map<String, Animation> anis) {
+		if (anis.containsKey(ani.getDesc())) {
+			int i = 0;
+			String desc = ani.getDesc();
+			while (i < 1000) {
+				String newDesc = desc + "-" + i;
+				if (!anis.containsKey(newDesc)) {
+					ani.setDesc(newDesc);
+					break;
+				}
+				i++;
+			}
+		}
+		anis.put(ani.getDesc(), ani);
 	}
 
 	private void populatePalette(Animation ani, List<Palette> palettes) {
