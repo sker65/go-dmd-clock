@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
 import com.rinke.solutions.pinball.DMD;
+import com.rinke.solutions.pinball.PinDmdEditor;
 
 public class PinDumpRendererTest {
 	
@@ -15,7 +16,7 @@ public class PinDumpRendererTest {
 
 	@Test
 	public void testReadImage() throws Exception {
-		DMD dmd = new DMD(128,32);
+		DMD dmd = new DMD(PinDmdEditor.DMD_WIDTH, PinDmdEditor.DMD_HEIGHT);
 		uut.readImage(base+filename, dmd );
 		assertEquals(611, uut.getFrames().size());
 	}

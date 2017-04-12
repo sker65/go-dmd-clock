@@ -23,6 +23,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Observable;
 import java.util.Map.Entry;
 import java.util.Observer;
 import java.util.Optional;
@@ -49,6 +50,9 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
@@ -81,6 +85,7 @@ import org.slf4j.impl.SimpleLogger;
 
 import com.google.common.collect.ImmutableMap;
 import com.rinke.solutions.pinball.animation.AniEvent;
+import com.rinke.solutions.pinball.animation.AniEvent.Type;
 import com.rinke.solutions.pinball.animation.AniWriter;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.Animation.EditMode;
@@ -137,8 +142,12 @@ public class PinDmdEditor implements EventHandler {
 
 	private static final int FRAME_RATE = 40;
 	private static final String HELP_URL = "http://pin2dmd.com/editor/";
+	
+	public static int PLANE_SIZE = 512;
+	public static int DMD_WIDTH = 128;
+	public static int DMD_HEIGHT = 32;
 
-	DMD dmd = new DMD(128, 32); // for sake of window builder
+	DMD dmd = new DMD(DMD_WIDTH, DMD_HEIGHT); // for sake of window builder
 	MaskDmdObserver maskDmdObserver;
 
 	AnimationHandler animationHandler = null;
@@ -146,7 +155,7 @@ public class PinDmdEditor implements EventHandler {
 	CyclicRedraw cyclicRedraw = new CyclicRedraw();
 
 	ObservableMap<String, Animation> recordings = new ObservableMap<String, Animation>(new LinkedHashMap<>());
-	ObservableMap<String, Animation> scenes = new ObservableMap<String, Animation>(new LinkedHashMap<>());
+	ObservableMap<String, CompiledAnimation> scenes = new ObservableMap<String, CompiledAnimation>(new LinkedHashMap<>());
 
 	Map<String, DrawTool> drawTools = new HashMap<>();
 
@@ -181,7 +190,7 @@ public class PinDmdEditor implements EventHandler {
 	private String frameTextPrefix = "Pin2dmd Editor ";
 	//private Animation defaultAnimation = new Animation(null, "", 0, 0, 1, 1, 1);
 	ObservableProperty<Animation> selectedRecording = new ObservableProperty<Animation>(null);
-	ObservableProperty<Animation> selectedScene = new ObservableProperty<Animation>(null);
+	ObservableProperty<CompiledAnimation> selectedScene = new ObservableProperty<CompiledAnimation>(null);
 	
 	java.util.List<Animation> playingAnis = new ArrayList<Animation>();
 	Palette activePalette;
@@ -245,7 +254,7 @@ public class PinDmdEditor implements EventHandler {
 	LicenseManager licManager;
 
 	private Button btnMask;
-	boolean useMask;
+	boolean useGlobalMask;
 	private Observer editAniObserver;
 	private Button btnLivePreview;
 	private boolean livePreviewActive;
@@ -283,13 +292,14 @@ public class PinDmdEditor implements EventHandler {
 	private String projectFilename;
 	private Button btnDeleteColMask;
 	private EditMode editMode;
+	private Clipboard clipboard;
 
 	public PinDmdEditor() {
 		// avoid NPE we run in test context
 		if( log == null ) {
 			log = LoggerFactory.getLogger(PinDmdEditor.class);
 		}
-		dmd = new DMD(128, 32);
+		dmd = new DMD(PinDmdEditor.DMD_WIDTH, PinDmdEditor.DMD_HEIGHT);
 		maskDmdObserver = new MaskDmdObserver();
 		maskDmdObserver.setDmd(dmd);
 		activePalette = project.palettes.get(0);
@@ -301,6 +311,10 @@ public class PinDmdEditor implements EventHandler {
 		connector = ConnectorFactory.create(pin2dmdAdress);
 	}
 	
+	private void updateHashes(Observable o) {
+		this.notifyAni(new AniEvent(Type.FRAMECHANGE, null, dmd.getFrame()));
+	}
+
 	static File logFile;
 	static Logger log;
 	
@@ -412,6 +426,7 @@ public class PinDmdEditor implements EventHandler {
 	public void createBindings() {
 		// do some bindings
 		editAniObserver = ObserverManager.bind(animationHandler, e -> this.enableDrawing(e), () -> animationIsEditable());
+		
 		ObserverManager.bind(animationHandler, e -> dmdWidget.setDrawingEnabled(e), () -> animationHandler.isStopped());
 
 		ObserverManager.bind(animationHandler, e -> btnPrev.setEnabled(e), () -> animationHandler.isStopped() && animationHandler.hasAnimations());
@@ -448,7 +463,7 @@ public class PinDmdEditor implements EventHandler {
 	}
 
 	private boolean animationIsEditable() {
-		return (this.useMask && !project.masks.get(actMaskNumber).locked) || (animationHandler.isStopped() && isEditable(animationHandler.getAnimations()));
+		return (this.useGlobalMask && !project.masks.get(actMaskNumber).locked) || (animationHandler.isStopped() && isEditable(animationHandler.getAnimations()));
 	}
 
 	private boolean isEditable(java.util.List<Animation> a) {
@@ -486,6 +501,7 @@ public class PinDmdEditor implements EventHandler {
 		
 		display = Display.getDefault();
 		shell = new Shell();
+		this.clipboard = new Clipboard(display);
 		fileChooserUtil = new FileChooserUtil(shell);
 		paletteHandler = new PaletteHandler(this, shell);
 		aniAction = new AnimationActionHandler(this, shell);
@@ -502,7 +518,7 @@ public class PinDmdEditor implements EventHandler {
 		animationHandler = new AnimationHandler(playingAnis, clock, dmd);
 		animationHandler.setScale(scale);
 		animationHandler.setEventHandler(this);
-		animationHandler.setMask(project.mask);
+		//animationHandler.setMask(project.mask);
 		boolean goDMDenabled = ApplicationProperties.getBoolean(ApplicationProperties.GODMD_ENABLED_PROP_KEY);
 		animationHandler.setEnableClock(goDMDenabled);
 		
@@ -576,7 +592,7 @@ public class PinDmdEditor implements EventHandler {
 	}
 
 	private Animation cutScene(Animation animation, int start, int end, String name) {
-		Animation cutScene = animation.cutScene(start, end, 4);
+		CompiledAnimation cutScene = animation.cutScene(start, end, 4);
 		// TODO improve to make it selectable how many planes
 		
 		paletteHandler.copyPalettePlaneUpgrade();
@@ -594,6 +610,7 @@ public class PinDmdEditor implements EventHandler {
 	void onNewProject() {
 		project.clear();
 		activePalette = project.palettes.get(0);
+		setViewerSelection(paletteComboViewer,activePalette);
 		paletteComboViewer.refresh();
 		keyframeTableViewer.refresh();
 		recordings.clear();
@@ -782,7 +799,7 @@ public class PinDmdEditor implements EventHandler {
 			if (p.frameSeqName != null) {
 				FrameSeq frameSeq = new FrameSeq(p.frameSeqName);
 				if (p.switchMode.equals(SwitchMode.ADD) || p.switchMode.equals(SwitchMode.FOLLOW) ) {
-					frameSeq.mask = 0b11111100;
+					frameSeq.mask = 0b11111000;
 				}
 				project.frameSeqMap.put(p.frameSeqName, frameSeq);
 			}
@@ -794,11 +811,12 @@ public class PinDmdEditor implements EventHandler {
 			for (FrameSeq p : project.frameSeqMap.values()) {
 				Animation ani = scenes.get(p.name);
 				// copy without extending frames
-				CompiledAnimation cani = (CompiledAnimation) ani.cutScene(ani.start, ani.end, 0);
+				CompiledAnimation cani = ani.cutScene(ani.start, ani.end, 0);
 				cani.actFrame = 0;
 				cani.setDesc(ani.getDesc());
-				DMD tmp = new DMD(128, 32);
+				DMD tmp = new DMD(PinDmdEditor.DMD_WIDTH, PinDmdEditor.DMD_HEIGHT);
 				for (int i = cani.start; i <= cani.end; i++) {
+					cani.getCurrentMask();
 					Frame f = cani.render(tmp, false);
 					for( int j = 0; j < f.planes.size(); j++) {
 						if (((1 << j) & p.mask) == 0) {
@@ -829,11 +847,11 @@ public class PinDmdEditor implements EventHandler {
 			// for all referenced frame mapping we must also copy the frame data as
 			// there are two models
 			for (FrameSeq p : project.frameSeqMap.values()) {
-				Animation ani = scenes.get(p.name);
-				
+				CompiledAnimation ani = scenes.get(p.name);				
 				ani.actFrame = 0;
-				DMD tmp = new DMD(128, 32);
+				DMD tmp = new DMD(PinDmdEditor.DMD_WIDTH, PinDmdEditor.DMD_HEIGHT);
 				for (int i = 0; i <= ani.end; i++) {
+					ani.getCurrentMask();
 					Frame frame = new Frame( ani.render(tmp, false) ); // copy frames to not remove in org
 					// remove planes not in mask
 					int pl = 0;
@@ -853,7 +871,7 @@ public class PinDmdEditor implements EventHandler {
 				BinaryExporter exporter = BinaryExporterFactory.getInstance();
 				if (!project.frameSeqMap.isEmpty()) {
 					DataOutputStream dos = new DataOutputStream(streamProvider.buildStream(replaceExtensionTo("fsq", filename)));
-					map = exporter.writeFrameSeqTo(dos, project);
+					map = exporter.writeFrameSeqTo(dos, project, 2);
 					dos.close();
 				}
 
@@ -966,8 +984,8 @@ public class PinDmdEditor implements EventHandler {
 			palMapping.durationInMillis = (spinnerDeviceId.getSelection()<<8) + spinnerEventId.getSelection();
 		}
 		palMapping.switchMode = switchMode;
-		if (useMask) {
-			palMapping.withMask = useMask;
+		if (useGlobalMask) {
+			palMapping.withMask = useGlobalMask;
 			palMapping.maskNumber = actMaskNumber;
 			project.masks.get(actMaskNumber).locked = true;
 			onMaskChecked(true);
@@ -996,9 +1014,9 @@ public class PinDmdEditor implements EventHandler {
 		return editModeLabels.get(mode);
 	}
 	
-	public void onRemove(ObservableProperty<Animation> selection, ObservableMap<String, Animation> map) {
+	public <T extends Animation> void onRemove(ObservableProperty<? extends T> selection, ObservableMap<String, T> map) {
 		if (selection.isPresent()) {
-			Animation a = selection.get();
+			T a = selection.get();
 			String key = a.getDesc();
 			if( a.isProjectAnimation() ) project.dirty = true;
 			map.remove(key);
@@ -1409,7 +1427,7 @@ public class PinDmdEditor implements EventHandler {
 		btnCut.setText("Cut");
 		btnCut.addListener(SWT.Selection, e -> {
 			// respect number of planes while cutting / copying
-				Animation ani = cutScene(selectedRecording.get(), cutInfo.getStart(), cutInfo.getEnd(), buildUniqueName(scenes));
+				cutScene(selectedRecording.get(), cutInfo.getStart(), cutInfo.getEnd(), buildUniqueName(scenes));
 				log.info("cutting out scene from {}", cutInfo);
 				cutInfo.reset();
 			});
@@ -1550,13 +1568,18 @@ public class PinDmdEditor implements EventHandler {
 		ToolItem tltmColorize = new ToolItem(drawToolBar, SWT.RADIO);
 		tltmColorize.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/colorize.png")));
 		tltmColorize.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("colorize")));
+		
 		drawTools.put("pencil", new SetPixelTool(paletteTool.getSelectedColor()));
 		drawTools.put("fill", new FloodFillTool(paletteTool.getSelectedColor()));
 		drawTools.put("rect", new RectTool(paletteTool.getSelectedColor()));
 		drawTools.put("line", new LineTool(paletteTool.getSelectedColor()));
 		drawTools.put("circle", new CircleTool(paletteTool.getSelectedColor()));
 		drawTools.put("colorize", new ColorizeTool(paletteTool.getSelectedColor()));
+		// notify draw tool on color changes
 		drawTools.values().forEach(d -> paletteTool.addIndexListener(d));
+		// let draw tools notify when draw action is finished
+		drawTools.values().forEach(d->d.addObserver((dmd,o)->updateHashes(dmd)));
+		
 		paletteTool.addListener(palette -> {
 			if (livePreviewActive) {
 				connector.upload(activePalette, handle);
@@ -1635,6 +1658,8 @@ public class PinDmdEditor implements EventHandler {
 
 		ObserverManager.bind(maskDmdObserver, e -> btnUndo.setEnabled(e), () -> maskDmdObserver.canUndo());
 		ObserverManager.bind(maskDmdObserver, e -> btnRedo.setEnabled(e), () -> maskDmdObserver.canRedo());
+		
+		maskDmdObserver.addObserver((dmd,o)->updateHashes(dmd));
 
 	}
 	
@@ -1670,6 +1695,7 @@ public class PinDmdEditor implements EventHandler {
 				}
 			}
 			btnMask.setEnabled(editMode.equals(EditMode.FOLLOW));
+			setEnableHashButtons(editMode.equals(EditMode.FOLLOW));
 			animation.setEditMode(editMode);
 		}
 		setDrawMaskByEditMode(editMode);
@@ -1689,7 +1715,7 @@ public class PinDmdEditor implements EventHandler {
 	 * @param anis the map containing the keys
 	 * @return the new unique name
 	 */
-	String buildUniqueName(ObservableMap<String, Animation> anis) {
+	<T extends Animation> String buildUniqueName(ObservableMap<String, T> anis) {
 		int no = anis.size();
 		String name = "Scene " + no;
 		while( anis.containsKey(name)) {
@@ -1699,21 +1725,24 @@ public class PinDmdEditor implements EventHandler {
 		return name;
 	}
 
+	/**
+	 * deletes the 2 additional color masking planes.
+	 * depending on presence of a mask this is plane 2,3 or 3,4
+	 */
 	private void onDeleteColMaskClicked() {
 		dmd.addUndoBuffer();
 		Frame frame = dmd.getFrame();
 		// delete plane 2 und 3
-		if( frame.planes.size() == 4) {
-			Arrays.fill( frame.planes.get(2).plane, (byte)0 );
-			Arrays.fill( frame.planes.get(3).plane, (byte)0 );
-		}
+		int j = frame.containsMask() ? 3 : 2;
+		Arrays.fill( frame.planes.get(j++).plane, (byte)0 );
+		Arrays.fill( frame.planes.get(j++).plane, (byte)0 );
 		dmdRedraw();
 	}
 
 	private void onStartStopClicked(boolean stopped) {
 		if( stopped )
 		{
-			selectedScene.ifPresent(a->a.commitDMDchanges(dmd));
+			selectedScene.ifPresent(a->a.commitDMDchanges(dmd, hashes.get(selectedHashIndex)));
 			animationHandler.start();
 			display.timerExec(animationHandler.getRefreshDelay(), cyclicRedraw);
 			btnStartStop.setText("Stop");
@@ -1724,18 +1753,24 @@ public class PinDmdEditor implements EventHandler {
 	}
 
 	private void onPrevFrameClicked() {
-		selectedScene.ifPresent(a->a.commitDMDchanges(dmd));
+		selectedScene.ifPresent(a->a.commitDMDchanges(dmd, hashes.get(selectedHashIndex)));
 		animationHandler.prev();
+		if( dmdWidget.isShowMask() ) {
+			onMaskChecked(true);
+		}
 	}
 	
 	private void onNextFrameClicked() {
-		selectedScene.ifPresent(a->a.commitDMDchanges(dmd));
+		selectedScene.ifPresent(a->a.commitDMDchanges(dmd,hashes.get(selectedHashIndex)));
 		animationHandler.next();
+		if( dmdWidget.isShowMask() ) {
+			onMaskChecked(true);
+		}
 	}
 	
 	private void onCopyAndMoveToNextFrameClicked() {
 		onNextFrameClicked();
-		CompiledAnimation ani = (CompiledAnimation) selectedRecording.get();
+		CompiledAnimation ani = selectedScene.get();
 		if( !ani.hasEnded() ) {
 			copyFrame(ani, ani.getActFrame(), -1);
 		}
@@ -1743,7 +1778,7 @@ public class PinDmdEditor implements EventHandler {
 	
 	private void onCopyAndMoveToPrevFrameClicked() {
 		onPrevFrameClicked();
-		CompiledAnimation ani = (CompiledAnimation) selectedRecording.get();
+		CompiledAnimation ani =  selectedScene.get();
 		if( ani.getActFrame() >= ani.getStart() ) {
 			copyFrame(ani, ani.getActFrame(), 1);
 		}
@@ -1760,10 +1795,10 @@ public class PinDmdEditor implements EventHandler {
 				System.arraycopy(
 						srcFrame.planes.get(i).plane, 0,
 						dmd.getFrame().planes.get(i).plane, 0, size);
-				dmdRedraw();
 			}
 			drawMask >>= 1;
 		}
+		dmdRedraw();
 	}
 
 	private void onSortKeyFrames() {
@@ -1777,9 +1812,19 @@ public class PinDmdEditor implements EventHandler {
 	}
 
 	private void setDrawMaskByEditMode(EditMode mode) {
-		boolean drawWithMask = mode.equals(EditMode.COLMASK) || mode.equals(EditMode.FOLLOW);
-		dmd.setDrawMask(drawWithMask ? 0b11111100 : 0xFFFF);
-		btnDeleteColMask.setEnabled(drawWithMask);
+		if( dmdWidget.isShowMask() ) {
+			// only draw on mask
+			dmd.setDrawMask( 0b00000001);
+		} else {
+			boolean drawWithMask = mode.equals(EditMode.COLMASK) || mode.equals(EditMode.FOLLOW);
+			btnDeleteColMask.setEnabled(drawWithMask);
+			if( dmd.hasMask() ) {
+				// TODO should be handled internal of DMD class
+				dmd.setDrawMask(drawWithMask ? 0b11111000 : 0xFFFF);
+			} else {
+				dmd.setDrawMask(drawWithMask ? 0b11111100 : 0xFFFF);
+			}
+		}
 	}
 
 	/**
@@ -1795,7 +1840,7 @@ public class PinDmdEditor implements EventHandler {
 		for (int i = 0; i < project.masks.size(); i++) {
 			project.masks.get(i).locked = useMasks.contains(i);
 		}
-		onMaskChecked(useMask);
+		onMaskChecked(useGlobalMask);
 	}
 	
 	private void setPlayingAni( Animation ani) {
@@ -1808,7 +1853,7 @@ public class PinDmdEditor implements EventHandler {
 	// TODO !!! make selected animation observable to bind change handler to it (maybe remove) Optional
 	// make this the general change handler, and let the click handler only set selected animation
 
-	private void onSceneSelectionChanged(Animation a) {
+	private void onSceneSelectionChanged(CompiledAnimation a) {
 		log.info("onSceneSelectionChanged: {}", a);
 		Animation current = selectedScene.get();
 		// detect changes
@@ -1819,13 +1864,21 @@ public class PinDmdEditor implements EventHandler {
 			goDmdGroup.updateAnimation(a);
 			btnMask.setEnabled(a.getEditMode().equals(EditMode.FOLLOW));
 			maskSpinner.setEnabled(false);
+			if( a.getEditMode() == null || a.getEditMode().equals(EditMode.FIXED) ) {
+				// old animation may be saved with wrong edit mode
+				a.setEditMode(EditMode.REPLACE);
+			}
 			editModeViewer.setInput(mutable);
 			editModeViewer.refresh();
-			setEnableHashButtons(false);
+			
+			setEnableHashButtons(a.getEditMode().equals(EditMode.FOLLOW));
 			
 			selectedScene.set(a);
 
 			int numberOfPlanes = a.getRenderer().getNumberOfPlanes();
+			if( numberOfPlanes == 5) {
+				numberOfPlanes = 4;
+			}
 			if (numberOfPlanes == 3) {
 				numberOfPlanes = 2;
 				goDmdGroup.transitionCombo.select(1);
@@ -1838,7 +1891,7 @@ public class PinDmdEditor implements EventHandler {
 			setViewerSelection(editModeViewer, a.getEditMode());
 			setDrawMaskByEditMode(a.getEditMode());// doesnt fire event?????
 			dmd.setNumberOfSubframes(numberOfPlanes);
-			paletteTool.setNumberOfPlanes(useMask?1:numberOfPlanes);
+			paletteTool.setNumberOfPlanes(useGlobalMask?1:numberOfPlanes);
 
 			setPlayingAni(a);
 			
@@ -1864,6 +1917,9 @@ public class PinDmdEditor implements EventHandler {
 
 			selectedRecording.set(a);
 			int numberOfPlanes = a.getRenderer().getNumberOfPlanes();
+			if( numberOfPlanes == 5) {
+				numberOfPlanes = 4;
+			}
 			if (numberOfPlanes == 3) {
 				numberOfPlanes = 2;
 				goDmdGroup.transitionCombo.select(1);
@@ -1874,7 +1930,7 @@ public class PinDmdEditor implements EventHandler {
 			setViewerSelection(editModeViewer, a.getEditMode());
 			//onColorMaskChecked(a.getEditMode()==EditMode.COLMASK);// doesnt fire event?????
 			dmd.setNumberOfSubframes(numberOfPlanes);
-			paletteTool.setNumberOfPlanes(useMask?1:numberOfPlanes);
+			paletteTool.setNumberOfPlanes(useGlobalMask?1:numberOfPlanes);
 			setPlayingAni(a);
 
 		} else {
@@ -1892,24 +1948,26 @@ public class PinDmdEditor implements EventHandler {
 			log.info("change index in Keyframe {} to {}", selectedPalMapping.name, activePalette.index);
 		}
 		// change palette in ANI file
-		if (selectedRecording.get().isMutable()) {
-			selectedRecording.get().setPalIndex(activePalette.index);
+		if (selectedScene.isPresent()) {
+			selectedScene.get().setPalIndex(activePalette.index);
 		}
 		
 	}
 
 	private void onPaletteChanged(Palette newPalette) {
-		activePalette = newPalette;
-		dmdWidget.setPalette(activePalette);
-		paletteTool.setPalette(activePalette);
-		log.info("new palette is {}", activePalette);
-		setViewerSelection(paletteTypeComboViewer, activePalette.type);
-		if (livePreviewActive)
-			connector.switchToPal(activePalette.index, handle);
+		if( newPalette != null) {
+			activePalette = newPalette;
+			dmdWidget.setPalette(activePalette);
+			paletteTool.setPalette(activePalette);
+			log.info("new palette is {}", activePalette);
+			setViewerSelection(paletteTypeComboViewer, activePalette.type);
+			if (livePreviewActive)
+				connector.switchToPal(activePalette.index, handle);
+		}
 	}
 
-	void updateAnimationMapKey(String oldKey, String newKey, ObservableMap<String, Animation> anis) {
-		ArrayList<Animation> tmp = new ArrayList<Animation>();
+	<T extends Animation> void updateAnimationMapKey(String oldKey, String newKey, ObservableMap<String, T> anis) {
+		ArrayList<T> tmp = new ArrayList<>();
 		if (!oldKey.equals(newKey)) {
 			anis.values().forEach(ani -> tmp.add(ani));
 			anis.clear();
@@ -1990,8 +2048,8 @@ public class PinDmdEditor implements EventHandler {
 				palMapping.animationName = selectedRecording.get().getDesc();
 				palMapping.switchMode = switchMode;
 				palMapping.frameIndex = selectedRecording.get().actFrame;
-				if (useMask) {
-					palMapping.withMask = useMask;
+				if (useGlobalMask) {
+					palMapping.withMask = useGlobalMask;
 					palMapping.maskNumber = actMaskNumber;
 					project.masks.get(actMaskNumber).locked = true;
 					onMaskChecked(true);
@@ -2016,63 +2074,66 @@ public class PinDmdEditor implements EventHandler {
 		messageBox.setMessage(msg);
 		messageBox.open();
 	}
-
-	private void onMaskChecked(boolean useMask) {
-		this.useMask = useMask;
-		Mask maskToUse = project.masks.get(maskSpinner.getSelection());
-		if (useMask) {
-			activateMask(maskToUse);
+	
+	/**
+	 * get current mask, either from scene or from on of the global masks
+	 * @return
+	 */
+	private Mask getCurrentMask() {
+		Mask maskToUse = null; 
+		if( editMode.equals(EditMode.FOLLOW)) {
+			// create mask from actual scene
+			maskToUse = selectedScene.get().getCurrentMask();
 		} else {
-			deactivateMask(maskToUse);
+			this.useGlobalMask = true;
+			// use one of the project masks
+			maskToUse = project.masks.get(maskSpinner.getSelection());
 		}
+		return maskToUse;
+	}
+
+	/**
+	 * button callback when mask checkbox is clicked.
+	 * @param useMask
+	 */
+	private void onMaskChecked(boolean useMask) {
+		// either we use masks with follow hash mode on scenes
+		// or we use global masks on recordings
+		if (useMask) {
+			paletteTool.setNumberOfPlanes(1);
+			dmdWidget.setMask(getCurrentMask());
+		} else {
+			paletteTool.setNumberOfPlanes(dmd.getNumberOfPlanes());
+			dmdWidget.setShowMask(false);
+			this.useGlobalMask = false;
+		}
+		setDrawMaskByEditMode(editMode);
 		editAniObserver.update(animationHandler, null);
-	}
-
-	private void deactivateMask(Mask mask) {
-		DMD dmdMask = dmdWidget.getMask();
-		if (dmdMask != null)
-			System.arraycopy(dmdMask.getFrame().planes.get(0).plane, 0, mask.data, 0, mask.data.length);
-		int planes = dmd.getNumberOfPlanes();
-		paletteTool.setNumberOfPlanes(planes);
-		dmdWidget.setMask(null, false);
-		maskDmdObserver.setMask(null);
-		animationHandler.setMask(emptyMask);
-	}
-
-	void activateMask(Mask mask) {
-		DMD maskDMD = new DMD(128, 32);
-		Frame frame = new Frame();
-		frame.planes.add(new Plane((byte) 0, mask.data));
-		maskDMD.setFrame(frame);
-		paletteTool.setNumberOfPlanes(1);
-		dmdWidget.setMask(maskDMD, mask.locked);
-		maskDmdObserver.setMask(maskDMD);
-		animationHandler.setMask(mask.data);
 	}
 
 	void onMaskNumberChanged(Event e) {
 		int newMaskNumber = ((Spinner) e.widget).getSelection();
-		if (useMask && newMaskNumber != actMaskNumber) {
+		if (useGlobalMask && newMaskNumber != actMaskNumber) {
 			log.info("mask number changed {} -> {}", actMaskNumber, newMaskNumber);
-			deactivateMask(project.masks.get(actMaskNumber));
-			activateMask(project.masks.get(newMaskNumber));
+			Mask maskToUse = project.masks.get(maskSpinner.getSelection());
+			dmdWidget.setMask(maskToUse);
 			actMaskNumber = newMaskNumber;
 			editAniObserver.update(animationHandler, null);
 		}
 	}
 
-	private void onSortAnimations(ObservableMap<String, Animation> map) {
-		ArrayList<Entry<String, Animation>> list = new ArrayList<>(map.entrySet());
-		Collections.sort(list, new Comparator<Entry<String, Animation>>() {
+	private <T extends Animation> void onSortAnimations(ObservableMap<String, T> map) {
+		ArrayList<Entry<String, T>> list = new ArrayList<>(map.entrySet());
+		Collections.sort(list, new Comparator<Entry<String, T>>() {
 
 			@Override
-			public int compare(Entry<String, Animation> o1, Entry<String, Animation> o2) {
+			public int compare(Entry<String, T> o1, Entry<String, T> o2) {
 				return o1.getValue().getDesc().compareTo(o2.getValue().getDesc());
 			}
 		});
 		map.clear();
-		for (Entry<String, Animation> entry : list) {
-			map.put(entry.getKey(), entry.getValue());
+		for (Entry<String, T> entry : list) {
+			map.put(entry.getKey(), (T)entry.getValue());
 		}
 	}
 
@@ -2186,7 +2247,8 @@ public class PinDmdEditor implements EventHandler {
 		mntmfile.setMenu(menu_1);
 
 		MenuItem mntmNewProject = new MenuItem(menu_1, SWT.NONE);
-		mntmNewProject.setText("New Project");
+		mntmNewProject.setText("New Project\tCtrl-N");
+		mntmNewProject.setAccelerator(SWT.MOD1 + 'N');
 		mntmNewProject.addListener(SWT.Selection, e -> {
 			if (dirtyCheck()) {
 				onNewProject();
@@ -2245,6 +2307,18 @@ public class PinDmdEditor implements EventHandler {
 
 		Menu menu_5 = new Menu(mntmedit);
 		mntmedit.setMenu(menu_5);
+
+		MenuItem mntmCopy = new MenuItem(menu_5, SWT.NONE);
+		mntmCopy.setText("Copy \tCtrl-C");
+		mntmCopy.setAccelerator(SWT.MOD1 + 'C');
+		mntmCopy.addListener(SWT.Selection, e -> onCopy());
+
+		MenuItem mntmPaste = new MenuItem(menu_5, SWT.NONE);
+		mntmPaste.setText("Paste\tCtrl-V");
+		mntmPaste.setAccelerator(SWT.MOD1 + 'V');
+		mntmPaste.addListener(SWT.Selection, e -> onPaste());
+
+		new MenuItem(menu_5, SWT.SEPARATOR);
 
 		MenuItem mntmUndo = new MenuItem(menu_5, SWT.NONE);
 		mntmUndo.setText("Undo");
@@ -2371,6 +2445,82 @@ public class PinDmdEditor implements EventHandler {
 		mntmAbout.addListener(SWT.Selection, e -> new About(shell).open(pluginsPath, loadedPlugins));
 	}
 
+	private void onCopy() {
+		if( dmdWidget.isShowMask() ) {
+			String data = byteToString(dmd.getFrame().getPlaneBytes(0));
+			log.info("copy to clip: {}", data);
+			clipboard.setContents(new Object[] { data }, new Transfer[]{ TextTransfer.getInstance()});
+		} else {
+			// push all planes that are not masked
+			Frame f = dmd.getFrame();
+			int mask = dmd.getDrawMask();
+			String data = "";
+			for( int j = 0; j < f.planes.size(); j++) {
+				if (((1 << j) & mask) != 0) {
+					data += "\n" + byteToString(f.planes.get(j).plane);
+				}
+			}
+			log.info("copy to clip: {}", data);
+			clipboard.setContents(new Object[] { data }, new Transfer[]{ TextTransfer.getInstance()});
+		}
+	}
+
+	private String byteToString(byte[] planeBytes) {
+		StringBuilder sb = new StringBuilder();
+		int i = 0;
+		for(byte b : planeBytes) {
+			sb.append(String.format("%02x", b));
+			i++;
+			if( (i%16) == 0 ) sb.append("\n");
+		}
+		return sb.toString();
+	}
+
+	private void onPaste() {
+		String data = (String) clipboard.getContents(TextTransfer.getInstance());
+		if (data != null && data.length() > 0) {
+			byte[] frameData = getPlaneDateFromString(data);
+			if (dmdWidget.isShowMask()) {
+				dmd.addUndoBuffer();
+				dmd.getFrame().setMask(Arrays.copyOf(frameData, 512));
+			} else {
+				dmd.addUndoBuffer();
+				int mask = dmd.getDrawMask();
+				Frame f = dmd.getFrame();
+				int sPos = 0;
+				for( int j = 0; j < f.planes.size(); j++) {
+					if (((1 << j) & mask) != 0) {
+						if( frameData.length>= sPos+512)
+							System.arraycopy(frameData, sPos, f.planes.get(j).plane, 0, 512);
+						sPos += 512;
+					}
+				}
+			}
+			dmdRedraw();
+		}
+	}
+
+	private byte[] getPlaneDateFromString(String data) {
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		boolean upper = false;
+		int v = 0;
+		for( int i = 0; i< data.length(); i++) {
+			char c = data.charAt(i);
+			if( ( c >= '0' && c <= '9' )||( c >= 'a' && c <= 'f' )||( c >= 'A' && c <= 'F' )  ) {
+				v <<= 4;
+				if( c >= '0' && c <= '9' ) v += c - '0';
+				if( c >= 'a' && c <= 'f' ) v += c - 'a' +10;
+				if( c >= 'A' && c <= 'F' ) v += c - 'A' + 10;
+				if( upper ) {
+					bos.write(v);
+					v = 0;
+				}
+				upper = !upper;
+			}
+		}
+		return bos.toByteArray();
+	}
+
 	private void onRedoClicked() {
 		maskDmdObserver.redo();
 		dmdRedraw();
@@ -2402,35 +2552,17 @@ public class PinDmdEditor implements EventHandler {
 	public void notifyAni(AniEvent evt) {
 		switch (evt.evtType) {
 		case ANI:
-			lblFrameNo.setText("" + evt.actFrame);
-			actFrameOfSelectedAni = evt.actFrame;
-			lblTcval.setText("" + evt.timecode);
-			txtDelayVal.setText("" + evt.delay);
-			lblPlanesVal.setText("" + evt.nPlanes);
-			// hashLabel.setText(
-			int i = 0;
-			for (byte[] p : evt.hashes) {
-				String hash = getPrintableHashes(p);
-				// disable for empty frame
-				if (hash.startsWith("B2AA7578" /* "BF619EAC0CDF3F68D496EA9344137E8B" */)) {
-					btnHash[i].setText("");
-					btnHash[i].setEnabled(false);
-				} else {
-					btnHash[i].setText(hash);
-					btnHash[i].setEnabled(btnHashEnabled[i]);
-				}
-				i++;
-				if (i >= btnHash.length)
-					break;
-			}
-			while (i < 4) {
-				btnHash[i].setText("");
-				btnHash[i].setEnabled(false);
-				i++;
-			}
+			lblFrameNo.setText("" + evt.ani.actFrame);
+			actFrameOfSelectedAni = evt.ani.actFrame;
+			lblTcval.setText("" + evt.frame.timecode);
+			txtDelayVal.setText("" + evt.frame.delay);
+			lblPlanesVal.setText("" + evt.frame.planes.size());
 
-			saveHashes(evt.hashes);
-			lastTimeCode = evt.timecode;
+			List<byte[]> hashes = evt.frame.getHashes();
+			refreshHashButtons(hashes);
+
+			saveHashes(hashes);
+			lastTimeCode = evt.frame.timecode;
 			if (livePreviewActive && evt.frame != null) {
 				connector.sendFrame(evt.frame, handle);
 			}
@@ -2449,8 +2581,38 @@ public class PinDmdEditor implements EventHandler {
 				connector.sendFrame(new Frame(), handle);
 			}
 			break;
+		case FRAMECHANGE:
+			List<byte[]> hashes2 = evt.frame.getHashes();
+			refreshHashButtons(hashes2);
+
+			saveHashes(hashes2);
+			break;
 		}
 		dmdRedraw();
+	}
+
+	private void refreshHashButtons(List<byte[]> hashes) {
+		if( btnHash[0] == null ) return; // avoid NPE if not initialized
+		int i = 0;
+		for (byte[] p : hashes) {
+			String hash = getPrintableHashes(p);
+			// disable for empty frame: crc32 for empty frame is B2AA7578
+			if (hash.startsWith("B2AA7578" /* "BF619EAC0CDF3F68D496EA9344137E8B" */)) {
+				btnHash[i].setText("");
+				btnHash[i].setEnabled(false);
+			} else {
+				btnHash[i].setText(hash);
+				btnHash[i].setEnabled(btnHashEnabled[i]);
+			}
+			i++;
+			if (i >= btnHash.length)
+				break;
+		}
+		while (i < 4) {
+			btnHash[i].setText("");
+			btnHash[i].setEnabled(false);
+			i++;
+		}
 	}
 
 	public String getProjectFilename() {

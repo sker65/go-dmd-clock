@@ -17,7 +17,9 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.ScrollBar;
 
 import com.rinke.solutions.pinball.DMD;
+import com.rinke.solutions.pinball.PinDmdEditor;
 import com.rinke.solutions.pinball.model.Frame;
+import com.rinke.solutions.pinball.model.Mask;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.widget.PaletteTool.ColorChangedListerner;
 
@@ -27,7 +29,7 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 	
 	private Palette palette;	// color palette
 	private DMD dmd; 			// the model holding buffers etc.
-	private DMD mask;			// if set draw on mask and paint a mask overlay
+	private boolean showMask;			// if set draw on mask and paint a mask overlay
 	private int resolutionX;
 	private int resolutionY;
 	private int bytesPerRow;
@@ -158,7 +160,7 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
     	int numberOfSubframes = dmd.getNumberOfPlanes();
     	boolean useColorIndex = numberOfSubframes < 8;
         Color cols[] = {};
-        if( mask != null ) cols = new Color[1<<numberOfSubframes];
+        if( showMask ) cols = new Color[1<<numberOfSubframes];
         if( useColorIndex ) {
             cols = new Color[1<<numberOfSubframes];
             if( numberOfSubframes == 2) {
@@ -179,16 +181,15 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
         GC gcImage = new GC(image);
         gcImage.setBackground(bg);
         gcImage.fillRectangle(0, 0, w, h);
-
-        drawDMD(gcImage, dmd.getFrame(), numberOfSubframes, useColorIndex, cols);
-        if( mask != null ) {
+        drawDMD(gcImage, dmd.getFrame(), dmd.hasMask()?1:0, numberOfSubframes, useColorIndex, cols);
+        if( showMask ) {
             ImageData imageData = image.getImageData();
     		imageData.alpha = 96;
     		Image maskImage =  new Image(display, imageData);
             GC gcMask = new GC(maskImage);
 			cols[0] = resourceManager.createColor(new RGB(0, 0, 0));
             cols[1] = resourceManager.createColor(maskLocked ? new RGB(255, 0, 0) : new RGB(0, 0, 255));
-            drawDMD(gcMask, mask.getFrame(), 1, true, cols);
+            drawDMD(gcMask, dmd.getFrame(), 0, 1, true, cols);
             gcImage.drawImage(maskImage, 0, 0);
             gcMask.dispose();
         }
@@ -197,17 +198,17 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
         return image;
 	}
 
-	private void drawDMD(GC gcImage, Frame frame, int numberOfSubframes,
+	private void drawDMD(GC gcImage, Frame frame, int planeOffset, int numberOfSubframes,
 			boolean useColorIndex, Color[] cols) {
 		for (int row = 0; row < resolutionY; row++) {
             for (int col = 0; col < resolutionX; col++) {
                 // lsb first
                 // byte mask = (byte) (1 << (col % 8));
                 // hsb first
-                byte mask = (byte) (128 >> (col % 8));
+                byte mask = (byte) (PinDmdEditor.DMD_WIDTH >> (col % 8));
                 int v = 0;
                 for(int i = 0; i < numberOfSubframes;i++) {
-                    v += (frame.getPlaneBytes(i)[col / 8 + row * bytesPerRow] & mask) != 0 ? (1<<i) : 0;
+                    v += (frame.getPlaneBytes(i+planeOffset)[col / 8 + row * bytesPerRow] & mask) != 0 ? (1<<i) : 0;
                 }
 
                 if( useColorIndex ) {
@@ -246,11 +247,7 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 	public void setDrawTool(DrawTool drawTool) {
 		this.drawTool = drawTool;
 		if(drawTool!= null) {
-			if( mask == null ) {
-				this.drawTool.setDMD(dmd);
-			} else {
-				this.drawTool.setDMD(mask);
-			}
+			this.drawTool.setDMD(dmd);
 		}
 	}
 
@@ -267,16 +264,30 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 		setPalette(pal);
 	}
 
-	public DMD getMask() {
-		return mask;
-	}
-
-	public void setMask(DMD mask, boolean maskLocked) {
-		this.mask = mask;
+	public void setMaskLocked(boolean maskLocked) {
 		this.maskLocked = maskLocked;
 		if( drawTool != null ) setDrawTool(drawTool);
 		redraw();
 	}
 
+	public void setShowMask(boolean showMask) {
+		boolean old = this.showMask;
+		this.showMask = showMask;
+		if( old != showMask ) {
+			if( showMask ) {
+				dmd.setDrawShift(0);
+			}
+			redraw();
+		}
+	}
 
+	public boolean isShowMask() {
+		return showMask;
+	}
+
+	public void setMask(Mask mask) {
+		dmd.ensureMask(mask.data);
+		this.setShowMask(true);
+		this.setMaskLocked(mask.locked);
+	}
 }

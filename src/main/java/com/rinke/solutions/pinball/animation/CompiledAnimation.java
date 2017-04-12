@@ -1,9 +1,14 @@
 package com.rinke.solutions.pinball.animation;
 
 import java.util.List;
+import java.util.Optional;
+
+import org.bouncycastle.util.Arrays;
 
 import com.rinke.solutions.pinball.DMD;
+import com.rinke.solutions.pinball.PinDmdEditor;
 import com.rinke.solutions.pinball.model.Frame;
+import com.rinke.solutions.pinball.model.Mask;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.Plane;
 
@@ -51,20 +56,51 @@ public class CompiledAnimation extends Animation {
         return in;
     }
 
+    private Optional<Plane> searchMaskPlane(Frame frame) {
+		return frame.planes.stream().filter(p->p.marker == Plane.MASK).findFirst();
+	}
+
+    public Mask getCurrentMask() {
+		Mask maskToUse;
+		// build mask from current frame
+		
+		Frame frame = frames.get(actFrame);
+		Optional<Plane> maskPlane = searchMaskPlane(frame);
+		if( maskPlane.isPresent() ) {
+			maskToUse = new Mask(maskPlane.get().plane, false);
+		} else {
+			byte[] emptyMask = new byte[PinDmdEditor.PLANE_SIZE];
+			Arrays.fill(emptyMask, (byte)0xFF);
+			Plane masPlane = new Plane(Plane.MASK, emptyMask);
+			frame.planes.add(0, masPlane);
+			maskToUse = new Mask(masPlane.plane, false);
+		}
+		return maskToUse;
+    }
+
 	@Override
-	public void commitDMDchanges(DMD dmd) {
-		if( clockWasAdded ) {		// never commit a frame were clock was rendered
+	public void commitDMDchanges(DMD dmd, byte[] hash) {
+		if( clockWasAdded ) {		// never commit a frame were clock was rendered, this is savety check only
 			clockWasAdded = false;
 			return;
 		}
 	    if( actFrame >= 0 && actFrame < frames.size()) {
-	        List<Plane> planes = frames.get(actFrame).planes;
-	        Frame frame = dmd.getFrame();
-	        for(int i=0; i<planes.size(); i++) {
-	        	byte[] planeBytes = frame.getPlaneBytes(i);
+	    	Frame aniFrame = frames.get(actFrame);
+	        List<Plane> planes = aniFrame.planes;
+	        Frame dmdFrame = dmd.getFrame();
+	        int i = 0;
+	        if( aniFrame.containsMask() && dmd.hasMask() ) {
+	        	byte[] planeBytes = dmd.getFrame().getPlaneBytes(0);
+	        	int len = min(planeBytes.length,planes.get(i).plane.length);
+	        	System.arraycopy(planeBytes, 0, planes.get(i).plane, 0, len );
+	        	i++;
+	        }
+	        for(; i<planes.size(); i++) {
+	        	byte[] planeBytes = dmdFrame.getPlaneBytes(i);
 	            int len = min(planeBytes.length,planes.get(i).plane.length);
 	            System.arraycopy(planeBytes, 0, planes.get(i).plane, 0, len );
 	        }
+	        aniFrame.setHash(hash);
 	        setDirty(true);
 	    }
 	}

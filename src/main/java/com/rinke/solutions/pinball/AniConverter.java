@@ -57,7 +57,7 @@ public class AniConverter {
 			
 			populatePalette(a, palettes);
 			
-			DMD tmp = new DMD(128, 32);
+			DMD tmp = new DMD(PinDmdEditor.DMD_WIDTH, PinDmdEditor.DMD_HEIGHT);
 			for (int i = 0; i <= a.end; i++) {
 				Frame frame = new Frame( a.render(tmp, false) ); // copy frames to not remove in org
 				Plane plane1 = frame.planes.get(1);

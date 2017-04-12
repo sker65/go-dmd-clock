@@ -7,6 +7,7 @@ import org.junit.Test;
 
 import com.fappel.swt.DisplayHelper;
 import com.rinke.solutions.pinball.DMD;
+import com.rinke.solutions.pinball.PinDmdEditor;
 import com.rinke.solutions.pinball.model.Palette;
 
 public class DMDWidgetSWTTest {
@@ -23,7 +24,7 @@ public class DMDWidgetSWTTest {
 	@Before
 	public void setUp() throws Exception {
 		shell = displayHelper.createShell();
-		dmd = new DMD(128, 32);
+		dmd = new DMD(PinDmdEditor.DMD_WIDTH, PinDmdEditor.DMD_HEIGHT);
 		dmdWidget = new DMDWidget(shell, 0, dmd , false);
 		dmdWidget.setPalette(Palette.getDefaultPalettes().get(0));
 	}
@@ -37,18 +38,18 @@ public class DMDWidgetSWTTest {
 
 	@Test
 	public void testSetBounds() throws Exception {
-		dmdWidget.setBounds(0, 0, 128*4, 32*4);
+		dmdWidget.setBounds(0, 0, PinDmdEditor.DMD_WIDTH*4, PinDmdEditor.DMD_HEIGHT*4);
 	}
 
 	@Test
 	public void testDrawImage() throws Exception {
-		dmdWidget.drawImage(displayHelper.getDisplay(), 128, 32);
+		dmdWidget.drawImage(displayHelper.getDisplay(), PinDmdEditor.DMD_WIDTH, PinDmdEditor.DMD_HEIGHT);
 	}
 
 	@Test
 	public void testDrawImageWithMask() throws Exception {
-		DMD mask = new DMD(128, 32);
-		dmdWidget.setMask(mask , true);
-		dmdWidget.drawImage(displayHelper.getDisplay(), 128, 32);
+		DMD mask = new DMD(PinDmdEditor.DMD_WIDTH, PinDmdEditor.DMD_HEIGHT);
+		dmdWidget.setMaskLocked(true);
+		dmdWidget.drawImage(displayHelper.getDisplay(), PinDmdEditor.DMD_WIDTH, PinDmdEditor.DMD_HEIGHT);
 	}
 }

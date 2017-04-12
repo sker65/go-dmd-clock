@@ -15,6 +15,7 @@ import org.apache.commons.io.IOUtils;
 
 import com.rinke.solutions.io.HeatShrinkEncoder;
 import com.rinke.solutions.pinball.DMD;
+import com.rinke.solutions.pinball.PinDmdEditor;
 import com.rinke.solutions.pinball.Worker;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Palette;
@@ -32,8 +33,6 @@ public class AniWriter extends Worker {
 	private List<Animation> anis;
 	private Map<String,Integer> offsetMap;
 	private String header = "ANIM";
-	
-	private static final int MASK_MARKER = 0x6D;
 	
 	public AniWriter(List<Animation> anis, String filename, int version, List<Palette> palettes, ProgressEventListener progressEvt) {
 		this.anis = anis;
@@ -75,7 +74,7 @@ public class AniWriter extends Worker {
 				offsetMap.put(a.getDesc(), os.size());
 			    writeAnimation(os, a);
 
-				DMD dmd = new DMD(128, 32);
+				DMD dmd = new DMD(PinDmdEditor.DMD_WIDTH,PinDmdEditor.DMD_HEIGHT);
 				
 				int numberOfFrames = a.getFrameCount(dmd);
 				os.writeShort(numberOfFrames);
@@ -92,7 +91,7 @@ public class AniWriter extends Worker {
 				// write frames
 				log.info("writing {} frames", numberOfFrames);
 				for(int i = 0; i<numberOfFrames;i++) {
-					dmd = new DMD(128, 32);
+					dmd = new DMD(PinDmdEditor.DMD_WIDTH,PinDmdEditor.DMD_HEIGHT);
 					os.writeShort(dmd.getFrameSizeInByte());
 					notify(aniIndex*aniProgressInc + (int)((float)i/numberOfFrames * aniProgressInc), "writing animation "+a.getDesc());
 					Frame frame =  a.render(dmd,false);
@@ -105,7 +104,7 @@ public class AniWriter extends Worker {
 						writePlanes(os, frame);
 					} else {
 						// for version 3 add optional compression
-						boolean compress = ( frame.planes.size() > 4 );
+						boolean compress = ( frame.planes.size() > 5 ); // 4 planes and mask will not compressed
 						os.writeBoolean(compress);
 						if( !compress ) {
 							int size = writePlanes(os, frame);
@@ -197,7 +196,7 @@ public class AniWriter extends Worker {
 		int start = os.size();
 		int maskPlane = searchMaskPlane(r.planes);
 		if( maskPlane >= 0) {
-			os.writeByte(MASK_MARKER);
+			os.writeByte(Plane.MASK);
 		    os.write(r.planes.get(maskPlane).plane);
 		}
 		for(int j = 0; j < r.planes.size(); j++) {
@@ -212,7 +211,7 @@ public class AniWriter extends Worker {
 
 	private int searchMaskPlane(List<Plane> planes) {
 		for (int i = 0; i < planes.size(); i++) {
-			if( planes.get(i).marker == MASK_MARKER ) return i;
+			if( planes.get(i).marker == Plane.MASK ) return i;
 		}
 		return -1;
 	}

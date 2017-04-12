@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.rinke.solutions.pinball.DMD;
+import com.rinke.solutions.pinball.PinDmdEditor;
 import com.rinke.solutions.pinball.Worker;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Plane;
@@ -116,9 +117,9 @@ public class Animation {
 
 	private Shell shell;
 	
-	public Animation cutScene( int start, int end, int actualNumberOfPlanes) {
+	public CompiledAnimation cutScene( int start, int end, int actualNumberOfPlanes) {
 		// create a copy of the animation
-		DMD tmp = new DMD(128,32);
+		DMD tmp = new DMD(PinDmdEditor.DMD_WIDTH,PinDmdEditor.DMD_HEIGHT);
 		CompiledAnimation dest = new CompiledAnimation(
 				AnimationType.COMPILED, this.getName(),
 				0, end-start, this.skip, 1, 0);
@@ -137,7 +138,7 @@ public class Animation {
             int marker = targetFrame.planes.size();
 			while( targetFrame.planes.size() < actualNumberOfPlanes ) {
 				// dont copy plane 0
-				targetFrame.planes.add(new Plane((byte)marker++, new byte[512]));
+				targetFrame.planes.add(new Plane((byte)marker++, new byte[PinDmdEditor.PLANE_SIZE]));
 			}
 			LOG.debug("target frame {}",targetFrame);
 			dest.frames.add(targetFrame);
@@ -518,7 +519,7 @@ public class Animation {
                 + ", transitionName=" + transitionName + ", transitionDelay=" + transitionDelay + ", desc=" + desc + "]";
     }
 
-	public void commitDMDchanges(DMD dmd) {
+	public void commitDMDchanges(DMD dmd, byte[] hash) {
 	}
 
 	public boolean isMutable() {

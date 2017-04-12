@@ -1,5 +1,7 @@
 package com.rinke.solutions.pinball.widget;
 
+import java.util.Observable;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Event;
 
@@ -16,7 +18,7 @@ import com.rinke.solutions.pinball.widget.PaletteTool.ColorIndexChangedListerner
  * 
  */
 
-public abstract class DrawTool implements ColorIndexChangedListerner {
+public abstract class DrawTool extends Observable implements ColorIndexChangedListerner {
 	
 	protected int x1 = -1;
 	protected int y1 = -1; // where mouse goes down
@@ -48,6 +50,7 @@ public abstract class DrawTool implements ColorIndexChangedListerner {
         	boolean ret = mouseUp(x, y);
         	x1 = -1;
         	y1 = -1;
+        	setChanged(); notifyObservers();
         	return ret;
         case SWT.MouseMove:
         	return mouseMove(x, y);

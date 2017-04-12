@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.rinke.solutions.pinball.DMD;
+import com.rinke.solutions.pinball.PinDmdEditor;
 import com.rinke.solutions.pinball.model.Frame;
 
 public class ImageIORenderer extends Renderer {
@@ -93,8 +94,8 @@ public class ImageIORenderer extends Renderer {
 
 		Frame res = new Frame(f1, f2);
 
-		for (int x = 0; x < 128; x++) {
-			for (int y = 0; y < 32; y++) {
+		for (int x = 0; x < PinDmdEditor.DMD_WIDTH; x++) {
+			for (int y = 0; y < PinDmdEditor.DMD_HEIGHT; y++) {
 				int rgb = master.getRGB(x, y);
 				int gray = (int) ((0.299f * (rgb >> 24)) + 0.587f
 						* ((rgb >> 16) & 0xFF) + 0.114f * ((rgb >> 8) & 0xFF));
@@ -106,12 +107,12 @@ public class ImageIORenderer extends Renderer {
 				// WCS 20,50,100
 				if (gray > lowThreshold && gray < midThreshold) {
 					// set f1
-					f1[y*dmd.getBytesPerRow() + x / 8] |= (128 >> (x % 8));
+					f1[y*dmd.getBytesPerRow() + x / 8] |= (PinDmdEditor.DMD_WIDTH >> (x % 8));
 				} else if (gray >= midThreshold && gray < highThreshold) {
-					f2[y*dmd.getBytesPerRow() + x / 8] |= (128 >> (x % 8));
+					f2[y*dmd.getBytesPerRow() + x / 8] |= (PinDmdEditor.DMD_WIDTH >> (x % 8));
 				} else if (gray >= highThreshold ) {
-					f1[y*dmd.getBytesPerRow() + x / 8] |= (128 >> (x % 8));
-					f2[y*dmd.getBytesPerRow() + x / 8] |= (128 >> (x % 8));
+					f1[y*dmd.getBytesPerRow() + x / 8] |= (PinDmdEditor.DMD_WIDTH >> (x % 8));
+					f2[y*dmd.getBytesPerRow() + x / 8] |= (PinDmdEditor.DMD_WIDTH >> (x % 8));
 				}
 				if (!grayCounts.containsKey(gray)) {
 					grayCounts.put(gray, 0);
@@ -143,7 +144,7 @@ public class ImageIORenderer extends Renderer {
 	public static void main(String[] args) {
 		Renderer renderer = new ImageIORenderer(null);
 		String base = "/Users/stefanri/Downloads/";
-		DMD dmd = new DMD(128, 32);
+		DMD dmd = new DMD(PinDmdEditor.DMD_WIDTH, PinDmdEditor.DMD_HEIGHT);
 		renderer.convert(base + "pin", dmd, 0);
 	}
 

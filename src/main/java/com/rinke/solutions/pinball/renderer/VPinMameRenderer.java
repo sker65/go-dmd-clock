@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.rinke.solutions.pinball.DMD;
+import com.rinke.solutions.pinball.PinDmdEditor;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Plane;
 
@@ -89,7 +90,7 @@ public class VPinMameRenderer extends Renderer {
 					}
 					int bit = (k % 8);
 					int b = k / 8;
-					int mask = 128 >> bit;
+					int mask = PinDmdEditor.DMD_WIDTH >> bit;
 					int v = Integer.parseInt(line.substring(i,i+1), 16);
 //					inc(count2,v);
 					if( v > vmax ) vmax = v;

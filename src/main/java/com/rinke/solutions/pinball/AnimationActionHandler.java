@@ -115,10 +115,10 @@ public class AnimationActionHandler {
 			editor.scenes.clear();
 			editor.playingAnis.clear();
 		}
-		DMD dmd = new DMD(128,32);
+		DMD dmd = new DMD(PinDmdEditor.DMD_WIDTH,PinDmdEditor.DMD_HEIGHT);
 		for (Animation ani : loadedList) {
 			if( ani.isMutable() ) {
-				populateAni(ani, editor.scenes);
+				populateAni((CompiledAnimation)ani, editor.scenes);
 			} else {
 				populateAni(ani, editor.recordings);
 			}	
@@ -131,7 +131,7 @@ public class AnimationActionHandler {
 		return loadedList;
 	}
 
-	private void populateAni( Animation ani, Map<String, Animation> anis) {
+	private <T extends Animation> void populateAni( T ani, Map<String, T> anis) {
 		if (anis.containsKey(ani.getDesc())) {
 			int i = 0;
 			String desc = ani.getDesc();
@@ -168,10 +168,12 @@ public class AnimationActionHandler {
 	}
 
 	public void onSaveSingleAniWithFC(int version) {
-		String filename = fileChooserUtil.choose(SWT.SAVE, editor.selectedRecording.get().getDesc(), new String[] { "*.ani" }, new String[] { "Animations" });
-		if (filename != null) {
-			log.info("store animation to {}", filename);
-			storeAnimations(Lists.newArrayList(editor.selectedRecording.get()), filename, version, true);
+		if( editor.selectedScene.isPresent() ) {
+			String filename = fileChooserUtil.choose(SWT.SAVE, editor.selectedScene.get().getDesc(), new String[] { "*.ani" }, new String[] { "Animations" });
+			if (filename != null) {
+				log.info("store animation to {}", filename);
+				storeAnimations(Lists.newArrayList(editor.selectedScene.get()), filename, version, true);
+			}
 		}
 	}
 

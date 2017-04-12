@@ -32,8 +32,6 @@ public class AnimationHandler extends Observable implements Runnable{
 	private boolean showClock = true;
 	private int lastRenderedFrame = -1;
 
-	private byte[] mask;
-
 	private boolean forceRerender;
 	private boolean enableClock;
 	
@@ -101,12 +99,12 @@ public class AnimationHandler extends Observable implements Runnable{
 				Frame res = ani.render(dmd,stop);
                 scale.setSelection(ani.actFrame);
                 eventHandler.notifyAni(
-                        new AniEvent(Type.ANI, ani.actFrame, ani, res.getHashes(mask), 
-                                res.timecode, res.delay, res.planes.size(), res ));
+                        new AniEvent(Type.ANI, ani, res ));
                 
                 lastRenderedFrame = ani.actFrame;
                 
-                if( res.containsMask() ) { // there is a mask
+                // only dmd playback nothing goDMD like
+                if( false && res.containsMask() ) { // there is a mask
                     if( ani.getClockFrom()>ani.getTransitionFrom())
                         dmd.writeNotAnd(res.planes.get(2).plane); // mask out clock
                     DMD tmp = new DMD(dmd.getWidth(), dmd.getHeight());
@@ -226,14 +224,6 @@ public class AnimationHandler extends Observable implements Runnable{
 
 	public void setClockActive(boolean clockActive) {
 		this.clockActive = enableClock && clockActive;
-	}
-
-	public void setMask(byte[] mask) {
-		this.mask = mask;
-		if( stop ) {
-			forceRerender = true;
-			run();
-		}
 	}
 
 	public boolean hasAnimations() {

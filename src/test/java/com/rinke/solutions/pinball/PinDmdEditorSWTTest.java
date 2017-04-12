@@ -8,7 +8,6 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.List;
 
-
 import org.eclipse.core.databinding.observable.Realm;
 import org.eclipse.jface.databinding.swt.SWTObservables;
 import org.eclipse.jface.viewers.ISelection;
@@ -73,7 +72,7 @@ public class PinDmdEditorSWTTest {
 			
 		});
 		
-		DMD dmd = new DMD(128,32);
+		DMD dmd = new DMD(PinDmdEditor.DMD_WIDTH, PinDmdEditor.DMD_HEIGHT);
 		
 		uut.animationHandler = new  AnimationHandler(null,uut.clock,dmd);
 		uut.animationHandler.setScale(uut.scale);
@@ -131,8 +130,8 @@ public class PinDmdEditorSWTTest {
 	@Test
 	public void testNotifyAniAni() throws Exception {
 		Animation actAnimation = new CompiledAnimation(AnimationType.COMPILED,"foo",0,0,0,0,0);
-		AniEvent evt = new AniEvent(Type.ANI, 0, actAnimation, uut.hashes, 0,0,0, null);
-		uut.notifyAni(evt );
+		AniEvent evt = new AniEvent(Type.ANI, actAnimation, null);
+		uut.notifyAni(evt);
 	}
 
 	@Test
@@ -291,17 +290,9 @@ public class PinDmdEditorSWTTest {
 		Event e = new Event();
 		Spinner s = Mockito.mock(Spinner.class);
 		e.widget = s;
-		uut.useMask = true;
+		uut.useGlobalMask = true;
 		when(s.getSelection()).thenReturn(Integer.valueOf(1));
 		uut.onMaskNumberChanged(e);
 	}
-
-	@Test
-	public void testActivateMask() throws Exception {
-		Mask mask = new Mask();
-		uut.activateMask(mask);
-	}
-
-
 
 }

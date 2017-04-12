@@ -95,7 +95,7 @@ public class PinDmdEditorIOSWTTest {
 	private void compare(Animation ani, Animation ani2) {
 		int i = ani.getStart();
 		ani.restart(); ani2.restart();
-		DMD dmd = new DMD(128,32);
+		DMD dmd = new DMD(PinDmdEditor.DMD_WIDTH, PinDmdEditor.DMD_HEIGHT);
 		while( i < ani.end ) {
 			Frame f = ani.render(dmd, false);
 			Frame f2 = ani2.render(dmd, false);

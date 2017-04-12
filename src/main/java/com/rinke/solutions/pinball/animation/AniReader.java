@@ -169,9 +169,9 @@ public class AniReader {
 			else mask = p;
 			np--;
 		}
-		// mask plane is the last in list but first in file
+		// mask plane is always the first in the list
 		if( mask != null ) {
-		    f.planes.add( mask );
+		    f.planes.add( 0, mask );
 		    return true;
 		}
 		return false;

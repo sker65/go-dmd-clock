@@ -10,6 +10,7 @@ import ar.com.hjg.pngj.ImageLineInt;
 import ar.com.hjg.pngj.PngReader;
 
 import com.rinke.solutions.pinball.DMD;
+import com.rinke.solutions.pinball.PinDmdEditor;
 import com.rinke.solutions.pinball.model.Frame;
 
 public class PngRenderer extends Renderer {
@@ -87,12 +88,12 @@ public class PngRenderer extends Renderer {
 							scanlineMerge[j * channels + 3] > 0	) {
 						int v = scanline[j * channels + 0] + scanlineMerge[j * channels + 0]*2;
 						if( v == 255 ) {
-							f1[rowOffset + j / 8] |= (128 >> (j % 8));
+							f1[rowOffset + j / 8] |= (PinDmdEditor.DMD_WIDTH >> (j % 8));
 						} else if( v == 510 ) {
-							f2[rowOffset + j / 8] |= (128 >> (j % 8));
+							f2[rowOffset + j / 8] |= (PinDmdEditor.DMD_WIDTH >> (j % 8));
 						} else {
-							f1[rowOffset + j / 8] |= (128 >> (j % 8));
-							f2[rowOffset + j / 8] |= (128 >> (j % 8));
+							f1[rowOffset + j / 8] |= (PinDmdEditor.DMD_WIDTH >> (j % 8));
+							f2[rowOffset + j / 8] |= (PinDmdEditor.DMD_WIDTH >> (j % 8));
 						}
 					}
 				} else {
@@ -105,12 +106,12 @@ public class PngRenderer extends Renderer {
 						
 						if (x > lowThreshold && x < midThreshold) {
 							// set f1
-							f1[rowOffset + j / 8] |= (128 >> (j % 8));
+							f1[rowOffset + j / 8] |= (PinDmdEditor.DMD_WIDTH >> (j % 8));
 						} else if (x >= midThreshold && x < highThreshold) {
-							f2[rowOffset + j / 8] |= (128 >> (j % 8));
+							f2[rowOffset + j / 8] |= (PinDmdEditor.DMD_WIDTH >> (j % 8));
 						} else if (x > highThreshold) {
-							f1[rowOffset + j / 8] |= (128 >> (j % 8));
-							f2[rowOffset + j / 8] |= (128 >> (j % 8));
+							f1[rowOffset + j / 8] |= (PinDmdEditor.DMD_WIDTH >> (j % 8));
+							f2[rowOffset + j / 8] |= (PinDmdEditor.DMD_WIDTH >> (j % 8));
 						}
 						
 					}

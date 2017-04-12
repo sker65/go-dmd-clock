@@ -24,6 +24,7 @@ import org.w3c.dom.NodeList;
 
 import com.google.common.collect.Sets;
 import com.rinke.solutions.pinball.DMD;
+import com.rinke.solutions.pinball.PinDmdEditor;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.RGB;
@@ -124,8 +125,8 @@ public class AnimatedGIFRenderer extends Renderer {
 	            }
 	            
 	            // resize on demand
-	            if( toScan.getWidth() > 128 || toScan.getHeight() > 32 ) {
-	            	toScan = resize(toScan, 128, 32);
+	            if( toScan.getWidth() > PinDmdEditor.DMD_WIDTH || toScan.getHeight() > PinDmdEditor.DMD_HEIGHT ) {
+	            	toScan = resize(toScan, PinDmdEditor.DMD_WIDTH,PinDmdEditor.DMD_HEIGHT);
 	            }
 	            
 /*				for (int x = 0; x < 128; x++) {

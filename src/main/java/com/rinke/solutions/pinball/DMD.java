@@ -55,7 +55,7 @@ public class DMD extends Observable {
     public void copyLastBuffer() {
     	if( actualBuffer>0) {
         	//Frame target = buffers.get(actualBuffer);
-    		log.info("copy buffer {} -> {}, max: {}", actualBuffer-1, actualBuffer, buffers.size());
+    		log.trace("copy buffer {} -> {}, max: {}", actualBuffer-1, actualBuffer, buffers.size());
         	frame = new Frame(buffers.get(actualBuffer-1));
         	buffers.put(actualBuffer, frame);
     	}
@@ -111,16 +111,18 @@ public class DMD extends Observable {
     		frame.planes.add( new Plane((byte)i,new byte[frameSizeInByte]));
         }
         numberOfPlanes = n;
+        log.trace("dmd setNumberOfSubframes {}", n);
     }
 
     public DMD() {
-        this(128, 32);
+        this(PinDmdEditor.DMD_WIDTH, PinDmdEditor.DMD_HEIGHT);
     }
 
     public void setPixel(int x, int y, int v) {
         if( x<0 || y<0 || x>=width || y >= height ) return;
+        v <<= drawShift;
     	int numberOfPlanes = frame.planes.size();
-    	byte mask = (byte) (128 >> (x % 8));
+    	byte mask = (byte) (PinDmdEditor.DMD_WIDTH >> (x % 8));
     	for(int plane = 0; plane < numberOfPlanes; plane++) {
     		if( ((1<<plane) & drawMask) != 0) {
         		if( (v & 0x01) != 0) {
@@ -134,7 +136,7 @@ public class DMD extends Observable {
     }
 
     public int getPixel(int x, int y) {
-    	byte mask = (byte) (128 >> (x % 8));
+    	byte mask = (byte) (PinDmdEditor.DMD_WIDTH >> (x % 8));
     	int v = 0;
     	for(int plane = 0; plane <frame.planes.size(); plane++) {
     		v += (frame.planes.get(plane).plane[x / 8 + y * bytesPerRow] & mask) != 0 ? (1<<plane) : 0;
@@ -144,6 +146,7 @@ public class DMD extends Observable {
    
     public void clear() {
     	updateActualBuffer(0);
+    	removeMask();
         for (Plane p : frame.planes) {
 			Arrays.fill(p.plane, (byte)0);
 		}
@@ -152,11 +155,15 @@ public class DMD extends Observable {
     public void writeOr(Frame src) {
         if (src != null) {
         	//if( src.planes.size()!=3) {
-        		while( frame.planes.size() < src.planes.size() ) {
-        			frame.planes.add(new Plane((byte)0,new byte[bytesPerRow*height]));
+        		if( frame.planes.size() < src.planes.size() ) {
+        			frame.planes.clear();
         		}
-        		numberOfPlanes = frame.planes.size();
-        		for (int i = 0; i < src.planes.size(); i++) {
+        		int i = 0;
+        		while( frame.planes.size() < src.planes.size() ) {
+        			frame.planes.add(new Plane(src.planes.get(i++).marker,new byte[bytesPerRow*height]));
+        		}
+        		//numberOfPlanes = frame.planes.size();
+        		for ( i = 0; i < src.planes.size(); i++) {
 					copyOr(frame.planes.get(i).plane,src.planes.get(i).plane);
 				}
         	//s}
@@ -259,6 +266,7 @@ public class DMD extends Observable {
 
     byte[] m2 = { (byte) 0b10000000, (byte) 0b01000000, (byte) 0b00100000, (byte) 0b00010000, (byte) 0b00001000,
             (byte) 0b00000100, (byte) 0b00000010, (byte) 0b00000001, };
+	private int drawShift;
 
     public byte[] transformFrame1(byte[] in) {
         byte[] t = new byte[in.length];
@@ -314,8 +322,21 @@ public class DMD extends Observable {
 		return drawMask;
 	}
 
+	/**
+	 * draw shift controls a shift of pixel color to set. this is used to control drawing on frames containing
+	 * a mask plane (which is always the first plane).
+	 * so if draw shift is 1 you will draw only in the color planes
+	 * TODO this should be abstracted and handled internally
+	 * @param shift
+	 */
+	public void setDrawShift(int shift) {
+		 this.drawShift = shift;
+		 log.debug("setting draw shift to {}", Integer.toString(shift));
+	}
+
 	public void setDrawMask(int drawMask) {
 		 this.drawMask = drawMask;
+		 log.debug("setting draw mask to {}", Integer.toBinaryString(drawMask));
 	}
 
 	public void setFrame(Frame frame) {
@@ -324,5 +345,21 @@ public class DMD extends Observable {
 		setChanged();
     	notifyObservers();
 	}
+	
+	public boolean hasMask() {
+		return frame.containsMask();
+	}
 
+	public void removeMask() {
+		if( frame.containsMask()) {
+			frame.planes.remove(0);
+		}
+	}
+
+	public void ensureMask(byte[] data) {
+		if(!frame.containsMask()) {
+			frame.planes.add(0, new Plane(Plane.MASK, data));
+		}
+		System.arraycopy(data, 0, frame.getPlaneBytes(0), 0, data.length);
+	}
 }

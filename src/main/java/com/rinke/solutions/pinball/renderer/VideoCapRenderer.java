@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.rinke.solutions.pinball.DMD;
+import com.rinke.solutions.pinball.PinDmdEditor;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Plane;
 import com.rinke.solutions.pinball.renderer.video.FFmpegFrameGrabber;
@@ -89,7 +90,7 @@ public class VideoCapRenderer extends Renderer {
 						h, BufferedImage.TYPE_INT_RGB);
 
 				Graphics graphics = dmdImage.createGraphics();
-				graphics.drawImage(image.getSubimage(getInt("clipx",0), getInt("clipy",0), getInt("clipw",128), getInt("cliph",32)), 0, 0, w,
+				graphics.drawImage(image.getSubimage(getInt("clipx",0), getInt("clipy",0), getInt("clipw",PinDmdEditor.DMD_WIDTH), getInt("cliph",PinDmdEditor.DMD_HEIGHT)), 0, 0, w,
 						h, null);
 				graphics.dispose();
 				

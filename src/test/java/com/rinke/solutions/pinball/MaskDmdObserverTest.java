@@ -10,6 +10,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -51,7 +52,7 @@ public class MaskDmdObserverTest {
 
 	@Test
 	public void testUpdate() throws Exception {
-		DMD mask = new DMD(128, 32);
+		DMD mask = new DMD(PinDmdEditor.DMD_WIDTH, PinDmdEditor.DMD_HEIGHT);
 		uut.setMask(mask);
 		mask.notifyObservers();
 		assertFalse(uut.hasChanged());

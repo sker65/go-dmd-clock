@@ -9,6 +9,7 @@ import java.util.Properties;
 import org.eclipse.swt.widgets.Shell;
 
 import com.rinke.solutions.pinball.DMD;
+import com.rinke.solutions.pinball.PinDmdEditor;
 import com.rinke.solutions.pinball.Worker;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Palette;
@@ -103,7 +104,7 @@ public abstract class Renderer extends Worker {
 				
 				for( int j = 0; j < noOfPlanes ; j++) {
 					if( (idx & (1<<j)) != 0)
-						res.planes.get(j).plane[y * dmd.getBytesPerRow() + x / 8] |= (128 >> (x % 8));
+						res.planes.get(j).plane[y * dmd.getBytesPerRow() + x / 8] |= (PinDmdEditor.DMD_WIDTH >> (x % 8));
 				}
 
 			}
@@ -140,7 +141,7 @@ public abstract class Renderer extends Worker {
 				
 				for( int j = 0; j < 15 ; j++) {
 					if( (nrgb & (1<<j)) != 0)
-						res.planes.get(j).plane[y * dmd.getBytesPerRow() + x / 8] |= (128 >> (x % 8));
+						res.planes.get(j).plane[y * dmd.getBytesPerRow() + x / 8] |= (PinDmdEditor.DMD_WIDTH >> (x % 8));
 				}
 
 			}

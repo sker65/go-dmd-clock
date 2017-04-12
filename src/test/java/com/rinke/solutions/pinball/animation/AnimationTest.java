@@ -7,6 +7,7 @@ import static org.hamcrest.Matchers.notNullValue;
 import org.junit.Test;
 
 import com.rinke.solutions.pinball.DMD;
+import com.rinke.solutions.pinball.PinDmdEditor;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Plane;
 
@@ -22,9 +23,9 @@ public class AnimationTest {
 		assertThat(cutScene.end - cutScene.start, equalTo(10));
 
 		src.actFrame = 10;
-		Frame srcFrame = src.render(new DMD(128, 32), false);
+		Frame srcFrame = src.render(new DMD(PinDmdEditor.DMD_WIDTH, PinDmdEditor.DMD_HEIGHT), false);
 		cutScene.actFrame = 0;
-		Frame destFrame = cutScene.render(new DMD(128, 32), false);
+		Frame destFrame = cutScene.render(new DMD(PinDmdEditor.DMD_WIDTH, PinDmdEditor.DMD_HEIGHT), false);
 		assertThat(srcFrame.planes.size(), equalTo(2));
 		assertThat(destFrame.planes.size(), equalTo(4));
 		int i = 0;

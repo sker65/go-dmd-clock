@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.rinke.solutions.pinball.DMD;
+import com.rinke.solutions.pinball.PinDmdEditor;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.io.GifSequenceWriter;
 import com.rinke.solutions.pinball.model.Frame;
@@ -71,7 +72,7 @@ public class GifExporter extends Dialog {
     
 
     public void exportAni(String filename) {
-		DMD dmd = new DMD(128, 32);
+		DMD dmd = new DMD(PinDmdEditor.DMD_WIDTH, PinDmdEditor.DMD_HEIGHT);
 		
 		DMDWidget dmdWidget = new DMDWidget(shell, 0, dmd,false);
 		dmdWidget.setPalette(palette);

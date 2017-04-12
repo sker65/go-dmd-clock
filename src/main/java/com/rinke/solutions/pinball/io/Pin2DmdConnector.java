@@ -12,6 +12,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.usb4java.Context;
 import org.usb4java.DeviceHandle;
 
+import com.rinke.solutions.pinball.PinDmdEditor;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.Palette;
@@ -146,7 +147,7 @@ public abstract class Pin2DmdConnector {
         try {
         	send(data, usb);
         	doHandShake(usb);
-        	byte[] buffer = new byte[512];
+        	byte[] buffer = new byte[PinDmdEditor.PLANE_SIZE];
         	int read;
         	while( (read = is.read(buffer)) > 0 ){
         		data = buildBuffer(UsbCmd.WRITE_FILE_EX);
@@ -201,8 +202,8 @@ public abstract class Pin2DmdConnector {
     	byte[] buffer = buildFrameBuffer();
     	int i = 0;
     	if( frame.planes.size() == 2 ) {
-//    		byte[] planeOr = new byte[512];
-    		byte[] planeAnd = new byte[512];
+//    		byte[] planeOr = new byte[PinDmdEditor.PLANE_SIZE];
+    		byte[] planeAnd = new byte[PinDmdEditor.PLANE_SIZE];
     		byte[] plane0 = frame.planes.get(0).plane;
     		byte[] plane1 = frame.planes.get(1).plane;
     		
@@ -210,13 +211,13 @@ public abstract class Pin2DmdConnector {
 //				planeOr[j] =  (byte) (plane0[j] | plane1[j]);
 				planeAnd[j] =  (byte) (plane0[j] & plane1[j]);
 			}
-    		System.arraycopy(Frame.transform(plane0), 0, buffer, 4+0*512, 512);
-    		System.arraycopy(Frame.transform(plane1), 0, buffer, 4+2*512, 512);
-    		System.arraycopy(Frame.transform(planeAnd), 0, buffer, 4+1*512, 512);
-    		System.arraycopy(Frame.transform(planeAnd), 0, buffer, 4+3*512, 512);
+    		System.arraycopy(Frame.transform(plane0), 0, buffer, 4+0*PinDmdEditor.PLANE_SIZE, PinDmdEditor.PLANE_SIZE);
+    		System.arraycopy(Frame.transform(plane1), 0, buffer, 4+2*PinDmdEditor.PLANE_SIZE, PinDmdEditor.PLANE_SIZE);
+    		System.arraycopy(Frame.transform(planeAnd), 0, buffer, 4+1*PinDmdEditor.PLANE_SIZE, PinDmdEditor.PLANE_SIZE);
+    		System.arraycopy(Frame.transform(planeAnd), 0, buffer, 4+3*PinDmdEditor.PLANE_SIZE, PinDmdEditor.PLANE_SIZE);
     	} else {
         	for( Plane p : frame.planes) {
-        		System.arraycopy(Frame.transform(p.plane), 0, buffer, 4+i*512, 512);
+        		System.arraycopy(Frame.transform(p.plane), 0, buffer, 4+i*PinDmdEditor.PLANE_SIZE, PinDmdEditor.PLANE_SIZE);
         		if( i++ > 3 ) break;
         	}
     	}

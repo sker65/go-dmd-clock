@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.io.LittleEndianDataInputStream;
 import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.DeviceMode;
+import com.rinke.solutions.pinball.PinDmdEditor;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Plane;
 import com.rinke.solutions.pinball.renderer.Pcap.Header;
@@ -58,7 +59,7 @@ public class PinDumpRenderer extends Renderer {
 				numberOfFrames = 3;
 				break;
 			}
-			int buflen = 512 * numberOfFrames;
+			int buflen = PinDmdEditor.PLANE_SIZE * numberOfFrames;
 			while (stream.available() > 0) {
 				stream.read(tcBuffer);
 				tc = (((int)tcBuffer[3]&0xFF) << 24) + (((int)tcBuffer[2]&0xFF) << 16) 
@@ -77,7 +78,7 @@ public class PinDumpRenderer extends Renderer {
 				} else {
 					res = new Frame();
 					for(int i = 0; i < numberOfFrames; i++) {
-						res.planes.add(new Plane((byte)i, Frame.transform(data, i*512, dmd.getFrameSizeInByte())));
+						res.planes.add(new Plane((byte)i, Frame.transform(data, i*PinDmdEditor.PLANE_SIZE, dmd.getFrameSizeInByte())));
 					}
 				}
 
@@ -117,13 +118,13 @@ public class PinDumpRenderer extends Renderer {
 	}
 
 	private Frame transformPlanes(byte[] data, DeviceMode deviceMode) {
-		byte[] plane1 = new byte[512];
-		byte[] plane2 = new byte[512];
+		byte[] plane1 = new byte[PinDmdEditor.PLANE_SIZE];
+		byte[] plane2 = new byte[PinDmdEditor.PLANE_SIZE];
 		
-		for( int i = 0; i <512 ; i++) {
+		for( int i = 0; i <PinDmdEditor.PLANE_SIZE ; i++) {
 			byte v0 = data[i];
-			byte v1 = data[i+512];
-			byte v2 = data[i+1024];
+			byte v1 = data[i+PinDmdEditor.PLANE_SIZE];
+			byte v2 = data[i+PinDmdEditor.PLANE_SIZE*2];
 			for( int j = 0; j < 8; j++) {				
 				int sum = v0&1 + v1&1 + v2&1;
 				if( (sum&1) != 0) {
@@ -146,7 +147,7 @@ public class PinDumpRenderer extends Renderer {
 	public static void main(String[] args) {
 		PinDumpRenderer renderer = new PinDumpRenderer();
 		String base = "/Users/stefanri/Documents/";
-		DMD dmd = new DMD(128, 32);
+		DMD dmd = new DMD(PinDmdEditor.DMD_WIDTH, PinDmdEditor.DMD_HEIGHT);
 		renderer.convert(base + "250216_224617_pin2dmd.dump.gz", dmd, 0);
 		List<Frame> frames = renderer.getFrames();
 		try {
