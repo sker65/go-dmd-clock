@@ -6,23 +6,23 @@ import org.eclipse.jface.viewers.EditingSupport;
 import org.eclipse.jface.viewers.TextCellEditor;
 import org.eclipse.swt.widgets.Composite;
 
-public class GenericTextCellEditor extends EditingSupport {
+public class GenericTextCellEditor<T> extends EditingSupport {
 
 	private TextCellEditor editor;
-	private StringExtractor ext;
-	private StringSetter setter;
+	private StringExtractor<T> ext;
+	private StringSetter<T> setter;
 	
 	@FunctionalInterface
-    public interface StringExtractor {
-        String get(Object o);
+    public interface StringExtractor<T> {
+        String get(T o);
     }
 
 	@FunctionalInterface
-    public interface StringSetter {
-        void setString(Object o, String v);
+    public interface StringSetter<T> {
+        void setString(T o, String v);
     }
 
-	public GenericTextCellEditor(ColumnViewer viewer, StringExtractor ext, StringSetter setter ) {
+	public GenericTextCellEditor(ColumnViewer viewer, StringExtractor<T> ext, StringSetter<T> setter ) {
 		super(viewer);
 		Composite parent = (Composite) viewer.getControl();
 		this.editor = new TextCellEditor(parent);
@@ -42,12 +42,12 @@ public class GenericTextCellEditor extends EditingSupport {
 
 	@Override
 	protected Object getValue(Object element) {
-		return ext.get(element);
+		return ext.get((T) element);
 	}
 
 	@Override
 	protected void setValue(Object element, Object value) {
-		setter.setString(element, (String)value);
+		setter.setString((T) element, (String)value);
 		getViewer().update(element, null);
 	}
 

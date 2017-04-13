@@ -156,6 +156,8 @@ public class PinDmdEditor implements EventHandler {
 
 	ObservableMap<String, Animation> recordings = new ObservableMap<String, Animation>(new LinkedHashMap<>());
 	ObservableMap<String, CompiledAnimation> scenes = new ObservableMap<String, CompiledAnimation>(new LinkedHashMap<>());
+	Map<String,Integer> recordingsPosMap = new HashMap<String, Integer>();
+	Map<String,Integer> scenesPosMap = new HashMap<String, Integer>();
 
 	Map<String, DrawTool> drawTools = new HashMap<>();
 
@@ -1024,7 +1026,7 @@ public class PinDmdEditor implements EventHandler {
 	 * Create contents of the window.
 	 */
 	void createContents(Shell shell) {
-		shell.setSize(1238, 657);
+		shell.setSize(1328, 657);
 		shell.setText("Pin2dmd - Editor");
 		shell.setLayout(new GridLayout(5, false));
 
@@ -1076,14 +1078,13 @@ public class PinDmdEditor implements EventHandler {
 		
 		// created edit support for ani / recordings
 		TableViewerColumn viewerCol1 = new TableViewerColumn(aniListViewer, SWT.LEFT);
-		viewerCol1.setEditingSupport(new GenericTextCellEditor(aniListViewer, e -> ((Animation) e).getDesc(), (e, v) -> {
-			Animation ani = (Animation) e;
+		viewerCol1.setEditingSupport(new GenericTextCellEditor<Animation>(aniListViewer, ani -> ani.getDesc(), (ani, v) -> {
 			updateAnimationMapKey(ani.getDesc(), v, recordings);
 			ani.setDesc(v);
 			frameSeqViewer.refresh();
 		}));
 		viewerCol1.getColumn().setWidth(colWidth);
-		viewerCol1.setLabelProvider(new IconLabelProvider(shell, o -> ((Animation) o).getIconAndText() ));
+		viewerCol1.setLabelProvider(new IconLabelProvider<Animation>(shell, o -> o.getIconAndText() ));
 		
 		sceneListViewer = new TableViewer(shell, SWT.SINGLE | SWT.BORDER | SWT.V_SCROLL);
 		Table sceneList = sceneListViewer.getTable();
@@ -1099,14 +1100,13 @@ public class PinDmdEditor implements EventHandler {
 		sceneListViewer.addSelectionChangedListener(event -> onSceneSelectionChanged(getFirstSelected(event)));
 
 		TableViewerColumn viewerCol2 = new TableViewerColumn(sceneListViewer, SWT.LEFT);
-		viewerCol2.setEditingSupport(new GenericTextCellEditor(sceneListViewer, e -> ((Animation) e).getDesc(), (e, v) -> {
-			Animation ani = (Animation) e;
+		viewerCol2.setEditingSupport(new GenericTextCellEditor<Animation>(sceneListViewer, ani -> ani.getDesc(), (ani, v) -> {
 			updateAnimationMapKey(ani.getDesc(), v, scenes);
 			ani.setDesc(v);
 			frameSeqViewer.refresh();
 		}));
 		viewerCol2.getColumn().setWidth(colWidth);
-		viewerCol2.setLabelProvider(new IconLabelProvider(shell, o -> ((Animation) o).getIconAndText() ));
+		viewerCol2.setLabelProvider(new IconLabelProvider<Animation>(shell, ani -> ani.getIconAndText() ));
 
 		keyframeTableViewer = new TableViewer(shell, SWT.SINGLE | SWT.BORDER | SWT.V_SCROLL);
 		Table keyframeList = keyframeTableViewer.getTable();
@@ -1123,13 +1123,10 @@ public class PinDmdEditor implements EventHandler {
 		keyframeTableViewer.addSelectionChangedListener(event -> onKeyframeChanged(event));
 
 		TableViewerColumn viewerColumn = new TableViewerColumn(keyframeTableViewer, SWT.LEFT);
-		viewerColumn.setEditingSupport(new GenericTextCellEditor(keyframeTableViewer, e -> ((PalMapping) e).name, (e, v) -> {
-			((PalMapping) e).name = v;
-		}));
+		viewerColumn.setEditingSupport(new GenericTextCellEditor<PalMapping>(keyframeTableViewer, e -> e.name, (e, v) -> { e.name = v; }));
 
 		viewerColumn.getColumn().setWidth(colWidth);
-		viewerColumn.setLabelProvider(new IconLabelProvider(shell, o -> Pair.of(
-				((PalMapping)o).switchMode.name().toLowerCase(), ((PalMapping)o).name ) ));
+		viewerColumn.setLabelProvider(new IconLabelProvider<PalMapping>(shell, o -> Pair.of(o.switchMode.name().toLowerCase(), o.name ) ));
 
 		dmdWidget = new DMDWidget(shell, SWT.DOUBLE_BUFFERED, this.dmd, true);
 		// dmdWidget.setBounds(0, 0, 700, 240);
@@ -1143,7 +1140,6 @@ public class PinDmdEditor implements EventHandler {
 		Composite composite_1 = new Composite(shell, SWT.NONE);
 		composite_1.setLayout(new GridLayout(2, false));
 		GridData gd_composite_1 = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
-		gd_composite_1.heightHint = 35;
 		gd_composite_1.widthHint = listWidth;
 		composite_1.setLayoutData(gd_composite_1);
 
@@ -1163,23 +1159,24 @@ public class PinDmdEditor implements EventHandler {
 		composite_4.setLayout(new GridLayout(2, false));
 		
 		btnRemoveScene = new Button(composite_4, SWT.NONE);
+		btnRemoveScene.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
 		btnRemoveScene.setEnabled(false);
 		btnRemoveScene.setText("Remove");
 		btnRemoveScene.addListener(SWT.Selection, e -> onRemove(selectedScene, scenes) );
 		
 		Button btnSortScene = new Button(composite_4, SWT.NONE);
+		btnSortScene.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
 		btnSortScene.setText("Sort");
 		btnSortScene.addListener(SWT.Selection, e -> onSortAnimations(scenes));
 
 		Composite composite_2 = new Composite(shell, SWT.NONE);
 		composite_2.setLayout(new GridLayout(3, false));
 		GridData gd_composite_2 = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
-		gd_composite_2.heightHint = 35;
 		gd_composite_2.widthHint = listWidth;
 		composite_2.setLayoutData(gd_composite_2);
 
 		btnDeleteKeyframe = new Button(composite_2, SWT.NONE);
-		GridData gd_btnDeleteKeyframe = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+		GridData gd_btnDeleteKeyframe = new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1);
 		gd_btnDeleteKeyframe.widthHint = 88;
 		btnDeleteKeyframe.setLayoutData(gd_btnDeleteKeyframe);
 		btnDeleteKeyframe.setText("Remove");
@@ -1193,12 +1190,15 @@ public class PinDmdEditor implements EventHandler {
 		});
 
 		Button btnSortKeyFrames = new Button(composite_2, SWT.NONE);
+		btnSortKeyFrames.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
 		btnSortKeyFrames.setText("Sort");
 		btnSortKeyFrames.addListener(SWT.Selection, e -> onSortKeyFrames());
 		new Label(composite_2, SWT.NONE);
 
 		scale = new Scale(shell, SWT.NONE);
-		scale.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 2, 1));
+		GridData gd_scale = new GridData(SWT.LEFT, SWT.CENTER, false, false, 2, 1);
+		gd_scale.widthHint = 790;
+		scale.setLayoutData(gd_scale);
 		scale.addListener(SWT.Selection, e -> animationHandler.setPos(scale.getSelection()));
 
 		Group grpKeyframe = new Group(shell, SWT.NONE);
@@ -1295,7 +1295,10 @@ public class PinDmdEditor implements EventHandler {
 		GridData gd_lblNewLabel = new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1);
 		gd_lblNewLabel.widthHint = 121;
 		lblNewLabel.setLayoutData(gd_lblNewLabel);
-		new Label(grpKeyframe, SWT.NONE);
+		
+		Label lblEvent = new Label(grpKeyframe, SWT.NONE);
+		lblEvent.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+		lblEvent.setText("Event:");
 		
 		Composite composite_5 = new Composite(grpKeyframe, SWT.NONE);
 		GridLayout gl_composite_5 = new GridLayout(2, false);
@@ -1388,7 +1391,7 @@ public class PinDmdEditor implements EventHandler {
 
 		Composite composite = new Composite(shell, SWT.NONE);
 		composite.setLayout(new GridLayout(9, false));
-		composite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 2, 1));
+		composite.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 2, 1));
 
 		btnStartStop = new Button(composite, SWT.NONE);
 		btnStartStop.setText("Start");
@@ -1522,7 +1525,7 @@ public class PinDmdEditor implements EventHandler {
 		gl_composite_3.marginWidth = 0;
 		gl_composite_3.marginHeight = 0;
 		composite_3.setLayout(gl_composite_3);
-		GridData gd_composite_3 = new GridData(SWT.RIGHT, SWT.FILL, false, false, 1, 2);
+		GridData gd_composite_3 = new GridData(SWT.RIGHT, SWT.FILL, true, false, 1, 2);
 		gd_composite_3.heightHint = 190;
 		gd_composite_3.widthHint = 338;
 		composite_3.setLayoutData(gd_composite_3);
@@ -1760,13 +1763,31 @@ public class PinDmdEditor implements EventHandler {
 		if( dmdWidget.isShowMask() ) {
 			onMaskChecked(true);
 		}
+		if( editMode.equals(EditMode.FOLLOW) && selectedScene.isPresent()) {
+			selectHash(selectedScene.get());
+		}
 	}
 	
+	private void selectHash(CompiledAnimation ani) {
+		byte[] crc32 = ani.frames.get(ani.actFrame).crc32;
+		for( int i =0; i < hashes.size(); i++ ) {
+			if( Arrays.equals(hashes.get(i), crc32) ) {
+				selectedHashIndex = i;
+			}
+		}
+		for (int j = 0; j < numberOfHashes; j++) {
+			btnHash[j].setSelection(j == selectedHashIndex);
+		}
+	}
+
 	private void onNextFrameClicked() {
 		selectedScene.ifPresent(a->a.commitDMDchanges(dmd,hashes.get(selectedHashIndex)));
 		animationHandler.next();
 		if( dmdWidget.isShowMask() ) {
 			onMaskChecked(true);
+		}
+		if( editMode.equals(EditMode.FOLLOW) && selectedScene.isPresent()) {
+			selectHash(selectedScene.get());
 		}
 	}
 	
@@ -1845,10 +1866,11 @@ public class PinDmdEditor implements EventHandler {
 		onMaskChecked(useGlobalMask);
 	}
 	
-	private void setPlayingAni( Animation ani) {
+	private void setPlayingAni(Animation ani, int pos) {
 		playingAnis.clear();
 		playingAnis.add(ani);
 		animationHandler.setAnimations(playingAnis);
+		animationHandler.setPos(pos);
 		dmdRedraw();
 	}
 	
@@ -1860,6 +1882,7 @@ public class PinDmdEditor implements EventHandler {
 		Animation current = selectedScene.get();
 		// detect changes
 		if(a!= null && current != null && a.getDesc().equals(current.getDesc())) return;
+		if( current != null ) scenesPosMap.put(current.getDesc(), current.actFrame);
 		if( a != null ) {
 			// deselect recording
 			aniListViewer.setSelection(StructuredSelection.EMPTY);
@@ -1895,7 +1918,7 @@ public class PinDmdEditor implements EventHandler {
 			dmd.setNumberOfSubframes(numberOfPlanes);
 			paletteTool.setNumberOfPlanes(useGlobalMask?1:numberOfPlanes);
 
-			setPlayingAni(a);
+			setPlayingAni(a, scenesPosMap.getOrDefault(a.getDesc(), 0));
 			
 		} else {
 			selectedScene.set(null);
@@ -1908,7 +1931,7 @@ public class PinDmdEditor implements EventHandler {
 		log.info("onRecordingSelectionChanged: {}", a);
 		Animation current = selectedRecording.get();
 		if(a!= null && current != null && a.getDesc().equals(current.getDesc())) return;
-		
+		if( current != null ) recordingsPosMap.put(current.getDesc(), current.actFrame);
 		if( a != null) {		
 			sceneListViewer.setSelection(StructuredSelection.EMPTY);
 			btnMask.setEnabled(true);
@@ -1933,7 +1956,7 @@ public class PinDmdEditor implements EventHandler {
 			//onColorMaskChecked(a.getEditMode()==EditMode.COLMASK);// doesnt fire event?????
 			dmd.setNumberOfSubframes(numberOfPlanes);
 			paletteTool.setNumberOfPlanes(useGlobalMask?1:numberOfPlanes);
-			setPlayingAni(a);
+			setPlayingAni(a, recordingsPosMap.getOrDefault(a.getDesc(), 0));
 
 		} else {
 			selectedRecording.set(null);
@@ -1942,6 +1965,7 @@ public class PinDmdEditor implements EventHandler {
 		btnRemoveAni.setEnabled(a != null);
 		btnAddKeyframe.setEnabled(a != null);
 		btnAddFrameSeq.setEnabled(a!=null && frameSeqViewer.getSelection() != null);
+		btnAddEvent.setEnabled(a != null);
 	}
 	
 	private void onApplyPalette(Palette selectedPalette) {
