@@ -94,4 +94,14 @@ public class ApplicationProperties {
 		String val = get(key);
 		return val!=null?Boolean.parseBoolean(val):defaultVal;	
 	}
+	
+	public static int getInteger(String key) {
+		return getInteger(key, 0);
+	}
+
+	public static int getInteger(String key, int defaultVal) {
+		String val = get(key);
+		return val!=null?Integer.parseInt(val):defaultVal;	
+	}
+
 }

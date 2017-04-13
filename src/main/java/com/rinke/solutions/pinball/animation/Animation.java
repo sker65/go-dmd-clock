@@ -3,6 +3,7 @@ package com.rinke.solutions.pinball.animation;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -10,6 +11,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableMap;
 import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.PinDmdEditor;
 import com.rinke.solutions.pinball.Worker;
@@ -69,9 +71,15 @@ public class Animation {
 	
 	private boolean trueColor;
 	protected boolean clockWasAdded;
-	
+
 	public enum EditMode {
-		REPLACE, COLMASK, FIXED, FOLLOW;
+		REPLACE("Replace"), COLMASK("Color Mask"), FIXED("Fixed"), FOLLOW("Color Mask Seq.");
+
+		public final String label;
+		
+		private EditMode(String label) {
+			this.label = label;
+		}
 
 		public static EditMode fromOrdinal(byte emo) {
 			for (EditMode em : values()) {
@@ -79,6 +87,7 @@ public class Animation {
 			}
 			return null;
 		}
+
 	}
 	
 	private EditMode editMode = EditMode.FIXED;

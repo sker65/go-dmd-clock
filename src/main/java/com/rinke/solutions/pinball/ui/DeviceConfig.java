@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ComboViewer;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
@@ -23,13 +24,17 @@ import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.rinke.solutions.pinball.DmdSize;
+import com.rinke.solutions.pinball.LabelProviderAdapter;
 import com.rinke.solutions.pinball.PinDmdEditor;
+import com.rinke.solutions.pinball.animation.Animation.EditMode;
 import com.rinke.solutions.pinball.io.ConnectorFactory;
 import com.rinke.solutions.pinball.io.IpConnector;
 import com.rinke.solutions.pinball.io.Pin2DmdConnector;
 import com.rinke.solutions.pinball.io.Pin2DmdConnector.ConnectionHandle;
 import com.rinke.solutions.pinball.model.DefaultPalette;
 import com.rinke.solutions.pinball.model.DeviceMode;
+import com.rinke.solutions.pinball.util.ApplicationProperties;
 
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -47,9 +52,14 @@ public class DeviceConfig extends Dialog {
     private Combo deviceModeCombo;
     private Combo comboDefaultPalette;
     private Text pin2dmdHost;
+    private DmdSize dmdSize;
     
     public String getPin2DmdHost() {
     	return address;
+    }
+    
+    public DmdSize getDmdSize() {
+    	return (DmdSize) ((StructuredSelection)dmdSizeViewer.getSelection()).getFirstElement();
     }
 
     /**
@@ -59,7 +69,8 @@ public class DeviceConfig extends Dialog {
      */
     public DeviceConfig(Shell parent) {
         super(parent, SWT.CLOSE | SWT.TITLE | SWT.BORDER | SWT.OK | SWT.APPLICATION_MODAL);
-        setText("Device Config");
+        setText("Configuration");
+        dmdSize = DmdSize.fromOrdinal(ApplicationProperties.getInteger("dmdSize",0));
     }
 
     // testability overridden by tests
@@ -105,6 +116,10 @@ public class DeviceConfig extends Dialog {
     private String address;
 	private Button btnInvertClock;
 	private Scale scBrightness;
+	private Group grpConfig;
+	private FormData fd_grpWifi;
+	private FormData fd_grpConfig;
+	private ComboViewer dmdSizeViewer;
 
     /**
      * Open the dialog.
@@ -115,6 +130,33 @@ public class DeviceConfig extends Dialog {
         this.address = address;
         
         pin2dmdHost.setText(address!=null?address:"");
+        
+        Group grpDmd = new Group(shell, SWT.NONE);
+        fd_grpConfig.bottom = new FormAttachment(100, -292);
+        fd_grpWifi.top = new FormAttachment(grpDmd, 6);
+        grpDmd.setText("DMD");
+        FormData fd_grpDmd = new FormData();
+        fd_grpDmd.bottom = new FormAttachment(grpConfig, 73, SWT.BOTTOM);
+        fd_grpDmd.right = new FormAttachment(grpConfig, 0, SWT.RIGHT);
+        fd_grpDmd.top = new FormAttachment(0, 171);
+        fd_grpDmd.left = new FormAttachment(grpConfig, 0, SWT.LEFT);
+        grpDmd.setLayoutData(fd_grpDmd);
+        
+        dmdSizeViewer = new ComboViewer(grpDmd, SWT.READ_ONLY);
+        Combo combo = dmdSizeViewer.getCombo();
+        combo.setBounds(10, 10, 137, 22);
+        dmdSizeViewer.setContentProvider(ArrayContentProvider.getInstance());
+		dmdSizeViewer.setLabelProvider(new LabelProviderAdapter<DmdSize>(o -> o.label ));
+		dmdSizeViewer.setInput(DmdSize.values());
+		dmdSizeViewer.setSelection(new StructuredSelection(dmdSize));
+        
+        Button btnOk = new Button(shell, SWT.NONE);
+        FormData fd_btnOk = new FormData();
+        fd_btnOk.left = new FormAttachment(grpConfig, -65);
+        fd_btnOk.bottom = new FormAttachment(100, -10);
+        fd_btnOk.right = new FormAttachment(100, -10);
+        btnOk.setLayoutData(fd_btnOk);
+        btnOk.setText("Ok");
         
         shell.open();
         shell.layout();
@@ -132,12 +174,12 @@ public class DeviceConfig extends Dialog {
      */
     void createContents() {
         shell = new Shell(getParent(), getStyle());
-        shell.setSize(480, 360);
+        shell.setSize(480, 479);
         shell.setText("Device Configuration");
         shell.setLayout(new FormLayout());
         
-        Group grpConfig = new Group(shell, SWT.NONE);
-        FormData fd_grpConfig = new FormData();
+        grpConfig = new Group(shell, SWT.NONE);
+        fd_grpConfig = new FormData();
         fd_grpConfig.top = new FormAttachment(0, 10);
         fd_grpConfig.left = new FormAttachment(0, 10);
         fd_grpConfig.right = new FormAttachment(0, 470);
@@ -178,7 +220,6 @@ public class DeviceConfig extends Dialog {
         btnCancel.addListener(SWT.Selection, e->shell.close());
         
         Group grpWifi = new Group(shell, SWT.NONE);
-        fd_grpConfig.bottom = new FormAttachment(grpWifi, -56);
         
         Label lblInvertClock = new Label(grpConfig, SWT.NONE);
         lblInvertClock.setText("Enhancer");
@@ -200,11 +241,10 @@ public class DeviceConfig extends Dialog {
         new Label(grpConfig, SWT.NONE);
         grpWifi.setText("WiFi");
         grpWifi.setLayout(new GridLayout(3, false));
-        FormData fd_grpWifi = new FormData();
-        fd_grpWifi.left = new FormAttachment(0, 10);
-        fd_grpWifi.right = new FormAttachment(100, -8);
-        fd_grpWifi.bottom = new FormAttachment(100, -10);
-        fd_grpWifi.top = new FormAttachment(0, 244);
+        fd_grpWifi = new FormData();
+        fd_grpWifi.right = new FormAttachment(grpConfig, 2, SWT.RIGHT);
+        fd_grpWifi.left = new FormAttachment(grpConfig, 0, SWT.LEFT);
+        fd_grpWifi.bottom = new FormAttachment(100, -75);
         grpWifi.setLayoutData(fd_grpWifi);
         
         Label lblAdress = new Label(grpWifi, SWT.NONE);
