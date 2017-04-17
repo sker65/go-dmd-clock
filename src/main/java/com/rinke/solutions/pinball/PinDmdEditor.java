@@ -51,10 +51,14 @@ import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.dnd.ImageTransfer;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.dnd.TransferData;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.program.Program;
@@ -131,6 +135,7 @@ import com.rinke.solutions.pinball.widget.DrawTool;
 import com.rinke.solutions.pinball.widget.FloodFillTool;
 import com.rinke.solutions.pinball.widget.LineTool;
 import com.rinke.solutions.pinball.widget.PaletteTool;
+import com.rinke.solutions.pinball.widget.PasteTool;
 import com.rinke.solutions.pinball.widget.RectTool;
 import com.rinke.solutions.pinball.widget.SetPixelTool;
 
@@ -410,10 +415,11 @@ public class PinDmdEditor implements EventHandler {
 					PinDmdEditor window = new PinDmdEditor();
 					window.open(args);
 				} catch (Exception e) {
-					e.printStackTrace();
+					log.error("unexpected exception", e);
 				}
 			}
 		});
+		log.info("exiting");
 	}
 
 	private void saveHashes(java.util.List<byte[]> hashes) {
@@ -792,7 +798,7 @@ public class PinDmdEditor implements EventHandler {
 	}
 
 	void exportProject(String filename, OutputStreamProvider streamProvider, boolean realPin) {
-
+		log.info("export project {} file {}", realPin?"real":"vpin", filename);
 		licManager.requireOneOf(Capability.VPIN, Capability.REALPIN, Capability.GODMD);
 
 		// rebuild frame seq map	
@@ -830,7 +836,7 @@ public class PinDmdEditor implements EventHandler {
 			}
 			if( !anis.isEmpty() ) {
 				String aniFilename = replaceExtensionTo("vni", filename);
-				AniWriter aniWriter = new AniWriter(anis, aniFilename, 3, project.palettes, null);
+				AniWriter aniWriter = new AniWriter(anis, aniFilename, 4, project.palettes, null);
 				aniWriter.setHeader("VPIN");
 				aniWriter.run();
 				try {
@@ -872,6 +878,7 @@ public class PinDmdEditor implements EventHandler {
 				Map<String, Integer> map = new HashMap<String, Integer>();
 				BinaryExporter exporter = BinaryExporterFactory.getInstance();
 				if (!project.frameSeqMap.isEmpty()) {
+					log.info("exporter instance {} wrinting FSQ", exporter);
 					DataOutputStream dos = new DataOutputStream(streamProvider.buildStream(replaceExtensionTo("fsq", filename)));
 					map = exporter.writeFrameSeqTo(dos, project, 2);
 					dos.close();
@@ -2206,6 +2213,8 @@ public class PinDmdEditor implements EventHandler {
 			for (int j = 0; j < numberOfHashes; j++) {
 				btnHash[j].setSelection(j == selectedHashIndex);
 			}
+			
+			onSceneSelectionChanged(null);
 
 			selectedRecording.set(recordings.get(selectedPalMapping.animationName));
 			setViewerSelection(aniListViewer, selectedRecording.get());
@@ -2484,9 +2493,15 @@ public class PinDmdEditor implements EventHandler {
 		mntmAbout.addListener(SWT.Selection, e -> new About(shell).open(pluginsPath, loadedPlugins));
 	}
 
-	private Object onPasteHoover() {
-		// TODO Auto-generated method stub
-		return null;
+	private void onPasteHoover() {
+		String data = (String) clipboard.getContents(TextTransfer.getInstance());
+		if (data != null && data.length() > 0) {
+			byte[] frameData = getPlaneDateFromString(data);
+				PasteTool pasteTool = new PasteTool(0);
+				pasteTool.setDataToPaste(frameData);
+				pasteTool.setMaskOnly(dmdWidget.isShowMask());
+				dmdWidget.setDrawTool(pasteTool);
+		}
 	}
 
 	private void onCopy() {
@@ -2521,12 +2536,20 @@ public class PinDmdEditor implements EventHandler {
 	}
 
 	private void onPaste() {
+		for( String item : clipboard.getAvailableTypeNames() ) {
+			log.info("Clipboard type: {}", item);
+		}
+		ImageData imageData = (ImageData) clipboard.getContents(ImageTransfer.getInstance());
+		if( imageData != null ) {
+			Image image = new Image(display, imageData);
+			
+		}
 		String data = (String) clipboard.getContents(TextTransfer.getInstance());
 		if (data != null && data.length() > 0) {
 			byte[] frameData = getPlaneDateFromString(data);
 			if (dmdWidget.isShowMask()) {
 				dmd.addUndoBuffer();
-				dmd.getFrame().setMask(Arrays.copyOf(frameData, 512));
+				dmd.getFrame().setMask(Arrays.copyOf(frameData, PLANE_SIZE));
 			} else {
 				dmd.addUndoBuffer();
 				int mask = dmd.getDrawMask();
@@ -2534,9 +2557,9 @@ public class PinDmdEditor implements EventHandler {
 				int sPos = 0;
 				for( int j = 0; j < f.planes.size(); j++) {
 					if (((1 << j) & mask) != 0) {
-						if( frameData.length>= sPos+512)
-							System.arraycopy(frameData, sPos, f.planes.get(j).plane, 0, 512);
-						sPos += 512;
+						if( frameData.length>= sPos+PLANE_SIZE)
+							System.arraycopy(frameData, sPos, f.planes.get(j).plane, 0, PLANE_SIZE);
+						sPos += PLANE_SIZE;
 					}
 				}
 			}
