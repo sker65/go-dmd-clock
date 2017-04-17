@@ -98,6 +98,9 @@ public class AniWriter extends Worker {
 
 					// delay is set per frame, equal delay is just one possibility
 					os.writeShort(frame.delay);
+					if(version >= 4 ) {
+						os.write(frame.crc32);
+					}
 					os.writeByte(frame.planes.size());
 					
 					if( version < 3 ) {

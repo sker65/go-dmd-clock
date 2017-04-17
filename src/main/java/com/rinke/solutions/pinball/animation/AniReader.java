@@ -127,9 +127,15 @@ public class AniReader {
 		while(frames>0) {
 			int size = is.readShort(); // framesize in byte
 			int delay = is.readShort();
+			byte[] crc32 = new byte[4];
+			if(version >= 4 ) {
+				is.read(crc32);
+			}
+
 			int numberOfPlanes = is.readByte();
 			Frame f = new Frame();
 			f.delay = delay;
+			f.setHash(crc32);
 			a.addFrame(f);
 			boolean foundMask = false;
 			if( version >= 3 ) {
@@ -143,12 +149,12 @@ public class AniReader {
 					HeatShrinkDecoder dec = new HeatShrinkDecoder(10,5,1024);
 					dec.decode(bis, b2);
 					DataInputStream is2 = new DataInputStream(new ByteArrayInputStream(b2.toByteArray()));
-					foundMask = readPlanes(f, numberOfPlanes, size, is2);
+					foundMask = readPlanes(f, numberOfPlanes, size, is2, version);
 				} else {
-					foundMask = readPlanes(f, numberOfPlanes, size, is);
+					foundMask = readPlanes(f, numberOfPlanes, size, is, version);
 				}
 			} else {
-				foundMask = readPlanes(f, numberOfPlanes, size, is);
+				foundMask = readPlanes(f, numberOfPlanes, size, is, version);
 			}
 			if( foundMask && a.getTransitionFrom()==0) a.setTransitionFrom(i);
 			i++;
@@ -157,7 +163,7 @@ public class AniReader {
 	}
 
 
-	private static boolean readPlanes(Frame f, int numberOfPlanes, int size, DataInputStream is) throws IOException {
+	private static boolean readPlanes(Frame f, int numberOfPlanes, int size, DataInputStream is, int version) throws IOException {
 		Plane mask = null;
 		int np = numberOfPlanes;
 		while( np>0) {
