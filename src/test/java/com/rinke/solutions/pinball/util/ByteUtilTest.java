@@ -13,7 +13,7 @@ public class ByteUtilTest {
 	public void testShiftLeft() {
 		byte[] test = {(byte)0xff, (byte)0xff};
 		for( int i = 0; i < 16; i++) {
-			ByteUtil.shiftLeft(test, 1);
+			ByteUtil.shiftLeft(test, 1, false);
 			System.out.println(toBitString(test));
 		}
 	}
@@ -22,15 +22,35 @@ public class ByteUtilTest {
 	public void testShiftLeft2() {
 		byte[] test = {(byte)0xff, (byte)0xff, (byte)0xff, (byte)0xff, (byte)0x0f, (byte)0xff};
 		System.out.println(toBitString(test));
-		ByteUtil.shiftLeft(test, 13);
+		ByteUtil.shiftLeft(test, 13, false);
 		System.out.println(toBitString(test));
+	}
+
+	@Test
+	public void testShiftLeft3() {
+		byte[] test = {(byte)0xff, (byte)0xff, (byte)0xff, (byte)0, (byte)0x0f, (byte)0};
+		System.out.println(toBitString(test));
+		for( int i = 0; i < 16; i++) {
+			ByteUtil.shiftLeft(test, 1, true);
+			System.out.println(toBitString(test));
+		}
+	}
+
+	@Test
+	public void testShiftRicht3() {
+		byte[] test = {(byte)0xff, (byte)0xff, (byte)0xff, (byte)0, (byte)0x0f, (byte)0};
+		System.out.println(toBitString(test));
+		for( int i = 0; i < 16; i++) {
+			ByteUtil.shiftRight(test, 1, true);
+			System.out.println(toBitString(test));
+		}
 	}
 
 	@Test
 	public void testShiftRight() {
 		byte[] test = {(byte)0xff, (byte)0xff};
 		for( int i = 0; i < 16; i++) {
-			ByteUtil.shiftRight(test, 1);
+			ByteUtil.shiftRight(test, 1, false);
 			System.out.println(toBitString(test));
 		}
 	}
@@ -39,7 +59,7 @@ public class ByteUtilTest {
 	public void testShiftRight2() {
 		byte[] test = {(byte)0xff, (byte)0x0f, (byte)0xff, (byte)0xff, (byte)0xff, (byte)0xff};
 		System.out.println(toBitString(test));
-		ByteUtil.shiftRight(test, 13);
+		ByteUtil.shiftRight(test, 13, false);
 		System.out.println(toBitString(test));
 	}
 
