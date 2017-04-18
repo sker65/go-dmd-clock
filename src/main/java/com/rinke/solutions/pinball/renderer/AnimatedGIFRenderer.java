@@ -164,9 +164,9 @@ public class AnimatedGIFRenderer extends Renderer {
 				frames.add(new Frame(f1, f2));*/
 
 	            if( palette.numberOfColors < 256 ) {
-	            	frames.add(convertToFrameWithPalette(toScan, dmd, palette));
+	            	frames.add(ImageUtil.convertToFrameWithPalette(toScan, dmd, palette));
 	            } else {
-	            	frames.add(convertToFrame(toScan, dmd));
+	            	frames.add(ImageUtil.convertToFrame(toScan, dmd.getWidth(), dmd.getHeight()));
 	            }
 
 				frameNo++;

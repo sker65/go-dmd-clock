@@ -42,10 +42,10 @@ public class VPinMameRenderer extends Renderer {
 							new FileInputStream(new File(filename)))));
 			String line = stream.readLine();
 			Frame res = new Frame(
-					new byte[dmd.getFrameSizeInByte()],
-					new byte[dmd.getFrameSizeInByte()],
-					new byte[dmd.getFrameSizeInByte()],
-					new byte[dmd.getFrameSizeInByte()]);
+					new byte[dmd.getPlaneSizeInByte()],
+					new byte[dmd.getPlaneSizeInByte()],
+					new byte[dmd.getPlaneSizeInByte()],
+					new byte[dmd.getPlaneSizeInByte()]);
 
 			int j = 0;
 			int vmax = 0;
@@ -68,10 +68,10 @@ public class VPinMameRenderer extends Renderer {
 					frames.add(res);
 					frameNo++;
 					res = new Frame(
-							new byte[dmd.getFrameSizeInByte()],
-							new byte[dmd.getFrameSizeInByte()],
-							new byte[dmd.getFrameSizeInByte()],
-							new byte[dmd.getFrameSizeInByte()]
+							new byte[dmd.getPlaneSizeInByte()],
+							new byte[dmd.getPlaneSizeInByte()],
+							new byte[dmd.getPlaneSizeInByte()],
+							new byte[dmd.getPlaneSizeInByte()]
 							);
 					LOG.trace("reading frame: " + frameNo);
 					j = 0;

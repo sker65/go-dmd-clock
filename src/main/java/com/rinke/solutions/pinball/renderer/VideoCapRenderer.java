@@ -106,7 +106,7 @@ public class VideoCapRenderer extends Renderer {
 				// int[] palette = Quantize.quantizeImage(image2d, 255);
 
 				// create 
-				Frame res = convertToFrame(dmdImage, dmd);
+				Frame res = ImageUtil.convertToFrame(dmdImage, dmd.getWidth(), dmd.getHeight());
 				res.timecode = (int)( grabber.getTimestamp() / 1000 );
 				frames.add(res);
 			} // stop cap

@@ -117,7 +117,7 @@ public class AnimationActionHandler {
 		}
 		DMD dmd = new DMD(PinDmdEditor.DMD_WIDTH,PinDmdEditor.DMD_HEIGHT);
 		for (Animation ani : loadedList) {
-			if( ani.isMutable() ) {
+			if( ani instanceof CompiledAnimation ) {
 				editor.project.inputFiles.remove(filename);
 				ani.setProjectAnimation(true);
 				populateAni((CompiledAnimation)ani, editor.scenes);

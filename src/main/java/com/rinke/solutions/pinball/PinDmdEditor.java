@@ -1,6 +1,7 @@
 package com.rinke.solutions.pinball;
 
 import java.awt.SplashScreen;
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
@@ -59,6 +60,8 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.PaletteData;
+import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.program.Program;
@@ -115,6 +118,7 @@ import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.PaletteType;
 import com.rinke.solutions.pinball.model.Plane;
 import com.rinke.solutions.pinball.model.Project;
+import com.rinke.solutions.pinball.renderer.ImageUtil;
 import com.rinke.solutions.pinball.swt.ActionAdapter;
 import com.rinke.solutions.pinball.swt.CocoaGuiEnhancer;
 import com.rinke.solutions.pinball.ui.About;
@@ -299,7 +303,7 @@ public class PinDmdEditor implements EventHandler {
 	private String projectFilename;
 	private Button btnDeleteColMask;
 	private EditMode editMode;
-	private Clipboard clipboard;
+	private ClipboardHandler clipboardHandler;
 
 	public PinDmdEditor() {
 		// avoid NPE we run in test context
@@ -509,7 +513,6 @@ public class PinDmdEditor implements EventHandler {
 		
 		display = Display.getDefault();
 		shell = new Shell();
-		this.clipboard = new Clipboard(display);
 		fileChooserUtil = new FileChooserUtil(shell);
 		paletteHandler = new PaletteHandler(this, shell);
 		aniAction = new AnimationActionHandler(this, shell);
@@ -523,6 +526,7 @@ public class PinDmdEditor implements EventHandler {
 		
 		createContents(shell);
 
+		clipboardHandler = new ClipboardHandler(dmd, dmdWidget);
 		animationHandler = new AnimationHandler(playingAnis, clock, dmd);
 		animationHandler.setScale(scale);
 		animationHandler.setEventHandler(this);
@@ -1033,7 +1037,7 @@ public class PinDmdEditor implements EventHandler {
 	 * Create contents of the window.
 	 */
 	void createContents(Shell shell) {
-		shell.setSize(1328, 657);
+		shell.setSize(1380, 660);
 		shell.setText("Pin2dmd - Editor");
 		shell.setLayout(new GridLayout(5, false));
 
@@ -1948,6 +1952,8 @@ public class PinDmdEditor implements EventHandler {
 			setEnableHashButtons(true);
 
 			selectedRecording.set(a);
+			setPlayingAni(a, recordingsPosMap.getOrDefault(a.getDesc(), 0));
+
 			int numberOfPlanes = a.getRenderer().getNumberOfPlanes();
 			if( numberOfPlanes == 5) {
 				numberOfPlanes = 4;
@@ -1963,7 +1969,6 @@ public class PinDmdEditor implements EventHandler {
 			//onColorMaskChecked(a.getEditMode()==EditMode.COLMASK);// doesnt fire event?????
 			dmd.setNumberOfSubframes(numberOfPlanes);
 			paletteTool.setNumberOfPlanes(useGlobalMask?1:numberOfPlanes);
-			setPlayingAni(a, recordingsPosMap.getOrDefault(a.getDesc(), 0));
 
 		} else {
 			selectedRecording.set(null);
@@ -2352,17 +2357,20 @@ public class PinDmdEditor implements EventHandler {
 		MenuItem mntmCopy = new MenuItem(menu_5, SWT.NONE);
 		mntmCopy.setText("Copy \tCtrl-C");
 		mntmCopy.setAccelerator(SWT.MOD1 + 'C');
-		mntmCopy.addListener(SWT.Selection, e -> onCopy());
+		mntmCopy.addListener(SWT.Selection, e -> clipboardHandler.onCopy(activePalette));
 
 		MenuItem mntmPaste = new MenuItem(menu_5, SWT.NONE);
 		mntmPaste.setText("Paste\tCtrl-V");
 		mntmPaste.setAccelerator(SWT.MOD1 + 'V');
-		mntmPaste.addListener(SWT.Selection, e -> onPaste());
+		mntmPaste.addListener(SWT.Selection, e -> { 
+			clipboardHandler.onPaste(); 
+			dmdRedraw();
+		});
 
 		MenuItem mntmPasteWithHover = new MenuItem(menu_5, SWT.NONE);
 		mntmPasteWithHover.setText("Paste Over\tShift-Ctrl-V");
 		mntmPasteWithHover.setAccelerator(SWT.MOD1 + SWT.MOD2 + 'V');
-		mntmPasteWithHover.addListener(SWT.Selection, e -> onPasteHoover());
+		mntmPasteWithHover.addListener(SWT.Selection, e -> clipboardHandler.onPasteHoover());
 
 		new MenuItem(menu_5, SWT.SEPARATOR);
 
@@ -2491,101 +2499,6 @@ public class PinDmdEditor implements EventHandler {
 		MenuItem mntmAbout = new MenuItem(menu_4, SWT.NONE);
 		mntmAbout.setText("About");
 		mntmAbout.addListener(SWT.Selection, e -> new About(shell).open(pluginsPath, loadedPlugins));
-	}
-
-	private void onPasteHoover() {
-		String data = (String) clipboard.getContents(TextTransfer.getInstance());
-		if (data != null && data.length() > 0) {
-			byte[] frameData = getPlaneDateFromString(data);
-				PasteTool pasteTool = new PasteTool(0);
-				pasteTool.setDataToPaste(frameData);
-				pasteTool.setMaskOnly(dmdWidget.isShowMask());
-				dmdWidget.setDrawTool(pasteTool);
-		}
-	}
-
-	private void onCopy() {
-		if( dmdWidget.isShowMask() ) {
-			String data = byteToString(dmd.getFrame().getPlaneBytes(0));
-			log.info("copy to clip: {}", data);
-			clipboard.setContents(new Object[] { data }, new Transfer[]{ TextTransfer.getInstance()});
-		} else {
-			// push all planes that are not masked
-			Frame f = dmd.getFrame();
-			int mask = dmd.getDrawMask();
-			String data = "";
-			for( int j = 0; j < f.planes.size(); j++) {
-				if (((1 << j) & mask) != 0) {
-					data += "\n" + byteToString(f.planes.get(j).plane);
-				}
-			}
-			log.info("copy to clip: {}", data);
-			clipboard.setContents(new Object[] { data }, new Transfer[]{ TextTransfer.getInstance()});
-		}
-	}
-
-	private String byteToString(byte[] planeBytes) {
-		StringBuilder sb = new StringBuilder();
-		int i = 0;
-		for(byte b : planeBytes) {
-			sb.append(String.format("%02x", b));
-			i++;
-			if( (i%16) == 0 ) sb.append("\n");
-		}
-		return sb.toString();
-	}
-
-	private void onPaste() {
-		for( String item : clipboard.getAvailableTypeNames() ) {
-			log.info("Clipboard type: {}", item);
-		}
-		ImageData imageData = (ImageData) clipboard.getContents(ImageTransfer.getInstance());
-		if( imageData != null ) {
-			Image image = new Image(display, imageData);
-			
-		}
-		String data = (String) clipboard.getContents(TextTransfer.getInstance());
-		if (data != null && data.length() > 0) {
-			byte[] frameData = getPlaneDateFromString(data);
-			if (dmdWidget.isShowMask()) {
-				dmd.addUndoBuffer();
-				dmd.getFrame().setMask(Arrays.copyOf(frameData, PLANE_SIZE));
-			} else {
-				dmd.addUndoBuffer();
-				int mask = dmd.getDrawMask();
-				Frame f = dmd.getFrame();
-				int sPos = 0;
-				for( int j = 0; j < f.planes.size(); j++) {
-					if (((1 << j) & mask) != 0) {
-						if( frameData.length>= sPos+PLANE_SIZE)
-							System.arraycopy(frameData, sPos, f.planes.get(j).plane, 0, PLANE_SIZE);
-						sPos += PLANE_SIZE;
-					}
-				}
-			}
-			dmdRedraw();
-		}
-	}
-
-	private byte[] getPlaneDateFromString(String data) {
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		boolean upper = false;
-		int v = 0;
-		for( int i = 0; i< data.length(); i++) {
-			char c = data.charAt(i);
-			if( ( c >= '0' && c <= '9' )||( c >= 'a' && c <= 'f' )||( c >= 'A' && c <= 'F' )  ) {
-				v <<= 4;
-				if( c >= '0' && c <= '9' ) v += c - '0';
-				if( c >= 'a' && c <= 'f' ) v += c - 'a' +10;
-				if( c >= 'A' && c <= 'F' ) v += c - 'A' + 10;
-				if( upper ) {
-					bos.write(v);
-					v = 0;
-				}
-				upper = !upper;
-			}
-		}
-		return bos.toByteArray();
 	}
 
 	private void onRedoClicked() {

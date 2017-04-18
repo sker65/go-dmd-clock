@@ -24,7 +24,7 @@ public class DMD extends Observable {
     int numberOfPlanes = 2;
     int actualBuffer = 0;
 
-    private int frameSizeInByte;
+    private int planeSizeInByte;
 
     public int getWidth() {
         return width;
@@ -42,8 +42,8 @@ public class DMD extends Observable {
         this.height = height;
     }
 
-    public int getFrameSizeInByte() {
-        return frameSizeInByte;
+    public int getPlaneSizeInByte() {
+        return planeSizeInByte;
     }
 
     private int bytesPerRow;
@@ -99,7 +99,7 @@ public class DMD extends Observable {
         bytesPerRow = width / 8;
         if (width % 8 > 0)
             bytesPerRow++;
-        frameSizeInByte = bytesPerRow * height;
+        planeSizeInByte = bytesPerRow * height;
         setNumberOfSubframes(2);
         buffers.put(actualBuffer, frame);
         setChanged();
@@ -108,7 +108,7 @@ public class DMD extends Observable {
     public void setNumberOfSubframes(int n) {
         frame.planes.clear();
     	for(int i = 0; i < n; i++) {
-    		frame.planes.add( new Plane((byte)i,new byte[frameSizeInByte]));
+    		frame.planes.add( new Plane((byte)i,new byte[planeSizeInByte]));
         }
         numberOfPlanes = n;
         log.trace("dmd setNumberOfSubframes {}", n);
@@ -122,7 +122,7 @@ public class DMD extends Observable {
         if( x<0 || y<0 || x>=width || y >= height ) return;
         v <<= drawShift;
     	int numberOfPlanes = frame.planes.size();
-    	byte mask = (byte) (PinDmdEditor.DMD_WIDTH >> (x % 8));
+    	byte mask = (byte) (width >> (x % 8));
     	for(int plane = 0; plane < numberOfPlanes; plane++) {
     		if( ((1<<plane) & drawMask) != 0) {
         		if( (v & 0x01) != 0) {
@@ -134,13 +134,27 @@ public class DMD extends Observable {
     		v >>= 1;
     	}
     }
-
-    public int getPixel(int x, int y) {
-    	byte mask = (byte) (PinDmdEditor.DMD_WIDTH >> (x % 8));
+    
+    public int getPixelWithoutMask(int x, int y) {
+    	byte mask = (byte) (getWidth() >> (x % 8));
     	int v = 0;
-    	for(int plane = 0; plane <frame.planes.size(); plane++) {
+    	for(int plane = 0; plane < frame.planes.size(); plane++) {
     		v += (frame.planes.get(plane).plane[x / 8 + y * bytesPerRow] & mask) != 0 ? (1<<plane) : 0;
     	}
+    	return v;
+    }
+   
+
+
+    public int getPixel(int x, int y) {
+    	byte mask = (byte) (getWidth() >> (x % 8));
+    	int v = 0;
+    	for(int plane = 0; plane < frame.planes.size(); plane++) {
+    		if( ((1<<plane) & drawMask) != 0) {
+    			v += (frame.planes.get(plane).plane[x / 8 + y * bytesPerRow] & mask) != 0 ? (1<<plane) : 0;
+    		}
+    	}
+    	v >>= drawShift;
     	return v;
     }
    
@@ -362,4 +376,5 @@ public class DMD extends Observable {
 		}
 		System.arraycopy(data, 0, frame.getPlaneBytes(0), 0, data.length);
 	}
+
 }

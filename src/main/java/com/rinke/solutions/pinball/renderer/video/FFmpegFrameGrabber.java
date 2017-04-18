@@ -34,7 +34,7 @@ public class FFmpegFrameGrabber {
 			stopMethod = clz.getDeclaredMethod("stop");
 			grabMethod = clz.getDeclaredMethod("grab");
 			getTimestampMethod = clz.getMethod("getTimestamp");
-			releaseMethod = clz.getMethod("release");
+			//releaseMethod = clz.getMethod("release");
 		} catch (Exception e) {
 			log.warn("error loading classes",e);
 		}
@@ -42,7 +42,7 @@ public class FFmpegFrameGrabber {
 
 	public void release() {
 		try {
-			releaseMethod.invoke(delegate);
+			if( releaseMethod!= null ) releaseMethod.invoke(delegate);
 			log.info("releasing grabber");
 		} catch (Exception e) {
 			log.warn("error calling release",e);

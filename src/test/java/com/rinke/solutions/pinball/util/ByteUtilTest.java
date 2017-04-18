@@ -1,8 +1,11 @@
 package com.rinke.solutions.pinball.util;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.junit.Before;
 import org.junit.Test;
 
+@Slf4j
 public class ByteUtilTest {
 
 	@Before
@@ -14,35 +17,35 @@ public class ByteUtilTest {
 		byte[] test = {(byte)0xff, (byte)0xff};
 		for( int i = 0; i < 16; i++) {
 			ByteUtil.shiftLeft(test, 1, false);
-			System.out.println(toBitString(test));
+			log.info(toBitString(test));
 		}
 	}
 
 	@Test
 	public void testShiftLeft2() {
 		byte[] test = {(byte)0xff, (byte)0xff, (byte)0xff, (byte)0xff, (byte)0x0f, (byte)0xff};
-		System.out.println(toBitString(test));
+		log.info(toBitString(test));
 		ByteUtil.shiftLeft(test, 13, false);
-		System.out.println(toBitString(test));
+		log.info(toBitString(test));
 	}
 
 	@Test
 	public void testShiftLeft3() {
 		byte[] test = {(byte)0xff, (byte)0xff, (byte)0xff, (byte)0, (byte)0x0f, (byte)0};
-		System.out.println(toBitString(test));
+		log.info(toBitString(test));
 		for( int i = 0; i < 16; i++) {
 			ByteUtil.shiftLeft(test, 1, true);
-			System.out.println(toBitString(test));
+			log.info(toBitString(test));
 		}
 	}
 
 	@Test
 	public void testShiftRicht3() {
 		byte[] test = {(byte)0xff, (byte)0xff, (byte)0xff, (byte)0, (byte)0x0f, (byte)0};
-		System.out.println(toBitString(test));
+		log.info(toBitString(test));
 		for( int i = 0; i < 16; i++) {
 			ByteUtil.shiftRight(test, 1, true);
-			System.out.println(toBitString(test));
+			log.info(toBitString(test));
 		}
 	}
 
@@ -51,16 +54,16 @@ public class ByteUtilTest {
 		byte[] test = {(byte)0xff, (byte)0xff};
 		for( int i = 0; i < 16; i++) {
 			ByteUtil.shiftRight(test, 1, false);
-			System.out.println(toBitString(test));
+			log.info(toBitString(test));
 		}
 	}
 
 	@Test
 	public void testShiftRight2() {
 		byte[] test = {(byte)0xff, (byte)0x0f, (byte)0xff, (byte)0xff, (byte)0xff, (byte)0xff};
-		System.out.println(toBitString(test));
+		log.info(toBitString(test));
 		ByteUtil.shiftRight(test, 13, false);
-		System.out.println(toBitString(test));
+		log.info(toBitString(test));
 	}
 
 	private String toBitString(byte[] test) {

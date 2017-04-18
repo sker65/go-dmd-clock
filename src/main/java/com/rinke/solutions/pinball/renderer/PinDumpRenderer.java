@@ -78,7 +78,7 @@ public class PinDumpRenderer extends Renderer {
 				} else {
 					res = new Frame();
 					for(int i = 0; i < numberOfFrames; i++) {
-						res.planes.add(new Plane((byte)i, Frame.transform(data, i*PinDmdEditor.PLANE_SIZE, dmd.getFrameSizeInByte())));
+						res.planes.add(new Plane((byte)i, Frame.transform(data, i*PinDmdEditor.PLANE_SIZE, dmd.getPlaneSizeInByte())));
 					}
 				}
 

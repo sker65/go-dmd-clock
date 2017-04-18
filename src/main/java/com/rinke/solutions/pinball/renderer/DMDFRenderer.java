@@ -27,8 +27,8 @@ public class DMDFRenderer extends Renderer {
 
 			int w = is.readShort();
 			if( w == width ) {
-				byte[] f1 = new byte[dmd.getFrameSizeInByte()];
-				byte[] f2 = new byte[dmd.getFrameSizeInByte()];
+				byte[] f1 = new byte[dmd.getPlaneSizeInByte()];
+				byte[] f2 = new byte[dmd.getPlaneSizeInByte()];
 				byte[] buf = new byte[width*height];
 				is.read(buf);
 				for( int y = 0; y<height; y++) {
@@ -59,8 +59,5 @@ public class DMDFRenderer extends Renderer {
 		return null;
 	}
 
-	public static void main(String[] args) {
-
-	}
 
 }
