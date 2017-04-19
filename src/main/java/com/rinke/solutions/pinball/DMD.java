@@ -377,4 +377,12 @@ public class DMD extends Observable {
 		System.arraycopy(data, 0, frame.getPlaneBytes(0), 0, data.length);
 	}
 
+	public void fill(byte val) {
+		for( int j = 0; j < frame.planes.size(); j++) {
+			if (((1 << j) & drawMask) != 0) {
+				Arrays.fill( frame.planes.get(j).plane, val );
+			}
+		}
+	}
+
 }

@@ -96,6 +96,7 @@ public class FileHelper {
         xstream.alias("scene", Scene.class);
         xstream.alias("frameSeq", FrameSeq.class);
         xstream.alias("frame", Frame.class);
+        xstream.omitField(Project.class, "planeSize");
         
         xstream.setMode(XStream.NO_REFERENCES);
         jstream.alias("rgb", RGB.class);

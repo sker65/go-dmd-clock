@@ -116,4 +116,18 @@ public class CompiledAnimation extends Animation {
 	public static void write(List<Animation> anis, String filename, int version, List<Palette> palettes) {
 		AniWriter.writeToFile(anis, filename, version, palettes);
 	}
+
+	/**
+	 * ensure every frame in this animation has a mask plane
+	 * TODO not ok from goDMD / transitions
+	 */
+	public void ensureMask() {
+		for(Frame frame : frames) {
+			if(!frame.containsMask()) {
+				byte[] data = new byte[frame.getPlaneBytes(0).length];
+				Arrays.fill(data, (byte)0xFF);
+				frame.planes.add(0, new Plane(Plane.MASK, data));
+			}
+		}
+	}
 }

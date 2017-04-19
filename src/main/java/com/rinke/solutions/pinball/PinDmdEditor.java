@@ -1689,9 +1689,11 @@ public class PinDmdEditor implements EventHandler {
 	}
 
 	private void onEditModeChanged(SelectionChangedEvent e) {
-		editMode = getFirstSelected(e);
+		EditMode mode = getFirstSelected(e);
+		if( editMode != null && editMode.equals(mode)) return;	// no recursive calls
+		editMode = mode;
 		if( selectedScene.isPresent() ) {
-			Animation animation = selectedScene.get();
+			CompiledAnimation animation = selectedScene.get();
 			if( animation.isDirty() && !animation.getEditMode().equals(editMode)) {
 				MessageBox messageBox = new MessageBox(shell, SWT.ICON_WARNING | SWT.YES | SWT.NO);
 				messageBox.setText("Changing edit mode");
@@ -1701,6 +1703,12 @@ public class PinDmdEditor implements EventHandler {
 					editMode = animation.getEditMode();
 					setViewerSelection(editModeViewer,editMode);
 				}
+			}
+			if(editMode.equals(EditMode.FOLLOW)) {
+				animation.ensureMask();
+			} else {
+				btnMask.setSelection(false); // switch off mask if selected
+				onMaskChecked(false);			
 			}
 			btnMask.setEnabled(editMode.equals(EditMode.FOLLOW));
 			setEnableHashButtons(editMode.equals(EditMode.FOLLOW));
@@ -1737,21 +1745,11 @@ public class PinDmdEditor implements EventHandler {
 
 	/**
 	 * deletes the 2 additional color masking planes.
-	 * depending on presence of a mask this is plane 2,3 or 3,4
+	 * depending on draw mask (presence of a mask) this is plane 2,3 or 3,4
 	 */
-	private void onDeleteColMaskClicked() {
+	 void onDeleteColMaskClicked() {
 		dmd.addUndoBuffer();
-		Frame frame = dmd.getFrame();
-		if( dmdWidget.isShowMask() ) {
-			if( frame.containsMask() ) {
-				Arrays.fill( frame.planes.get(0).plane, (byte)0xFF );
-			}
-		} else {
-			// delete plane 2 und 3
-			int j = frame.containsMask() ? 3 : 2;
-			Arrays.fill( frame.planes.get(j++).plane, (byte)0 );
-			Arrays.fill( frame.planes.get(j++).plane, (byte)0 );
-		}
+		dmd.fill(dmdWidget.isShowMask()?(byte)0xFF:0);
 		dmdRedraw();
 	}
 

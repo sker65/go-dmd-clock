@@ -23,6 +23,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.Verifier;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
@@ -36,8 +37,10 @@ import com.rinke.solutions.pinball.animation.AniEvent.Type;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Mask;
 import com.rinke.solutions.pinball.model.PalMapping;
+import com.rinke.solutions.pinball.model.PalMapping.SwitchMode;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.PaletteType;
+import com.rinke.solutions.pinball.widget.DMDWidget;
 
 import static com.fappel.swt.JFaceViewerHelper.fireSelectionChanged;
 
@@ -46,6 +49,9 @@ public class PinDmdEditorSWTTest {
 	
 	//@InjectMocks
 	private PinDmdEditor uut = new PinDmdEditor();
+	
+	@Mock
+	DMDWidget dmdWidget;
 	
 	@Rule
 	public final DisplayHelper displayHelper = new DisplayHelper();
@@ -88,6 +94,8 @@ public class PinDmdEditorSWTTest {
 		byte[] emptyFrameDigest = { (byte)0xBF, 0x61, (byte)0x9E, (byte)0xAC, 0x0C, (byte)0xDF, 0x3F, 0x68,
 				(byte)0xD4, (byte)0x96, (byte)0xEA, (byte)0x93, 0x44, 0x13, 0x7E, (byte)0x8B };
 		uut.hashes.add(emptyFrameDigest);
+		uut.dmdWidget = dmdWidget;
+		uut.previewDmd = dmdWidget;
 	}
 	
 	@Rule
@@ -106,11 +114,18 @@ public class PinDmdEditorSWTTest {
 	};
 	
 	@Test
+	public void testOnDeleteColMaskClicked() throws Exception {
+		when(dmdWidget.isShowMask()).thenReturn(true);
+		uut.onDeleteColMaskClicked();
+	}
+	
+	@Test
 	public void testSelectKeyFrame() throws Exception {
 		uut.shell = shell;
 		PalMapping palMapping = new PalMapping(0,"foo");
 		palMapping.animationName = "drwho-dump";
 		palMapping.frameIndex = 0;
+		palMapping.switchMode = SwitchMode.PALETTE;
 		uut.aniAction = new AnimationActionHandler(uut, shell);
 		
 		uut.aniAction.loadAni("./src/test/resources/drwho-dump.txt.gz", false, true);
@@ -118,6 +133,8 @@ public class PinDmdEditorSWTTest {
 		SelectionChangedEvent e = new SelectionChangedEvent(uut.keyframeTableViewer, 
 				new StructuredSelection(palMapping));
 		fireSelectionChanged(uut.keyframeTableViewer, e);
+		
+		// TODO add verify
 	}
 	
 	@Test
@@ -130,7 +147,7 @@ public class PinDmdEditorSWTTest {
 	@Test
 	public void testNotifyAniAni() throws Exception {
 		Animation actAnimation = new CompiledAnimation(AnimationType.COMPILED,"foo",0,0,0,0,0);
-		AniEvent evt = new AniEvent(Type.ANI, actAnimation, null);
+		AniEvent evt = new AniEvent(Type.ANI, actAnimation, new Frame());
 		uut.notifyAni(evt);
 	}
 
@@ -146,20 +163,26 @@ public class PinDmdEditorSWTTest {
 		uut.shell = shell;
 		uut.aniAction = new AnimationActionHandler(uut,shell);
 		uut.loadProject("./src/test/resources/test.xml");
-		assertThat(uut.recordings.size(), equalTo(2));
+		assertThat(uut.recordings.size(), equalTo(1));
+		assertThat(uut.scenes.size(), equalTo(1));
 		uut.loadProject("./src/test/resources/test.xml");
-		assertThat(uut.recordings.size(), equalTo(2));
+		assertThat(uut.recordings.size(), equalTo(1));
+		assertThat(uut.scenes.size(), equalTo(2));
 	}
 	
 	@Test
-	@Ignore
 	public void testOpen() throws Exception {
+		Object monitor = new Object();
 		uut.shell = shell;
+		uut.aniAction = new AnimationActionHandler(uut, shell);
 		uut.loadProject("./src/test/resources/test.xml");
-		displayHelper.getDisplay().timerExec(1000,()->{
+		displayHelper.getDisplay().timerExec(500,()->{
 			trigger(SWT.Close).on(shell);
+			synchronized (monitor) { monitor.notify(); }
 		});
-		//uut.open(new String[]{});
+		synchronized (monitor) {
+			monitor.wait(5000);
+		}
 	}
 
 	
@@ -253,6 +276,12 @@ public class PinDmdEditorSWTTest {
 	
 	@Test
 	public void testAddPalSwitch() {
+		Animation animation = new Animation(AnimationType.PNG, "test", 0, 0, 0, 0, 0);
+		animation.setDesc("foo");
+		animation.setMutable(false);
+		uut.recordings.put("foo", animation );
+		uut.selectedRecording.set(animation);
+		
 		trigger(SWT.Selection).on(uut.btnAddKeyframe);
 		assertThat(uut.project.palMappings.size(), equalTo(1));
 		assertThat(uut.project.palMappings.get(0).name, equalTo("KeyFrame 1"));
@@ -261,10 +290,15 @@ public class PinDmdEditorSWTTest {
 	@Test
 	public void testAddFrameSeq() {
 		
-		Animation animation = new Animation(AnimationType.PNG, "test", 0, 0, 0, 0, 0);
+		CompiledAnimation animation = new CompiledAnimation(AnimationType.PNG, "test", 0, 0, 0, 0, 0);
 		animation.setDesc("foo");
 		animation.setMutable(true);
-		uut.recordings.put("foo", animation );
+		uut.scenes.put("foo", animation );
+		
+		CompiledAnimation recording = new CompiledAnimation(AnimationType.PNG, "test", 0, 0, 0, 0, 0);
+		animation.setDesc("foo2");
+		uut.recordings.put("foo2", recording );
+		uut.selectedRecording.set(recording);
 
 		// frameSeqView must have a selection
 		uut.buildFrameSeqList();
@@ -273,9 +307,9 @@ public class PinDmdEditorSWTTest {
 		trigger(SWT.Selection).on(uut.btnAddFrameSeq);
 		assertThat(uut.project.palMappings.size(), equalTo(1));
 		PalMapping mapping = uut.project.palMappings.get(0);
-		assertThat(mapping.name, equalTo("KeyFrame foo"));
+		assertThat(mapping.name, equalTo("KeyFrame foo2"));
 		assertThat(mapping.crc32, equalTo(digest));
-		assertThat(mapping.frameSeqName, equalTo("foo"));
+		assertThat(mapping.frameSeqName, equalTo("foo2"));
 	}
 
 	@Test
