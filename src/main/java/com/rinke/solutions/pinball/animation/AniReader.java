@@ -131,7 +131,6 @@ public class AniReader {
 			if(version >= 4 ) {
 				is.read(crc32);
 			}
-
 			int numberOfPlanes = is.readByte();
 			Frame f = new Frame();
 			f.delay = delay;
@@ -162,9 +161,17 @@ public class AniReader {
 		}
 	}
 
-
+	/**
+	 * read planes
+	 * @param f
+	 * @param numberOfPlanes
+	 * @param size
+	 * @param is
+	 * @param version
+	 * @return true if mask was found
+	 * @throws IOException
+	 */
 	private static boolean readPlanes(Frame f, int numberOfPlanes, int size, DataInputStream is, int version) throws IOException {
-		Plane mask = null;
 		int np = numberOfPlanes;
 		while( np>0) {
 			byte[] f1 = new byte[size];
@@ -172,15 +179,11 @@ public class AniReader {
 			is.readFully(f1);
 			Plane p = new Plane(marker, f1);
 			if( marker < numberOfPlanes ) f.planes.add( p );
-			else mask = p;
+			else f.mask = p;
 			np--;
 		}
 		// mask plane is always the first in the list
-		if( mask != null ) {
-		    f.planes.add( 0, mask );
-		    return true;
-		}
-		return false;
+		return f.hasMask();
 	}
 
 

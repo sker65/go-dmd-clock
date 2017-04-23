@@ -56,25 +56,17 @@ public class CompiledAnimation extends Animation {
         return in;
     }
 
-    private Optional<Plane> searchMaskPlane(Frame frame) {
-		return frame.planes.stream().filter(p->p.marker == Plane.MASK).findFirst();
-	}
-
     public Mask getCurrentMask() {
 		Mask maskToUse;
 		// build mask from current frame
 		
 		Frame frame = frames.get(actFrame);
-		Optional<Plane> maskPlane = searchMaskPlane(frame);
-		if( maskPlane.isPresent() ) {
-			maskToUse = new Mask(maskPlane.get().plane, false);
-		} else {
+		if( !frame.hasMask() ) {
 			byte[] emptyMask = new byte[PinDmdEditor.PLANE_SIZE];
 			Arrays.fill(emptyMask, (byte)0xFF);
-			Plane masPlane = new Plane(Plane.MASK, emptyMask);
-			frame.planes.add(0, masPlane);
-			maskToUse = new Mask(masPlane.plane, false);
+			frame.setMask(emptyMask);
 		}
+		maskToUse = new Mask(frame.mask.plane, false);
 		return maskToUse;
     }
 
@@ -86,19 +78,18 @@ public class CompiledAnimation extends Animation {
 		}
 	    if( actFrame >= 0 && actFrame < frames.size()) {
 	    	Frame aniFrame = frames.get(actFrame);
-	        List<Plane> planes = aniFrame.planes;
+	        List<Plane> aniPlanes = aniFrame.planes;
 	        Frame dmdFrame = dmd.getFrame();
-	        int i = 0;
-	        if( aniFrame.containsMask() && dmd.hasMask() ) {
-	        	byte[] planeBytes = dmd.getFrame().getPlaneBytes(0);
-	        	int len = min(planeBytes.length,planes.get(i).plane.length);
-	        	System.arraycopy(planeBytes, 0, planes.get(i).plane, 0, len );
-	        	i++;
+	        // if both have mask commit mask
+	        if( aniFrame.hasMask() && dmd.hasMask() ) {
+	        	int len = min(dmdFrame.mask.plane.length,aniFrame.mask.plane.length);
+	        	System.arraycopy(dmdFrame.mask.plane, 0, aniFrame.mask.plane, 0, len );
 	        }
-	        for(; i<planes.size(); i++) {
-	        	byte[] planeBytes = dmdFrame.getPlaneBytes(i);
-	            int len = min(planeBytes.length,planes.get(i).plane.length);
-	            System.arraycopy(planeBytes, 0, planes.get(i).plane, 0, len );
+	        // then commit (copy) planes
+	        for(int i = 0; i < aniPlanes.size(); i++) {
+	        	byte[] planeBytes = dmdFrame.getPlane(i);
+	            int len = min(planeBytes.length,aniPlanes.get(i).plane.length);
+	            System.arraycopy(planeBytes, 0, aniPlanes.get(i).plane, 0, len );
 	        }
 	        aniFrame.setHash(hash);
 	        setDirty(true);
@@ -123,10 +114,10 @@ public class CompiledAnimation extends Animation {
 	 */
 	public void ensureMask() {
 		for(Frame frame : frames) {
-			if(!frame.containsMask()) {
-				byte[] data = new byte[frame.getPlaneBytes(0).length];
+			if(!frame.hasMask()) {
+				byte[] data = new byte[frame.getPlane(0).length];
 				Arrays.fill(data, (byte)0xFF);
-				frame.planes.add(0, new Plane(Plane.MASK, data));
+				frame.setMask(data);
 			}
 		}
 	}

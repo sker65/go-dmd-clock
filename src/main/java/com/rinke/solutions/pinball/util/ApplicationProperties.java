@@ -14,6 +14,7 @@ public class ApplicationProperties {
 
 	private String propertiesFilename = "pin2dmd.properties";
 	public static final String PIN2DMD_ADRESS_PROP_KEY = "pin2dmdAdress";
+	public static final String PIN2DMD_DMDSIZE_PROP_KEY = "dmdSize";
 	public static final String GODMD_ENABLED_PROP_KEY = "godmdEnabled";
 
 	private static ApplicationProperties theInstance;
@@ -102,6 +103,10 @@ public class ApplicationProperties {
 	public static int getInteger(String key, int defaultVal) {
 		String val = get(key);
 		return val!=null?Integer.parseInt(val):defaultVal;	
+	}
+
+	public static void put(String key, int val) {
+		put(key, Integer.toString(val));
 	}
 
 }

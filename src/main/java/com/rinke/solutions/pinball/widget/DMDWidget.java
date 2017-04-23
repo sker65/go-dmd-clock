@@ -17,7 +17,6 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.ScrollBar;
 
 import com.rinke.solutions.pinball.DMD;
-import com.rinke.solutions.pinball.PinDmdEditor;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Mask;
 import com.rinke.solutions.pinball.model.Palette;
@@ -38,7 +37,6 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 	int pressedButton = 0;
 	private DrawTool drawTool = null;//new RectTool();//new SetPixelTool();
 	private boolean drawingEnabled;
-	private int standardPitch;
 	private ScrollBar hBar;
 	private ScrollBar vBar;
 	int vScroll;
@@ -57,15 +55,19 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 	public void addListeners( FrameChangedListerner l) {
 		frameChangedListeners.add(l);
 	}
-
-	public DMDWidget(Composite parent, int style, DMD dmd, boolean scrollable) {
-		super(parent, style + ( scrollable ? SWT.V_SCROLL + SWT.H_SCROLL : 0));
-		this.scrollable = scrollable;
-		//palette = Palette.getDefaultPalette();
+	
+	public void setResolution(DMD dmd) {
 		resolutionX = dmd.getWidth();
 		resolutionY = dmd.getHeight();
 		bytesPerRow = dmd.getBytesPerRow();
 		this.dmd = dmd;
+	}
+
+	public DMDWidget(Composite parent, int style, DMD dmd, boolean scrollable) {
+		super(parent, style + ( scrollable ? SWT.V_SCROLL + SWT.H_SCROLL : 0));
+		this.scrollable = scrollable;
+		setResolution(dmd);
+		//palette = Palette.getDefaultPalette();
 		this.addListener( SWT.MouseDown, e -> handleMouse(e));
 		this.addListener( SWT.MouseUp, e -> handleMouse(e));
 		this.addListener( SWT.MouseMove, e -> handleMouse(e));
@@ -110,7 +112,6 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 		int pitchx = (width -2*margin) / resolutionX;
 		int pitchy = (height -2*margin) / resolutionY;
 		pitch = pitchx<pitchy?pitchx:pitchy;
-		standardPitch = pitch;
 		if( pitch <= 0) pitch = 1;
 		setBars();
 	}
@@ -181,7 +182,7 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
         GC gcImage = new GC(image);
         gcImage.setBackground(bg);
         gcImage.fillRectangle(0, 0, w, h);
-        drawDMD(gcImage, dmd.getFrame(), dmd.hasMask()?1:0, numberOfSubframes, useColorIndex, cols);
+        drawDMD(gcImage, dmd.getFrame(), 0, numberOfSubframes, useColorIndex, cols);
         if( showMask ) {
             ImageData imageData = image.getImageData();
     		imageData.alpha = 96;
@@ -189,7 +190,9 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
             GC gcMask = new GC(maskImage);
 			cols[0] = resourceManager.createColor(new RGB(0, 0, 0));
             cols[1] = resourceManager.createColor(maskLocked ? new RGB(255, 0, 0) : new RGB(0, 0, 255));
-            drawDMD(gcMask, dmd.getFrame(), 0, 1, true, cols);
+            // create a fake mask frame
+            Frame maskFrame = new Frame(dmd.getFrame().mask.plane, dmd.getFrame().mask.plane);
+            drawDMD(gcMask, maskFrame, 0, 1, true, cols);
             gcImage.drawImage(maskImage, 0, 0);
             gcMask.dispose();
         }
@@ -205,10 +208,11 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
                 // lsb first
                 // byte mask = (byte) (1 << (col % 8));
                 // hsb first
-                byte mask = (byte) (PinDmdEditor.DMD_WIDTH >> (col % 8));
+                byte mask = (byte) (resolutionX >> (col % 8));
                 int v = 0;
                 for(int i = 0; i < numberOfSubframes;i++) {
-                    v += (frame.getPlaneBytes(i+planeOffset)[col / 8 + row * bytesPerRow] & mask) != 0 ? (1<<i) : 0;
+                	if( col / 8 + row * bytesPerRow < frame.getPlane(i+planeOffset).length)
+                		v += (frame.getPlane(i+planeOffset)[col / 8 + row * bytesPerRow] & mask) != 0 ? (1<<i) : 0;
                 }
 
                 if( useColorIndex ) {
@@ -274,9 +278,6 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 		boolean old = this.showMask;
 		this.showMask = showMask;
 		if( old != showMask ) {
-			if( showMask ) {
-				dmd.setDrawShift(0);
-			}
 			redraw();
 		}
 	}

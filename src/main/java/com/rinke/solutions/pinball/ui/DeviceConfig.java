@@ -51,18 +51,8 @@ public class DeviceConfig extends Dialog {
     private ComboViewer comboViewerDefaultPalette;
     private Combo deviceModeCombo;
     private Combo comboDefaultPalette;
-    private Text pin2dmdHost;
-    private DmdSize dmdSize;
     
-    public String getPin2DmdHost() {
-    	return address;
-    }
-    
-    public DmdSize getDmdSize() {
-    	return (DmdSize) ((StructuredSelection)dmdSizeViewer.getSelection()).getFirstElement();
-    }
-
-    /**
+   /**
      * Create the dialog.
      * @param parent
      * @param style
@@ -70,7 +60,6 @@ public class DeviceConfig extends Dialog {
     public DeviceConfig(Shell parent) {
         super(parent, SWT.CLOSE | SWT.TITLE | SWT.BORDER | SWT.OK | SWT.APPLICATION_MODAL);
         setText("Configuration");
-        dmdSize = DmdSize.fromOrdinal(ApplicationProperties.getInteger("dmdSize",0));
     }
 
     // testability overridden by tests
@@ -113,47 +102,23 @@ public class DeviceConfig extends Dialog {
         }
     }
     
-    private String address;
 	private Button btnInvertClock;
 	private Scale scBrightness;
 	private Group grpConfig;
-	private FormData fd_grpWifi;
 	private FormData fd_grpConfig;
-	private ComboViewer dmdSizeViewer;
 
     /**
      * Open the dialog.
      * @return the result
      */
-    public Object open(String address) {
+    public Object open() {
         createContents();
-        this.address = address;
-        
-        pin2dmdHost.setText(address!=null?address:"");
-        
-        Group grpDmd = new Group(shell, SWT.NONE);
-        fd_grpConfig.bottom = new FormAttachment(100, -292);
-        fd_grpWifi.top = new FormAttachment(grpDmd, 6);
-        grpDmd.setText("DMD");
-        FormData fd_grpDmd = new FormData();
-        fd_grpDmd.bottom = new FormAttachment(grpConfig, 73, SWT.BOTTOM);
-        fd_grpDmd.right = new FormAttachment(grpConfig, 0, SWT.RIGHT);
-        fd_grpDmd.top = new FormAttachment(0, 171);
-        fd_grpDmd.left = new FormAttachment(grpConfig, 0, SWT.LEFT);
-        grpDmd.setLayoutData(fd_grpDmd);
-        
-        dmdSizeViewer = new ComboViewer(grpDmd, SWT.READ_ONLY);
-        Combo combo = dmdSizeViewer.getCombo();
-        combo.setBounds(10, 10, 137, 22);
-        dmdSizeViewer.setContentProvider(ArrayContentProvider.getInstance());
-		dmdSizeViewer.setLabelProvider(new LabelProviderAdapter<DmdSize>(o -> o.label ));
-		dmdSizeViewer.setInput(DmdSize.values());
-		dmdSizeViewer.setSelection(new StructuredSelection(dmdSize));
         
         Button btnOk = new Button(shell, SWT.NONE);
+        fd_grpConfig.bottom = new FormAttachment(100, -47);
         FormData fd_btnOk = new FormData();
-        fd_btnOk.left = new FormAttachment(grpConfig, -65);
-        fd_btnOk.bottom = new FormAttachment(100, -10);
+        fd_btnOk.top = new FormAttachment(0, 155);
+        fd_btnOk.left = new FormAttachment(0, 405);
         fd_btnOk.right = new FormAttachment(100, -10);
         btnOk.setLayoutData(fd_btnOk);
         btnOk.setText("Ok");
@@ -174,7 +139,7 @@ public class DeviceConfig extends Dialog {
      */
     void createContents() {
         shell = new Shell(getParent(), getStyle());
-        shell.setSize(480, 479);
+        shell.setSize(480, 215);
         shell.setText("Device Configuration");
         shell.setLayout(new FormLayout());
         
@@ -219,8 +184,6 @@ public class DeviceConfig extends Dialog {
         btnCancel.setText("Cancel");
         btnCancel.addListener(SWT.Selection, e->shell.close());
         
-        Group grpWifi = new Group(shell, SWT.NONE);
-        
         Label lblInvertClock = new Label(grpConfig, SWT.NONE);
         lblInvertClock.setText("Enhancer");
         
@@ -239,43 +202,6 @@ public class DeviceConfig extends Dialog {
         scBrightness.setIncrement(1);
         
         new Label(grpConfig, SWT.NONE);
-        grpWifi.setText("WiFi");
-        grpWifi.setLayout(new GridLayout(3, false));
-        fd_grpWifi = new FormData();
-        fd_grpWifi.right = new FormAttachment(grpConfig, 2, SWT.RIGHT);
-        fd_grpWifi.left = new FormAttachment(grpConfig, 0, SWT.LEFT);
-        fd_grpWifi.bottom = new FormAttachment(100, -75);
-        grpWifi.setLayoutData(fd_grpWifi);
-        
-        Label lblAdress = new Label(grpWifi, SWT.NONE);
-        GridData gd_lblAdress = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
-        gd_lblAdress.widthHint = 83;
-        lblAdress.setLayoutData(gd_lblAdress);
-        lblAdress.setText("Adress");
-        
-        pin2dmdHost = new Text(grpWifi, SWT.BORDER);
-        GridData gd_text = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
-        gd_text.widthHint = 267;
-        pin2dmdHost.setLayoutData(gd_text);
-        
-        Button btnConnectBtn = new Button(grpWifi, SWT.NONE);
-        btnConnectBtn.addListener(SWT.Selection, e->testConnect(pin2dmdHost.getText()));
-        btnConnectBtn.setText("Connect");
-        
-        Label lblEnterIpAddress = new Label(grpWifi, SWT.NONE);
-        lblEnterIpAddress.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 2, 1));
-        lblEnterIpAddress.setText("Enter IP address or hostname for WiFi (default port is "
-        		+IpConnector.DEFAULT_PORT+")");
-        new Label(grpWifi, SWT.NONE);
-        new Label(grpWifi, SWT.NONE);
-        new Label(grpWifi, SWT.NONE);
-        new Label(grpWifi, SWT.NONE);
     }
 
-	private void testConnect(String address) {
-		Pin2DmdConnector connector = ConnectorFactory.create(address);
-		ConnectionHandle handle = connector.connect(address);
-		connector.release(handle);
-		this.address = address;
-	}
 }

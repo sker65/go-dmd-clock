@@ -29,8 +29,8 @@ public class AnimationGifExporter {
 
 	private GifSequenceWriter gifWriter;
 
-	public void export(String filename, Animation ani, Palette palette, Shell parent) {
-		DMD dmd = new DMD(PinDmdEditor.DMD_WIDTH,PinDmdEditor.DMD_HEIGHT);
+	public void export(String filename, Animation ani, Palette palette, Shell parent, int w, int h) {
+		DMD dmd = new DMD(w,h);
 		
 		DMDWidget dmdWidget = new DMDWidget(parent, 0, dmd, false);
 		dmdWidget.setPalette(palette);

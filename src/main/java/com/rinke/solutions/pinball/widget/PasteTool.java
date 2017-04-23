@@ -3,6 +3,7 @@ package com.rinke.solutions.pinball.widget;
 import org.bouncycastle.util.Arrays;
 
 import com.rinke.solutions.pinball.model.Frame;
+import com.rinke.solutions.pinball.model.Plane;
 import com.rinke.solutions.pinball.util.ByteUtil;
 
 /**
@@ -31,14 +32,14 @@ public class PasteTool extends DrawTool {
 			int y = iy - y1;
 			dmd.copyLastBuffer();
 			if( maskOnly ) {
-				byte[] plane = copyShiftedPlane(x, y, 0, true);
+				byte[] plane = copyShiftedPlane(x, y, frameToPaste.mask, true);
 				dmd.ensureMask(plane);
 			} else {
-				int mask = dmd.getDrawMask();
+				int mask = dmd.getDrawMask()>>1;
 				Frame f = dmd.getFrame();
 				for( int j = 0; j < f.planes.size(); j++) {
 					if (((1 << j) & mask) != 0) {
-						byte[] plane = copyShiftedPlane(x, y, j, false);
+						byte[] plane = copyShiftedPlane(x, y, frameToPaste.planes.get(j), false);
 						System.arraycopy(plane, 0, f.planes.get(j).plane, 0, planeSize);
 					}
 				}
@@ -48,7 +49,7 @@ public class PasteTool extends DrawTool {
 		return false;
 	}
 	
-	private byte[] copyShiftedPlane(int x, int y, int planeNo, boolean filling) {
+	private byte[] copyShiftedPlane(int x, int y, Plane p, boolean filling) {
 		byte[] plane = new byte[planeSize];
 		Arrays.fill(plane, filling?(byte)0xFF:0);
 		byte[] rowBytes = new byte[width/8];
@@ -57,7 +58,7 @@ public class PasteTool extends DrawTool {
 			int destRow = row+y;
 			if( destRow >= 0 && destRow < height) {
 				// copy row to shift
-				System.arraycopy(frameToPaste.planes.get(planeNo).plane, bytesPerRow*row, rowBytes, 0, bytesPerRow);
+				System.arraycopy(p.plane, bytesPerRow*row, rowBytes, 0, bytesPerRow);
 				ByteUtil.shift(rowBytes, x, filling);
 				System.arraycopy(rowBytes, 0, plane, bytesPerRow*destRow, bytesPerRow);
 			} 

@@ -126,9 +126,9 @@ public class Animation {
 
 	private Shell shell;
 	
-	public CompiledAnimation cutScene( int start, int end, int actualNumberOfPlanes) {
+	public CompiledAnimation cutScene( int start, int end, int actualNumberOfPlanes, int w, int h) {
 		// create a copy of the animation
-		DMD tmp = new DMD(PinDmdEditor.DMD_WIDTH,PinDmdEditor.DMD_HEIGHT);
+		DMD tmp = new DMD(w,h);
 		CompiledAnimation dest = new CompiledAnimation(
 				AnimationType.COMPILED, this.getName(),
 				0, end-start, this.skip, 1, 0);
@@ -145,9 +145,9 @@ public class Animation {
 			Frame targetFrame = new Frame(frame);
             targetFrame.timecode -= tcOffset;
             int marker = targetFrame.planes.size();
+            byte[] emptyPlane = new byte[frame.getPlane(0).length];
 			while( targetFrame.planes.size() < actualNumberOfPlanes ) {
-				// dont copy plane 0
-				targetFrame.planes.add(new Plane((byte)marker++, new byte[PinDmdEditor.PLANE_SIZE]));
+				targetFrame.planes.add(new Plane((byte)marker++, emptyPlane));
 			}
 			LOG.debug("target frame {}",targetFrame);
 			dest.frames.add(targetFrame);

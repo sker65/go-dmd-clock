@@ -128,10 +128,10 @@ public class ClipboardHandler {
 		if( frame != null ) {
 			if (dmdWidget.isShowMask()) {
 				dmd.addUndoBuffer();
-				dmd.getFrame().setMask(Arrays.copyOf(frame.planes.get(0).plane, planeSize));
+				dmd.getFrame().setMask(Arrays.copyOf(frame.mask.plane, planeSize));
 			} else {
 				dmd.addUndoBuffer();
-				int mask = dmd.getDrawMask();
+				int mask = dmd.getDrawMask()>>1;
 				Frame f = dmd.getFrame();
 				for( int j = 0; j < f.planes.size(); j++) {
 					if (((1 << j) & mask) != 0) {

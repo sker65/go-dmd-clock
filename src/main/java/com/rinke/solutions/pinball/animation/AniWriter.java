@@ -101,7 +101,7 @@ public class AniWriter extends Worker {
 					if(version >= 4 ) {
 						os.write(frame.crc32);
 					}
-					os.writeByte(frame.planes.size());
+					os.writeByte(frame.hasMask()?frame.planes.size()+1:frame.planes.size());
 					
 					if( version < 3 ) {
 						writePlanes(os, frame);
@@ -197,26 +197,15 @@ public class AniWriter extends Worker {
 	private int writePlanes(DataOutputStream os, Frame r) throws IOException {
 		// ensure that if mask plane is contained, it is written first
 		int start = os.size();
-		int maskPlane = searchMaskPlane(r.planes);
-		if( maskPlane >= 0) {
-			os.writeByte(Plane.MASK);
-		    os.write(r.planes.get(maskPlane).plane);
+		if( r.hasMask()) {
+			os.writeByte(Plane.xMASK);
+		    os.write(r.mask.plane);
 		}
 		for(int j = 0; j < r.planes.size(); j++) {
-		    // plane type (normal bit depth)
-			if( j != maskPlane) {
-			    os.writeByte(j);
-			    os.write(r.planes.get(j).plane);
-			}
+		    os.writeByte(j);
+		    os.write(r.planes.get(j).plane);
 		}
 		return os.size()-start;
-	}
-
-	private int searchMaskPlane(List<Plane> planes) {
-		for (int i = 0; i < planes.size(); i++) {
-			if( planes.get(i).marker == Plane.MASK ) return i;
-		}
-		return -1;
 	}
 
 	private void rewriteIndex(int[] aniOffset, DataOutputStream os,
