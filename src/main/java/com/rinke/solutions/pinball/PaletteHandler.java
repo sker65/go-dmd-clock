@@ -1,8 +1,10 @@
 package com.rinke.solutions.pinball;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -13,11 +15,13 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 
+import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.io.DMCImporter;
 import com.rinke.solutions.pinball.io.FileHelper;
 import com.rinke.solutions.pinball.io.PaletteImporter;
 import com.rinke.solutions.pinball.io.SmartDMDImporter;
 import com.rinke.solutions.pinball.model.Palette;
+import com.rinke.solutions.pinball.model.PaletteType;
 import com.rinke.solutions.pinball.model.RGB;
 import com.rinke.solutions.pinball.util.FileChooserUtil;
 
@@ -170,8 +174,42 @@ public class PaletteHandler {
 		}
 		return res;
 	}
-
-
-
+	
+	private void warn(String header, String msg) {
+		MessageBox messageBox = new MessageBox(editor.shell, SWT.ICON_WARNING | SWT.OK);
+		messageBox.setText(header);
+		messageBox.setMessage(msg);
+		messageBox.open();
+	}
+	
+	public void onDeletePalette() {
+		if( editor.activePalette != null && editor.project.palettes.size()>1 ) {
+			// check if any scene is using this
+			List<String> res = new ArrayList<>();
+			for( Animation a: editor.scenes.values()) {
+				if( a.getPalIndex() == editor.activePalette.index ) {
+					res.add(a.getDesc());
+				}
+			}
+			for( Animation a: editor.recordings.values()) {
+				if( a.getPalIndex() == editor.activePalette.index ) {
+					res.add(a.getDesc());
+				}
+			}
+			if( res.isEmpty() ) {
+				editor.project.palettes.remove(editor.activePalette);
+				// ensure there is a default palette
+				int c = 0;
+				for( Palette p : editor.project.palettes) {
+					if( p.type == PaletteType.DEFAULT ) c++;
+				}
+				if( c == 0 ) editor.project.palettes.get(0).type = PaletteType.DEFAULT;
+				editor.paletteComboViewer.setSelection(new StructuredSelection(editor.project.palettes.get(0)));
+				editor.paletteComboViewer.refresh();
+			} else {
+				warn("Palette cannot deleted", "Palette cannot deleted because it is used by: "+res);
+			}
+		}
+	}
 
 }

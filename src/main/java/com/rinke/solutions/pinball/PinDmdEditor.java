@@ -1378,7 +1378,7 @@ public class PinDmdEditor implements EventHandler {
 		btnDecPitch.addListener(SWT.Selection, e -> dmdWidget.decPitch());
 
 		Group grpPalettes = new Group(shell, SWT.NONE);
-		grpPalettes.setLayout(new GridLayout(5, false));
+		grpPalettes.setLayout(new GridLayout(6, false));
 		GridData gd_grpPalettes = new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1);
 		gd_grpPalettes.widthHint = 814;
 		gd_grpPalettes.heightHint = 71;
@@ -1430,6 +1430,10 @@ public class PinDmdEditor implements EventHandler {
 			}
 
 		});
+		
+		Button btnDeletePalette = new Button(grpPalettes, SWT.NONE);
+		btnDeletePalette.setText("Delete");
+		btnDeletePalette.addListener(SWT.Selection, e->paletteHandler.onDeletePalette());
 
 		Composite grpPal = new Composite(grpPalettes, SWT.NONE);
 		grpPal.setLayout(new GridLayout(1, false));
@@ -1452,6 +1456,8 @@ public class PinDmdEditor implements EventHandler {
 		gd_lblCtrlclickToEdit.widthHint = 131;
 		lblCtrlclickToEdit.setLayoutData(gd_lblCtrlclickToEdit);
 		lblCtrlclickToEdit.setText("Ctrl-Click to edit color");
+		new Label(grpPalettes, SWT.NONE);
+		new Label(grpPalettes, SWT.NONE);
 		new Label(grpPalettes, SWT.NONE);
 		new Label(grpPalettes, SWT.NONE);
 		new Label(grpPalettes, SWT.NONE);
@@ -2313,7 +2319,6 @@ public class PinDmdEditor implements EventHandler {
 					if (project.palettes.get(i).type.equals(PaletteType.DEFAULT)) {
 						project.palettes.get(i).type = PaletteType.NORMAL;
 					}
-					;
 				}
 			}
 		}
