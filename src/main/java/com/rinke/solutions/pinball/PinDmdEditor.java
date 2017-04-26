@@ -624,6 +624,7 @@ public class PinDmdEditor implements EventHandler {
 
 	void onNewProject() {
 		project.clear();
+		project.setDimension(dmdSize.width, dmdSize.height);
 		activePalette = project.palettes.get(0);
 		setViewerSelection(paletteComboViewer,activePalette);
 		paletteComboViewer.refresh();
@@ -704,6 +705,12 @@ public class PinDmdEditor implements EventHandler {
 
 		if (projectToLoad != null) {
 			shell.setText(frameTextPrefix + " - " + new File(filename).getName());
+			if( projectToLoad.width == 0) {
+				projectToLoad.width = 128;
+				projectToLoad.height = 32; // default for older projects
+			}
+			DmdSize newSize = DmdSize.fromWidthHeight(projectToLoad.width, projectToLoad.height);
+			refreshDmdSize(newSize);
 			project = projectToLoad;
 			recordings.clear();
 			scenes.clear();
@@ -922,6 +929,7 @@ public class PinDmdEditor implements EventHandler {
 			// save as
 			project.inputFiles.remove(project.name + ".ani");
 		}
+		project.setDimension(dmdSize.width, dmdSize.height);
 		
 		// we need to "tag" the projects animations that are always stored in the projects ani file
 		// the project ani file is not included in the inputFile list but animations gets loaded
@@ -1232,6 +1240,11 @@ public class PinDmdEditor implements EventHandler {
 		CTabItem tbtmKeyframe = new CTabItem(tabFolder, SWT.NONE);
 		tbtmKeyframe.setText(TabMode.KEYFRAME.label);
 		tbtmKeyframe.setControl(createKeyFrameGroup(tabFolder));
+		new Label(grpKeyframe, SWT.NONE);
+		new Label(grpKeyframe, SWT.NONE);
+		new Label(grpKeyframe, SWT.NONE);
+		new Label(grpKeyframe, SWT.NONE);
+		new Label(grpKeyframe, SWT.NONE);
 		
 		CTabItem tbtmGodmd = new CTabItem(tabFolder, SWT.NONE);
 		tbtmGodmd.setText(TabMode.GODMD.label);
@@ -1595,14 +1608,12 @@ public class PinDmdEditor implements EventHandler {
 		createHashButtons(composite_hash, 10, 0);
 		
 		previewDmd = new DMDWidget(grpKeyframe, SWT.DOUBLE_BUFFERED, dmd, false);
-		GridData gd_dmdPreWidget = new GridData(SWT.CENTER, SWT.TOP, false, false, 1, 1);
-		gd_dmdPreWidget.heightHint = 40;
-		gd_dmdPreWidget.widthHint = 132;
+		GridData gd_dmdPreWidget = new GridData(SWT.LEFT, SWT.TOP, false, false, 2, 1);
+		gd_dmdPreWidget.heightHint = 64;
+		gd_dmdPreWidget.widthHint = 235;
 		previewDmd.setLayoutData(gd_dmdPreWidget);
 		previewDmd.setDrawingEnabled(false);
 		previewDmd.setPalette(previewPalettes.get(0));
-		
-		new Label(grpKeyframe, SWT.NONE);
 		new Label(grpKeyframe, SWT.NONE);
 		new Label(grpKeyframe, SWT.NONE);
 		new Label(grpKeyframe, SWT.NONE);

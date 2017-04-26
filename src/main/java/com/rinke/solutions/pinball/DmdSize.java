@@ -22,4 +22,11 @@ public enum DmdSize {
 		return null;
 	}
 
+	public static DmdSize fromWidthHeight(int w, int h) {
+		for( DmdSize s : values()) {
+			if( s.width == w && s.height == h) return s;
+		}
+		return null;
+	}
+
 }
