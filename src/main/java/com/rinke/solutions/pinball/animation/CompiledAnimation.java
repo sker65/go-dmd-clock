@@ -18,7 +18,12 @@ public class CompiledAnimation extends Animation {
 	
 	public CompiledAnimation(AnimationType type, String name, int start,
 			int end, int skip, int cycles, int holdCycles) {
-		super(type, name, start, end, skip, cycles, holdCycles);
+		this(type, name, start, end, skip, cycles, holdCycles, 128, 32);
+	}
+	
+	public CompiledAnimation(AnimationType type, String name, int start,
+			int end, int skip, int cycles, int holdCycles, int w, int h) {
+		super(type, name, start, end, skip, cycles, holdCycles, w, h);
 		init();
 		setMutable(true);
 		frames = renderer.getFrames();
@@ -121,4 +126,12 @@ public class CompiledAnimation extends Animation {
 			}
 		}
 	}
+
+	@Override
+	public void setDimension(int width, int height) {
+		super.setDimension(width, height);
+		if( !frames.isEmpty() ) throw new RuntimeException("cannot set dimension, when already allocates frames");
+	}
+	
+
 }

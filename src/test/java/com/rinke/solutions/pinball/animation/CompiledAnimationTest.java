@@ -21,7 +21,7 @@ public class CompiledAnimationTest {
 		DMD dmd = new DMD(PinDmdEditor.DMD_WIDTH, PinDmdEditor.DMD_HEIGHT);
 		dmd.setNumberOfSubframes(4);
 		ani.render(dmd, false);
-		uut = (CompiledAnimation) ani.cutScene(30, 200, 4,128,32);
+		uut = (CompiledAnimation) ani.cutScene(30, 200, 4);
 		uut.setDesc("foo");
 	}
 	

@@ -63,7 +63,10 @@ public class AnimationFactory {
 					getInt(conf,animationName+".end"),
 					getInt(conf, animationName+".step",1),
 					cycles,
-					getInt(conf,animationName+".hold",1));
+					getInt(conf,animationName+".hold",1),
+					getInt(conf,animationName+".width",128),
+					getInt(conf,animationName+".height",32)
+					);
 			
 			animation.setDesc(animationName);
 			animation.setBasePath(basePath);

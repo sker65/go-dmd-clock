@@ -71,6 +71,8 @@ public class Animation {
 	
 	private boolean trueColor;
 	protected boolean clockWasAdded;
+	public int width;
+	public int height;
 
 	public enum EditMode {
 		REPLACE("Replace"), COLMASK("Color Mask"), FIXED("Fixed"), FOLLOW("Color Mask Seq.");
@@ -126,12 +128,12 @@ public class Animation {
 
 	private Shell shell;
 	
-	public CompiledAnimation cutScene( int start, int end, int actualNumberOfPlanes, int w, int h) {
+	public CompiledAnimation cutScene( int start, int end, int actualNumberOfPlanes) {
 		// create a copy of the animation
-		DMD tmp = new DMD(w,h);
+		DMD tmp = new DMD(width,height);
 		CompiledAnimation dest = new CompiledAnimation(
 				AnimationType.COMPILED, this.getName(),
-				0, end-start, this.skip, 1, 0);
+				0, end-start, this.skip, 1, 0, width, height);
 		dest.setMutable(true);
 		//dest.setDirty(true);
 		dest.setClockFrom(Short.MAX_VALUE);
@@ -248,9 +250,13 @@ public class Animation {
 	public void setRefreshDelay(int refreshDelay) {
 		this.refreshDelay = refreshDelay;
 	}
-
 	public Animation(AnimationType type, String name, int start, int end, int skip,
 			int cycles, int holdCycles) {
+		this(type, name, start, end, skip,cycles, holdCycles,128, 32);
+	}
+	
+	public Animation(AnimationType type, String name, int start, int end, int skip,
+			int cycles, int holdCycles, int w, int h) {
 		this.start = start;
 		this.actFrame = start;
 		this.end = end;
@@ -262,6 +268,8 @@ public class Animation {
 		this.type = type;
 		this.clockFrom = Integer.MAX_VALUE;
 		this.editMode = EditMode.FIXED;
+		this.width = w;
+		this.height = h;
 	}
 
 	Renderer renderer = null;
@@ -289,12 +297,13 @@ public class Animation {
 	}
 	
 	public void init(DMD dmd) {
+		if( renderer != null ) return;
 		if( transitionName != null && transitions.isEmpty() ) {
 			initTransition(dmd);
 		}
 
 		if( renderer == null ) init();
-		
+		setDimension(dmd.getWidth(),dmd.getHeight());
 		// just to trigger image read
 		renderer.getMaxFrame(basePath+name, dmd);
 		if( renderer.getPalette() != null ) {
@@ -302,6 +311,12 @@ public class Animation {
 		}
 
 	}
+	
+	public void setDimension(int width, int height) {
+		this.width = width;
+		this.height = height;
+	}
+
 	
 	public Frame render(DMD dmd, boolean stop) {
 		init(dmd);
@@ -521,7 +536,7 @@ public class Animation {
 
     @Override
     public String toString() {
-        return "Animation [start=" + start + ", end=" + end + ", skip=" + skip + ", cycles=" + cycles + ", name=" + name
+        return "Animation [width="+width+", height="+height+", start=" + start + ", end=" + end + ", skip=" + skip + ", cycles=" + cycles + ", name=" + name
                 + ", holdCycles=" + holdCycles + ", type=" + type + ", refreshDelay=" + refreshDelay + ", clockFrom="
                 + clockFrom + ", clockSmall=" + clockSmall + ", clockXOffset=" + clockXOffset + ", clockYOffset="
                 + clockYOffset + ", clockInFront=" + clockInFront + ", fsk=" + fsk + ", transitionFrom=" + transitionFrom

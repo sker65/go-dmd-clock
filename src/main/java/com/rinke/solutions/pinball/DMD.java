@@ -121,7 +121,7 @@ public class DMD extends Observable {
 
     public void setPixel(int x, int y, int v) {
         if( x<0 || y<0 || x>=width || y >= height ) return;
-    	byte mask = (byte) (width >> (x % 8));
+    	byte mask = (byte) (0b10000000 >> (x % 8));
         if( maskIsRelevant() ) {
     		if( (v & 0x01) != 0) {
     			frame.mask.plane[y*bytesPerRow+x/8] |= mask;
@@ -144,7 +144,7 @@ public class DMD extends Observable {
     }
     
     public int getPixelWithoutMask(int x, int y) {
-    	byte mask = (byte) (getWidth() >> (x % 8));
+    	byte mask = (byte) (0b10000000 >> (x % 8));
     	int v = 0;
     	for(int plane = 0; plane < frame.planes.size(); plane++) {
     		v += (frame.planes.get(plane).plane[x / 8 + y * bytesPerRow] & mask) != 0 ? (1<<plane) : 0;
@@ -157,7 +157,7 @@ public class DMD extends Observable {
     }
    
     public int getPixel(int x, int y) {
-    	byte mask = (byte) (getWidth() >> (x % 8));
+    	byte mask = (byte) (0b10000000 >> (x % 8));
     	int v = 0;
     	if( maskIsRelevant() ) {
     		v += (frame.mask.plane[x / 8 + y * bytesPerRow] & mask) != 0 ? 1 : 0;

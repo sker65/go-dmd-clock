@@ -22,7 +22,7 @@ public class FloodFillTool extends DrawTool {
 
 	private void fill(int oldColor, int x, int y) {
 		depth++;
-		if( depth > 4000 ) {
+		if( depth > 10000 ) {
 			throw new RuntimeException("fill to deep");
 		}
 		if( dmd.getPixelWithoutMask(x,y) == oldColor ) {

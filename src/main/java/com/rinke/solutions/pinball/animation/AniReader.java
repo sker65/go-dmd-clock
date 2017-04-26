@@ -55,6 +55,11 @@ public class AniReader {
 					byte editMode = is.readByte();
 					a.setEditMode(EditMode.fromOrdinal(editMode));
 				}
+				if( version >= 4 ) {
+					int width = is.readShort();
+					int height = is.readShort();
+					a.setDimension(width, height);
+				}
 				readFrames( is, a, frames, version );
 				numberOfAnimations--;
                 log.info("reading {}",a);
@@ -88,7 +93,7 @@ public class AniReader {
 		int fsk = is.readByte();
 		
 		// read complied animations
-		CompiledAnimation a = new CompiledAnimation(AnimationType.COMPILED, name, 0, 0, 1, cycles, holdCycles);
+		CompiledAnimation a = new CompiledAnimation(AnimationType.COMPILED, name, 0, 0, 1, cycles, holdCycles, 128, 32);
 		a.setRefreshDelay(refreshDelay);
 		a.setClockFrom(clockFrom);
 		a.setClockSmall(clockSmall);

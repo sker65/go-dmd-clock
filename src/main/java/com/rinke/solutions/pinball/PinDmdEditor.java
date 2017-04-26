@@ -607,7 +607,7 @@ public class PinDmdEditor implements EventHandler {
 	}
 
 	private Animation cutScene(Animation animation, int start, int end, String name) {
-		CompiledAnimation cutScene = animation.cutScene(start, end, 4, dmdSize.width, dmdSize.height);
+		CompiledAnimation cutScene = animation.cutScene(start, end, 4);
 		// TODO improve to make it selectable how many planes
 		
 		paletteHandler.copyPalettePlaneUpgrade();
@@ -826,7 +826,7 @@ public class PinDmdEditor implements EventHandler {
 			for (FrameSeq p : project.frameSeqMap.values()) {
 				Animation ani = scenes.get(p.name);
 				// copy without extending frames
-				CompiledAnimation cani = ani.cutScene(ani.start, ani.end, 0, dmdSize.width, dmdSize.height);
+				CompiledAnimation cani = ani.cutScene(ani.start, ani.end, 0);
 				cani.actFrame = 0;
 				cani.setDesc(ani.getDesc());
 				DMD tmp = new DMD(dmdSize.width, dmdSize.height);

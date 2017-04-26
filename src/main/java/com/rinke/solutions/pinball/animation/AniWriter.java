@@ -74,7 +74,7 @@ public class AniWriter extends Worker {
 				offsetMap.put(a.getDesc(), os.size());
 			    writeAnimation(os, a);
 
-				DMD dmd = new DMD(PinDmdEditor.DMD_WIDTH,PinDmdEditor.DMD_HEIGHT);
+				DMD dmd = new DMD(a.width,a.height);
 				
 				int numberOfFrames = a.getFrameCount(dmd);
 				os.writeShort(numberOfFrames);
@@ -85,13 +85,18 @@ public class AniWriter extends Worker {
 				if( version >= 3 ) {
 					os.writeByte(a.getEditMode().ordinal());
 				}
+				if( version >= 4 ) {
+					os.writeShort(a.width);
+					os.writeShort(a.height);
+				}
+
 				int preserveAct = a.getActFrame();
 				a.restart();
 				
 				// write frames
 				log.info("writing {} frames", numberOfFrames);
 				for(int i = 0; i<numberOfFrames;i++) {
-					dmd = new DMD(PinDmdEditor.DMD_WIDTH,PinDmdEditor.DMD_HEIGHT);
+					dmd = new DMD(a.width,a.height);
 					os.writeShort(dmd.getPlaneSizeInByte());
 					notify(aniIndex*aniProgressInc + (int)((float)i/numberOfFrames * aniProgressInc), "writing animation "+a.getDesc());
 					Frame frame =  a.render(dmd,false);

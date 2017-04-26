@@ -34,7 +34,6 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 	private int bytesPerRow;
 	int margin = 20;
 	int pitch = 7;
-	int radius = 7;
 	int pressedButton = 0;
 	private DrawTool drawTool = null;//new RectTool();//new SetPixelTool();
 	private boolean drawingEnabled;
@@ -103,11 +102,6 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 		}
 	}
 	
-	public void setPitch(int p) {
-		pitch = p;
-		radius = p;
-	}
-
 	@Override
 	public void setBounds(int x, int y, int width, int height) {
 		super.setBounds(x, y, width, height);
@@ -117,9 +111,8 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 		margin = minwh/25;
 		int pitchx = (width -2*margin) / resolutionX;
 		int pitchy = (height -2*margin) / resolutionY;
-		int pitch = pitchx<pitchy?pitchx:pitchy;
+		pitch = pitchx<pitchy?pitchx:pitchy;
 		if( pitch <= 0) pitch = 1;
-		setPitch(pitch);
 		setBars();
 	}
 
@@ -132,14 +125,14 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 	}
 	
 	public void incPitch() {
-		setPitch(pitch++);
+		pitch++;
 		setBars();
 		redraw();
 	}
 
 	public void decPitch() {
 		if (pitch > 1) {
-			setPitch(pitch--);
+			pitch--;
 			setBars();
 		}
 		redraw();
@@ -232,7 +225,7 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
                 	Color c = resourceManager.createColor(new RGB(r,g,b));
                 	gcImage.setBackground(c);
                 }
-                gcImage.fillOval(margin + col * pitch, margin + row * pitch, radius, radius);
+                gcImage.fillOval(margin + col * pitch, margin + row * pitch, pitch, pitch);
             }
         }
 	}
