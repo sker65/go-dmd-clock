@@ -2224,12 +2224,16 @@ public class PinDmdEditor implements EventHandler {
 	}
 
 	void onMaskNumberChanged(Event e) {
-		int newMaskNumber = ((Spinner) e.widget).getSelection();
-		if (useGlobalMask && newMaskNumber != actMaskNumber) {
+		int newMaskNumber = maskSpinner.getSelection();
+		boolean hasChanged = false;
+		if(newMaskNumber != actMaskNumber ) {
 			log.info("mask number changed {} -> {}", actMaskNumber, newMaskNumber);
+			actMaskNumber = newMaskNumber;
+			hasChanged = true;
+		}
+		if (useGlobalMask && hasChanged) {
 			Mask maskToUse = project.masks.get(maskSpinner.getSelection());
 			dmdWidget.setMask(maskToUse);
-			actMaskNumber = newMaskNumber;
 			editAniObserver.update(animationHandler, null);
 		}
 	}

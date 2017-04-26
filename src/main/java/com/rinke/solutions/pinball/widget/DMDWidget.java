@@ -183,7 +183,7 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
         gcImage.setBackground(bg);
         gcImage.fillRectangle(0, 0, w, h);
         drawDMD(gcImage, dmd.getFrame(), 0, numberOfSubframes, useColorIndex, cols);
-        if( showMask ) {
+        if( showMask && dmd.getFrame().mask.plane != null) {
             ImageData imageData = image.getImageData();
     		imageData.alpha = 96;
     		Image maskImage =  new Image(display, imageData);
