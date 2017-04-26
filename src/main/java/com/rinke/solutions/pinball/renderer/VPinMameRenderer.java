@@ -78,9 +78,7 @@ public class VPinMameRenderer extends Renderer {
 					line = stream.readLine();
 					continue;
 				}
-				
 				for (int i = 0; i<line.length(); i++) {
-					//char c = line.charAt(i);
 					int k = i;
 					if( lineLenght > dmd.getWidth()){
 						//v1 = Integer.parseInt(line.substring(i,i+1), 16);
@@ -89,9 +87,9 @@ public class VPinMameRenderer extends Renderer {
 						k >>= 1;
 					}
 					int bit = (k % 8);
-					int b = k / 8;
+					int b = (k >> 3);
 					int mask = (0b10000000 >> bit);
-					int v = Integer.parseInt(line.substring(i,i+1), 16);
+					int v = hex2int(line.charAt(i));
 //					inc(count2,v);
 					if( v > vmax ) vmax = v;
 					if( (v & 1) != 0 ) 
@@ -120,6 +118,13 @@ public class VPinMameRenderer extends Renderer {
 				}
 		}
 		this.maxFrame = frameNo;
+	}
+
+	private int hex2int(char ch) {
+		int r = ch - '0';
+		if( ch >= 'A' ) r -= 'A' - '0';
+		if( ch >= 'a' ) r -= 'a' - 'A';
+		return r;
 	}
 
 	private void inc(Map<Integer, Integer> map, int v) {

@@ -208,7 +208,7 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
                 // lsb first
                 // byte mask = (byte) (1 << (col % 8));
                 // hsb first
-                byte mask = (byte) (resolutionX >> (col % 8));
+                byte mask = (byte) (0b10000000 >> (col % 8));
                 int v = 0;
                 for(int i = 0; i < numberOfSubframes;i++) {
                 	if( col / 8 + row * bytesPerRow < frame.getPlane(i+planeOffset).length)
