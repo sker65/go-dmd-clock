@@ -37,4 +37,9 @@ public class ObservableProperty<T> extends Observable {
             consumer.accept(delegate);
     }
 
+	@Override
+	public String toString() {
+		return String.format("ObservableProperty [delegate=%s]", delegate);
+	}
+
 }

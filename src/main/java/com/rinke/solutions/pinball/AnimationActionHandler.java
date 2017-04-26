@@ -115,7 +115,7 @@ public class AnimationActionHandler {
 			editor.scenes.clear();
 			editor.playingAnis.clear();
 		}
-		DMD dmd = new DMD(PinDmdEditor.DMD_WIDTH,PinDmdEditor.DMD_HEIGHT);
+		DMD dmd = new DMD(editor.dmdSize.width,editor.dmdSize.height);
 		for (Animation ani : loadedList) {
 			if( ani instanceof CompiledAnimation ) {
 				editor.project.inputFiles.remove(filename);

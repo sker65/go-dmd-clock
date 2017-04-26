@@ -257,7 +257,7 @@ public class PinDmdEditor implements EventHandler {
 	private ConnectionHandle handle;
 
 	private String pin2dmdAdress = null;
-	private DmdSize dmdSize;
+	public DmdSize dmdSize;
 
 	Pin2DmdConnector connector;
 
@@ -1926,6 +1926,7 @@ public class PinDmdEditor implements EventHandler {
 	}
 	
 	private void setPlayingAni(Animation ani, int pos) {
+		log.debug("set playing ani {}, {}", pos, ani);
 		playingAnis.clear();
 		playingAnis.add(ani);
 		animationHandler.setAnimations(playingAnis);
@@ -1940,6 +1941,7 @@ public class PinDmdEditor implements EventHandler {
 		log.info("onSceneSelectionChanged: {}", a);
 		Animation current = selectedScene.get();
 		// detect changes
+		if( current == null && a == null ) return;
 		if(a!= null && current != null && a.getDesc().equals(current.getDesc())) return;
 		if( current != null ) scenesPosMap.put(current.getDesc(), current.actFrame);
 		if( a != null ) {
@@ -1981,6 +1983,7 @@ public class PinDmdEditor implements EventHandler {
 			
 		} else {
 			selectedScene.set(null);
+			sceneListViewer.setSelection(StructuredSelection.EMPTY);
 		}
 		goDmdGroup.updateAniModel(a);
 		btnRemoveScene.setEnabled(a!=null);
@@ -1989,6 +1992,7 @@ public class PinDmdEditor implements EventHandler {
 	private void onRecordingSelectionChanged(Animation a) {
 		log.info("onRecordingSelectionChanged: {}", a);
 		Animation current = selectedRecording.get();
+		if( current == null && a == null ) return;
 		if(a!= null && current != null && a.getDesc().equals(current.getDesc())) return;
 		if( current != null ) recordingsPosMap.put(current.getDesc(), current.actFrame);
 		if( a != null) {		
@@ -2020,6 +2024,7 @@ public class PinDmdEditor implements EventHandler {
 
 		} else {
 			selectedRecording.set(null);
+			aniListViewer.setSelection(StructuredSelection.EMPTY);
 		}
 		goDmdGroup.updateAniModel(a);
 		btnRemoveAni.setEnabled(a != null);
@@ -2267,11 +2272,9 @@ public class PinDmdEditor implements EventHandler {
 				btnHash[j].setSelection(j == selectedHashIndex);
 			}
 			
-			onSceneSelectionChanged(null);
-
-			selectedRecording.set(recordings.get(selectedPalMapping.animationName));
-			setViewerSelection(aniListViewer, selectedRecording.get());
-
+			setViewerSelection(sceneListViewer, null);
+			setViewerSelection(aniListViewer, recordings.get(selectedPalMapping.animationName));
+			
 			if (selectedPalMapping.frameSeqName != null)
 				setViewerSelection(frameSeqViewer, scenes.get(selectedPalMapping.frameSeqName));
 
@@ -2281,7 +2284,6 @@ public class PinDmdEditor implements EventHandler {
 				String txt = btnHash[selectedHashIndex].getText();
 				btnHash[selectedHashIndex].setText("M" + selectedPalMapping.maskNumber + " " + txt);
 			}
-
 			saveTimeCode = (int) selectedRecording.get().getTimeCode(selectedPalMapping.frameIndex);
 		} else {
 			selectedPalMapping = null;

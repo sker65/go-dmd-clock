@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,10 +23,8 @@ import com.rinke.solutions.pinball.model.Plane;
 
 // als parameter in der Steuerdatei sollten
 // die helligkeits schwellen angebbar sein
-
+@Slf4j
 public class VPinMameRenderer extends Renderer {
-
-	private static Logger LOG = LoggerFactory.getLogger(VPinMameRenderer.class);
 
 	@Override
 	public long getTimeCode(int actFrame) {
@@ -49,8 +49,8 @@ public class VPinMameRenderer extends Renderer {
 
 			int j = 0;
 			int vmax = 0;
-			Map<Integer,Integer> count1 = new HashMap<>();
-			Map<Integer,Integer> count2 = new HashMap<>();
+			//Map<Integer,Integer> count1 = new HashMap<>();
+			//Map<Integer,Integer> count2 = new HashMap<>();
 			while (line != null) {
 				if (line.startsWith("0x")) {
 					long newTs = Long.parseLong(line.substring(2), 16);
@@ -73,7 +73,7 @@ public class VPinMameRenderer extends Renderer {
 							new byte[dmd.getPlaneSizeInByte()],
 							new byte[dmd.getPlaneSizeInByte()]
 							);
-					LOG.trace("reading frame: " + frameNo);
+					log.trace("reading frame: " + frameNo);
 					j = 0;
 					line = stream.readLine();
 					continue;
@@ -82,7 +82,7 @@ public class VPinMameRenderer extends Renderer {
 				for (int i = 0; i<line.length(); i++) {
 					//char c = line.charAt(i);
 					int k = i;
-					if( lineLenght > 128){
+					if( lineLenght > dmd.getWidth()){
 						//v1 = Integer.parseInt(line.substring(i,i+1), 16);
 						//inc(count1,v1);
 						i++; // skip every other byte
@@ -90,11 +90,11 @@ public class VPinMameRenderer extends Renderer {
 					}
 					int bit = (k % 8);
 					int b = k / 8;
-					int mask = PinDmdEditor.DMD_WIDTH >> bit;
+					int mask = (0b10000000 >> bit);
 					int v = Integer.parseInt(line.substring(i,i+1), 16);
 //					inc(count2,v);
 					if( v > vmax ) vmax = v;
-					if( (v & 1) != 0 )
+					if( (v & 1) != 0 ) 
 						res.planes.get(0).plane[j + b] |= mask;
 					if( (v & 2) != 0 )
 						res.planes.get(1).plane[j + b] |= mask;
@@ -103,14 +103,14 @@ public class VPinMameRenderer extends Renderer {
 					if( (v & 8) != 0 )
 						res.planes.get(3).plane[j + b] |= mask;
 				}
-				j += 16;
+				j += dmd.getBytesPerRow();
 				line = stream.readLine();
 			}
 			// check maximum value for v
 			// if never ever more than 3 reduce number of planes
 			if( vmax <= 3 ) reducePlanes(frames,2);
 		} catch (IOException e) {
-			e.printStackTrace();
+			throw new RuntimeException("error reading", e);
 		} finally {
 			if (stream != null)
 				try {
