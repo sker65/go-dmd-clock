@@ -1303,15 +1303,12 @@ public class PinDmdEditor implements EventHandler {
 		txtDelayVal.addListener(SWT.Modify, e-> {
 			String val = txtDelayVal.getText();
 			int delay = StringUtils.isEmpty(val)?0:Integer.parseInt(val);
-			if( selectedRecording.isPresent() ) {
-				Animation ani = selectedRecording.get();
-				if( ani.isMutable() && ani instanceof CompiledAnimation ) {
-					CompiledAnimation cani = (CompiledAnimation)ani;
-					if( actFrameOfSelectedAni<cani.frames.size() ) {
-						cani.frames.get(actFrameOfSelectedAni).delay = delay;
-					}
-					project.dirty = true;
+			if( selectedScene.isPresent() ) {
+				CompiledAnimation ani = selectedScene.get();
+				if( actFrameOfSelectedAni<ani.frames.size() ) {
+					ani.frames.get(actFrameOfSelectedAni).delay = delay;
 				}
+				project.dirty = true;
 			}
 		} );
 		txtDelayVal.addListener(SWT.Verify, e -> e.doit = Pattern.matches("^[0-9]*$", e.text));

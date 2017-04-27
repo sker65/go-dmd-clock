@@ -53,8 +53,9 @@ public class VPinMameRenderer extends Renderer {
 			//Map<Integer,Integer> count2 = new HashMap<>();
 			while (line != null) {
 				if (line.startsWith("0x")) {
-					long newTs = Long.parseLong(line.substring(2), 16);
+					long newTs = Long.parseLong(line.substring(2), 16);	
 					if (frameNo > 0 && lastTimeStamp > 0) {
+						//System.out.println(newTs+":"+(newTs - lastTimeStamp));
 						frames.get(frameNo - 1).delay = (int) (newTs - lastTimeStamp);
 						timecode += (newTs - lastTimeStamp);
 						res.timecode = timecode;
