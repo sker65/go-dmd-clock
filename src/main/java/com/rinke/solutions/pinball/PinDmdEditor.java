@@ -27,6 +27,8 @@ import java.util.Map.Entry;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.Optional;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -96,6 +98,7 @@ import com.rinke.solutions.pinball.io.Pin2DmdConnector;
 import com.rinke.solutions.pinball.io.Pin2DmdConnector.ConnectionHandle;
 import com.rinke.solutions.pinball.io.Pin2DmdConnector.UsbCmd;
 import com.rinke.solutions.pinball.io.SmartDMDImporter;
+import com.rinke.solutions.pinball.model.Bookmark;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.FrameSeq;
 import com.rinke.solutions.pinball.model.Mask;
@@ -1072,7 +1075,7 @@ public class PinDmdEditor implements EventHandler {
 		recentPalettesMenuManager.loadRecent();
 
 		recentAnimationsMenuManager = new RecentMenuManager("recentAnimations", 4, mntmRecentAnimations, e -> aniAction.loadAni(((String) e.widget.getData()),
-				true, false));
+				true, true));
 		recentAnimationsMenuManager.loadRecent();
 
 		resManager = new LocalResourceManager(JFaceResources.getResources(), shell);
@@ -1177,7 +1180,10 @@ public class PinDmdEditor implements EventHandler {
 		btnRemoveAni.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
 		btnRemoveAni.setText("Remove");
 		btnRemoveAni.setEnabled(false);
-		btnRemoveAni.addListener(SWT.Selection, e -> onRemove(selectedRecording, recordings) );
+		btnRemoveAni.addListener(SWT.Selection, e -> {
+			project.bookmarksMap.remove(selectedRecording.get().getDesc());
+			onRemove(selectedRecording, recordings);
+		} );
 
 		btnSortAni = new Button(composite_1, SWT.NONE);
 		btnSortAni.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
@@ -1326,7 +1332,10 @@ public class PinDmdEditor implements EventHandler {
 		btnLivePreview.addListener(SWT.Selection, e -> switchLivePreview(e));
 
 		Composite composite = new Composite(shell, SWT.NONE);
-		composite.setLayout(new GridLayout(9, false));
+		GridData gd_composite = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+		gd_composite.widthHint = 779;
+		composite.setLayoutData(gd_composite);
+		composite.setLayout(new GridLayout(11, false));
 
 		btnStartStop = new Button(composite, SWT.NONE);
 		btnStartStop.setText("Start");
@@ -1364,8 +1373,6 @@ public class PinDmdEditor implements EventHandler {
 				cutInfo.reset();
 			});
 
-		new Label(composite, SWT.NONE);
-
 		Button btnIncPitch = new Button(composite, SWT.NONE);
 		btnIncPitch.setText("+");
 		btnIncPitch.addListener(SWT.Selection, e -> dmdWidget.incPitch());
@@ -1373,6 +1380,51 @@ public class PinDmdEditor implements EventHandler {
 		Button btnDecPitch = new Button(composite, SWT.NONE);
 		btnDecPitch.setText("-");
 		btnDecPitch.addListener(SWT.Selection, e -> dmdWidget.decPitch());
+		
+		bookmarkComboViewer = new ComboViewer(composite, SWT.NONE);
+		Combo combo_3 = bookmarkComboViewer.getCombo();
+		GridData gd_combo_3 = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+		gd_combo_3.widthHint = 106;
+		combo_3.setLayoutData(gd_combo_3);
+		bookmarkComboViewer.setContentProvider(ArrayContentProvider.getInstance());
+		bookmarkComboViewer.setLabelProvider(new LabelProviderAdapter<Bookmark>(o -> o.name+" - "+o.pos));
+		bookmarkComboViewer.addSelectionChangedListener(e -> {
+			Bookmark bm = getFirstSelected(e);
+			if( selectedRecording.isPresent() ) {
+				animationHandler.setPos(bm.pos);
+			}
+		});
+			
+		Button btnNewBookMark = new Button(composite, SWT.NONE);
+		btnNewBookMark.setText("New");
+		btnNewBookMark.addListener(SWT.Selection, e->{
+			if( selectedRecording.isPresent() ) {
+				Animation r = selectedRecording.get();
+				Set<Bookmark> set = project.bookmarksMap.get(r.getDesc());
+				if( set == null ) {
+					set = new TreeSet<Bookmark>();
+					project.bookmarksMap.put(r.getDesc(),set);
+					
+				}
+				String bookmarkName = bookmarkComboViewer.getCombo().getText();
+				set.add(new Bookmark(bookmarkName, r.actFrame));
+				bookmarkComboViewer.setInput(set);
+				bookmarkComboViewer.refresh();
+			}
+		});
+		
+		Button btnDelBookmark = new Button(composite, SWT.NONE);
+		btnDelBookmark.setText("Del.");
+		btnDelBookmark.addListener(SWT.Selection, e->{
+			if( selectedRecording.isPresent() ) {
+				Animation r = selectedRecording.get();
+				Set<Bookmark> set = project.bookmarksMap.get(r.getDesc());
+				if( set != null ) {
+					set.remove(getSelectionFromViewer(bookmarkComboViewer));
+					bookmarkComboViewer.refresh();
+				}
+			}
+		});
 
 		Group grpPalettes = new Group(shell, SWT.NONE);
 		grpPalettes.setLayout(new GridLayout(6, false));
@@ -2035,10 +2087,13 @@ public class PinDmdEditor implements EventHandler {
 			//onColorMaskChecked(a.getEditMode()==EditMode.COLMASK);// doesnt fire event?????
 			dmd.setNumberOfSubframes(numberOfPlanes);
 			paletteTool.setNumberOfPlanes(useGlobalMask?1:numberOfPlanes);
-
+			Set<Bookmark> set = project.bookmarksMap.get(a.getDesc());
+			if( set != null ) bookmarkComboViewer.setInput(set);
+			else bookmarkComboViewer.setInput(Collections.EMPTY_SET);
 		} else {
 			selectedRecording.set(null);
 			aniListViewer.setSelection(StructuredSelection.EMPTY);
+			bookmarkComboViewer.setInput(Collections.EMPTY_SET);
 		}
 		goDmdGroup.updateAniModel(a);
 		btnRemoveAni.setEnabled(a != null);
@@ -2625,6 +2680,7 @@ public class PinDmdEditor implements EventHandler {
 	private Button btnAddEvent;
 	private Composite grpKeyframe;
 	private Text textProperty;
+	private ComboViewer bookmarkComboViewer;
 
 	@Override
 	public void notifyAni(AniEvent evt) {
