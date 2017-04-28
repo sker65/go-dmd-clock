@@ -32,7 +32,7 @@ public class CompiledAnimationTest {
 		Frame frame = uut.render(dmd , true);
 		byte sum=0;
 		for (Plane p : frame.planes) {
-			for(byte b : p.plane) sum +=b;
+			for(byte b : p.data) sum +=b;
 		}
 		assertEquals(-2,sum);
 		
@@ -44,7 +44,7 @@ public class CompiledAnimationTest {
 		frame = uut.render(dmd , true);
 		sum=0;
 		for (Plane p : frame.planes) {
-			for(byte b : p.plane) sum +=b;
+			for(byte b : p.data) sum +=b;
 		}
 
 		assertEquals(-128,sum);

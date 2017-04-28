@@ -167,7 +167,7 @@ public class PinDmdEditorSWTTest {
 		assertThat(uut.scenes.size(), equalTo(1));
 		uut.loadProject("./src/test/resources/test.xml");
 		assertThat(uut.recordings.size(), equalTo(1));
-		assertThat(uut.scenes.size(), equalTo(2));
+		assertThat(uut.scenes.size(), equalTo(1));
 	}
 	
 	@Test

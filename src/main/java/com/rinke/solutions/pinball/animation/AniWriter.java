@@ -204,11 +204,11 @@ public class AniWriter extends Worker {
 		int start = os.size();
 		if( r.hasMask()) {
 			os.writeByte(Plane.xMASK);
-		    os.write(r.mask.plane);
+		    os.write(r.mask.data);
 		}
 		for(int j = 0; j < r.planes.size(); j++) {
 		    os.writeByte(j);
-		    os.write(r.planes.get(j).plane);
+		    os.write(r.planes.get(j).data);
 		}
 		return os.size()-start;
 	}

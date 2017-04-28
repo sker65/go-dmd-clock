@@ -350,9 +350,8 @@ public class Animation {
 	
 	protected Frame addTransitionFrame(Frame in) {
         Frame tframe = transitions.get(transitionCount < transitions.size() ? transitionCount : transitions.size() - 1);
-        Frame r = new Frame(in.planes.get(0).plane, in.planes.get(1).plane);//
-        r.delay = in.delay;
-        r.planes.add(tframe.planes.get(0));
+        Frame r = new Frame(in);
+        r.setMask(tframe.mask.data);
         return r;
     }
 

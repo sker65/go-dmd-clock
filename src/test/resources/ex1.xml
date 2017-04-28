@@ -887,6 +887,7 @@
   </palettes>
   <palMappings/>
   <scenes/>
+  <bookmarksMap/>
   <name>ex1</name>
   <mask>////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////
@@ -1031,4 +1032,6 @@
       <locked>false</locked>
     </com.rinke.solutions.pinball.model.Mask>
   </masks>
+  <width>128</width>
+  <height>32</height>
 </project>

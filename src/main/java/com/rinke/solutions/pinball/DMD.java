@@ -124,9 +124,9 @@ public class DMD extends Observable {
     	byte mask = (byte) (0b10000000 >> (x % 8));
         if( maskIsRelevant() ) {
     		if( (v & 0x01) != 0) {
-    			frame.mask.plane[y*bytesPerRow+x/8] |= mask;
+    			frame.mask.data[y*bytesPerRow+x/8] |= mask;
     		} else {
-    			frame.mask.plane[y*bytesPerRow+x/8] &= ~mask;
+    			frame.mask.data[y*bytesPerRow+x/8] &= ~mask;
     		}
         }
         int drawMask1 = drawMask >> 1;
@@ -134,9 +134,9 @@ public class DMD extends Observable {
     	for(int plane = 0; plane < numberOfPlanes; plane++) {
     		if( ((1<<plane) & drawMask1) != 0) {
         		if( (v & 0x01) != 0) {
-        			frame.planes.get(plane).plane[y*bytesPerRow+x/8] |= mask;
+        			frame.planes.get(plane).data[y*bytesPerRow+x/8] |= mask;
         		} else {
-        			frame.planes.get(plane).plane[y*bytesPerRow+x/8] &= ~mask;
+        			frame.planes.get(plane).data[y*bytesPerRow+x/8] &= ~mask;
         		}
     		}
     		v >>= 1;
@@ -147,7 +147,7 @@ public class DMD extends Observable {
     	byte mask = (byte) (0b10000000 >> (x % 8));
     	int v = 0;
     	for(int plane = 0; plane < frame.planes.size(); plane++) {
-    		v += (frame.planes.get(plane).plane[x / 8 + y * bytesPerRow] & mask) != 0 ? (1<<plane) : 0;
+    		v += (frame.planes.get(plane).data[x / 8 + y * bytesPerRow] & mask) != 0 ? (1<<plane) : 0;
     	}
     	return v;
     }
@@ -160,12 +160,12 @@ public class DMD extends Observable {
     	byte mask = (byte) (0b10000000 >> (x % 8));
     	int v = 0;
     	if( maskIsRelevant() ) {
-    		v += (frame.mask.plane[x / 8 + y * bytesPerRow] & mask) != 0 ? 1 : 0;
+    		v += (frame.mask.data[x / 8 + y * bytesPerRow] & mask) != 0 ? 1 : 0;
     	}
     	int drawMask1 = drawMask >> 1;
     	for(int plane = 0; plane < frame.planes.size(); plane++) {
     		if( ((1<<plane) & drawMask1) != 0) {
-    			v += (frame.planes.get(plane).plane[x / 8 + y * bytesPerRow] & mask) != 0 ? (1<<plane) : 0;
+    			v += (frame.planes.get(plane).data[x / 8 + y * bytesPerRow] & mask) != 0 ? (1<<plane) : 0;
     		}
     	}
     	return v;
@@ -175,7 +175,7 @@ public class DMD extends Observable {
     	updateActualBuffer(0);
     	removeMask();
         for (Plane p : frame.planes) {
-			Arrays.fill(p.plane, (byte)0);
+			Arrays.fill(p.data, (byte)0);
 		}
     }
 
@@ -191,7 +191,7 @@ public class DMD extends Observable {
         		}
         		//numberOfPlanes = frame.planes.size();
         		for ( i = 0; i < src.planes.size(); i++) {
-					copyOr(frame.planes.get(i).plane,src.planes.get(i).plane);
+					copyOr(frame.planes.get(i).data,src.planes.get(i).data);
 				}
         	//s}
         }
@@ -200,7 +200,7 @@ public class DMD extends Observable {
     public void writeAnd(byte[] mask) {
         if (mask != null) {
         	for(Plane p:frame.planes) {
-        		copyAnd(p.plane, mask);
+        		copyAnd(p.data, mask);
         	}
         }
     }
@@ -208,7 +208,7 @@ public class DMD extends Observable {
     public void writeNotAnd(byte[] mask) {
         if (mask != null) {
         	for(Plane p:frame.planes) {
-        		copyNotAnd(p.plane, mask);
+        		copyNotAnd(p.data, mask);
         	}
         }
     }
@@ -379,14 +379,21 @@ public class DMD extends Observable {
 
 	public void fill(byte val) {
 		if( (drawMask & 1) != 0 && frame.hasMask() ) {
-			Arrays.fill( frame.mask.plane, val );
+			Arrays.fill( frame.mask.data, val );
 		}
 		int mask = drawMask>>1;
 		for( int j = 0; j < frame.planes.size(); j++) {
 			if (((1 << j) & mask) != 0) {
-				Arrays.fill( frame.planes.get(j).plane, val );
+				Arrays.fill( frame.planes.get(j).data, val );
 			}
 		}
+	}
+
+	public void setMaskPixel(int x, int y, boolean b) {
+		int save = drawMask;
+		drawMask = 1;
+		setPixel(x, y, b?1:0);
+		drawMask = save;
 	}
 
 }

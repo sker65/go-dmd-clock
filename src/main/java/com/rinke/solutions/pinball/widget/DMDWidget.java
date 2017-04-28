@@ -46,6 +46,7 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 	private boolean scrollable = false;
 	private List<FrameChangedListerner> frameChangedListeners = new ArrayList<>();
 	private boolean maskLocked;
+	private boolean maskOut = false;
 	
 	@FunctionalInterface
 	public static interface FrameChangedListerner {
@@ -182,8 +183,8 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
         GC gcImage = new GC(image);
         gcImage.setBackground(bg);
         gcImage.fillRectangle(0, 0, w, h);
-        drawDMD(gcImage, dmd.getFrame(), 0, numberOfSubframes, useColorIndex, cols);
-        if( showMask && dmd.getFrame().mask.plane != null) {
+        drawDMD(gcImage, dmd.getFrame(), numberOfSubframes, useColorIndex, cols);
+        if( showMask && dmd.getFrame().mask != null) {
             ImageData imageData = image.getImageData();
     		imageData.alpha = 96;
     		Image maskImage =  new Image(display, imageData);
@@ -191,8 +192,8 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 			cols[0] = resourceManager.createColor(new RGB(0, 0, 0));
             cols[1] = resourceManager.createColor(maskLocked ? new RGB(255, 0, 0) : new RGB(0, 0, 255));
             // create a fake mask frame
-            Frame maskFrame = new Frame(dmd.getFrame().mask.plane, dmd.getFrame().mask.plane);
-            drawDMD(gcMask, maskFrame, 0, 1, true, cols);
+            Frame maskFrame = new Frame(dmd.getFrame().mask.data, dmd.getFrame().mask.data);
+            drawDMD(gcMask, maskFrame, 1, true, cols);
             gcImage.drawImage(maskImage, 0, 0);
             gcMask.dispose();
         }
@@ -201,8 +202,9 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
         return image;
 	}
 
-	private void drawDMD(GC gcImage, Frame frame, int planeOffset, int numberOfSubframes,
-			boolean useColorIndex, Color[] cols) {
+	private void drawDMD(GC gcImage, Frame frame, int numberOfSubframes, boolean useColorIndex, Color[] cols) {
+		boolean checkMask = maskOut && frame.hasMask();
+		byte[] maskData = checkMask?frame.mask.data:null;
 		for (int row = 0; row < resolutionY; row++) {
             for (int col = 0; col < resolutionX; col++) {
                 // lsb first
@@ -211,8 +213,14 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
                 byte mask = (byte) (0b10000000 >> (col % 8));
                 int v = 0;
                 for(int i = 0; i < numberOfSubframes;i++) {
-                	if( col / 8 + row * bytesPerRow < frame.getPlane(i+planeOffset).length)
-                		v += (frame.getPlane(i+planeOffset)[col / 8 + row * bytesPerRow] & mask) != 0 ? (1<<i) : 0;
+                	if( col / 8 + row * bytesPerRow < frame.getPlane(i).length) {
+                		if( checkMask ) {
+                			if( (maskData[col / 8 + row * bytesPerRow] & mask) != 0) 
+                				v += (frame.getPlane(i)[col / 8 + row * bytesPerRow] & mask) != 0 ? (1<<i) : 0;
+                		} else {
+                			v += (frame.getPlane(i)[col / 8 + row * bytesPerRow] & mask) != 0 ? (1<<i) : 0;
+                		}
+                	}
                 }
 
                 if( useColorIndex ) {
@@ -290,5 +298,9 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 		dmd.ensureMask(mask.data);
 		this.setShowMask(true);
 		this.setMaskLocked(mask.locked);
+	}
+
+	public void setMaskOut(boolean maskOut) {
+		 this.maskOut = maskOut;
 	}
 }

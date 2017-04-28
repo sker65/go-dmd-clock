@@ -4,7 +4,9 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DirectColorModel;
 import java.awt.image.IndexColorModel;
 import java.awt.image.WritableRaster;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.swt.graphics.Image;
@@ -28,6 +30,37 @@ public class ImageUtil {
 	static int midThreshold = 120;
 	static int highThreshold = 200;
 	
+	/**
+	 * Returns the color distance between color1 and color2
+	 */
+	public static float getPixelDistance(int c1, int c2) {
+		int r1 = (c1 >> 16) & 0xFF;
+		int g1 = (c1 >> 8) & 0xFF;
+		int b1 = (c1 >> 0) & 0xFF;
+		int r2 = (c2 >> 16) & 0xFF;
+		int g2 = (c2 >> 8) & 0xFF;
+		int b2 = (c2 >> 0) & 0xFF;
+		return (float) getPixelDistance(r1, g1, b1, r2, g2, b2);
+	}
+
+	public static double getPixelDistance(int r1, int g1, int b1, int r2, int g2, int b2) {
+		return Math.sqrt(Math.pow(r2 - r1, 2) + Math.pow(g2 - g1, 2) + Math.pow(b2 - b1, 2));
+	}
+	
+	public static void dumpPlane(byte[] plane, int bytesPerLine) {
+		StringBuffer sb = new StringBuffer();
+		for(int i = 0; i < plane.length; i++) {
+			int v = plane[i];
+			for(int j = 0; j<8;j++) {
+				if( ((128 >> j) & v) != 0 ) sb.append('*'); else sb.append('.');
+			}
+			if( i % bytesPerLine == (bytesPerLine-1) ) {
+				System.out.println(sb.toString());
+				sb = new StringBuffer();
+			}
+		}
+	}
+
 	/**
 	 * Converts an swt based image into an AWT <code>BufferedImage</code>. This
 	 * will always return a <code>BufferedImage</code> that is of type
@@ -142,25 +175,55 @@ public class ImageUtil {
 		return null;
 	}
 
-	public static Frame convertToFrameWithPalette(BufferedImage dmdImage, DMD dmd, Palette palette) {
+	public static Frame convertToFrameWithPalette(BufferedImage dmdImage, DMD dmd, Palette palette, boolean modifyDMD) {
 		Frame res = new Frame();
 		int noOfPlanes = 1;
 		while( palette.numberOfColors > (1<<noOfPlanes)) noOfPlanes++;
+		
 		for( int j = 0; j < noOfPlanes ; j++) {
 			res.planes.add(new Plane((byte)j, new byte[dmd.getPlaneSizeInByte()]));
 		}
+		boolean hasAlpha = dmdImage.getColorModel().hasAlpha();
 		
-		for (int x = 0; x < dmd.getWidth(); x++) {
-			for (int y = 0; y < dmd.getHeight(); y++) {
+		// TODO if has alpha also create a mask
+		if( hasAlpha ) {
+			res.setMask(new byte[dmd.getPlaneSizeInByte()]);
+		}
+		
+		for (int x = 0; x < dmdImage.getWidth(); x++) {
+			for (int y = 0; y < dmdImage.getHeight(); y++) {
 
 				int rgb = dmdImage.getRGB(x, y);
-				int idx = findColorIndex(rgb, palette);
-				
-				for( int j = 0; j < noOfPlanes ; j++) {
-					if( (idx & (1<<j)) != 0)
-						res.planes.get(j).plane[y * dmd.getBytesPerRow() + x / 8] |= (PinDmdEditor.DMD_WIDTH >> (x % 8));
-				}
+				int idx = findBestColorIndex(rgb, palette);
+				int mask = (0b10000000 >> (x%8));
+				if( hasAlpha ) {
+					boolean v = ((rgb>>24)&0xFF) > 128;
+					if( v ) {
+		    			res.mask.data[y*dmd.getBytesPerRow()+x/8] |= mask;
+		    		} else {
+		    			res.mask.data[y*dmd.getBytesPerRow()+x/8] &= ~mask;
+		    		}
+					if( v ) {
+						if( modifyDMD ) {
+							dmd.setPixel(x, y, idx);
+						}
+						for( int j = 0; j < noOfPlanes ; j++) {
+							if( (idx & (1<<j)) != 0) {
+									res.planes.get(j).data[y * dmd.getBytesPerRow() + x / 8] |= mask;
+							}
+						}
+					}
+				} else {
+					if( modifyDMD ) {
+						dmd.setPixel(x, y, idx);
+					}
+					for( int j = 0; j < noOfPlanes ; j++) {
+						if( (idx & (1<<j)) != 0) {
+								res.planes.get(j).data[y * dmd.getBytesPerRow() + x / 8] |= mask;
+						}
+					}
 
+				}
 			}
 		}
 		return res;
@@ -177,19 +240,33 @@ public class ImageUtil {
 		return 0;
 	}
 
-
+	private static int findBestColorIndex(int rgb, Palette palette) {
+		float min = Float.MAX_VALUE;
+		int best = 0;
+		for (int i = 0; i < palette.colors.length; i++) {
+			RGB p = palette.colors[i];
+			float colDelta = getPixelDistance((p.red<<16)|(p.green<<8)|p.blue, rgb);
+			if( colDelta < min ) {
+				min = colDelta;
+				best = i;
+			}
+			
+		}
+		return best;
+	}
 	
 	public static Frame convertToFrame(BufferedImage dmdImage, int w, int h) {
 		Frame res = new Frame();
 		for( int j = 0; j < 15 ; j++) {
 			res.planes.add(new Plane((byte)j, new byte[w*h/8]));
 		}
-		
-		for (int x = 0; x < w; x++) {
-			for (int y = 0; y < h; y++) {
+		System.out.println("dmdImage: "+dmdImage.getWidth()+" "+dmdImage.getHeight());
+		;
+		for (int x = 0; x < dmdImage.getWidth(); x++) {
+			for (int y = 0; y < dmdImage.getHeight(); y++) {
 
 				int rgb = dmdImage.getRGB(x, y);
-				
+				System.out.println(x+" "+y+" "+Long.toHexString(rgb));
 				// reduce color depth to 15 bit
 				int nrgb = ( rgb >> 3 ) & 0x1F;
 				nrgb |= ( ( rgb >> 11 ) & 0x1F ) << 5;
@@ -197,7 +274,7 @@ public class ImageUtil {
 				
 				for( int j = 0; j < 15 ; j++) {
 					if( (nrgb & (1<<j)) != 0)
-						res.planes.get(j).plane[y * (w/8) + x / 8] |= (w >> (x % 8));
+						res.planes.get(j).data[y * (w/8) + x / 8] |= (w >> (x % 8));
 				}
 
 			}

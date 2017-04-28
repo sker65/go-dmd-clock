@@ -32,7 +32,7 @@ public class ClipboardHandler {
 	DMDWidget dmdWidget;
 	int width;
 	int height;
-	private int planeSize;
+	Palette palette;
 	
 	/**
 	 * typically instantiated once for the complete editor lifecycle
@@ -40,15 +40,18 @@ public class ClipboardHandler {
 	 * @param dmdWidget the widget
 	 * @param display swt display instance (could maybe also created via internal factory)
 	 */
-	public ClipboardHandler(DMD dmd, DMDWidget dmdWidget) {
+	public ClipboardHandler(DMD dmd, DMDWidget dmdWidget, Palette pal) {
 		super();
 		this.dmd = dmd;
 		this.dmdWidget = dmdWidget;
-		Display display = Display.getCurrent();
-		this.clipboard = new Clipboard(display);
+		this.clipboard = new Clipboard(Display.getCurrent());
 		this.width = dmd.getWidth();
 		this.height = dmd.getHeight();
-		this.planeSize = dmd.getPlaneSizeInByte();
+		this.palette = pal;
+	}
+	
+	public void setPalette(Palette p) {
+		this.palette = p;
 	}
 
 	/**
@@ -61,8 +64,27 @@ public class ClipboardHandler {
 			pasteTool.setFrameToPaste(frame);
 			pasteTool.setMaskOnly(dmdWidget.isShowMask());
 			dmdWidget.setDrawTool(pasteTool);
+		} else {
+			ImageData imageData = (ImageData) clipboard.getContents(ImageTransfer.getInstance());
+			if( imageData != null ) {
+				dmd.addUndoBuffer();
+				BufferedImage bufferedImage = ImageUtil.convert(new Image(Display.getCurrent(),imageData));
+				if( dmd.getNumberOfPlanes() <= 4) {
+					Frame res = ImageUtil.convertToFrameWithPalette(bufferedImage, dmd, palette, false);
+					PasteTool pasteTool = new PasteTool(0, width, height);
+					pasteTool.setFrameToPaste(res);
+					pasteTool.setMaskOnly(dmdWidget.isShowMask());
+					dmdWidget.setDrawTool(pasteTool);
+				} else {
+					Frame res = ImageUtil.convertToFrame(bufferedImage, width, height);
+					PasteTool pasteTool = new PasteTool(0, width, height);
+					pasteTool.setFrameToPaste(res);
+					pasteTool.setMaskOnly(dmdWidget.isShowMask());
+					dmdWidget.setDrawTool(pasteTool);
+				}
+
+			}
 		}
-		// TODO build frame from image data
 	}
 	
 	private ImageData buildImageData(DMD dmd, boolean mask, Palette actPalette) {
@@ -126,18 +148,11 @@ public class ClipboardHandler {
 		}
 		Frame frame = (Frame) clipboard.getContents(DmdFrameTransfer.getInstance());
 		if( frame != null ) {
+			dmd.addUndoBuffer();
 			if (dmdWidget.isShowMask()) {
-				dmd.addUndoBuffer();
-				dmd.getFrame().setMask(Arrays.copyOf(frame.mask.plane, planeSize));
+				frame.copyToWithMask(dmd.getFrame(), 0b0001);
 			} else {
-				dmd.addUndoBuffer();
-				int mask = dmd.getDrawMask()>>1;
-				Frame f = dmd.getFrame();
-				for( int j = 0; j < f.planes.size(); j++) {
-					if (((1 << j) & mask) != 0) {
-						System.arraycopy(frame.planes.get(j).plane, 0, f.planes.get(j).plane, 0, planeSize);
-					}
-				}
+				frame.copyToWithMask(dmd.getFrame(), dmd.getDrawMask());
 			}
 		} else {
 			ImageData imageData = (ImageData) clipboard.getContents(ImageTransfer.getInstance());
@@ -146,8 +161,13 @@ public class ClipboardHandler {
 				log.info("image data depth: {}", imageData.depth);
 				// we need a config option to define if colors are reduced to palette or not
 				BufferedImage bufferedImage = ImageUtil.convert(new Image(Display.getCurrent(),imageData));
-				Frame res = ImageUtil.convertToFrame(bufferedImage, width, height);
-				dmd.setFrame(res);
+				if( dmd.getNumberOfPlanes() <= 4) {
+					ImageUtil.convertToFrameWithPalette(bufferedImage, dmd, palette, true);
+					//dmd.setFrame(res);
+				} else {
+					Frame res = ImageUtil.convertToFrame(bufferedImage, width, height);
+					dmd.setFrame(res);
+				}
 			}
 		}
 	}

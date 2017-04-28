@@ -36,6 +36,7 @@ import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.FrameSeq;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.PalMapping.SwitchMode;
+import com.rinke.solutions.pinball.model.Plane;
 import com.rinke.solutions.pinball.test.Util;
 import com.rinke.solutions.pinball.util.RecentMenuManager;
 import com.rinke.solutions.pinball.widget.DMDWidget;
@@ -56,6 +57,12 @@ public class PinDmdEditorTest {
 
 	@Mock
 	AnimationHandler animationHandler;
+	
+	@Mock
+	DMDWidget dmdWidget;
+	
+	@Mock
+	DMDWidget previewDMD;
 	
 	@Mock
 	Observer editAniObserver;
@@ -200,6 +207,5 @@ public class PinDmdEditorTest {
 		String actual = uut.buildUniqueName(uut.recordings);
 		assertNotEquals("Scene 1", actual);
 	}
-
 
 }

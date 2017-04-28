@@ -204,8 +204,8 @@ public abstract class Pin2DmdConnector {
     	if( frame.planes.size() == 2 ) {
 //    		byte[] planeOr = new byte[PinDmdEditor.PLANE_SIZE];
     		byte[] planeAnd = new byte[PinDmdEditor.PLANE_SIZE];
-    		byte[] plane0 = frame.planes.get(0).plane;
-    		byte[] plane1 = frame.planes.get(1).plane;
+    		byte[] plane0 = frame.planes.get(0).data;
+    		byte[] plane1 = frame.planes.get(1).data;
     		
     		for (int j = 0; j < plane0.length; j++) {
 //				planeOr[j] =  (byte) (plane0[j] | plane1[j]);
@@ -217,7 +217,7 @@ public abstract class Pin2DmdConnector {
     		System.arraycopy(Frame.transform(planeAnd), 0, buffer, 4+3*PinDmdEditor.PLANE_SIZE, PinDmdEditor.PLANE_SIZE);
     	} else {
         	for( Plane p : frame.planes) {
-        		System.arraycopy(Frame.transform(p.plane), 0, buffer, 4+i*PinDmdEditor.PLANE_SIZE, PinDmdEditor.PLANE_SIZE);
+        		System.arraycopy(Frame.transform(p.data), 0, buffer, 4+i*PinDmdEditor.PLANE_SIZE, PinDmdEditor.PLANE_SIZE);
         		if( i++ > 3 ) break;
         	}
     	}

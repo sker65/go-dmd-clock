@@ -1,6 +1,7 @@
 package com.rinke.solutions.pinball;
 
 import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.*;
 
 import java.io.FileReader;
 
@@ -9,8 +10,8 @@ import org.custommonkey.xmlunit.XMLUnit;
 
 import static org.custommonkey.xmlunit.XMLAssert.*;
 
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Menu;
+import org.eclipse.jface.viewers.ComboViewer;
+import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 import org.junit.Before;
@@ -30,6 +31,7 @@ import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.test.Util;
 import com.rinke.solutions.pinball.ui.Progress;
 import com.rinke.solutions.pinball.util.RecentMenuManager;
+import com.rinke.solutions.pinball.widget.DMDWidget;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PinDmdEditorIOSWTTest {
@@ -71,6 +73,12 @@ public class PinDmdEditorIOSWTTest {
 		uut.shell = shell;
 		uut.recentProjectsMenuManager = recentProjectsMenuManager;
 		uut.mntmSaveProject = menuItemMock;
+
+		uut.dmdWidget = mock(DMDWidget.class);
+		uut.previewDmd = mock(DMDWidget.class);
+		uut.paletteComboViewer = mock(ComboViewer.class);
+		uut.keyframeTableViewer = mock(TableViewer.class);
+		uut.animationHandler = mock(AnimationHandler.class);
 	}
 
 	@Test

@@ -106,10 +106,10 @@ public class AnimationHandler extends Observable implements Runnable{
                 // only dmd playback nothing goDMD like
                 if( false && res.hasMask() ) { // there is a mask
                     if( ani.getClockFrom()>ani.getTransitionFrom())
-                        dmd.writeNotAnd(res.planes.get(2).plane); // mask out clock
+                        dmd.writeNotAnd(res.planes.get(2).data); // mask out clock
                     DMD tmp = new DMD(dmd.getWidth(), dmd.getHeight());
                     tmp.writeOr(res);
-                    tmp.writeAnd(res.planes.get(2).plane);       // mask out ani
+                    tmp.writeAnd(res.planes.get(2).data);       // mask out ani
                     dmd.writeOr(tmp.getFrame()); // merge
                 } else {
                     // now if clock was rendered, use font mask to mask out digits in animation

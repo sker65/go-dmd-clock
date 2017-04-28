@@ -30,7 +30,7 @@ public class AnimationTest {
 		assertThat(destFrame.planes.size(), equalTo(4));
 		int i = 0;
 		for (Plane p : srcFrame.planes) {
-			assertThat(p.plane, equalTo(destFrame.planes.get(i++).plane));
+			assertThat(p.data, equalTo(destFrame.planes.get(i++).data));
 		}
 
 	}

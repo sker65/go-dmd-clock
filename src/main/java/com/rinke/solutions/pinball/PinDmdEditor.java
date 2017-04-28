@@ -537,7 +537,7 @@ public class PinDmdEditor implements EventHandler {
 		
 		createContents(shell);
 
-		clipboardHandler = new ClipboardHandler(dmd, dmdWidget);
+		clipboardHandler = new ClipboardHandler(dmd, dmdWidget, activePalette);
 		animationHandler = new AnimationHandler(playingAnis, clock, dmd);
 		animationHandler.setScale(scale);
 		animationHandler.setEventHandler(this);
@@ -845,7 +845,7 @@ public class PinDmdEditor implements EventHandler {
 					Frame f = cani.render(tmp, false);
 					for( int j = 0; j < f.planes.size(); j++) {
 						if (((1 << j) & p.mask) == 0) {
-							Arrays.fill(f.planes.get(j).plane, (byte)0);
+							Arrays.fill(f.planes.get(j).data, (byte)0);
 						}
 					}
 				}
@@ -1669,6 +1669,7 @@ public class PinDmdEditor implements EventHandler {
 		previewDmd.setLayoutData(gd_dmdPreWidget);
 		previewDmd.setDrawingEnabled(false);
 		previewDmd.setPalette(previewPalettes.get(0));
+		previewDmd.setMaskOut(true);
 		new Label(grpKeyframe, SWT.NONE);
 		new Label(grpKeyframe, SWT.NONE);
 		new Label(grpKeyframe, SWT.NONE);
@@ -1920,37 +1921,18 @@ public class PinDmdEditor implements EventHandler {
 		onNextFrameClicked();
 		CompiledAnimation ani = selectedScene.get();
 		if( !ani.hasEnded() ) {
-			copyFrame(ani, ani.getActFrame(), -1);
+			ani.frames.get(ani.actFrame-1).copyToWithMask(dmd.getFrame(), dmd.getDrawMask());
+			dmdRedraw();
 		}
 	}
 	
 	private void onCopyAndMoveToPrevFrameClicked() {
 		onPrevFrameClicked();
-		CompiledAnimation ani =  selectedScene.get();
+		CompiledAnimation ani = selectedScene.get();
 		if( ani.getActFrame() >= ani.getStart() ) {
-			copyFrame(ani, ani.getActFrame(), 1);
+			ani.frames.get(ani.actFrame+1).copyToWithMask(dmd.getFrame(), dmd.getDrawMask());
+			dmdRedraw();
 		}
-	}
-
-	private void copyFrame(CompiledAnimation cani, int n, int offset) {
-		Frame srcFrame = cani.frames.get(n+offset);
-		Frame actFrame = cani.frames.get(n);
-		int drawMask = dmd.getDrawMask();
-		dmd.addUndoBuffer();
-		// TODO should be copy method in frame class
-		if( (drawMask&1)!=0 ) {
-			int size = srcFrame.mask.plane.length;
-			System.arraycopy( srcFrame.mask.plane, 0, dmd.getFrame().mask.plane, 0, size);
-		}
-		drawMask >>= 1;
-		for( int i = 0; i < actFrame.planes.size(); i++) {
-			if( (drawMask&1) != 0) {
-				int size = srcFrame.planes.get(i).plane.length;
-				System.arraycopy( srcFrame.planes.get(i).plane, 0, dmd.getFrame().planes.get(i).plane, 0, size);
-			}
-			drawMask >>= 1;
-		}
-		dmdRedraw();
 	}
 
 	private void onSortKeyFrames() {
@@ -2119,6 +2101,7 @@ public class PinDmdEditor implements EventHandler {
 			activePalette = newPalette;
 			dmdWidget.setPalette(activePalette);
 			paletteTool.setPalette(activePalette);
+			clipboardHandler.setPalette(activePalette);
 			log.info("new palette is {}", activePalette);
 			setViewerSelection(paletteTypeComboViewer, activePalette.type);
 			if (livePreviewActive)
@@ -2269,8 +2252,11 @@ public class PinDmdEditor implements EventHandler {
 				Mask mask = project.masks.get(maskSpinner.getSelection());
 				mask.commit(dmd.getFrame().mask);
 			}
+			dmd.removeMask();
 			useGlobalMask = false;
 		}
+		updateHashes(dmd.getFrame());
+		previewDmd.redraw();
 		setDrawMaskByEditMode(editMode);
 		editAniObserver.update(animationHandler, null);
 	}
@@ -2681,6 +2667,19 @@ public class PinDmdEditor implements EventHandler {
 	private Composite grpKeyframe;
 	private Text textProperty;
 	private ComboViewer bookmarkComboViewer;
+	
+	private void updateHashes(Frame frame) {
+		if( frame == null ) return;
+		Frame f = new Frame(frame);
+		if( dmdWidget.isShowMask() ) {
+			f.setMask(getCurrentMask().data);
+		}
+
+		List<byte[]> hashes = f.getHashes();
+		refreshHashButtons(hashes);
+
+		saveHashes(hashes);
+	}
 
 	@Override
 	public void notifyAni(AniEvent evt) {
@@ -2692,10 +2691,8 @@ public class PinDmdEditor implements EventHandler {
 			txtDelayVal.setText("" + evt.frame.delay);
 			lblPlanesVal.setText("" + evt.frame.planes.size());
 
-			List<byte[]> hashes = evt.frame.getHashes();
-			refreshHashButtons(hashes);
-
-			saveHashes(hashes);
+			updateHashes(evt.frame);
+			
 			lastTimeCode = evt.frame.timecode;
 			if (livePreviewActive && evt.frame != null) {
 				connector.sendFrame(evt.frame, handle);
@@ -2716,10 +2713,7 @@ public class PinDmdEditor implements EventHandler {
 			}
 			break;
 		case FRAMECHANGE:
-			List<byte[]> hashes2 = evt.frame.getHashes();
-			refreshHashButtons(hashes2);
-
-			saveHashes(hashes2);
+			updateHashes(evt.frame);
 			break;
 		}
 		dmdRedraw();

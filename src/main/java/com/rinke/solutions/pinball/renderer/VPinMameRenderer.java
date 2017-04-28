@@ -94,13 +94,13 @@ public class VPinMameRenderer extends Renderer {
 //					inc(count2,v);
 					if( v > vmax ) vmax = v;
 					if( (v & 1) != 0 ) 
-						res.planes.get(0).plane[j + b] |= mask;
+						res.planes.get(0).data[j + b] |= mask;
 					if( (v & 2) != 0 )
-						res.planes.get(1).plane[j + b] |= mask;
+						res.planes.get(1).data[j + b] |= mask;
 					if( (v & 4) != 0 )
-						res.planes.get(2).plane[j + b] |= mask;
+						res.planes.get(2).data[j + b] |= mask;
 					if( (v & 8) != 0 )
-						res.planes.get(3).plane[j + b] |= mask;
+						res.planes.get(3).data[j + b] |= mask;
 				}
 				j += dmd.getBytesPerRow();
 				line = stream.readLine();

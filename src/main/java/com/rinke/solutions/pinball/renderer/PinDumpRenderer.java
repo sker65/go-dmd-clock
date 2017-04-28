@@ -157,7 +157,7 @@ public class PinDumpRenderer extends Renderer {
 			for (Frame frame : frames) {
 				for (Plane plane : frame.planes) {
 					byte[] line = new byte[16];
-					System.arraycopy(plane.plane, 20*16, line, 0, 16);
+					System.arraycopy(plane.data, 20*16, line, 0, 16);
 					if( i++<3) stream.write(line);
 					if( i == 5 ) i = 0;
 				}

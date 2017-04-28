@@ -63,15 +63,14 @@ public class CompiledAnimation extends Animation {
 
     public Mask getCurrentMask() {
 		Mask maskToUse;
-		// build mask from current frame
-		
+		// build mask from current frame		
 		Frame frame = frames.get(actFrame);
 		if( !frame.hasMask() ) {
-			byte[] emptyMask = new byte[PinDmdEditor.PLANE_SIZE];
+			byte[] emptyMask = new byte[this.width*this.height/8];
 			Arrays.fill(emptyMask, (byte)0xFF);
 			frame.setMask(emptyMask);
 		}
-		maskToUse = new Mask(frame.mask.plane, false);
+		maskToUse = new Mask(frame.mask.data, false);
 		return maskToUse;
     }
 
@@ -83,26 +82,12 @@ public class CompiledAnimation extends Animation {
 		}
 	    if( actFrame >= 0 && actFrame < frames.size()) {
 	    	Frame aniFrame = frames.get(actFrame);
-	        List<Plane> aniPlanes = aniFrame.planes;
 	        Frame dmdFrame = dmd.getFrame();
-	        // if both have mask commit mask
-	        if( aniFrame.hasMask() && dmd.hasMask() ) {
-	        	int len = min(dmdFrame.mask.plane.length,aniFrame.mask.plane.length);
-	        	System.arraycopy(dmdFrame.mask.plane, 0, aniFrame.mask.plane, 0, len );
-	        }
-	        // then commit (copy) planes
-	        for(int i = 0; i < aniPlanes.size(); i++) {
-	        	byte[] planeBytes = dmdFrame.getPlane(i);
-	            int len = min(planeBytes.length,aniPlanes.get(i).plane.length);
-	            System.arraycopy(planeBytes, 0, aniPlanes.get(i).plane, 0, len );
-	        }
+	        // if target has no mask, don't create one
+	        dmdFrame.copyToWithMask(aniFrame, aniFrame.hasMask() ? -1 : (-1<<1) );
 	        aniFrame.setHash(hash);
 	        setDirty(true);
 	    }
-	}
-
-	private int min(int l, int l2) {
-		return l<l2?l:l2;
 	}
 
 	public static List<Animation> read(String file) {

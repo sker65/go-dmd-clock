@@ -4,6 +4,7 @@ import org.bouncycastle.util.Arrays;
 
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Plane;
+import com.rinke.solutions.pinball.renderer.ImageUtil;
 import com.rinke.solutions.pinball.util.ByteUtil;
 
 /**
@@ -35,12 +36,23 @@ public class PasteTool extends DrawTool {
 				byte[] plane = copyShiftedPlane(x, y, frameToPaste.mask, true);
 				dmd.ensureMask(plane);
 			} else {
-				int mask = dmd.getDrawMask()>>1;
-				Frame f = dmd.getFrame();
-				for( int j = 0; j < f.planes.size(); j++) {
-					if (((1 << j) & mask) != 0) {
+				int planeMask = dmd.getDrawMask()>>1;
+				Frame dest = dmd.getFrame();
+				byte[] maskPlane = null;
+				if( frameToPaste.hasMask() ) {
+					maskPlane = copyShiftedPlane(x, y, new Plane(Plane.xMASK,frameToPaste.mask.data), false);
+					//ImageUtil.dumpPlane(maskPlane, 16);
+				}
+				for( int j = 0; j < dest.planes.size(); j++) {
+					if (((1 << j) & planeMask) != 0) {
 						byte[] plane = copyShiftedPlane(x, y, frameToPaste.planes.get(j), false);
-						System.arraycopy(plane, 0, f.planes.get(j).plane, 0, planeSize);
+						if( frameToPaste.hasMask() ) {
+							for( int i = 0; i < planeSize; i++) {
+								dest.planes.get(j).data[i] = (byte) ((plane[i] & maskPlane[i]) | ( dest.planes.get(j).data[i] & ~maskPlane[i] ));
+							}
+						} else {
+							System.arraycopy(plane, 0, dest.planes.get(j).data, 0, planeSize);
+						}
 					}
 				}
 			}
@@ -58,7 +70,7 @@ public class PasteTool extends DrawTool {
 			int destRow = row+y;
 			if( destRow >= 0 && destRow < height) {
 				// copy row to shift
-				System.arraycopy(p.plane, bytesPerRow*row, rowBytes, 0, bytesPerRow);
+				System.arraycopy(p.data, bytesPerRow*row, rowBytes, 0, bytesPerRow);
 				ByteUtil.shift(rowBytes, x, filling);
 				System.arraycopy(rowBytes, 0, plane, bytesPerRow*destRow, bytesPerRow);
 			} 
@@ -83,6 +95,8 @@ public class PasteTool extends DrawTool {
 
 	public void setFrameToPaste(Frame frameToPaste) {
 		 this.frameToPaste = frameToPaste;
+		 System.out.println("mask");
+		 if( frameToPaste.hasMask()) ImageUtil.dumpPlane(frameToPaste.mask.data, 16);
 	}
 
 }
