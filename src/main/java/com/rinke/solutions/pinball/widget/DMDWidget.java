@@ -295,7 +295,7 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 	}
 
 	public void setMask(Mask mask) {
-		dmd.ensureMask(mask.data);
+		dmd.setMask(mask.data);
 		this.setShowMask(true);
 		this.setMaskLocked(mask.locked);
 	}

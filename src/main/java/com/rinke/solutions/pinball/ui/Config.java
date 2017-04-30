@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ComboViewer;
-import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FormAttachment;
@@ -28,10 +27,12 @@ import com.rinke.solutions.pinball.io.Pin2DmdConnector;
 import com.rinke.solutions.pinball.io.Pin2DmdConnector.ConnectionHandle;
 import com.rinke.solutions.pinball.util.ApplicationProperties;
 
+import org.eclipse.swt.widgets.Spinner;
+
 @Slf4j
 public class Config extends Dialog {
     
-    protected Object result;
+	protected Object result;
     protected Shell shell;
     private DmdSize dmdSize;
     private String address;
@@ -39,6 +40,11 @@ public class Config extends Dialog {
 
     private ComboViewer dmdSizeViewer;
 	private Text pin2dmdHost;
+	private Group grpDmd;
+	private Group group;
+	private Button btnOk;
+	private Button btnAutosaveActive;
+	private Spinner autosaveInterval;
     
     /**
      * Create the dialog.
@@ -75,6 +81,9 @@ public class Config extends Dialog {
         this.address = address;
         pin2dmdHost.setText(address!=null?address:"");
         
+        btnAutosaveActive.setSelection(ApplicationProperties.getBoolean(ApplicationProperties.AUTOSAVE, false));
+        autosaveInterval.setSelection(ApplicationProperties.getInteger(ApplicationProperties.AUTOSAVE_INTERVAL, 10));
+        
         shell.open();
         shell.layout();
         Display display = getParent().getDisplay();
@@ -95,7 +104,7 @@ public class Config extends Dialog {
         shell.setText("Configuration");
         shell.setLayout(new FormLayout());
         
-        Button btnOk = new Button(shell, SWT.NONE);
+        btnOk = new Button(shell, SWT.NONE);
         FormData fd_btnOk = new FormData();
         fd_btnOk.bottom = new FormAttachment(100, -10);
         fd_btnOk.right = new FormAttachment(100, -10);
@@ -111,11 +120,11 @@ public class Config extends Dialog {
         btnCancel.setText("Cancel");
         btnCancel.addListener(SWT.Selection, e->cancel());
         
-        Group grpDmd = new Group(shell, SWT.NONE);
+        grpDmd = new Group(shell, SWT.NONE);
         grpDmd.setText("DMD");
         FormData fd_grpDmd = new FormData();
+        fd_grpDmd.right = new FormAttachment(btnOk, -257, SWT.RIGHT);
         fd_grpDmd.top = new FormAttachment(0, 10);
-        fd_grpDmd.right = new FormAttachment(btnOk, 0, SWT.RIGHT);
         fd_grpDmd.left = new FormAttachment(0, 10);
         fd_grpDmd.bottom = new FormAttachment(0, 80);
         grpDmd.setLayoutData(fd_grpDmd);
@@ -128,13 +137,13 @@ public class Config extends Dialog {
 		dmdSizeViewer.setInput(DmdSize.values());
 		dmdSizeViewer.setSelection(new StructuredSelection(dmdSize));
 		
-		Group group = new Group(shell, SWT.NONE);
+		group = new Group(shell, SWT.NONE);
 		group.setText("WiFi");
 		group.setLayout(new GridLayout(3, false));
 		FormData fd_group = new FormData();
-		fd_group.right = new FormAttachment(100, -10);
 		fd_group.top = new FormAttachment(grpDmd, 7);
-		fd_group.left = new FormAttachment(grpDmd, 0, SWT.LEFT);
+		fd_group.left = new FormAttachment(0, 10);
+		fd_group.right = new FormAttachment(100, -10);
 		
 		Label lblSize = new Label(grpDmd, SWT.RIGHT);
 		lblSize.setBounds(10, 13, 41, 14);
@@ -165,16 +174,43 @@ public class Config extends Dialog {
         
         FormData fd_grpConfig = new FormData();
         fd_grpConfig.bottom = new FormAttachment(100, -292);
+
+        Group grpAutosave = new Group(shell, SWT.NONE);
+        grpAutosave.setText("Autosave");
+        FormData fd_grpAutosave = new FormData();
+        fd_grpAutosave.right = new FormAttachment(btnOk, 0, SWT.RIGHT);
+        fd_grpAutosave.top = new FormAttachment(group, -77, SWT.TOP);
+        fd_grpAutosave.bottom = new FormAttachment(group, -7);
+        fd_grpAutosave.left = new FormAttachment(grpDmd, 14);
+        grpAutosave.setLayoutData(fd_grpAutosave);
+        
+        btnAutosaveActive = new Button(grpAutosave, SWT.CHECK);
+        btnAutosaveActive.setBounds(10, 10, 70, 18);
+        btnAutosaveActive.setText("active");
+        
+        autosaveInterval = new Spinner(grpAutosave, SWT.BORDER);
+        autosaveInterval.setBounds(69, 8, 52, 22);
+        autosaveInterval.setIncrement(5);
+        autosaveInterval.setMinimum(5);
+        autosaveInterval.setMaximum(30);
+        
+        Label lblSec = new Label(grpAutosave, SWT.NONE);
+        lblSec.setBounds(127, 13, 59, 14);
+        lblSec.setText("min.");
     }
 
 	private void cancel() {
+		log.info("cancel pressed");
 		okPressed = true;
 		shell.close();
 	}
 
 	private void ok() {
+		log.info("ok pressed");
 		okPressed = true;
 		dmdSize = (DmdSize) ((StructuredSelection) dmdSizeViewer.getSelection()).getFirstElement();
+        ApplicationProperties.put(ApplicationProperties.AUTOSAVE, btnAutosaveActive.getSelection());
+        ApplicationProperties.put(ApplicationProperties.AUTOSAVE_INTERVAL, autosaveInterval.getSelection());     
 		shell.close();
 	}
 }

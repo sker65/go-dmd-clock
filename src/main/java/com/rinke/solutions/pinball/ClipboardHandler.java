@@ -25,7 +25,7 @@ import com.rinke.solutions.pinball.widget.PasteTool;
  * @author Stefan Rinke
  */
 @Slf4j
-public class ClipboardHandler {
+public class ClipboardHandler implements Runnable {
 	
 	DMD dmd;
 	Clipboard clipboard;
@@ -33,6 +33,7 @@ public class ClipboardHandler {
 	int width;
 	int height;
 	Palette palette;
+	Display display;
 	
 	/**
 	 * typically instantiated once for the complete editor lifecycle
@@ -44,7 +45,8 @@ public class ClipboardHandler {
 		super();
 		this.dmd = dmd;
 		this.dmdWidget = dmdWidget;
-		this.clipboard = new Clipboard(Display.getCurrent());
+		this.display = Display.getCurrent();
+		this.clipboard = new Clipboard(display);
 		this.width = dmd.getWidth();
 		this.height = dmd.getHeight();
 		this.palette = pal;
@@ -170,5 +172,21 @@ public class ClipboardHandler {
 				}
 			}
 		}
+	}
+	
+	long nextCheck = 0;
+
+	@Override
+	public void run() {
+		long now = System.currentTimeMillis();
+		if( now > nextCheck ) {
+			nextCheck = now + 10000;
+			checkClipboard();
+		}
+		display.asyncExec(this);
+	}
+
+	private void checkClipboard() {
+		log.trace("check clipboard");
 	}
 }

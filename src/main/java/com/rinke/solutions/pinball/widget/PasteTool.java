@@ -34,7 +34,7 @@ public class PasteTool extends DrawTool {
 			dmd.copyLastBuffer();
 			if( maskOnly ) {
 				byte[] plane = copyShiftedPlane(x, y, frameToPaste.mask, true);
-				dmd.ensureMask(plane);
+				dmd.setMask(plane);
 			} else {
 				int planeMask = dmd.getDrawMask()>>1;
 				Frame dest = dmd.getFrame();
@@ -95,8 +95,8 @@ public class PasteTool extends DrawTool {
 
 	public void setFrameToPaste(Frame frameToPaste) {
 		 this.frameToPaste = frameToPaste;
-		 System.out.println("mask");
-		 if( frameToPaste.hasMask()) ImageUtil.dumpPlane(frameToPaste.mask.data, 16);
+		 //System.out.println("mask");
+		 //if( frameToPaste.hasMask()) ImageUtil.dumpPlane(frameToPaste.mask.data, 16);
 	}
 
 }

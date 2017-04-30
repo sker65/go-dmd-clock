@@ -293,6 +293,7 @@ public class PinDmdEditor implements EventHandler {
 	private EditMode editMode;
 	private ClipboardHandler clipboardHandler;
 	private TabMode tabMode;
+	private AutosaveHandler autoSaveHandler;;
 	
 	enum TabMode {
 		KEYFRAME("KeyFrame"), GODMD("goDMD"), PROP("Properties");
@@ -527,6 +528,7 @@ public class PinDmdEditor implements EventHandler {
 		fileChooserUtil = new FileChooserUtil(shell);
 		paletteHandler = new PaletteHandler(this, shell);
 		aniAction = new AnimationActionHandler(this, shell);
+		autoSaveHandler = new AutosaveHandler(display, shell, this);
 
 		if (SWT.getPlatform().equals("cocoa")) {
 			CocoaGuiEnhancer enhancer = new CocoaGuiEnhancer("Pin2dmd Editor");
@@ -556,7 +558,7 @@ public class PinDmdEditor implements EventHandler {
 		if (splashScreen != null) {
 			splashScreen.close();
 		}
-
+		
 		shell.open();
 		shell.layout();
 		shell.addListener(SWT.Close, e -> {
@@ -566,7 +568,10 @@ public class PinDmdEditor implements EventHandler {
 		GlobalExceptionHandler.getInstance().setDisplay(display);
 		GlobalExceptionHandler.getInstance().setShell(shell);
 
+		autoSaveHandler.checkAutoSaveAtStartup();
+
 		display.timerExec(animationHandler.getRefreshDelay(), cyclicRedraw);
+		display.timerExec(1000*300, autoSaveHandler);
 
 		processCmdLine();
 
@@ -579,15 +584,17 @@ public class PinDmdEditor implements EventHandler {
 						display.sleep();
 					}
 				}
+				autoSaveHandler.deleteAutosaveFiles();
 				System.exit(0);
 			} catch (Exception e) {
 				GlobalExceptionHandler.getInstance().showError(e);
 				log.error("unexpected error: {}", e);
-				if (retry++ > 10)
+				if (retry++ > 10) {
+					autoSaveHandler.deleteAutosaveFiles();
 					System.exit(1);
+				}
 			}
 		}
-
 	}
 
 	private void processCmdLine() {
@@ -703,7 +710,6 @@ public class PinDmdEditor implements EventHandler {
 
 	void loadProject(String filename) {
 		log.info("load project from {}", filename);
-		setProjectFilename(filename);
 		Project projectToLoad = (Project) fileHelper.loadObject(filename);
 
 		if (projectToLoad != null) {
@@ -714,6 +720,7 @@ public class PinDmdEditor implements EventHandler {
 			}
 			DmdSize newSize = DmdSize.fromWidthHeight(projectToLoad.width, projectToLoad.height);
 			refreshDmdSize(newSize);
+			setProjectFilename(filename);
 			project = projectToLoad;
 			recordings.clear();
 			scenes.clear();
@@ -1390,7 +1397,7 @@ public class PinDmdEditor implements EventHandler {
 		bookmarkComboViewer.setLabelProvider(new LabelProviderAdapter<Bookmark>(o -> o.name+" - "+o.pos));
 		bookmarkComboViewer.addSelectionChangedListener(e -> {
 			Bookmark bm = getFirstSelected(e);
-			if( selectedRecording.isPresent() ) {
+			if( bm != null && selectedRecording.isPresent() ) {
 				animationHandler.setPos(bm.pos);
 			}
 		});
@@ -2226,9 +2233,8 @@ public class PinDmdEditor implements EventHandler {
 		Mask maskToUse = null; 
 		if( editMode.equals(EditMode.FOLLOW)) {
 			// create mask from actual scene
-			maskToUse = selectedScene.get().getCurrentMask();
+			if( selectedScene.isPresent()) maskToUse = selectedScene.get().getCurrentMask();
 		} else {
-			this.useGlobalMask = true;
 			// use one of the project masks
 			maskToUse = project.masks.get(maskSpinner.getSelection());
 		}
@@ -2245,6 +2251,7 @@ public class PinDmdEditor implements EventHandler {
 		if (useMask) {
 			paletteTool.setNumberOfPlanes(1);
 			dmdWidget.setMask(getCurrentMask());
+			useGlobalMask = !editMode.equals(EditMode.FOLLOW);
 		} else {
 			paletteTool.setNumberOfPlanes(dmd.getNumberOfPlanes());
 			dmdWidget.setShowMask(false);
@@ -2418,7 +2425,8 @@ public class PinDmdEditor implements EventHandler {
 		mntmSaveProject.addListener(SWT.Selection, e -> onSaveProjectSelected(false));
 
 		MenuItem mntmSaveAsProject = new MenuItem(menu_1, SWT.NONE);
-		mntmSaveAsProject.setText("Save Project as");
+		mntmSaveAsProject.setText("Save Project as\tShift-Crtl-S");
+		mntmSaveAsProject.setAccelerator(SWT.MOD1|SWT.MOD2 + 'S');
 		mntmSaveAsProject.addListener(SWT.Selection, e -> onSaveProjectSelected(true));
 
 		MenuItem mntmRecentProjects = new MenuItem(menu_1, SWT.CASCADE);
@@ -2635,7 +2643,7 @@ public class PinDmdEditor implements EventHandler {
 		onNewProject();
 		// bindings
 		log.info("dmd size changed to {}", newSize.label);
-		ApplicationProperties.put(ApplicationProperties.PIN2DMD_DMDSIZE_PROP_KEY, Integer.toString(dmdSize.ordinal()));
+		ApplicationProperties.put(ApplicationProperties.PIN2DMD_DMDSIZE_PROP_KEY, dmdSize.ordinal());
 	}
 
 	private void onRedoClicked() {
@@ -2671,7 +2679,8 @@ public class PinDmdEditor implements EventHandler {
 	private void updateHashes(Frame frame) {
 		if( frame == null ) return;
 		Frame f = new Frame(frame);
-		if( dmdWidget.isShowMask() ) {
+		Mask currentMask = getCurrentMask();
+		if( dmdWidget.isShowMask() && currentMask != null) {
 			f.setMask(getCurrentMask().data);
 		}
 

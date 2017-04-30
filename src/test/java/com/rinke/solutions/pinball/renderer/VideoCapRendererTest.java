@@ -11,7 +11,6 @@ public class VideoCapRendererTest {
 	VideoCapRenderer uut = new VideoCapRenderer();
 
 	@Test
-	
 	@Ignore
 	public void testConvert() throws Exception {
 		DMD dmd = new DMD(PinDmdEditor.DMD_WIDTH, PinDmdEditor.DMD_HEIGHT);

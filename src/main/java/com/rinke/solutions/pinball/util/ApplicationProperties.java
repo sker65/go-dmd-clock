@@ -16,6 +16,9 @@ public class ApplicationProperties {
 	public static final String PIN2DMD_ADRESS_PROP_KEY = "pin2dmdAdress";
 	public static final String PIN2DMD_DMDSIZE_PROP_KEY = "dmdSize";
 	public static final String GODMD_ENABLED_PROP_KEY = "godmdEnabled";
+	public static final String AUTOSAVE_INTERVAL = "autosaveInterval";
+	public static final String AUTOSAVE = "autosave";
+
 
 	private static ApplicationProperties theInstance;
 
@@ -109,4 +112,8 @@ public class ApplicationProperties {
 		put(key, Integer.toString(val));
 	}
 
+	public static void put(String key, boolean val) {
+		put(key, Boolean.toString(val));
+	}
+	
 }

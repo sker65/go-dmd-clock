@@ -371,10 +371,8 @@ public class DMD extends Observable {
 		}
 	}
 
-	public void ensureMask(byte[] data) {
-		if(!frame.hasMask()) {
-			frame.setMask(data);
-		}
+	public void setMask(byte[] data) {
+		frame.setMask(data);
 	}
 
 	public void fill(byte val) {

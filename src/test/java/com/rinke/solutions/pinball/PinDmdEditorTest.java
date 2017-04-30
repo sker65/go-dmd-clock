@@ -82,7 +82,6 @@ public class PinDmdEditorTest {
 	}
 
 	@Test
-	@Ignore
 	public void testOnExportProjectSelectedWithFrameMapping() throws Exception {
 
 		File tempFile = testFolder.newFile("test.dat");
