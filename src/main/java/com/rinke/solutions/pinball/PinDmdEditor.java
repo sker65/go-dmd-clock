@@ -132,6 +132,8 @@ import com.rinke.solutions.pinball.widget.LineTool;
 import com.rinke.solutions.pinball.widget.PaletteTool;
 import com.rinke.solutions.pinball.widget.RectTool;
 import com.rinke.solutions.pinball.widget.SetPixelTool;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 
 
 //@Slf4j
@@ -1522,7 +1524,7 @@ public class PinDmdEditor implements EventHandler {
 		
 
 		Group grpDrawing = new Group(shell, SWT.NONE);
-		grpDrawing.setLayout(new GridLayout(5, false));
+		grpDrawing.setLayout(new GridLayout(6, false));
 		GridData gd_grpDrawing = new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1);
 		gd_grpDrawing.heightHint = 63;
 		gd_grpDrawing.widthHint = 812;
@@ -1615,12 +1617,22 @@ public class PinDmdEditor implements EventHandler {
 		maskSpinner.addListener(SWT.Selection, e -> onMaskNumberChanged(e));
 		
 		btnMask = new Button(grpDrawing, SWT.CHECK);
+		btnMask.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+			}
+		});
 		GridData gd_btnMask = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
-		gd_btnMask.widthHint = 93;
+		gd_btnMask.widthHint = 62;
 		btnMask.setLayoutData(gd_btnMask);
-		btnMask.setText("Show Mask");
+		btnMask.setText("Mask");
 		btnMask.setEnabled(false);
 		btnMask.addListener(SWT.Selection, e -> onMaskChecked(btnMask.getSelection()));
+		
+		btnInvert = new Button(grpDrawing, SWT.NONE);
+		btnInvert.setText("Invert");
+		btnInvert.addListener(SWT.Selection, e->onInvert());
+		btnInvert.setEnabled(false);
 		
 		btnCopyToPrev = new Button(grpDrawing, SWT.NONE);
 		btnCopyToPrev.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
@@ -1643,6 +1655,7 @@ public class PinDmdEditor implements EventHandler {
 		btnDeleteColMask = new Button(grpDrawing, SWT.NONE);
 		btnDeleteColMask.setText("Delete");
 		btnDeleteColMask.setEnabled(false);
+		new Label(grpDrawing, SWT.NONE);
 		btnDeleteColMask.addListener(SWT.Selection, e -> onDeleteColMaskClicked());
 
 		ObserverManager.bind(maskDmdObserver, e -> btnUndo.setEnabled(e), () -> maskDmdObserver.canUndo());
@@ -1652,6 +1665,15 @@ public class PinDmdEditor implements EventHandler {
 
 	}
 	
+	private void onInvert() {
+		dmd.addUndoBuffer();
+		byte[] data = dmd.getFrame().mask.data;
+		for( int i = 0; i < data.length; i++) {
+			data[i] = (byte) ~data[i];
+		}
+		dmd.setMask(data);
+	}
+
 	private Composite createKeyFrameGroup(Composite parent) {
 		grpKeyframe = new Composite(parent, 0);
 		grpKeyframe.setLayout(new GridLayout(5, false));
@@ -2262,6 +2284,7 @@ public class PinDmdEditor implements EventHandler {
 			dmd.removeMask();
 			useGlobalMask = false;
 		}
+		btnInvert.setEnabled(useMask);
 		updateHashes(dmd.getFrame());
 		previewDmd.redraw();
 		setDrawMaskByEditMode(editMode);
@@ -2675,6 +2698,7 @@ public class PinDmdEditor implements EventHandler {
 	private Composite grpKeyframe;
 	private Text textProperty;
 	private ComboViewer bookmarkComboViewer;
+	private Button btnInvert;
 	
 	private void updateHashes(Frame frame) {
 		if( frame == null ) return;
