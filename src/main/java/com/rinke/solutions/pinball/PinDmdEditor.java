@@ -1665,7 +1665,7 @@ public class PinDmdEditor implements EventHandler {
 
 	}
 	
-	private void onInvert() {
+	void onInvert() {
 		dmd.addUndoBuffer();
 		byte[] data = dmd.getFrame().mask.data;
 		for( int i = 0; i < data.length; i++) {

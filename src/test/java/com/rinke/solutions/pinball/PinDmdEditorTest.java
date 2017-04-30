@@ -207,4 +207,12 @@ public class PinDmdEditorTest {
 		assertNotEquals("Scene 1", actual);
 	}
 
+	@Test
+	public void testOnInvert() throws Exception {
+		byte[] data = new byte[512];
+		uut.dmd.setMask(data);
+		uut.onInvert();
+		assertEquals((byte)0xFF, (byte)uut.dmd.getFrame().mask.data[0]);
+	}
+
 }
