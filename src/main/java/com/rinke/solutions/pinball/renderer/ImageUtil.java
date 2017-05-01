@@ -190,8 +190,8 @@ public class ImageUtil {
 			res.setMask(new byte[dmd.getPlaneSizeInByte()]);
 		}
 		
-		for (int x = 0; x < dmdImage.getWidth(); x++) {
-			for (int y = 0; y < dmdImage.getHeight(); y++) {
+		for (int x = 0; x < Math.min(dmdImage.getWidth(),dmd.getWidth()); x++) {
+			for (int y = 0; y < Math.min(dmdImage.getHeight(),dmd.getHeight()); y++) {
 
 				int rgb = dmdImage.getRGB(x, y);
 				int idx = findBestColorIndex(rgb, palette);
