@@ -1247,7 +1247,7 @@ public class PinDmdEditor implements EventHandler {
 		scale.addListener(SWT.Selection, e -> animationHandler.setPos(scale.getSelection()));
 		
 		CTabFolder tabFolder = new CTabFolder(shell, SWT.FLAT);
-		GridData gd_tabFolder = new GridData(SWT.LEFT, SWT.TOP, false, false, 3, 4);
+		GridData gd_tabFolder = new GridData(SWT.LEFT, SWT.CENTER, false, false, 3, 4);
 		gd_tabFolder.heightHint = 255;
 		gd_tabFolder.widthHint = 504;
 		tabFolder.setLayoutData(gd_tabFolder);
@@ -1281,8 +1281,8 @@ public class PinDmdEditor implements EventHandler {
 
 		Group grpDetails = new Group(shell, SWT.NONE);
 		grpDetails.setLayout(new GridLayout(10, false));
-		GridData gd_grpDetails = new GridData(SWT.LEFT, SWT.FILL, false, false, 1, 1);
-		gd_grpDetails.heightHint = 21;
+		GridData gd_grpDetails = new GridData(SWT.LEFT, SWT.CENTER, false, true, 1, 1);
+		gd_grpDetails.heightHint = 27;
 		gd_grpDetails.widthHint = 815;
 		grpDetails.setLayoutData(gd_grpDetails);
 		grpDetails.setText("Details");
@@ -1437,7 +1437,7 @@ public class PinDmdEditor implements EventHandler {
 
 		Group grpPalettes = new Group(shell, SWT.NONE);
 		grpPalettes.setLayout(new GridLayout(6, false));
-		GridData gd_grpPalettes = new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1);
+		GridData gd_grpPalettes = new GridData(SWT.LEFT, SWT.CENTER, false, true, 1, 1);
 		gd_grpPalettes.widthHint = 814;
 		gd_grpPalettes.heightHint = 71;
 		grpPalettes.setLayoutData(gd_grpPalettes);
@@ -1525,8 +1525,8 @@ public class PinDmdEditor implements EventHandler {
 
 		Group grpDrawing = new Group(shell, SWT.NONE);
 		grpDrawing.setLayout(new GridLayout(6, false));
-		GridData gd_grpDrawing = new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1);
-		gd_grpDrawing.heightHint = 63;
+		GridData gd_grpDrawing = new GridData(SWT.LEFT, SWT.CENTER, false, true, 1, 1);
+		gd_grpDrawing.heightHint = 83;
 		gd_grpDrawing.widthHint = 812;
 		grpDrawing.setLayoutData(gd_grpDrawing);
 		grpDrawing.setText("Drawing");
