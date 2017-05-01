@@ -53,6 +53,8 @@ public class ClipboardHandlerSWTTest {
 		RGB[] colors = new RGB[1];
 		colors[0] = new RGB(1, 2, 3);
 		Palette activePalette = new Palette(colors );
+		Frame frame = new Frame( new byte[512], new byte[512]);
+		when(dmd.getFrame()).thenReturn(frame);
 		clipboardHandler.onCopy(activePalette );
 		//verify(clipboardMock).setContents(any(Object[].class), any(Transfer[].class));
 	}

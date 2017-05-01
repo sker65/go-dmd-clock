@@ -43,12 +43,5 @@ public class GifExporterSWTTest {
 		gifExporter.exportAni(filename);
 	}
 	
-	@Test
-	public void testConvert() throws Exception {
-		Image srcImage = new Image(displayHelper.getDisplay(), 200, 100);
-		BufferedImage bufferedImage = gifExporter.convert(srcImage );
-		assertEquals(200, bufferedImage.getWidth());
-	}
-
 
 }
