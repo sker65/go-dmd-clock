@@ -84,7 +84,6 @@ public class ClipboardHandler implements Runnable {
 					pasteTool.setMaskOnly(dmdWidget.isShowMask());
 					dmdWidget.setDrawTool(pasteTool);
 				}
-
 			}
 		}
 	}
@@ -140,8 +139,24 @@ public class ClipboardHandler implements Runnable {
 
 	public void onCopy(Palette activePalette) {
 		clipboard.setContents(
-			new Object[] { buildImageData(dmd, dmdWidget.isShowMask(), activePalette), dmd.getFrame() },
+			new Object[] { buildImageData(dmd, dmdWidget.isShowMask(), activePalette), buildFrame(dmd.getFrame(), dmdWidget.isShowMask()) },
 			new Transfer[]{ ImageTransfer.getInstance(), DmdFrameTransfer.getInstance() });
+	}
+
+	private Frame buildFrame(Frame frame, boolean showMask) {
+		if( showMask ) return frame;
+		// if not copying mask, create a mask by using black (color 0) as 'background'
+		Frame res = new Frame(frame);
+		int len = frame.planes.get(0).data.length;
+		byte[] mask = new byte[len];
+		Arrays.fill(mask, (byte)0x00);
+		for( int i = 0; i < len; i++) {
+			for( int j = 0; j < res.planes.size(); j++) {
+				mask[i] |= res.planes.get(j).data[i];
+			}
+		}
+		res.setMask(mask);
+		return res;
 	}
 
 	public void onPaste() {
