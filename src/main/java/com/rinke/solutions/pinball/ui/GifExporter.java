@@ -30,10 +30,14 @@ import org.slf4j.LoggerFactory;
 import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.PinDmdEditor;
 import com.rinke.solutions.pinball.animation.Animation;
+import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.io.GifSequenceWriter;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Palette;
+import com.rinke.solutions.pinball.renderer.ImageUtil;
 import com.rinke.solutions.pinball.widget.DMDWidget;
+
+import org.eclipse.swt.widgets.Label;
 
 public class GifExporter extends Dialog {
     
@@ -57,6 +61,7 @@ public class GifExporter extends Dialog {
 	private volatile boolean abort = false;
 
 	private Combo comboSize;
+	private Label lblPitch;
 
     /**
      * Create the dialog.
@@ -83,6 +88,11 @@ public class GifExporter extends Dialog {
 		
 		progressBar.setMinimum(0);
 		progressBar.setMaximum(ani.getFrameCount(dmd));
+	
+		if( ani instanceof CompiledAnimation ) {
+			CompiledAnimation cani = (CompiledAnimation)ani;
+			dmd.setNumberOfSubframes(cani.frames.get(0).planes.size());
+		}
 		
 		ImageOutputStream outputStream;
 		try {
@@ -99,7 +109,7 @@ public class GifExporter extends Dialog {
 						dmd.writeOr(res);
 						Image swtImage = dmdWidget.drawImage(display, width, height);
 						
-						gifWriter.writeToSequence(convert(swtImage), ani.getRefreshDelay());
+						gifWriter.writeToSequence(ImageUtil.convert(swtImage), ani.getRefreshDelay());
 						
 						display.asyncExec(()->progressBar.setSelection(ani.actFrame));
 	
@@ -125,64 +135,6 @@ public class GifExporter extends Dialog {
 			throw new RuntimeException("error eporting to " + filename, e);
 		}
 
-	}
-
-	/**
-	 * Converts an swt based image into an AWT <code>BufferedImage</code>. This
-	 * will always return a <code>BufferedImage</code> that is of type
-	 * <code>BufferedImage.TYPE_INT_ARGB</code> regardless of the type of swt
-	 * image that is passed into the method.
-	 * 
-	 * @param srcImage
-	 *            the {@link org.eclipse.swt.graphics.Image} to be converted to
-	 *            a <code>BufferedImage</code>
-	 * @return a <code>BufferedImage</code> that represents the same image data
-	 *         as the swt <code>Image</code>
-	 */
-	public BufferedImage convert(Image srcImage) {
-
-		ImageData imageData = srcImage.getImageData();
-		int width = imageData.width;
-		int height = imageData.height;
-		ImageData maskData = null;
-		int alpha[] = new int[1];
-
-		if (imageData.alphaData == null)
-			maskData = imageData.getTransparencyMask();
-
-		// now we should have the image data for the bitmap, decompressed in
-		// imageData[0].data.
-		// Convert that to a Buffered Image.
-		BufferedImage image = new BufferedImage(imageData.width,
-				imageData.height, BufferedImage.TYPE_INT_ARGB);
-
-		WritableRaster alphaRaster = image.getAlphaRaster();
-
-		// loop over the imagedata and set each pixel in the BufferedImage to
-		// the appropriate color.
-		for (int y = 0; y < height; y++) {
-			for (int x = 0; x < width; x++) {
-				RGB color = imageData.palette.getRGB(imageData.getPixel(x, y));
-				image.setRGB(x, y, new java.awt.Color(color.red, color.green,
-						color.blue).getRGB());
-
-				// check for alpha channel
-				if (alphaRaster != null) {
-					if (imageData.alphaData != null) {
-						alpha[0] = imageData.getAlpha(x, y);
-						alphaRaster.setPixel(x, y, alpha);
-					} else {
-						// check for transparency mask
-						if (maskData != null) {
-							alpha[0] = maskData.getPixel(x, y) == 0 ? 0 : 255;
-							alphaRaster.setPixel(x, y, alpha);
-						}
-					}
-				}
-			}
-		}
-
-		return image;
 	}
 
     // testability overridden by tests
@@ -242,7 +194,11 @@ public class GifExporter extends Dialog {
         fd_grpConfig.right = new FormAttachment(0, 440);
         grpConfig.setLayoutData(fd_grpConfig);
         grpConfig.setText("Export Settings");
-        grpConfig.setLayout(new GridLayout(2, false));
+        grpConfig.setLayout(new GridLayout(3, false));
+        
+        lblPitch = new Label(grpConfig, SWT.NONE);
+        lblPitch.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+        lblPitch.setText("Dot-Size");
         
         comboSize = new Combo(grpConfig, SWT.NONE);
         GridData gd_comboSize = new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1);
@@ -257,7 +213,9 @@ public class GifExporter extends Dialog {
         btnSave.addListener(SWT.Selection, e->save());
         
         progressBar = new ProgressBar(grpConfig, SWT.NONE);
-        progressBar.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
+        GridData gd_progressBar = new GridData(SWT.FILL, SWT.CENTER, false, false, 2, 1);
+        gd_progressBar.widthHint = 111;
+        progressBar.setLayoutData(gd_progressBar);
         
         Button btnCancel = new Button(grpConfig, SWT.NONE);
         btnCancel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));

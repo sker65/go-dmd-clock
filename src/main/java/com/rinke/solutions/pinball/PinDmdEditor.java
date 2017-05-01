@@ -2559,7 +2559,9 @@ public class PinDmdEditor implements EventHandler {
 		mntmExportAnimation.setText("Export Animation as GIF");
 		
 		mntmExportAnimation.addListener(SWT.Selection, e -> {
-			GifExporter exporter = new GifExporter(shell, activePalette, playingAnis.get(0));
+			Animation ani = playingAnis.get(0);
+			Palette pal = project.palettes.get(ani.getPalIndex());
+			GifExporter exporter = new GifExporter(shell, pal, ani);
 			exporter.open();
 		});
 
