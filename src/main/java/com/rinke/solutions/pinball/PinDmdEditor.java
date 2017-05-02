@@ -134,6 +134,8 @@ import com.rinke.solutions.pinball.widget.PaletteTool;
 import com.rinke.solutions.pinball.widget.RectTool;
 import com.rinke.solutions.pinball.widget.SetPixelTool;
 
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 
@@ -1317,17 +1319,23 @@ public class PinDmdEditor implements EventHandler {
 		gd_lblDelayVal.widthHint = 53;
 		txtDelayVal.setLayoutData(gd_lblDelayVal);
 		txtDelayVal.setText("");
-		txtDelayVal.addListener(SWT.Modify, e-> {
-			String val = txtDelayVal.getText();
-			int delay = StringUtils.isEmpty(val)?0:Integer.parseInt(val);
-			if( selectedScene.isPresent() ) {
-				CompiledAnimation ani = selectedScene.get();
-				if( actFrameOfSelectedAni<ani.frames.size() ) {
-					ani.frames.get(actFrameOfSelectedAni).delay = delay;
+		txtDelayVal.addKeyListener(new KeyAdapter() {
+			public void keyPressed(KeyEvent event) {
+				if( event.keyCode == SWT.CR ) {
+					String val = txtDelayVal.getText();
+					int delay = StringUtils.isEmpty(val)?0:Integer.parseInt(val);
+					if( selectedScene.isPresent() ) {
+						CompiledAnimation ani = selectedScene.get();
+						if( actFrameOfSelectedAni<ani.frames.size() ) {
+							log.debug("Setting delay of frame {} to {}", actFrameOfSelectedAni, delay);
+							ani.frames.get(actFrameOfSelectedAni).delay = delay;
+						}
+						project.dirty = true;
+					}
 				}
-				project.dirty = true;
 			}
 		} );
+		
 		txtDelayVal.addListener(SWT.Verify, e -> e.doit = Pattern.matches("^[0-9]*$", e.text));
 
 		Label lblPlanes = new Label(grpDetails, SWT.NONE);
