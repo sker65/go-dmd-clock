@@ -18,19 +18,22 @@ public class PasteTool extends DrawTool {
 	private int planeSize;
 	private int width;
 	private int height;
+	private int dx, dy;
 	
-	public PasteTool(int actualColor, int w, int h) {
+	public PasteTool(int actualColor, int w, int h, int dx, int dy) {
 		super(actualColor);
 		planeSize = w*h/8;
 		height = h;
 		width = w;
+		this.dx = dx;
+		this.dy = dy;
 	}
 
 	@Override
 	public boolean mouseMove(int ix, int iy) {
 		if( pressedButton >0 ) {
-			int x = ix - x1;
-			int y = iy - y1;
+			int x = ix - dx;
+			int y = iy - dy;
 			dmd.copyLastBuffer();
 			if( maskOnly ) {
 				byte[] plane = copyShiftedPlane(x, y, frameToPaste.mask, true);

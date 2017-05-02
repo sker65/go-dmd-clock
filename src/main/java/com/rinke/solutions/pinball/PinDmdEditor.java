@@ -125,6 +125,7 @@ import com.rinke.solutions.pinball.util.ObservableProperty;
 import com.rinke.solutions.pinball.util.RecentMenuManager;
 import com.rinke.solutions.pinball.widget.CircleTool;
 import com.rinke.solutions.pinball.widget.ColorizeTool;
+import com.rinke.solutions.pinball.widget.SelectTool;
 import com.rinke.solutions.pinball.widget.DMDWidget;
 import com.rinke.solutions.pinball.widget.DrawTool;
 import com.rinke.solutions.pinball.widget.FloodFillTool;
@@ -132,6 +133,7 @@ import com.rinke.solutions.pinball.widget.LineTool;
 import com.rinke.solutions.pinball.widget.PaletteTool;
 import com.rinke.solutions.pinball.widget.RectTool;
 import com.rinke.solutions.pinball.widget.SetPixelTool;
+
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 
@@ -786,7 +788,7 @@ public class PinDmdEditor implements EventHandler {
 	}
 
 	void onSaveProjectSelected(boolean saveAs) {
-		if( saveAs ) {
+		if( saveAs || getProjectFilename()==null ) {
 			String filename = fileChooserUtil.choose(SWT.SAVE, project.name, new String[] { "*.xml" }, new String[] { "Project XML" });
 			if (filename != null)
 				saveProject(filename);
@@ -1436,7 +1438,10 @@ public class PinDmdEditor implements EventHandler {
 		});
 
 		Group grpPalettes = new Group(shell, SWT.NONE);
-		grpPalettes.setLayout(new GridLayout(6, false));
+		GridLayout gl_grpPalettes = new GridLayout(6, false);
+		gl_grpPalettes.verticalSpacing = 2;
+		gl_grpPalettes.horizontalSpacing = 2;
+		grpPalettes.setLayout(gl_grpPalettes);
 		GridData gd_grpPalettes = new GridData(SWT.LEFT, SWT.CENTER, false, true, 1, 1);
 		gd_grpPalettes.widthHint = 814;
 		gd_grpPalettes.heightHint = 71;
@@ -1532,7 +1537,9 @@ public class PinDmdEditor implements EventHandler {
 		grpDrawing.setText("Drawing");
 
 		drawToolBar = new ToolBar(grpDrawing, SWT.FLAT | SWT.RIGHT);
-		drawToolBar.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
+		GridData gd_drawToolBar = new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1);
+		gd_drawToolBar.widthHint = 163;
+		drawToolBar.setLayoutData(gd_drawToolBar);
 
 		ToolItem tltmPen = new ToolItem(drawToolBar, SWT.RADIO);
 		tltmPen.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/pencil.png")));
@@ -1554,16 +1561,21 @@ public class PinDmdEditor implements EventHandler {
 		tltmCircle.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/oval.png")));
 		tltmCircle.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("circle")));
 
-		ToolItem tltmColorize = new ToolItem(drawToolBar, SWT.RADIO);
-		tltmColorize.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/colorize.png")));
-		tltmColorize.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("colorize")));
+//		ToolItem tltmColorize = new ToolItem(drawToolBar, SWT.RADIO);
+//		tltmColorize.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/colorize.png")));
+//		tltmColorize.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("colorize")));
 		
+		ToolItem tltmMark = new ToolItem(drawToolBar, SWT.RADIO);
+		tltmMark.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/select.png")));
+		tltmMark.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("select")));
+
 		drawTools.put("pencil", new SetPixelTool(paletteTool.getSelectedColor()));
 		drawTools.put("fill", new FloodFillTool(paletteTool.getSelectedColor()));
 		drawTools.put("rect", new RectTool(paletteTool.getSelectedColor()));
 		drawTools.put("line", new LineTool(paletteTool.getSelectedColor()));
 		drawTools.put("circle", new CircleTool(paletteTool.getSelectedColor()));
-		drawTools.put("colorize", new ColorizeTool(paletteTool.getSelectedColor()));
+//		drawTools.put("colorize", new ColorizeTool(paletteTool.getSelectedColor()));
+		drawTools.put("select", new SelectTool(paletteTool.getSelectedColor(), dmdWidget));
 		// notify draw tool on color changes
 		drawTools.values().forEach(d -> paletteTool.addIndexListener(d));
 		// let draw tools notify when draw action is finished
@@ -1906,6 +1918,7 @@ public class PinDmdEditor implements EventHandler {
 			animationHandler.start();
 			display.timerExec(animationHandler.getRefreshDelay(), cyclicRedraw);
 			btnStartStop.setText("Stop");
+			dmdWidget.resetSelection();
 		} else {
 			animationHandler.stop();
 			btnStartStop.setText("Start");
@@ -1921,6 +1934,7 @@ public class PinDmdEditor implements EventHandler {
 		if( editMode.equals(EditMode.FOLLOW) && selectedScene.isPresent()) {
 			selectHash(selectedScene.get());
 		}
+		dmdWidget.resetSelection();
 	}
 	
 	private void selectHash(CompiledAnimation ani) {
@@ -1944,6 +1958,7 @@ public class PinDmdEditor implements EventHandler {
 		if( editMode.equals(EditMode.FOLLOW) && selectedScene.isPresent()) {
 			selectHash(selectedScene.get());
 		}
+		dmdWidget.resetSelection();
 	}
 	
 	private void onCopyAndMoveToNextFrameClicked() {
@@ -2023,6 +2038,7 @@ public class PinDmdEditor implements EventHandler {
 		if( current != null ) scenesPosMap.put(current.getDesc(), current.actFrame);
 		if( a != null ) {
 			// deselect recording
+			dmdWidget.resetSelection();
 			aniListViewer.setSelection(StructuredSelection.EMPTY);
 			goDmdGroup.updateAnimation(a);
 			btnMask.setEnabled(a.getEditMode().equals(EditMode.FOLLOW));
@@ -2073,6 +2089,7 @@ public class PinDmdEditor implements EventHandler {
 		if(a!= null && current != null && a.getDesc().equals(current.getDesc())) return;
 		if( current != null ) recordingsPosMap.put(current.getDesc(), current.actFrame);
 		if( a != null) {		
+			dmdWidget.resetSelection();
 			sceneListViewer.setSelection(StructuredSelection.EMPTY);
 			btnMask.setEnabled(true);
 			maskSpinner.setEnabled(true);
@@ -2493,6 +2510,11 @@ public class PinDmdEditor implements EventHandler {
 		Menu menu_5 = new Menu(mntmedit);
 		mntmedit.setMenu(menu_5);
 
+		MenuItem mntmCut = new MenuItem(menu_5, SWT.NONE);
+		mntmCut.setText("Cut \tCtrl-X");
+		mntmCut.setAccelerator(SWT.MOD1 + 'X');
+		mntmCut.addListener(SWT.Selection, e -> clipboardHandler.onCut(activePalette));
+
 		MenuItem mntmCopy = new MenuItem(menu_5, SWT.NONE);
 		mntmCopy.setText("Copy \tCtrl-C");
 		mntmCopy.setAccelerator(SWT.MOD1 + 'C');
@@ -2510,6 +2532,16 @@ public class PinDmdEditor implements EventHandler {
 		mntmPasteWithHover.setText("Paste Over\tShift-Ctrl-V");
 		mntmPasteWithHover.setAccelerator(SWT.MOD1 + SWT.MOD2 + 'V');
 		mntmPasteWithHover.addListener(SWT.Selection, e -> clipboardHandler.onPasteHoover());
+		
+		MenuItem mntmSelectAll = new MenuItem(menu_5, SWT.NONE);
+		mntmSelectAll.setText("Select All\tCtrl-A");
+		mntmSelectAll.setAccelerator(SWT.MOD1 + 'A');
+		mntmSelectAll.addListener(SWT.Selection, e -> onSelectAll());
+
+		MenuItem mntmDeSelect = new MenuItem(menu_5, SWT.NONE);
+		mntmDeSelect.setText("Remove Selection\tShift-Ctrl-A");
+		mntmDeSelect.setAccelerator(SWT.MOD1 + SWT.MOD2 + 'A');
+		mntmDeSelect.addListener(SWT.Selection, e -> onRemoveSelection() );
 
 		new MenuItem(menu_5, SWT.SEPARATOR);
 
@@ -2645,6 +2677,20 @@ public class PinDmdEditor implements EventHandler {
 		MenuItem mntmAbout = new MenuItem(menu_4, SWT.NONE);
 		mntmAbout.setText("About");
 		mntmAbout.addListener(SWT.Selection, e -> new About(shell).open(pluginsPath, loadedPlugins));
+	}
+
+	private void onRemoveSelection() {
+		if( dmdWidget.isDrawingEnabled() ) {
+			SelectTool selectTool = (SelectTool) drawTools.get("select");
+			selectTool.setSelection(0, 0, 0, 0);
+		}
+	}
+
+	private void onSelectAll() {
+		if( dmdWidget.isDrawingEnabled() ) {
+			SelectTool selectTool = (SelectTool) drawTools.get("select");
+			selectTool.setSelection(0, 0, dmd.getWidth(), dmd.getHeight());
+		}
 	}
 
 	void exportForGoDMD(String path, int version) {
@@ -2783,7 +2829,7 @@ public class PinDmdEditor implements EventHandler {
 	}
 
 	public void setProjectFilename(String projectFilename) {
-		mntmSaveProject.setEnabled(projectFilename!=null);
+		//mntmSaveProject.setEnabled(projectFilename!=null);
 		this.projectFilename = projectFilename;
 	}
 }

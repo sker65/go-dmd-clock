@@ -5,6 +5,7 @@ import java.util.Arrays;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.ImageTransfer;
 import org.eclipse.swt.dnd.Transfer;
@@ -13,11 +14,14 @@ import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.PaletteData;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.MessageBox;
+import org.eclipse.swt.widgets.Shell;
 
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.renderer.ImageUtil;
 import com.rinke.solutions.pinball.widget.DMDWidget;
+import com.rinke.solutions.pinball.widget.DMDWidget.Rect;
 import com.rinke.solutions.pinball.widget.PasteTool;
 
 /**
@@ -34,6 +38,7 @@ public class ClipboardHandler implements Runnable {
 	int height;
 	Palette palette;
 	Display display;
+	int dx,dy;
 	
 	/**
 	 * typically instantiated once for the complete editor lifecycle
@@ -61,8 +66,10 @@ public class ClipboardHandler implements Runnable {
 	 */
 	public void onPasteHoover() {
 		Frame frame = (Frame) clipboard.getContents(DmdFrameTransfer.getInstance());
+		dmdWidget.resetSelection();
 		if( frame != null ) {
-			PasteTool pasteTool = new PasteTool(0, width, height);
+			log.debug("dx={}, dy={}", dx, dy);
+			PasteTool pasteTool = new PasteTool(0, width, height,dx,dy);
 			pasteTool.setFrameToPaste(frame);
 			pasteTool.setMaskOnly(dmdWidget.isShowMask());
 			dmdWidget.setDrawTool(pasteTool);
@@ -73,13 +80,13 @@ public class ClipboardHandler implements Runnable {
 				BufferedImage bufferedImage = ImageUtil.convert(new Image(Display.getCurrent(),imageData));
 				if( dmd.getNumberOfPlanes() <= 4) {
 					Frame res = ImageUtil.convertToFrameWithPalette(bufferedImage, dmd, palette, false);
-					PasteTool pasteTool = new PasteTool(0, width, height);
+					PasteTool pasteTool = new PasteTool(0, width, height,0,0);
 					pasteTool.setFrameToPaste(res);
 					pasteTool.setMaskOnly(dmdWidget.isShowMask());
 					dmdWidget.setDrawTool(pasteTool);
 				} else {
 					Frame res = ImageUtil.convertToFrame(bufferedImage, width, height);
-					PasteTool pasteTool = new PasteTool(0, width, height);
+					PasteTool pasteTool = new PasteTool(0, width, height,0,0);
 					pasteTool.setFrameToPaste(res);
 					pasteTool.setMaskOnly(dmdWidget.isShowMask());
 					dmdWidget.setDrawTool(pasteTool);
@@ -88,14 +95,16 @@ public class ClipboardHandler implements Runnable {
 		}
 	}
 	
-	private ImageData buildImageData(DMD dmd, boolean mask, Palette actPalette) {
+	private ImageData buildImageData(DMD dmd, boolean mask, Palette actPalette, Rect sel) {
 		ImageData imageData = null;
 		if( mask ) {
 			PaletteData maskPaletteData = new PaletteData(new RGB[] {new RGB(255,255,255), new RGB(0,0,0)});
 			imageData = new ImageData(width, height, 1, maskPaletteData);
 			for( int x = 0; x < width; x++) {
 				for( int y = 0; y < height; y++ ) {
-					imageData.setPixel(x, y, dmd.getPixel(x, y));
+					if( Rect.selected(sel, x, y) ) {
+						imageData.setPixel(x, y, dmd.getPixel(x, y));
+					}
 				}
 			}
 		} else {
@@ -104,18 +113,22 @@ public class ClipboardHandler implements Runnable {
 				imageData = new ImageData(width, height, 24, new PaletteData(0xFF , 0xFF00 , 0xFF0000));
 				for( int x = 0; x < width; x++) {
 					for( int y = 0; y < height; y++ ) {
-						int rgb = dmd.getPixel(x, y);
-						int r = rgb >> 10;
-						int g = (rgb >> 5 ) & 0b011111;
-						int b = rgb & 0b011111;
-						imageData.setPixel(x, y, imageData.palette.getPixel(new RGB(r<<3,g<<3,b<<3)));
+						if( Rect.selected(sel, x, y) ) {
+							int rgb = dmd.getPixel(x, y);
+							int r = rgb >> 10;
+							int g = (rgb >> 5 ) & 0b011111;
+							int b = rgb & 0b011111;
+							imageData.setPixel(x, y, imageData.palette.getPixel(new RGB(r<<3,g<<3,b<<3)));
+						}
 					}
 				}
 			} else {
 				imageData = new ImageData(width, height, dmd.getNumberOfPlanes(), buildPaletteData(actPalette));
 				for( int x = 0; x < width; x++) {
 					for( int y = 0; y < height; y++ ) {
-						imageData.setPixel(x, y, dmd.getPixel(x, y));
+						if( Rect.selected(sel, x, y) ) { 
+							imageData.setPixel(x, y, dmd.getPixel(x, y));
+						}
 					}
 				}				
 			}
@@ -137,13 +150,46 @@ public class ClipboardHandler implements Runnable {
 		return new PaletteData(rgb);
 	}
 
-	public void onCopy(Palette activePalette) {
-		clipboard.setContents(
-			new Object[] { buildImageData(dmd, dmdWidget.isShowMask(), activePalette), buildFrame(dmd.getFrame(), dmdWidget.isShowMask()) },
-			new Transfer[]{ ImageTransfer.getInstance(), DmdFrameTransfer.getInstance() });
+	public void onCut(Palette pal) {
+		//warnNYI();
+		onCopy(pal);
+		dmd.addUndoBuffer();
+		Rect sel = dmdWidget.getSelection();
+		// draw black over area (cut)
+		for( int x= 0; x < width; x++) {
+			for( int y = 0; y < height; y++) {
+				if( Rect.selected(sel, x, y) ) {
+					dmd.setPixel(x, y, 0);	// color 0 is always background
+				}
+			}
+		}
+		dmdWidget.redraw();
 	}
 
-	private Frame buildFrame(Frame frame, boolean showMask) {
+	/*private void warnNYI() {
+		MessageBox messageBox = new MessageBox(Display.getCurrent().getActiveShell(), SWT.ICON_WARNING | SWT.OK);
+		messageBox.setText("not implemented");
+		messageBox.setMessage("this function is not implemented yet");
+		messageBox.open();
+	}*/
+
+	public void onCopy(Palette activePalette) {
+		Rect sel = dmdWidget.getSelection();
+		clipboard.setContents(
+			new Object[] { 
+					buildImageData(dmd, dmdWidget.isShowMask(), activePalette, sel), 
+					buildFrame(dmd, dmdWidget.isShowMask(), dmdWidget.getSelection() ) },
+			new Transfer[]{ ImageTransfer.getInstance(), DmdFrameTransfer.getInstance() });
+		if( sel != null ) {
+			dx = sel.x1;
+			dy = sel.y1;
+		} else {
+			dy = dx = 0;
+		}
+	}
+
+	private Frame buildFrame(DMD dmd, boolean showMask, Rect sel) {
+		Frame frame = dmd.getFrame();
 		if( showMask ) return frame;
 		// if not copying mask, create a mask by using black (color 0) as 'background'
 		Frame res = new Frame(frame);
@@ -155,7 +201,19 @@ public class ClipboardHandler implements Runnable {
 				mask[i] |= res.planes.get(j).data[i];
 			}
 		}
+		// mask out selection
+		if( sel != null) {
+			log.debug("masking out {}", sel);
+			for( int x= 0; x < width; x++) {
+				byte mask1 = (byte) (0b10000000 >> (x % 8));
+				for( int y = 0; y < height; y++) {
+					if(!sel.inSelection(x, y))
+						mask[y*dmd.getBytesPerRow()+x/8] &= ~mask1;
+				}
+			}
+		}
 		res.setMask(mask);
+		//ImageUtil.dumpPlane(mask, dmd.getBytesPerRow());
 		return res;
 	}
 
@@ -163,6 +221,7 @@ public class ClipboardHandler implements Runnable {
 		for( String item : clipboard.getAvailableTypeNames() ) {
 			log.info("Clipboard type: {}", item);
 		}
+		dmdWidget.resetSelection();
 		Frame frame = (Frame) clipboard.getContents(DmdFrameTransfer.getInstance());
 		if( frame != null ) {
 			dmd.addUndoBuffer();
@@ -205,3 +264,5 @@ public class ClipboardHandler implements Runnable {
 		log.trace("check clipboard");
 	}
 }
+
+

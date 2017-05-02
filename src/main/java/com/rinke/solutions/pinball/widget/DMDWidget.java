@@ -36,6 +36,7 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 	int pitch = 7;
 	int pressedButton = 0;
 	private DrawTool drawTool = null;//new RectTool();//new SetPixelTool();
+	private DrawTool previousDrawTool;
 	private boolean drawingEnabled;
 	private ScrollBar hBar;
 	private ScrollBar vBar;
@@ -47,23 +48,18 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 	private List<FrameChangedListerner> frameChangedListeners = new ArrayList<>();
 	private boolean maskLocked;
 	private boolean maskOut = false;
+	// define the rubberband area for copy
+	private RGB areaColorNormal = new RGB(255,255,0);
+	private RGB areaColorHighlighted = new RGB(255,255,255);
+	private RGB areaColor = areaColorNormal;
+	boolean mouseOnAreaMark = false;
+	private Rect selection;
 	
 	@FunctionalInterface
 	public static interface FrameChangedListerner {
 		public void frameChanged(Frame frame);
 	}
 	
-	public void addListeners( FrameChangedListerner l) {
-		frameChangedListeners.add(l);
-	}
-	
-	public void setResolution(DMD dmd) {
-		resolutionX = dmd.getWidth();
-		resolutionY = dmd.getHeight();
-		bytesPerRow = dmd.getBytesPerRow();
-		this.dmd = dmd;
-	}
-
 	public DMDWidget(Composite parent, int style, DMD dmd, boolean scrollable) {
 		super(parent, style + ( scrollable ? SWT.V_SCROLL + SWT.H_SCROLL : 0));
 		this.scrollable = scrollable;
@@ -79,9 +75,30 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 			vBar.addListener(SWT.Selection, e->resized(e));
 		}
 		
+		//areaX = 10; areaY = 2; areaW = 30; areaH = 10;
+		
 		if( drawTool != null ) drawTool.setDMD(dmd);
 	}
 	
+	public void setSelection( int x, int y, int w, int h) {
+		if( w==0 && h==0)
+			this.selection = null;
+		else
+			this.selection = new Rect( x,y,x+w,y+h);
+		redraw();
+	}
+	
+	public void addListeners( FrameChangedListerner l) {
+		frameChangedListeners.add(l);
+	}
+	
+	public void setResolution(DMD dmd) {
+		resolutionX = dmd.getWidth();
+		resolutionY = dmd.getHeight();
+		bytesPerRow = dmd.getBytesPerRow();
+		this.dmd = dmd;
+	}
+
 	private void resized(Event e) {
 		hScroll = hBar.getSelection();
 		vScroll = vBar.getSelection();
@@ -90,10 +107,26 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 	}
 	
 	private void handleMouse(Event e) {
+		// calc dmd coords
+		int x = (e.x-margin)/pitch + hScroll;
+		int y = (e.y-margin)/pitch + vScroll;
+		if( isSelectionSet() ) {
+			if( x == selection.x1 || y == selection.y1 || x == selection.x2-1 || y == selection.y2-1 ) {
+				if( !mouseOnAreaMark ) {
+					areaColor = areaColorNormal;
+					redraw();
+					mouseOnAreaMark = true;
+				} 
+			} else {
+				if( mouseOnAreaMark ) {
+					areaColor = areaColorHighlighted;
+					redraw();
+					mouseOnAreaMark = false;
+				}
+			}
+			
+		}
 		if( drawTool != null && drawingEnabled ) {
-			int x = (e.x-margin)/pitch + hScroll;
-			int y = (e.y-margin)/pitch + vScroll;
-			//System.out.println(x+ ":"+y);
 			if( x >= 0 && x < dmd.getWidth() && y>=0 && y < dmd.getHeight() ) {
 				if( drawTool.handleMouse(e, x, y)) {
 					redraw();
@@ -103,6 +136,15 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 		}
 	}
 	
+	public void resetSelection() {
+		setSelection(0, 0, 0, 0);
+		restorePreviousDrawTool();
+	}
+	
+	public boolean isSelectionSet() {
+		return selection!=null;
+	}
+
 	@Override
 	public void setBounds(int x, int y, int width, int height) {
 		super.setBounds(x, y, width, height);
@@ -185,21 +227,43 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
         gcImage.fillRectangle(0, 0, w, h);
         drawDMD(gcImage, dmd.getFrame(), numberOfSubframes, useColorIndex, cols);
         if( showMask && dmd.getFrame().mask != null) {
-            ImageData imageData = image.getImageData();
-    		imageData.alpha = 96;
-    		Image maskImage =  new Image(display, imageData);
-            GC gcMask = new GC(maskImage);
-			cols[0] = resourceManager.createColor(new RGB(0, 0, 0));
-            cols[1] = resourceManager.createColor(maskLocked ? new RGB(255, 0, 0) : new RGB(0, 0, 255));
-            // create a fake mask frame
-            Frame maskFrame = new Frame(dmd.getFrame().mask.data, dmd.getFrame().mask.data);
-            drawDMD(gcMask, maskFrame, 1, true, cols);
-            gcImage.drawImage(maskImage, 0, 0);
-            gcMask.dispose();
+            drawMask(display, cols, image, gcImage);
+        }
+        if( isSelectionSet() && !isShowMask() ) {
+            drawSelection(display, image, gcImage);
         }
 		
         gcImage.dispose();
         return image;
+	}
+
+	private void drawMask(Display display, Color[] cols, Image image, GC gcImage) {
+		ImageData imageData = image.getImageData();
+		imageData.alpha = 96;
+		Image maskImage =  new Image(display, imageData);
+		GC gcMask = new GC(maskImage);
+		cols[0] = resourceManager.createColor(new RGB(0, 0, 0));
+		cols[1] = resourceManager.createColor(maskLocked ? new RGB(255, 0, 0) : new RGB(0, 0, 255));
+		// create a fake mask frame
+		Frame maskFrame = new Frame(dmd.getFrame().mask.data, dmd.getFrame().mask.data);
+		drawDMD(gcMask, maskFrame, 1, true, cols);
+		gcImage.drawImage(maskImage, 0, 0);
+		gcMask.dispose();
+	}
+
+	private void drawSelection(Display display, Image image, GC gcImage) {
+		ImageData imageData = image.getImageData();
+		imageData.alpha = 128;
+		Image rubberImage =  new Image(display, imageData);
+		GC gcRubber = new GC(rubberImage);  
+		Color color = resourceManager.createColor(areaColor);
+		int lineWidth = 3;
+		gcRubber.setLineWidth(lineWidth);
+		gcRubber.setLineStyle(SWT.LINE_DOT);
+		gcRubber.setForeground(color);
+		gcRubber.drawRectangle(selection.x1*pitch+margin, selection.y1*pitch+margin, (selection.x2-selection.x1)*pitch-lineWidth, (selection.y2-selection.y1)*pitch-lineWidth);
+		gcImage.drawImage(rubberImage, 0, 0);
+		gcRubber.dispose();
 	}
 
 	private void drawDMD(GC gcImage, Frame frame, int numberOfSubframes, boolean useColorIndex, Color[] cols) {
@@ -255,10 +319,19 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 	public DrawTool getDrawTool() {
 		return drawTool;
 	}
+	
+	private void restorePreviousDrawTool() {
+		this.drawTool = previousDrawTool;
+		if(drawTool!= null) {
+			this.drawTool.setDMD(dmd);
+		}
+	}
 
 	public void setDrawTool(DrawTool drawTool) {
+		previousDrawTool = this.drawTool;
 		this.drawTool = drawTool;
 		if(drawTool!= null) {
+			previousDrawTool = this.drawTool;
 			this.drawTool.setDMD(dmd);
 		}
 	}
@@ -302,5 +375,35 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 
 	public void setMaskOut(boolean maskOut) {
 		 this.maskOut = maskOut;
+	}
+
+	public boolean isMouseOnAreaMark() {
+		return mouseOnAreaMark;
+	}
+	
+	public static class Rect {
+		public final int x1,y1,x2,y2;
+		public Rect(int x1, int y1, int x2, int y2) {
+			super();
+			this.x1 = x1;
+			this.y1 = y1;
+			this.x2 = x2;
+			this.y2 = y2;
+		}
+		public boolean inSelection(int x, int y) {
+			return x>=x1 && x< x2 && y>=y1 && y<y2;
+		}
+		
+		public static boolean selected( Rect sel, int x, int y) {
+			return sel==null||sel.inSelection(x, y);
+		}
+		@Override
+		public String toString() {
+			return String.format("Rect [x1=%s, y1=%s, x2=%s, y2=%s]", x1, y1, x2, y2);
+		}
+	}
+
+	public Rect getSelection() {
+		return this.selection;
 	}
 }
