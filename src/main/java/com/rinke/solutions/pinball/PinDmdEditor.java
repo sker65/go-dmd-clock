@@ -1569,7 +1569,11 @@ public class PinDmdEditor implements EventHandler {
 		tltmCircle.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/oval.png")));
 		tltmCircle.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("circle")));
 
-//		ToolItem tltmColorize = new ToolItem(drawToolBar, SWT.RADIO);
+		ToolItem tltmFilledCircle = new ToolItem(drawToolBar, SWT.RADIO);
+		tltmFilledCircle.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/oval2.png")));
+		tltmFilledCircle.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("filledCircle")));
+
+		//		ToolItem tltmColorize = new ToolItem(drawToolBar, SWT.RADIO);
 //		tltmColorize.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/colorize.png")));
 //		tltmColorize.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("colorize")));
 		
@@ -1581,7 +1585,8 @@ public class PinDmdEditor implements EventHandler {
 		drawTools.put("fill", new FloodFillTool(paletteTool.getSelectedColor()));
 		drawTools.put("rect", new RectTool(paletteTool.getSelectedColor()));
 		drawTools.put("line", new LineTool(paletteTool.getSelectedColor()));
-		drawTools.put("circle", new CircleTool(paletteTool.getSelectedColor()));
+		drawTools.put("circle", new CircleTool(paletteTool.getSelectedColor(), false));
+		drawTools.put("filledCircle", new CircleTool(paletteTool.getSelectedColor(), true));
 //		drawTools.put("colorize", new ColorizeTool(paletteTool.getSelectedColor()));
 		drawTools.put("select", new SelectTool(paletteTool.getSelectedColor(), dmdWidget));
 		// notify draw tool on color changes
