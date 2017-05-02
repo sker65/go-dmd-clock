@@ -6,15 +6,18 @@ import java.util.List;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.RGB;
+import org.eclipse.swt.graphics.Resource;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.ScrollBar;
+import org.eclipse.swt.widgets.Shell;
 
 import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.model.Frame;
@@ -54,6 +57,8 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 	private RGB areaColor = areaColorNormal;
 	boolean mouseOnAreaMark = false;
 	private Rect selection;
+	private Cursor cursor;
+	private boolean inSelection;
 	
 	@FunctionalInterface
 	public static interface FrameChangedListerner {
@@ -74,6 +79,7 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 			hBar.addListener(SWT.Selection, e->resized(e));
 			vBar.addListener(SWT.Selection, e->resized(e));
 		}
+		this.addDisposeListener(e->{if(this.cursor!=null) this.cursor.dispose();});
 		
 		//areaX = 10; areaY = 2; areaW = 30; areaH = 10;
 		
@@ -111,7 +117,7 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 		int x = (e.x-margin)/pitch + hScroll;
 		int y = (e.y-margin)/pitch + vScroll;
 		if( isSelectionSet() ) {
-			if( x == selection.x1 || y == selection.y1 || x == selection.x2-1 || y == selection.y2-1 ) {
+			if( selection.isOnSelectionMark(x, y) ) {
 				if( !mouseOnAreaMark ) {
 					areaColor = areaColorNormal;
 					redraw();
@@ -123,8 +129,18 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 					redraw();
 					mouseOnAreaMark = false;
 				}
+				Shell shell = Display.getCurrent().getActiveShell();
+				if( selection.inSelection(x, y) && !inSelection ) {
+					if( this.cursor != null ) cursor.dispose();
+					shell.setCursor(new Cursor(Display.getCurrent(), SWT.CURSOR_SIZEALL));
+					inSelection = true;
+				} 
+				if( !selection.inSelection(x, y) && inSelection ) {
+					if( this.cursor != null ) cursor.dispose();
+					shell.setCursor(new Cursor(Display.getCurrent(), SWT.CURSOR_ARROW));
+					inSelection = false;
+				}
 			}
-			
 		}
 		if( drawTool != null && drawingEnabled ) {
 			if( x >= 0 && x < dmd.getWidth() && y>=0 && y < dmd.getHeight() ) {
@@ -262,6 +278,21 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 		gcRubber.setLineStyle(SWT.LINE_DOT);
 		gcRubber.setForeground(color);
 		gcRubber.drawRectangle(selection.x1*pitch+margin, selection.y1*pitch+margin, (selection.x2-selection.x1)*pitch-lineWidth, (selection.y2-selection.y1)*pitch-lineWidth);
+		if( isMouseOnAreaMark() ) {
+			gcRubber.setLineStyle(SWT.LINE_SOLID);
+			int handleSize = 8;
+			gcRubber.drawRectangle((selection.x1 + ( selection.x2-selection.x1) / 2)*pitch+margin-(handleSize/2),
+					selection.y1*pitch+margin-(handleSize/2), handleSize, handleSize);
+
+			gcRubber.drawRectangle((selection.x1 + ( selection.x2-selection.x1) / 2)*pitch+margin-(handleSize/2),
+					selection.y2*pitch+margin-handleSize, handleSize, handleSize);
+			
+			gcRubber.drawRectangle(selection.x1*pitch+margin-(handleSize/2),
+					(selection.y1+(selection.y2-selection.y1)/2)*pitch+margin-(handleSize/2), handleSize, handleSize);
+			
+			gcRubber.drawRectangle(selection.x2 *pitch+margin-(handleSize/1),
+					(selection.y1+(selection.y2-selection.y1)/2)*pitch+margin-(handleSize/2), handleSize, handleSize);
+		}
 		gcImage.drawImage(rubberImage, 0, 0);
 		gcRubber.dispose();
 	}
@@ -390,8 +421,13 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 			this.x2 = x2;
 			this.y2 = y2;
 		}
+		
 		public boolean inSelection(int x, int y) {
 			return x>=x1 && x< x2 && y>=y1 && y<y2;
+		}
+		
+		public boolean isOnSelectionMark(int x, int y) {
+			return x == this.x1 || y == this.y1 || x == this.x2-1 || y == this.y2-1;
 		}
 		
 		public static boolean selected( Rect sel, int x, int y) {
