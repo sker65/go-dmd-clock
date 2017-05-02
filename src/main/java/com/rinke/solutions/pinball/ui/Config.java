@@ -13,11 +13,13 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Text;
 
 import com.rinke.solutions.pinball.DmdSize;
@@ -28,6 +30,7 @@ import com.rinke.solutions.pinball.io.Pin2DmdConnector.ConnectionHandle;
 import com.rinke.solutions.pinball.util.ApplicationProperties;
 
 import org.eclipse.swt.widgets.Spinner;
+import org.eclipse.swt.widgets.TabFolder;
 
 @Slf4j
 public class Config extends Dialog {
@@ -45,6 +48,8 @@ public class Config extends Dialog {
 	private Button btnOk;
 	private Button btnAutosaveActive;
 	private Spinner autosaveInterval;
+	private Button btnCreateKeyFrame;
+	private Spinner spinnerNoPlanes;
     
     /**
      * Create the dialog.
@@ -83,6 +88,8 @@ public class Config extends Dialog {
         
         btnAutosaveActive.setSelection(ApplicationProperties.getBoolean(ApplicationProperties.AUTOSAVE, false));
         autosaveInterval.setSelection(ApplicationProperties.getInteger(ApplicationProperties.AUTOSAVE_INTERVAL, 10));
+        btnCreateKeyFrame.setSelection(ApplicationProperties.getBoolean(ApplicationProperties.AUTOKEYFRAME, false));
+        spinnerNoPlanes.setSelection(ApplicationProperties.getInteger(ApplicationProperties.NOOFPLANES, 4));
         
         shell.open();
         shell.layout();
@@ -100,7 +107,7 @@ public class Config extends Dialog {
      */
     void createContents() {
         shell = new Shell(getParent(), getStyle());
-        shell.setSize(489, 243);
+        shell.setSize(533, 296);
         shell.setText("Configuration");
         shell.setLayout(new FormLayout());
         
@@ -120,14 +127,57 @@ public class Config extends Dialog {
         btnCancel.setText("Cancel");
         btnCancel.addListener(SWT.Selection, e->cancel());
         
-        grpDmd = new Group(shell, SWT.NONE);
-        grpDmd.setText("DMD");
+        TabFolder tabFolder = new TabFolder(shell, SWT.NONE);
+        FormData fd_tabFolder = new FormData();
+        fd_tabFolder.right = new FormAttachment(btnOk, 0, SWT.RIGHT);
+        fd_tabFolder.bottom = new FormAttachment(0, 226);
+        fd_tabFolder.top = new FormAttachment(0);
+        fd_tabFolder.left = new FormAttachment(0);
+        tabFolder.setLayoutData(fd_tabFolder);
+        
+        TabItem tbtmItem = new TabItem(tabFolder, SWT.NONE);
+        tbtmItem.setText("General");
+        
+        Composite grpTest = new Composite(tabFolder, SWT.NONE);
+        tbtmItem.setControl(grpTest);
+        grpTest.setLayout(new FormLayout());
+        
+        group = new Group(grpTest, SWT.NONE);
+        FormData fd_group = new FormData();
+        group.setLayoutData(fd_group);
+        group.setText("WiFi");
+        group.setLayout(new GridLayout(3, false));
+        
+        Label label = new Label(group, SWT.NONE);
+        GridData gd_label = new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1);
+        gd_label.widthHint = 83;
+        label.setLayoutData(gd_label);
+        label.setText("Adress");
+        
+        pin2dmdHost = new Text(group, SWT.BORDER);
+        pin2dmdHost.setText("<dynamic>");
+        GridData gd_text = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+        gd_text.widthHint = 267;
+        pin2dmdHost.setLayoutData(gd_text);
+        
+		Button btnConnectBtn = new Button(group, SWT.NONE);
+		btnConnectBtn.addListener(SWT.Selection, e->testConnect(pin2dmdHost.getText()));
+		btnConnectBtn.setText("Connect");
+		btnConnectBtn.addListener(SWT.Selection, e->testConnect(pin2dmdHost.getText()));
+		new Label(group, SWT.NONE);
+		
+		Label label_1 = new Label(group, SWT.NONE);
+		label_1.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 2, 1));
+		label_1.setText("Enter IP address or hostname for WiFi (default port is 9191)");
+        
+        grpDmd = new Group(grpTest, SWT.NONE);
+        fd_group.top = new FormAttachment(grpDmd, 6);
+        fd_group.left = new FormAttachment(grpDmd, 0, SWT.LEFT);
         FormData fd_grpDmd = new FormData();
-        fd_grpDmd.right = new FormAttachment(btnOk, -257, SWT.RIGHT);
         fd_grpDmd.top = new FormAttachment(0, 10);
         fd_grpDmd.left = new FormAttachment(0, 10);
-        fd_grpDmd.bottom = new FormAttachment(0, 80);
         grpDmd.setLayoutData(fd_grpDmd);
+        grpDmd.setText("DMD");
         
         dmdSizeViewer = new ComboViewer(grpDmd, SWT.READ_ONLY);
         Combo combo = dmdSizeViewer.getCombo();
@@ -137,52 +187,17 @@ public class Config extends Dialog {
 		dmdSizeViewer.setInput(DmdSize.values());
 		dmdSizeViewer.setSelection(new StructuredSelection(dmdSize));
 		
-		group = new Group(shell, SWT.NONE);
-		group.setText("WiFi");
-		group.setLayout(new GridLayout(3, false));
-		FormData fd_group = new FormData();
-		fd_group.top = new FormAttachment(grpDmd, 7);
-		fd_group.left = new FormAttachment(0, 10);
-		fd_group.right = new FormAttachment(100, -10);
-		
 		Label lblSize = new Label(grpDmd, SWT.RIGHT);
 		lblSize.setBounds(10, 13, 41, 14);
 		lblSize.setText("Size: ");
-		group.setLayoutData(fd_group);
 		
-		Label label = new Label(group, SWT.NONE);
-		GridData gd_label = new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1);
-		gd_label.widthHint = 83;
-		label.setLayoutData(gd_label);
-		label.setText("Adress");
-		
-		pin2dmdHost = new Text(group, SWT.BORDER);
-		pin2dmdHost.setText("<dynamic>");
-		GridData gd_text = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
-		gd_text.widthHint = 267;
-		pin2dmdHost.setLayoutData(gd_text);
-
-		Button btnConnectBtn = new Button(group, SWT.NONE);
-        btnConnectBtn.addListener(SWT.Selection, e->testConnect(pin2dmdHost.getText()));
-        btnConnectBtn.setText("Connect");
-        btnConnectBtn.addListener(SWT.Selection, e->testConnect(pin2dmdHost.getText()));
-		new Label(group, SWT.NONE);
-		
-		Label label_1 = new Label(group, SWT.NONE);
-		label_1.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 2, 1));
-		label_1.setText("Enter IP address or hostname for WiFi (default port is 9191)");
-        
-        FormData fd_grpConfig = new FormData();
-        fd_grpConfig.bottom = new FormAttachment(100, -292);
-
-        Group grpAutosave = new Group(shell, SWT.NONE);
-        grpAutosave.setText("Autosave");
+        Group grpAutosave = new Group(grpTest, SWT.NONE);
         FormData fd_grpAutosave = new FormData();
-        fd_grpAutosave.right = new FormAttachment(btnOk, 0, SWT.RIGHT);
-        fd_grpAutosave.top = new FormAttachment(group, -77, SWT.TOP);
-        fd_grpAutosave.bottom = new FormAttachment(group, -7);
-        fd_grpAutosave.left = new FormAttachment(grpDmd, 14);
+        fd_grpAutosave.top = new FormAttachment(grpDmd, 0, SWT.TOP);
+        fd_grpAutosave.right = new FormAttachment(group, 0, SWT.RIGHT);
+        fd_grpAutosave.left = new FormAttachment(grpDmd, 22);
         grpAutosave.setLayoutData(fd_grpAutosave);
+        grpAutosave.setText("Autosave");
         
         btnAutosaveActive = new Button(grpAutosave, SWT.CHECK);
         btnAutosaveActive.setBounds(10, 10, 70, 18);
@@ -197,11 +212,43 @@ public class Config extends Dialog {
         Label lblSec = new Label(grpAutosave, SWT.NONE);
         lblSec.setBounds(127, 13, 59, 14);
         lblSec.setText("min.");
+        
+        TabItem tbtmSettings = new TabItem(tabFolder, SWT.NONE);
+        tbtmSettings.setText("Settings");
+        
+        Composite grpFoo = new Composite(tabFolder, SWT.NONE);
+        tbtmSettings.setControl(grpFoo);
+        grpFoo.setLayout(new FormLayout());
+        
+        btnCreateKeyFrame = new Button(grpFoo, SWT.CHECK);
+        FormData fd_btnCreateKeyFrame = new FormData();
+        fd_btnCreateKeyFrame.top = new FormAttachment(0, 10);
+        fd_btnCreateKeyFrame.left = new FormAttachment(0, 10);
+        btnCreateKeyFrame.setLayoutData(fd_btnCreateKeyFrame);
+        btnCreateKeyFrame.setText("create key frame after cut");
+        
+        spinnerNoPlanes = new Spinner(grpFoo, SWT.BORDER);
+        spinnerNoPlanes.setMinimum(2);
+        spinnerNoPlanes.setMaximum(15);
+        FormData fd_spinner = new FormData();
+        fd_spinner.top = new FormAttachment(btnCreateKeyFrame, 6);
+        fd_spinner.left = new FormAttachment(btnCreateKeyFrame, 0, SWT.LEFT);
+        spinnerNoPlanes.setLayoutData(fd_spinner);
+        
+        Label lblNumberOfPlanes = new Label(grpFoo, SWT.NONE);
+        FormData fd_lblNumberOfPlanes = new FormData();
+        fd_lblNumberOfPlanes.top = new FormAttachment(btnCreateKeyFrame, 10);
+        fd_lblNumberOfPlanes.left = new FormAttachment(0, 65);
+        lblNumberOfPlanes.setLayoutData(fd_lblNumberOfPlanes);
+        lblNumberOfPlanes.setText("Number of planes when cutting");
+        
+        FormData fd_grpConfig = new FormData();
+        fd_grpConfig.bottom = new FormAttachment(100, -292);
     }
 
 	private void cancel() {
 		log.info("cancel pressed");
-		okPressed = true;
+		okPressed = false;
 		shell.close();
 	}
 
@@ -210,7 +257,9 @@ public class Config extends Dialog {
 		okPressed = true;
 		dmdSize = (DmdSize) ((StructuredSelection) dmdSizeViewer.getSelection()).getFirstElement();
         ApplicationProperties.put(ApplicationProperties.AUTOSAVE, btnAutosaveActive.getSelection());
-        ApplicationProperties.put(ApplicationProperties.AUTOSAVE_INTERVAL, autosaveInterval.getSelection());     
+        ApplicationProperties.put(ApplicationProperties.AUTOSAVE_INTERVAL, autosaveInterval.getSelection()); 
+        ApplicationProperties.put(ApplicationProperties.AUTOKEYFRAME, btnCreateKeyFrame.getSelection()); 
+        ApplicationProperties.put(ApplicationProperties.NOOFPLANES, spinnerNoPlanes.getSelection());
 		shell.close();
 	}
 }

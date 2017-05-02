@@ -18,7 +18,8 @@ public class ApplicationProperties {
 	public static final String GODMD_ENABLED_PROP_KEY = "godmdEnabled";
 	public static final String AUTOSAVE_INTERVAL = "autosaveInterval";
 	public static final String AUTOSAVE = "autosave";
-
+	public static final String AUTOKEYFRAME = "autoKeyframeWhenCut";
+	public static final String NOOFPLANES = "noOfPlanesWhenCutting";
 
 	private static ApplicationProperties theInstance;
 

@@ -623,7 +623,7 @@ public class PinDmdEditor implements EventHandler {
 	}
 
 	private Animation cutScene(Animation animation, int start, int end, String name) {
-		CompiledAnimation cutScene = animation.cutScene(start, end, 4);
+		CompiledAnimation cutScene = animation.cutScene(start, end, ApplicationProperties.getInteger(ApplicationProperties.NOOFPLANES,4));
 		// TODO improve to make it selectable how many planes
 		
 		paletteHandler.copyPalettePlaneUpgrade();
@@ -632,9 +632,17 @@ public class PinDmdEditor implements EventHandler {
 		cutScene.setPalIndex(activePalette.index);
 		cutScene.setProjectAnimation(true);
 		cutScene.setEditMode(EditMode.REPLACE);
+				
 		scenes.put(name, cutScene);
-		setViewerSelection(sceneListViewer, cutScene);
 		
+		setViewerSelection(frameSeqViewer, cutScene);
+
+		if( ApplicationProperties.getBoolean(ApplicationProperties.AUTOKEYFRAME)) {
+			onAddFrameSeqClicked(SwitchMode.REPLACE);
+		}
+
+		setViewerSelection(sceneListViewer, cutScene);
+
 		return cutScene;
 	}
 
