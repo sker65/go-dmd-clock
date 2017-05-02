@@ -1356,7 +1356,7 @@ public class PinDmdEditor implements EventHandler {
 		btnLivePreview = new Button(grpDetails, SWT.CHECK);
 		btnLivePreview.setToolTipText("controls live preview to real display device");
 		btnLivePreview.setText("Live Preview");
-		btnLivePreview.addListener(SWT.Selection, e -> switchLivePreview(e));
+		btnLivePreview.addListener(SWT.Selection, e -> onLivePreviewSwitched(btnLivePreview.getSelection()));
 
 		Composite composite = new Composite(shell, SWT.NONE);
 		GridData gd_composite = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
@@ -2191,17 +2191,18 @@ public class PinDmdEditor implements EventHandler {
 		}
 	}
 
-	private void switchLivePreview(Event e) {
-		boolean selection = btnLivePreview.getSelection();
-		if (selection) {
+	private void onLivePreviewSwitched(boolean livePreviewIsOn) {
+		if (livePreviewIsOn) {
 			try {
 				connector.switchToMode(DeviceMode.PinMame_RGB.ordinal(), null);
 				handle = connector.connect(pin2dmdAdress);
-				livePreviewActive = selection;
+				livePreviewActive = livePreviewIsOn;
 				for( Palette pal : project.palettes ) {
 					connector.upload(pal,handle);
 				}
-				setEnableUsbTooling(!selection);
+				// upload actual palette
+				connector.switchToPal(activePalette.index, handle);
+				setEnableUsbTooling(!livePreviewIsOn);
 			} catch (RuntimeException ex) {
 				warn("usb problem", "Message was: " + ex.getMessage());
 				btnLivePreview.setSelection(false);
@@ -2210,8 +2211,8 @@ public class PinDmdEditor implements EventHandler {
 			if (handle != null) {
 				try {
 					connector.release(handle);
-					livePreviewActive = selection;
-					setEnableUsbTooling(!selection);
+					livePreviewActive = livePreviewIsOn;
+					setEnableUsbTooling(!livePreviewIsOn);
 				} catch (RuntimeException ex) {
 					warn("usb problem", "Message was: " + ex.getMessage());
 				}
