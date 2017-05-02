@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.Observer;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -26,7 +25,6 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.slf4j.LoggerFactory;
 
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.AnimationType;
@@ -36,10 +34,8 @@ import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.FrameSeq;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.PalMapping.SwitchMode;
-import com.rinke.solutions.pinball.model.Plane;
 import com.rinke.solutions.pinball.test.Util;
 import com.rinke.solutions.pinball.util.RecentMenuManager;
-import com.rinke.solutions.pinball.widget.DMDWidget;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PinDmdEditorTest {
@@ -57,12 +53,6 @@ public class PinDmdEditorTest {
 
 	@Mock
 	AnimationHandler animationHandler;
-	
-	@Mock
-	DMDWidget dmdWidget;
-	
-	@Mock
-	DMDWidget previewDMD;
 	
 	@Mock
 	Observer editAniObserver;

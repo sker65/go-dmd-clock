@@ -53,6 +53,9 @@ public class PinDmdEditorSWTTest {
 	@Mock
 	DMDWidget dmdWidget;
 	
+	@Mock
+	DMDWidget previewDMD;
+	
 	@Rule
 	public final DisplayHelper displayHelper = new DisplayHelper();
 
