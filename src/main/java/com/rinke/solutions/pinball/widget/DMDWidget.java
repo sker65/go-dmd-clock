@@ -143,12 +143,12 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 			}
 		}
 		if( drawTool != null && drawingEnabled ) {
-			if( x >= 0 && x < dmd.getWidth() && y>=0 && y < dmd.getHeight() ) {
+			//if( x >= 0 && x < dmd.getWidth() && y>=0 && y < dmd.getHeight() ) {
 				if( drawTool.handleMouse(e, x, y)) {
 					redraw();
 					frameChangedListeners.forEach(l->l.frameChanged(dmd.getFrame()));
 				}
-			}
+			//}
 		}
 	}
 	
@@ -364,7 +364,17 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 		if(drawTool!= null) {
 			previousDrawTool = this.drawTool;
 			this.drawTool.setDMD(dmd);
+			if( drawTool instanceof SelectTool ) {
+				SelectTool sel = (SelectTool) drawTool;
+				setSelection(sel.getSelection());
+			} else {
+				resetSelection();
+			}
 		}
+	}
+
+	public void setSelection(Rect s) {
+		setSelection(s.x1, s.y1, s.x2-s.x1, s.y2-s.y1);
 	}
 
 	public boolean isDrawingEnabled() {
