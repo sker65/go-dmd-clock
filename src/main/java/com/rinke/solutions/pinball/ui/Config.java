@@ -50,6 +50,7 @@ public class Config extends Dialog {
 	private Spinner autosaveInterval;
 	private Button btnCreateKeyFrame;
 	private Spinner spinnerNoPlanes;
+	private Button btnUseOldExport;
     
     /**
      * Create the dialog.
@@ -90,6 +91,7 @@ public class Config extends Dialog {
         autosaveInterval.setSelection(ApplicationProperties.getInteger(ApplicationProperties.AUTOSAVE_INTERVAL, 10));
         btnCreateKeyFrame.setSelection(ApplicationProperties.getBoolean(ApplicationProperties.AUTOKEYFRAME, false));
         spinnerNoPlanes.setSelection(ApplicationProperties.getInteger(ApplicationProperties.NOOFPLANES, 4));
+        btnUseOldExport.setSelection(ApplicationProperties.getBoolean(ApplicationProperties.OLDEXPORT, false));
         
         shell.open();
         shell.layout();
@@ -235,6 +237,13 @@ public class Config extends Dialog {
         fd_spinner.left = new FormAttachment(btnCreateKeyFrame, 0, SWT.LEFT);
         spinnerNoPlanes.setLayoutData(fd_spinner);
         
+        btnUseOldExport = new Button(grpFoo, SWT.CHECK);
+        FormData fd_btnUseOldExport = new FormData();
+        fd_btnUseOldExport.top = new FormAttachment(spinnerNoPlanes, 6);
+        fd_btnUseOldExport.left = new FormAttachment(btnCreateKeyFrame, 0, SWT.LEFT);
+        btnUseOldExport.setLayoutData(fd_btnUseOldExport);
+        btnUseOldExport.setText("use old export format");
+        
         Label lblNumberOfPlanes = new Label(grpFoo, SWT.NONE);
         FormData fd_lblNumberOfPlanes = new FormData();
         fd_lblNumberOfPlanes.top = new FormAttachment(btnCreateKeyFrame, 10);
@@ -260,6 +269,8 @@ public class Config extends Dialog {
         ApplicationProperties.put(ApplicationProperties.AUTOSAVE_INTERVAL, autosaveInterval.getSelection()); 
         ApplicationProperties.put(ApplicationProperties.AUTOKEYFRAME, btnCreateKeyFrame.getSelection()); 
         ApplicationProperties.put(ApplicationProperties.NOOFPLANES, spinnerNoPlanes.getSelection());
+        ApplicationProperties.put(ApplicationProperties.OLDEXPORT, btnUseOldExport.getSelection());
+
 		shell.close();
 	}
 }

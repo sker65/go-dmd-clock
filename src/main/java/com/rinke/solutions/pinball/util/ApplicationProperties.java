@@ -20,6 +20,7 @@ public class ApplicationProperties {
 	public static final String AUTOSAVE = "autosave";
 	public static final String AUTOKEYFRAME = "autoKeyframeWhenCut";
 	public static final String NOOFPLANES = "noOfPlanesWhenCutting";
+	public static final String OLDEXPORT = "oldexport";
 
 	private static ApplicationProperties theInstance;
 
