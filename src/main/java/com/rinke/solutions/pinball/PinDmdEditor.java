@@ -1555,7 +1555,7 @@ public class PinDmdEditor implements EventHandler {
 
 		drawToolBar = new ToolBar(grpDrawing, SWT.FLAT | SWT.RIGHT);
 		GridData gd_drawToolBar = new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1);
-		gd_drawToolBar.widthHint = 163;
+		gd_drawToolBar.widthHint = 184;
 		drawToolBar.setLayoutData(gd_drawToolBar);
 
 		ToolItem tltmPen = new ToolItem(drawToolBar, SWT.RADIO);
