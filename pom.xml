@@ -90,7 +90,7 @@
 		                <version>2.19</version>
 		                <configuration>
                             <excludes>
-                                <exclude>**/*SWTTest.java</exclude>
+                                <exclude>**/*SWxxTTest.java</exclude>
                             </excludes>
 		                </configuration>
 		            </plugin>
@@ -456,7 +456,7 @@
 
 		<!-- For using usb4java with javax-usb -->
 		<dependency>
-			<groupId>org.usb4java</groupId>
+	 		<groupId>org.usb4java</groupId>
 			<artifactId>usb4java-javax</artifactId>
 			<version>1.2.0</version>
 		</dependency>
