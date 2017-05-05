@@ -15,6 +15,8 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Shell;
 
 import com.google.common.collect.Lists;
+import com.rinke.solutions.beans.Autowired;
+import com.rinke.solutions.beans.Bean;
 import com.rinke.solutions.pinball.animation.AniWriter;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.AnimationFactory;
@@ -26,16 +28,17 @@ import com.rinke.solutions.pinball.util.FileChooserUtil;
 import com.rinke.solutions.pinball.util.ObservableMap;
 
 @Slf4j
+@Bean
 public class AnimationActionHandler {
 	
 	PinDmdEditor editor;
+	@Autowired
 	FileChooserUtil fileChooserUtil;
 	private Shell shell;
 	
 	public AnimationActionHandler(PinDmdEditor pinDmdEditor, Shell shell) {
 		editor = pinDmdEditor;
 		this.shell = shell;
-		fileChooserUtil = new FileChooserUtil(shell);
 	}
 	
 	protected Progress getProgress() {

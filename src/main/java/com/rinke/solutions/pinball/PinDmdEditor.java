@@ -80,6 +80,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.impl.SimpleLogger;
 
+import com.rinke.solutions.beans.Autowired;
+import com.rinke.solutions.beans.SimpleBeanFactory;
 import com.rinke.solutions.pinball.animation.AniEvent;
 import com.rinke.solutions.pinball.animation.AniEvent.Type;
 import com.rinke.solutions.pinball.animation.AniWriter;
@@ -110,6 +112,7 @@ import com.rinke.solutions.pinball.model.Plane;
 import com.rinke.solutions.pinball.model.Project;
 import com.rinke.solutions.pinball.swt.ActionAdapter;
 import com.rinke.solutions.pinball.swt.CocoaGuiEnhancer;
+import com.rinke.solutions.pinball.swt.SWTDispatcher;
 import com.rinke.solutions.pinball.ui.About;
 import com.rinke.solutions.pinball.ui.Config;
 import com.rinke.solutions.pinball.ui.DeviceConfig;
@@ -119,6 +122,7 @@ import com.rinke.solutions.pinball.ui.RegisterLicense;
 import com.rinke.solutions.pinball.ui.UsbConfig;
 import com.rinke.solutions.pinball.util.ApplicationProperties;
 import com.rinke.solutions.pinball.util.FileChooserUtil;
+import com.rinke.solutions.pinball.util.MessageUtil;
 import com.rinke.solutions.pinball.util.ObservableList;
 import com.rinke.solutions.pinball.util.ObservableMap;
 import com.rinke.solutions.pinball.util.ObservableProperty;
@@ -151,7 +155,6 @@ public class PinDmdEditor implements EventHandler {
 	public static int PLANE_SIZE = 128/8*32;
 
 	DMD dmd = new DMD(128, 32); // for sake of window builder
-	MaskDmdObserver maskDmdObserver;
 
 	AnimationHandler animationHandler = null;
 
@@ -190,6 +193,10 @@ public class PinDmdEditor implements EventHandler {
 	private Label lblTcval;
 	private Label lblFrameNo;
 
+	@Autowired
+	MaskDmdObserver maskDmdObserver;
+	
+	@Autowired
 	private FileChooserUtil fileChooserUtil;
 
 	private String frameTextPrefix = "Pin2dmd Editor ";
@@ -203,7 +210,7 @@ public class PinDmdEditor implements EventHandler {
 	// colaboration classes
 	DMDClock clock = new DMDClock(false);
 	FileHelper fileHelper = new FileHelper();
-	SmartDMDImporter smartDMDImporter = new SmartDMDImporter();
+	
 	Project project = new Project();
 	byte[] emptyMask;
 
@@ -248,15 +255,12 @@ public class PinDmdEditor implements EventHandler {
 	PalMapping selectedPalMapping;
 	int saveTimeCode;
 
-	CutInfo cutInfo = new CutInfo();
-
 	java.util.List<Palette> previewPalettes = new ArrayList<>();
 
 	//PlaneNumber planeNumber;
 	Label lblPlanesVal;
 	Text txtDelayVal;
 	private Button btnSortAni;
-	LicenseManager licManager;
 
 	private Button btnMask;
 	boolean useGlobalMask;
@@ -281,7 +285,16 @@ public class PinDmdEditor implements EventHandler {
 	private Spinner maskSpinner;
 	private int actMaskNumber;
 
+	@Autowired
+	CutInfo cutInfo;
+	@Autowired
+	SmartDMDImporter smartDMDImporter;
+
+	LicenseManager licManager;
+
+	@Autowired
 	PaletteHandler paletteHandler;
+	@Autowired
 	AnimationActionHandler aniAction;
 
 	private GoDmdGroup goDmdGroup;
@@ -297,9 +310,16 @@ public class PinDmdEditor implements EventHandler {
 	private String projectFilename;
 	private Button btnDeleteColMask;
 	private EditMode editMode;
+	//private TabMode tabMode;
+	
+	@Autowired
 	private ClipboardHandler clipboardHandler;
-	private TabMode tabMode;
-	private AutosaveHandler autoSaveHandler;;
+	@Autowired
+	private AutosaveHandler autoSaveHandler;
+	@Autowired
+	private MessageUtil msgUtil;
+	@Autowired
+	private SWTDispatcher dispatcher;
 	
 	enum TabMode {
 		KEYFRAME("KeyFrame"), GODMD("goDMD"), PROP("Properties");
@@ -330,8 +350,6 @@ public class PinDmdEditor implements EventHandler {
 		Arrays.fill(emptyMask, (byte) 0xFF);
 		
 		dmd = new DMD(dmdSize.width, dmdSize.height);
-		maskDmdObserver = new MaskDmdObserver();
-		maskDmdObserver.setDmd(dmd);
 		
 		activePalette = project.palettes.get(0);
 		previewPalettes = Palette.previewPalettes();
@@ -454,6 +472,14 @@ public class PinDmdEditor implements EventHandler {
 	}
 
 	public void createBindings() {
+
+		ObserverManager.bind(maskDmdObserver, e -> btnUndo.setEnabled(e), () -> maskDmdObserver.canUndo());
+		ObserverManager.bind(maskDmdObserver, e -> btnRedo.setEnabled(e), () -> maskDmdObserver.canRedo());
+		
+		maskDmdObserver.addObserver((dmd,o)->updateHashes(dmd));
+		
+		ObserverManager.bind(maskDmdObserver, e -> mntmRedo.setEnabled(e), () -> maskDmdObserver.canRedo());
+		ObserverManager.bind(maskDmdObserver, e -> mntmUndo.setEnabled(e), () -> maskDmdObserver.canUndo());
 		// do some bindings
 		editAniObserver = ObserverManager.bind(animationHandler, e -> this.enableDrawing(e), () -> animationIsEditable());
 		
@@ -507,10 +533,14 @@ public class PinDmdEditor implements EventHandler {
 		//Animation old = (Animation) frameSeqViewer.getSelection();
 		frameSeqList.clear();
 		frameSeqList.addAll(scenes.values().stream().filter(a -> a.isMutable()).collect(Collectors.toList()));
+		log.info("frame seq list: {}", frameSeqList);
+		frameSeqViewer.setInput(frameSeqList);
 		frameSeqViewer.refresh();
 		if( !frameSeqList.isEmpty() ) setViewerSelection(frameSeqViewer, frameSeqList.get(0));
 	}
 
+	SimpleBeanFactory beanFactory;
+	
 	/**
 	 * Open the window.
 	 * 
@@ -531,10 +561,6 @@ public class PinDmdEditor implements EventHandler {
 		
 		display = Display.getDefault();
 		shell = new Shell();
-		fileChooserUtil = new FileChooserUtil(shell);
-		paletteHandler = new PaletteHandler(this, shell);
-		aniAction = new AnimationActionHandler(this, shell);
-		autoSaveHandler = new AutosaveHandler(display, shell, this);
 
 		if (SWT.getPlatform().equals("cocoa")) {
 			CocoaGuiEnhancer enhancer = new CocoaGuiEnhancer("Pin2dmd Editor");
@@ -545,11 +571,12 @@ public class PinDmdEditor implements EventHandler {
 		
 		createContents(shell);
 
-		clipboardHandler = new ClipboardHandler(dmd, dmdWidget, activePalette);
+		init();
+
 		animationHandler = new AnimationHandler(playingAnis, clock, dmd);
 		animationHandler.setScale(scale);
 		animationHandler.setEventHandler(this);
-		//animationHandler.setMask(project.mask);
+
 		boolean goDMDenabled = ApplicationProperties.getBoolean(ApplicationProperties.GODMD_ENABLED_PROP_KEY);
 		animationHandler.setEnableClock(goDMDenabled);
 		
@@ -576,8 +603,8 @@ public class PinDmdEditor implements EventHandler {
 
 		autoSaveHandler.checkAutoSaveAtStartup();
 
-		display.timerExec(animationHandler.getRefreshDelay(), cyclicRedraw);
-		display.timerExec(1000*300, autoSaveHandler);
+		dispatcher.timerExec(animationHandler.getRefreshDelay(), cyclicRedraw);
+		dispatcher.timerExec(1000*300, autoSaveHandler);
 
 		processCmdLine();
 
@@ -601,6 +628,18 @@ public class PinDmdEditor implements EventHandler {
 				}
 			}
 		}
+	}
+
+	void init() {
+		beanFactory = new SimpleBeanFactory();
+		beanFactory.scanPackages("com.rinke.solutions.pinball");
+		beanFactory.setSingleton(display);
+		beanFactory.setSingleton(shell);
+		beanFactory.setSingleton("editor",this);
+		beanFactory.setSingleton("dmd",dmd);
+		beanFactory.setSingleton(dmdWidget);
+		
+		beanFactory.inject(this);
 	}
 
 	private void processCmdLine() {
@@ -780,10 +819,10 @@ public class PinDmdEditor implements EventHandler {
 		licManager.requireOneOf( Capability.REALPIN, Capability.GODMD);
 		String filename = fileChooserUtil.choose(SWT.SAVE, project.name, new String[] { "*.pal" }, new String[] { "Export pal" });
 		if (filename != null) {
-			warn("Warning", "Please don´t publish projects with copyrighted material / frames");
+			msgUtil.warn("Warning", "Please don´t publish projects with copyrighted material / frames");
 			exportProject(filename, f -> new FileOutputStream(f), true);
 			if( !filename.endsWith("pin2dmd.pal")) {
-				warn("Hint", "Remember to rename your export file to pin2dmd.pal if you want to use it" + " in a real pinballs sdcard of pin2dmd.");
+				msgUtil.warn("Hint", "Remember to rename your export file to pin2dmd.pal if you want to use it" + " in a real pinballs sdcard of pin2dmd.");
 			}
 		}
 	}
@@ -792,7 +831,7 @@ public class PinDmdEditor implements EventHandler {
 		licManager.requireOneOf(Capability.VPIN, Capability.GODMD);
 		String filename = fileChooserUtil.choose(SWT.SAVE, project.name, new String[] { "*.pal" }, new String[] { "Export pal" });
 		if (filename != null) {
-			warn("Warning", "Please don´t publish projects with copyrighted material / frames");
+			msgUtil.warn("Warning", "Please don´t publish projects with copyrighted material / frames");
 			exportProject(filename, f -> new FileOutputStream(f), false);
 		}
 	}
@@ -1054,7 +1093,7 @@ public class PinDmdEditor implements EventHandler {
 			saveTimeCode = lastTimeCode;
 			keyframeTableViewer.refresh();
 		} else {
-			warn("Hash is already used", "The selected hash is already used by another key frame");
+			msgUtil.warn("Hash is already used", "The selected hash is already used by another key frame");
 		}
 	}
 
@@ -1136,7 +1175,6 @@ public class PinDmdEditor implements EventHandler {
 		viewerCol1.setEditingSupport(new GenericTextCellEditor<Animation>(aniListViewer, ani -> ani.getDesc(), (ani, v) -> {
 			updateAnimationMapKey(ani.getDesc(), v, recordings);
 			ani.setDesc(v);
-			frameSeqViewer.refresh();
 		}));
 		viewerCol1.getColumn().setWidth(colWidth);
 		viewerCol1.setLabelProvider(new IconLabelProvider<Animation>(shell, o -> o.getIconAndText() ));
@@ -1289,7 +1327,7 @@ public class PinDmdEditor implements EventHandler {
 		tabFolder.setSelection(tbtmKeyframe);
 		tabFolder.addListener(SWT.Selection, e->{
 			log.debug("tab changed: {}", tabFolder.getSelection().getText());
-			this.tabMode = TabMode.fromLabel(tabFolder.getSelection().getText());
+			//this.tabMode = TabMode.fromLabel(tabFolder.getSelection().getText());
 		});
 
 		Group grpDetails = new Group(shell, SWT.NONE);
@@ -1505,7 +1543,7 @@ public class PinDmdEditor implements EventHandler {
 				setPaletteViewerByIndex(activePalette.index);
 				paletteComboViewer.refresh();
 			} else {
-				warn("Illegal palette name", "Palette names must consist of palette index and name.\nName format therefore must be '<idx> - <name>'");
+				msgUtil.warn("Illegal palette name", "Palette names must consist of palette index and name.\nName format therefore must be '<idx> - <name>'");
 				paletteComboViewer.getCombo().setText(activePalette.index + " - " + activePalette.name);
 			}
 
@@ -1692,10 +1730,6 @@ public class PinDmdEditor implements EventHandler {
 		new Label(grpDrawing, SWT.NONE);
 		btnDeleteColMask.addListener(SWT.Selection, e -> onDeleteColMaskClicked());
 
-		ObserverManager.bind(maskDmdObserver, e -> btnUndo.setEnabled(e), () -> maskDmdObserver.canUndo());
-		ObserverManager.bind(maskDmdObserver, e -> btnRedo.setEnabled(e), () -> maskDmdObserver.canRedo());
-		
-		maskDmdObserver.addObserver((dmd,o)->updateHashes(dmd));
 
 	}
 	
@@ -1903,7 +1937,7 @@ public class PinDmdEditor implements EventHandler {
 		else viewer.setSelection(StructuredSelection.EMPTY);
 	}
 
-	private void setViewerSelection(AbstractListViewer viewer, Object sel) {
+	void setViewerSelection(AbstractListViewer viewer, Object sel) {
 		if( sel != null ) viewer.setSelection(new StructuredSelection(sel));
 		else viewer.setSelection(StructuredSelection.EMPTY);
 	}
@@ -2205,7 +2239,7 @@ public class PinDmdEditor implements EventHandler {
 				connector.switchToPal(activePalette.index, handle);
 				setEnableUsbTooling(!livePreviewIsOn);
 			} catch (RuntimeException ex) {
-				warn("usb problem", "Message was: " + ex.getMessage());
+				msgUtil.warn("usb problem", "Message was: " + ex.getMessage());
 				btnLivePreview.setSelection(false);
 			}
 		} else {
@@ -2215,7 +2249,7 @@ public class PinDmdEditor implements EventHandler {
 					livePreviewActive = livePreviewIsOn;
 					setEnableUsbTooling(!livePreviewIsOn);
 				} catch (RuntimeException ex) {
-					warn("usb problem", "Message was: " + ex.getMessage());
+					msgUtil.warn("usb problem", "Message was: " + ex.getMessage());
 				}
 				handle = null;
 			}
@@ -2270,30 +2304,23 @@ public class PinDmdEditor implements EventHandler {
 					project.palMappings.add(palMapping);
 					keyframeTableViewer.refresh();
 				} else {
-					warn("duplicate hash", "There is already another Keyframe that uses the same hash");
+					msgUtil.warn("duplicate hash", "There is already another Keyframe that uses the same hash");
 				}
 			} else {
-				warn("no hash selected", "in order to create a key frame mapping, you must select a hash");
+				msgUtil.warn("no hash selected", "in order to create a key frame mapping, you must select a hash");
 			}
 		} else {
-			warn("no scene selected", "in order to create a key frame mapping, you must select a scene");
+			msgUtil.warn("no scene selected", "in order to create a key frame mapping, you must select a scene");
 		}
 	}
 
-	private void warn(String header, String msg) {
-		MessageBox messageBox = new MessageBox(shell, SWT.ICON_WARNING | SWT.OK);
-		messageBox.setText(header);
-		messageBox.setMessage(msg);
-		messageBox.open();
-	}
-	
 	/**
 	 * get current mask, either from scene or from on of the global masks
 	 * @return
 	 */
 	private Mask getCurrentMask() {
 		Mask maskToUse = null; 
-		if( editMode.equals(EditMode.FOLLOW)) {
+		if( EditMode.FOLLOW.equals(editMode)) {
 			// create mask from actual scene
 			if( selectedScene.isPresent()) maskToUse = selectedScene.get().getCurrentMask();
 		} else {
@@ -2568,17 +2595,15 @@ public class PinDmdEditor implements EventHandler {
 
 		new MenuItem(menu_5, SWT.SEPARATOR);
 
-		MenuItem mntmUndo = new MenuItem(menu_5, SWT.NONE);
+		mntmUndo = new MenuItem(menu_5, SWT.NONE);
 		mntmUndo.setText("Undo\tCtrl-Z");
 		mntmUndo.setAccelerator(SWT.MOD1 + 'Z');
 		mntmUndo.addListener(SWT.Selection, e -> onUndoClicked());
-		ObserverManager.bind(maskDmdObserver, e -> mntmUndo.setEnabled(e), () -> maskDmdObserver.canUndo());
 
-		MenuItem mntmRedo = new MenuItem(menu_5, SWT.NONE);
+		mntmRedo = new MenuItem(menu_5, SWT.NONE);
 		mntmRedo.setText("Redo\tShift-Ctrl-Z");
 		mntmRedo.setAccelerator(SWT.MOD1 + SWT.MOD2 + 'Z');
 		mntmRedo.addListener(SWT.Selection, e -> onRedoClicked());
-		ObserverManager.bind(maskDmdObserver, e -> mntmRedo.setEnabled(e), () -> maskDmdObserver.canRedo());
 
 		MenuItem mntmAnimations = new MenuItem(menu, SWT.CASCADE);
 		mntmAnimations.setText("&Animations");
@@ -2770,6 +2795,8 @@ public class PinDmdEditor implements EventHandler {
 	private Text textProperty;
 	private ComboViewer bookmarkComboViewer;
 	private Button btnInvert;
+	private MenuItem mntmUndo;
+	private MenuItem mntmRedo;
 	
 	private void updateHashes(Frame frame) {
 		if( frame == null ) return;

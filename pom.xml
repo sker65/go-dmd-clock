@@ -369,6 +369,11 @@
 	</profiles>
 
 	<dependencies>
+	   <dependency>
+            <groupId>org.reflections</groupId>
+            <artifactId>reflections</artifactId>
+            <version>0.9.11</version>
+        </dependency>
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
@@ -498,7 +503,7 @@
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
-			<version>18.0</version>
+			<version>21.0</version>
 		</dependency>
 		<dependency>
 			<groupId>ar.com.hjg</groupId>

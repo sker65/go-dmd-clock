@@ -3,12 +3,18 @@ package com.rinke.solutions.pinball;
 import java.util.Observable;
 import java.util.Observer;
 
+import com.rinke.solutions.beans.Autowired;
+import com.rinke.solutions.beans.Bean;
+
 /**
  * encapsulates delegating logic for mask and dmd regarding undo / redo and abservable
  * do it delegates (can)Undo and (can)Redo calls, depending on mask set
  * and forwards observer notifies.
  */
+@Bean
 class MaskDmdObserver extends Observable implements Observer {
+	
+	@Autowired
 	private DMD dmd;
 	private DMD mask;
 	

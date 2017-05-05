@@ -10,8 +10,8 @@ import java.util.List;
 import org.eclipse.jface.viewers.ComboViewer;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 
+import com.rinke.solutions.pinball.io.FileHelper;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.RGB;
 import com.rinke.solutions.pinball.util.RecentMenuManager;
@@ -65,6 +65,7 @@ public class PaletteHandlerTest {
 
 	@Test
 	public void testLoadPaletteXml() throws Exception {
+		uut.fileHelper = new FileHelper();
 		uut.loadPalette("./src/test/resources/defaultPalette.xml");
 	}
 

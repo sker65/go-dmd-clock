@@ -2,28 +2,34 @@ package com.rinke.solutions.pinball;
 
 import java.io.File;
 
+import org.eclipse.osgi.framework.internal.core.Msg;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 
+import com.rinke.solutions.beans.Autowired;
+import com.rinke.solutions.beans.Bean;
+import com.rinke.solutions.pinball.swt.SWTDispatcher;
 import com.rinke.solutions.pinball.util.ApplicationProperties;
+import com.rinke.solutions.pinball.util.MessageUtil;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@Bean
 public class AutosaveHandler implements Runnable {
 	
-	private Display display;
-	private Shell shell;
-	private PinDmdEditor editor;
+	@Autowired
+	PinDmdEditor editor;
 	private long nextAutoSave;
+	MessageUtil messageUtil;
+	SWTDispatcher dispatcher;
 
-	public AutosaveHandler(Display display, Shell sh, PinDmdEditor editor) {
+	public AutosaveHandler(MessageUtil messageUtil, SWTDispatcher dis) {
 		super();
-		this.display = display;
-		this.shell = sh;
-		this.editor = editor;
+		this.messageUtil = messageUtil;
+		this.dispatcher = dis;
 		nextAutoSave = System.currentTimeMillis() + ApplicationProperties.getInteger(ApplicationProperties.AUTOSAVE_INTERVAL)*60*1000;
 	}
 	
@@ -41,7 +47,7 @@ public class AutosaveHandler implements Runnable {
 			doAutoSave();
 			nextAutoSave = now + interval;
 		}
-		display.timerExec(300*1000, this);
+		dispatcher.timerExec(300*1000, this);
 	}
 
 	private void doAutoSave() {
@@ -60,10 +66,7 @@ public class AutosaveHandler implements Runnable {
 	public void checkAutoSaveAtStartup() {
 		File f = new File(getFilename());
 		if( f.exists() ) {
-			MessageBox messageBox = new MessageBox(shell, SWT.ICON_WARNING | SWT.YES | SWT.NO);
-			messageBox.setText("auto save file found");
-			messageBox.setMessage("auto save file from last run found. Should it be restored?");
-			int res = messageBox.open();
+			int res = messageUtil.warn("auto save file found", "auto save file from last run found. Should it be restored?");
 			if( res == SWT.YES ) {
 				editor.loadProject(getFilename());
 			} else {
@@ -80,6 +83,10 @@ public class AutosaveHandler implements Runnable {
 		filename = replaceExtensionTo("ani", filename);
 		f = new File(filename);
 		f.delete();
+	}
+
+	public void setEditor(PinDmdEditor editor) {
+		 this.editor = editor;
 	}
 
 }

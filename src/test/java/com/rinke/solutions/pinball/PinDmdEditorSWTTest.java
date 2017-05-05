@@ -5,6 +5,7 @@ import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
 import static org.mockito.Mockito.when;
 
+import java.io.ObjectInputStream.GetField;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -89,11 +90,16 @@ public class PinDmdEditorSWTTest {
 		uut.paletteHandler = new PaletteHandler(uut, shell);
 
 		uut.onNewProject();
+		uut.display = shell.getDisplay();
+		uut.shell = shell;
+		
+		uut.init();
 		
 		uut.createBindings();
 		
 		byte[] digest = {1,0,0,0};
 		uut.hashes.add(digest);
+		uut.selectedHashIndex = 2;
 		byte[] emptyFrameDigest = { (byte)0xBF, 0x61, (byte)0x9E, (byte)0xAC, 0x0C, (byte)0xDF, 0x3F, 0x68,
 				(byte)0xD4, (byte)0x96, (byte)0xEA, (byte)0x93, 0x44, 0x13, 0x7E, (byte)0x8B };
 		uut.hashes.add(emptyFrameDigest);
@@ -294,25 +300,30 @@ public class PinDmdEditorSWTTest {
 	public void testAddFrameSeq() {
 		
 		CompiledAnimation animation = new CompiledAnimation(AnimationType.PNG, "test", 0, 0, 0, 0, 0);
-		animation.setDesc("foo");
+		animation.setDesc("Scene1");
 		animation.setMutable(true);
-		uut.scenes.put("foo", animation );
+		uut.scenes.put("Scene1", animation );
 		
 		CompiledAnimation recording = new CompiledAnimation(AnimationType.PNG, "test", 0, 0, 0, 0, 0);
-		animation.setDesc("foo2");
-		uut.recordings.put("foo2", recording );
+		animation.setDesc("Recording1");
+		uut.recordings.put("Recording1", recording );
+		
 		uut.selectedRecording.set(recording);
 
 		// frameSeqView must have a selection
-		uut.buildFrameSeqList();
-		uut.frameSeqViewer.setSelection(new StructuredSelection(uut.frameSeqList.get(0)), true);
+		//uut.buildFrameSeqList();
+		//assertThat( );
+
 		byte[] digest = {1,0,0,0};
 		trigger(SWT.Selection).on(uut.btnAddFrameSeq);
+				
 		assertThat(uut.project.palMappings.size(), equalTo(1));
+		
 		PalMapping mapping = uut.project.palMappings.get(0);
-		assertThat(mapping.name, equalTo("KeyFrame foo2"));
+		//assertThat(mapping.switchMode, equalTo(SwitchMode.REPLACE));
+		assertThat(mapping.name, equalTo("KeyFrame Recording1"));
 		assertThat(mapping.crc32, equalTo(digest));
-		assertThat(mapping.frameSeqName, equalTo("foo2"));
+		assertThat(mapping.frameSeqName, equalTo("Recording1"));
 	}
 
 	@Test

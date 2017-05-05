@@ -14,7 +14,10 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
+import org.slf4j.Logger;
 
+import com.rinke.solutions.beans.Autowired;
+import com.rinke.solutions.beans.Bean;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.io.DMCImporter;
 import com.rinke.solutions.pinball.io.FileHelper;
@@ -24,18 +27,24 @@ import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.PaletteType;
 import com.rinke.solutions.pinball.model.RGB;
 import com.rinke.solutions.pinball.util.FileChooserUtil;
+import com.rinke.solutions.pinball.util.MessageUtil;
 
 @Slf4j
+@Bean
 public class PaletteHandler {
 	
-	FileHelper fileHelper = new FileHelper();
+	@Autowired
+	FileHelper fileHelper;
+	
 	PinDmdEditor editor;
+	@Autowired
 	FileChooserUtil fileChooserUtil;
+	@Autowired
+	MessageUtil messageUtil;
 	
 	public PaletteHandler(PinDmdEditor editor, Shell shell) {
 		super();
 		this.editor = editor;
-		fileChooserUtil = new FileChooserUtil(shell);
 	}
 	
 	private boolean isNewPaletteName(String text) {
@@ -116,10 +125,7 @@ public class PaletteHandler {
 		if( palettesImported != null ) {
 			String override = checkOverride(editor.project.palettes, palettesImported);
 			if (!override.isEmpty()) {
-				MessageBox messageBox = new MessageBox(editor.shell, SWT.ICON_WARNING | SWT.OK | SWT.IGNORE | SWT.ABORT);
-				messageBox.setText("Override warning");
-				messageBox.setMessage("importing these palettes will override palettes: " + override + "\n");
-				int res = messageBox.open();
+				int res = messageUtil.warn( SWT.ICON_WARNING | SWT.OK | SWT.IGNORE | SWT.ABORT, "Override warning", "importing these palettes will override palettes: " + override + "\n");
 				if (res != SWT.ABORT) {
 					importPalettes(palettesImported, res == SWT.OK);
 				}
@@ -175,13 +181,6 @@ public class PaletteHandler {
 		return res;
 	}
 	
-	private void warn(String header, String msg) {
-		MessageBox messageBox = new MessageBox(editor.shell, SWT.ICON_WARNING | SWT.OK);
-		messageBox.setText(header);
-		messageBox.setMessage(msg);
-		messageBox.open();
-	}
-	
 	public void onDeletePalette() {
 		if( editor.activePalette != null && editor.project.palettes.size()>1 ) {
 			// check if any scene is using this
@@ -207,7 +206,7 @@ public class PaletteHandler {
 				editor.paletteComboViewer.setSelection(new StructuredSelection(editor.project.palettes.get(0)));
 				editor.paletteComboViewer.refresh();
 			} else {
-				warn("Palette cannot deleted", "Palette cannot deleted because it is used by: "+res);
+				messageUtil.warn("Palette cannot deleted", "Palette cannot deleted because it is used by: "+res);
 			}
 		}
 	}

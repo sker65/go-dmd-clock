@@ -6,9 +6,11 @@ import java.util.List;
 
 import org.eclipse.swt.widgets.Shell;
 
+import com.rinke.solutions.beans.Bean;
 import com.rinke.solutions.pinball.ui.FileChooser;
 import com.rinke.solutions.pinball.ui.FileDialogDelegate;
 
+@Bean
 public class FileChooserUtil {
 
 	String lastPath;

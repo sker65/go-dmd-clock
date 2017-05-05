@@ -9,12 +9,13 @@ import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
 
-
+import com.rinke.solutions.beans.Bean;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.PaletteType;
 import com.rinke.solutions.pinball.model.RGB;
 
 @Slf4j
+@Bean
 public class SmartDMDImporter implements PaletteImporter {
 	
 	@Override

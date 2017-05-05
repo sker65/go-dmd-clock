@@ -14,6 +14,7 @@ import org.eclipse.swt.graphics.PaletteData;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Display;
 
+import com.rinke.solutions.beans.Bean;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.renderer.ImageUtil;
@@ -26,6 +27,7 @@ import com.rinke.solutions.pinball.widget.PasteTool;
  * @author Stefan Rinke
  */
 @Slf4j
+@Bean
 public class ClipboardHandler implements Runnable {
 	
 	DMD dmd;
@@ -43,7 +45,7 @@ public class ClipboardHandler implements Runnable {
 	 * @param dmdWidget the widget
 	 * @param display swt display instance (could maybe also created via internal factory)
 	 */
-	public ClipboardHandler(DMD dmd, DMDWidget dmdWidget, Palette pal) {
+	public ClipboardHandler(DMD dmd, DMDWidget dmdWidget) {
 		super();
 		this.dmd = dmd;
 		this.dmdWidget = dmdWidget;
@@ -51,7 +53,7 @@ public class ClipboardHandler implements Runnable {
 		this.clipboard = new Clipboard(display);
 		this.width = dmd.getWidth();
 		this.height = dmd.getHeight();
-		this.palette = pal;
+		this.palette = null;
 	}
 	
 	public void setPalette(Palette p) {
