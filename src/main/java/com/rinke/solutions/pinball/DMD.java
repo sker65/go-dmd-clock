@@ -231,6 +231,7 @@ public class DMD extends Observable {
         }
     }
     
+    // wird nur zum rendern der Zeit verwendet -> TODO refactor
     public void copy(int yoffset, int xoffset, DMD src, boolean low, boolean mask) {
     	byte[] frame1 = frame.getPlane(0);
     	byte[] frame2 = frame.getPlane(1);
@@ -264,59 +265,8 @@ public class DMD extends Observable {
             0b10111111, 0b11101111, 0b11111011, 0b11111110
     };
 
-    public boolean getPixel(byte[] buffer, int x, int y) {
-        int bitpos = 0;
-        int yoffset = y * (width / 4);
-        if (y >= height / 2) {
-            bitpos = 4;
-            yoffset = (y - height / 2) * (width / 4);
-        }
-        int index = yoffset + x / 4;
-        return (buffer[index] & ~mask[(x & 3) + bitpos]) == 0;
-    }
-
-    private void setPixel(byte[] buffer, int x, int y, boolean on) {
-        int bitpos = 0;
-        int yoffset = y * (width / 4);
-        if (y >= height / 2) {
-            bitpos = 4;
-            yoffset = (y - height / 2) * (width / 4);
-        }
-        int index = yoffset + x / 4;
-
-        if (on) {
-            buffer[index] &= mask[(x & 3) + bitpos];
-        } else {
-            buffer[index] |= ~mask[(x & 3) + bitpos];
-        }
-    }
-
     byte[] m2 = { (byte) 0b10000000, (byte) 0b01000000, (byte) 0b00100000, (byte) 0b00010000, (byte) 0b00001000,
             (byte) 0b00000100, (byte) 0b00000010, (byte) 0b00000001, };
-	//private int drawShift;
-
-    public byte[] transformFrame1(byte[] in) {
-        byte[] t = new byte[in.length];
-        for (int i = 0; i < in.length; i++) {
-            t[i] = (byte) ~(in[i]);
-        }
-        return t;
-    }
-
-    public byte[] transformFrame(byte[] in) {
-        byte[] t = new byte[in.length];
-        // for(int i=0; i<t.length;i++) t[i] = (byte) 255;
-
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                boolean on = (in[y * bytesPerRow + x / 8] & m2[x % 8]) != 0;
-                // System.out.print(on?"*":".");
-                setPixel(t, x, y, on);
-            }
-            // System.out.println("");
-        }
-        return t;
-    }
 
     public Frame getFrame() {
         return frame;

@@ -441,6 +441,13 @@
 			<version>4.12</version>
 			<scope>test</scope>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.github.almondtools/conmatch -->
+		<dependency>
+		    <groupId>com.github.almondtools</groupId>
+		    <artifactId>conmatch</artifactId>
+		    <version>0.1.12</version>
+		    <scope>test</scope>
+		</dependency>
 		<dependency>
 		    <groupId>xmlunit</groupId>
 		    <artifactId>xmlunit</artifactId>
