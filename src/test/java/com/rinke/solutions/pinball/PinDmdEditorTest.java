@@ -7,8 +7,13 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -16,8 +21,12 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Observer;
-import java.util.Random;
 
+import org.eclipse.jface.viewers.ComboViewer;
+import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.viewers.TableViewer;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Spinner;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -34,11 +43,17 @@ import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.io.Pin2DmdConnector;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.FrameSeq;
+import com.rinke.solutions.pinball.model.Mask;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.PalMapping.SwitchMode;
+import com.rinke.solutions.pinball.model.Palette;
+import com.rinke.solutions.pinball.model.RGB;
 import com.rinke.solutions.pinball.test.Util;
 import com.rinke.solutions.pinball.util.ApplicationProperties;
+import com.rinke.solutions.pinball.util.MessageUtil;
 import com.rinke.solutions.pinball.util.RecentMenuManager;
+import com.rinke.solutions.pinball.widget.DMDWidget;
+import com.rinke.solutions.pinball.widget.PaletteTool;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PinDmdEditorTest {
@@ -223,4 +238,77 @@ public class PinDmdEditorTest {
 		new File(filename).delete();
 	}
 
+	@Test
+	public void testCutScene() throws Exception {
+		CompiledAnimation ani = new CompiledAnimation(AnimationType.COMPILED, "foo", 0, 1, 0, 1, 1);
+		ani.frames.add( new Frame(new byte[512], new byte[512]));
+		uut.paletteHandler = mock(PaletteHandler.class);
+		uut.frameSeqViewer = mock(ComboViewer.class);
+		when(uut.frameSeqViewer.getSelection()).thenReturn(StructuredSelection.EMPTY);
+		uut.msgUtil = mock(MessageUtil.class);
+		uut.sceneListViewer = mock(TableViewer.class);
+		uut.cutScene(ani, 0, 100, "foo");
+	}
+
+	@Test
+	public void testOnApplyPalette() throws Exception {
+		RGB[] colors = new RGB[]{ new RGB(0,0,0) };
+		Palette selectedPalette = new Palette(colors,14,"foo" );
+		uut.onApplyPalette(selectedPalette);
+		uut.selectedPalMapping = new PalMapping(1, "p");
+		uut.activePalette = selectedPalette;
+		uut.onApplyPalette(selectedPalette);
+		assertThat( uut.selectedPalMapping.palIndex, equalTo(14));
+		CompiledAnimation ani = new CompiledAnimation(AnimationType.COMPILED, "foo", 0, 1, 0, 1, 1);
+		uut.selectedScene.set(ani);
+		uut.onApplyPalette(selectedPalette);
+		assertThat(ani.getPalIndex(), equalTo(14));
+	}
+
+	@Test
+	public void testOnMaskCheckedTrue() throws Exception {
+		setupMock();
+		uut.onMaskChecked(true);
+		assertTrue(uut.useGlobalMask);
+	}
+
+	@Test
+	public void testOnMaskCheckedFalse() throws Exception {
+		setupMock();
+		uut.dmd.setMask(new byte[512]);
+		uut.onMaskChecked(false);
+		assertFalse(uut.useGlobalMask);
+		assertThat(uut.dmd.hasMask(), equalTo(false));
+	}
+
+	void setupMock() {
+		uut.dmdWidget = mock(DMDWidget.class);
+		uut.previewDmd = mock(DMDWidget.class);
+		uut.paletteTool = mock(PaletteTool.class);
+		uut.btnInvert = mock(Button.class);
+		uut.maskSpinner = mock(Spinner.class);
+		uut.btnDeleteColMask = mock(Button.class);
+	}
+
+	@Test
+	public void testOnMaskNumberChanged() throws Exception {
+		uut.onMaskNumberChanged(1);
+		uut.useGlobalMask = true;
+		Mask mask = new Mask(new byte[512], false);
+		uut.project.masks.set(0, mask);
+		uut.dmdWidget = mock(DMDWidget.class);
+		uut.onMaskNumberChanged(0);
+		verify(uut.dmdWidget).setMask(mask);
+	}
+
+	@Test
+	public void testDirtyCheck() throws Exception {
+		assertTrue(uut.dirtyCheck());
+		uut.project.dirty = true;
+		uut.msgUtil = mock(MessageUtil.class);
+		when(uut.msgUtil.warn(anyInt(), anyString(), anyString())).thenReturn(32);
+		assertTrue(uut.dirtyCheck());	
+	}
+	
+	
 }

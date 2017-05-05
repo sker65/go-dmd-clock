@@ -282,7 +282,7 @@ public class PinDmdEditor implements EventHandler {
 	RecentMenuManager recentPalettesMenuManager;
 	RecentMenuManager recentAnimationsMenuManager;
 
-	private Spinner maskSpinner;
+	Spinner maskSpinner;
 	private int actMaskNumber;
 
 	@Autowired
@@ -308,7 +308,7 @@ public class PinDmdEditor implements EventHandler {
 	private List<String> loadedPlugins = new ArrayList<>();
 	MenuItem mntmSaveProject;
 	private String projectFilename;
-	private Button btnDeleteColMask;
+	Button btnDeleteColMask;
 	private EditMode editMode;
 	//private TabMode tabMode;
 	
@@ -317,7 +317,7 @@ public class PinDmdEditor implements EventHandler {
 	@Autowired
 	private AutosaveHandler autoSaveHandler;
 	@Autowired
-	private MessageUtil msgUtil;
+	MessageUtil msgUtil;
 	@Autowired
 	private SWTDispatcher dispatcher;
 	
@@ -661,7 +661,7 @@ public class PinDmdEditor implements EventHandler {
 		}
 	}
 
-	private Animation cutScene(Animation animation, int start, int end, String name) {
+	Animation cutScene(Animation animation, int start, int end, String name) {
 		CompiledAnimation cutScene = animation.cutScene(start, end, ApplicationProperties.getInteger(ApplicationProperties.NOOFPLANES,4));
 		// TODO improve to make it selectable how many planes
 		
@@ -1686,7 +1686,7 @@ public class PinDmdEditor implements EventHandler {
 		maskSpinner.setMinimum(0);
 		maskSpinner.setMaximum(9);
 		maskSpinner.setEnabled(false);
-		maskSpinner.addListener(SWT.Selection, e -> onMaskNumberChanged(e));
+		maskSpinner.addListener(SWT.Selection, e -> onMaskNumberChanged(maskSpinner.getSelection()));
 		
 		btnMask = new Button(grpDrawing, SWT.CHECK);
 		btnMask.addSelectionListener(new SelectionAdapter() {
@@ -2051,7 +2051,7 @@ public class PinDmdEditor implements EventHandler {
 			// TODO mask drawing and plane drawing with mask should be controlled seperately
 			dmd.setDrawMask( 0b00000001);
 		} else {
-			boolean drawWithMask = mode.equals(EditMode.COLMASK) || mode.equals(EditMode.FOLLOW);
+			boolean drawWithMask = EditMode.COLMASK.equals(mode) || EditMode.FOLLOW.equals(mode);
 			btnDeleteColMask.setEnabled(drawWithMask);
 			dmd.setDrawMask(drawWithMask ? 0b11111000 : 0xFFFF);
 		}
@@ -2186,7 +2186,7 @@ public class PinDmdEditor implements EventHandler {
 		btnAddEvent.setEnabled(a != null);
 	}
 	
-	private void onApplyPalette(Palette selectedPalette) {
+	void onApplyPalette(Palette selectedPalette) {
 		if (selectedPalMapping != null) {
 			selectedPalMapping.palIndex = activePalette.index;
 			log.info("change index in Keyframe {} to {}", selectedPalMapping.name, activePalette.index);
@@ -2334,13 +2334,13 @@ public class PinDmdEditor implements EventHandler {
 	 * button callback when mask checkbox is clicked.
 	 * @param useMask
 	 */
-	private void onMaskChecked(boolean useMask) {
+	 void onMaskChecked(boolean useMask) {
 		// either we use masks with follow hash mode on scenes
 		// or we use global masks on recordings
 		if (useMask) {
 			paletteTool.setNumberOfPlanes(1);
 			dmdWidget.setMask(getCurrentMask());
-			useGlobalMask = !editMode.equals(EditMode.FOLLOW);
+			useGlobalMask = !EditMode.FOLLOW.equals(editMode);
 		} else {
 			paletteTool.setNumberOfPlanes(dmd.getNumberOfPlanes());
 			dmdWidget.setShowMask(false);
@@ -2358,8 +2358,7 @@ public class PinDmdEditor implements EventHandler {
 		editAniObserver.update(animationHandler, null);
 	}
 
-	void onMaskNumberChanged(Event e) {
-		int newMaskNumber = maskSpinner.getSelection();
+	void onMaskNumberChanged(int newMaskNumber) {
 		boolean hasChanged = false;
 		if(newMaskNumber != actMaskNumber ) {
 			log.info("mask number changed {} -> {}", actMaskNumber, newMaskNumber);
@@ -2367,7 +2366,7 @@ public class PinDmdEditor implements EventHandler {
 			hasChanged = true;
 		}
 		if (useGlobalMask && hasChanged) {
-			Mask maskToUse = project.masks.get(maskSpinner.getSelection());
+			Mask maskToUse = project.masks.get(newMaskNumber);
 			dmdWidget.setMask(maskToUse);
 			editAniObserver.update(animationHandler, null);
 		}
@@ -2471,11 +2470,7 @@ public class PinDmdEditor implements EventHandler {
 	 */
 	boolean dirtyCheck() {
 		if (project.dirty && !nodirty) {
-			MessageBox messageBox = new MessageBox(shell, SWT.ICON_WARNING | SWT.OK | SWT.CANCEL);
-
-			messageBox.setText("Unsaved Changes");
-			messageBox.setMessage("There are unsaved changes in project. Proceed?");
-			int res = messageBox.open();
+			int res = msgUtil.warn(SWT.ICON_WARNING | SWT.OK | SWT.CANCEL, "Unsaved Changes", "There are unsaved changes in project. Proceed?");
 			return (res == SWT.OK);
 		} else {
 			return true;
@@ -2727,14 +2722,14 @@ public class PinDmdEditor implements EventHandler {
 		mntmAbout.addListener(SWT.Selection, e -> new About(shell).open(pluginsPath, loadedPlugins));
 	}
 
-	private void onRemoveSelection() {
+	void onRemoveSelection() {
 		if( dmdWidget.isDrawingEnabled() ) {
 			SelectTool selectTool = (SelectTool) drawTools.get("select");
 			selectTool.setSelection(0, 0, 0, 0);
 		}
 	}
 
-	private void onSelectAll() {
+	void onSelectAll() {
 		if( dmdWidget.isDrawingEnabled() ) {
 			SelectTool selectTool = (SelectTool) drawTools.get("select");
 			selectTool.setSelection(0, 0, dmd.getWidth(), dmd.getHeight());
@@ -2786,7 +2781,7 @@ public class PinDmdEditor implements EventHandler {
 	private ComboViewer editModeViewer;
 	private EditMode immutable[] = { EditMode.FIXED };
 	private EditMode mutable[] = { EditMode.REPLACE, EditMode.COLMASK, EditMode.FOLLOW };
-	private TableViewer sceneListViewer;
+	TableViewer sceneListViewer;
 	private Button btnRemoveScene;
 	private Spinner spinnerDeviceId;
 	private Spinner spinnerEventId;
@@ -2794,7 +2789,7 @@ public class PinDmdEditor implements EventHandler {
 	private Composite grpKeyframe;
 	private Text textProperty;
 	private ComboViewer bookmarkComboViewer;
-	private Button btnInvert;
+	Button btnInvert;
 	private MenuItem mntmUndo;
 	private MenuItem mntmRedo;
 	
