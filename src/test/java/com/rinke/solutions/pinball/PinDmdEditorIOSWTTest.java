@@ -72,12 +72,12 @@ public class PinDmdEditorIOSWTTest {
 		uut.recentAnimationsMenuManager = recentAnimationsMenuManager;
 		uut.shell = shell;
 		uut.recentProjectsMenuManager = recentProjectsMenuManager;
-		uut.mntmSaveProject = menuItemMock;
+		uut.view.mntmSaveProject = menuItemMock;
 
-		uut.dmdWidget = mock(DMDWidget.class);
-		uut.previewDmd = mock(DMDWidget.class);
-		uut.paletteComboViewer = mock(ComboViewer.class);
-		uut.keyframeTableViewer = mock(TableViewer.class);
+		uut.view.dmdWidget = mock(DMDWidget.class);
+		uut.view.previewDmd = mock(DMDWidget.class);
+		uut.view.paletteComboViewer = mock(ComboViewer.class);
+		uut.view.keyframeTableViewer = mock(TableViewer.class);
 		uut.animationHandler = mock(AnimationHandler.class);
 	}
 

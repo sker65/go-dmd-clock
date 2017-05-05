@@ -243,10 +243,10 @@ public class PinDmdEditorTest {
 		CompiledAnimation ani = new CompiledAnimation(AnimationType.COMPILED, "foo", 0, 1, 0, 1, 1);
 		ani.frames.add( new Frame(new byte[512], new byte[512]));
 		uut.paletteHandler = mock(PaletteHandler.class);
-		uut.frameSeqViewer = mock(ComboViewer.class);
-		when(uut.frameSeqViewer.getSelection()).thenReturn(StructuredSelection.EMPTY);
+		uut.view.frameSeqViewer = mock(ComboViewer.class);
+		when(uut.view.frameSeqViewer.getSelection()).thenReturn(StructuredSelection.EMPTY);
 		uut.msgUtil = mock(MessageUtil.class);
-		uut.sceneListViewer = mock(TableViewer.class);
+		uut.view.sceneListViewer = mock(TableViewer.class);
 		uut.cutScene(ani, 0, 100, "foo");
 	}
 
@@ -282,12 +282,12 @@ public class PinDmdEditorTest {
 	}
 
 	void setupMock() {
-		uut.dmdWidget = mock(DMDWidget.class);
-		uut.previewDmd = mock(DMDWidget.class);
+		uut.view.dmdWidget = mock(DMDWidget.class);
+		uut.view.previewDmd = mock(DMDWidget.class);
 		uut.paletteTool = mock(PaletteTool.class);
-		uut.btnInvert = mock(Button.class);
-		uut.maskSpinner = mock(Spinner.class);
-		uut.btnDeleteColMask = mock(Button.class);
+		uut.view.btnInvert = mock(Button.class);
+		uut.view.maskSpinner = mock(Spinner.class);
+		uut.view.btnDeleteColMask = mock(Button.class);
 	}
 
 	@Test
@@ -296,9 +296,9 @@ public class PinDmdEditorTest {
 		uut.useGlobalMask = true;
 		Mask mask = new Mask(new byte[512], false);
 		uut.project.masks.set(0, mask);
-		uut.dmdWidget = mock(DMDWidget.class);
+		uut.view.dmdWidget = mock(DMDWidget.class);
 		uut.onMaskNumberChanged(0);
-		verify(uut.dmdWidget).setMask(mask);
+		verify(uut.view.dmdWidget).setMask(mask);
 	}
 
 	@Test

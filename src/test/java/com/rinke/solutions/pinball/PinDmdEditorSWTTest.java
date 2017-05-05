@@ -77,7 +77,7 @@ public class PinDmdEditorSWTTest {
 
 			@Override
 			public void run() {
-				uut.createContents(shell);	
+				uut.view.createContents(shell, uut.dmd);	
 			}
 			
 		});
@@ -85,7 +85,7 @@ public class PinDmdEditorSWTTest {
 		DMD dmd = new DMD(PinDmdEditor.DMD_WIDTH, PinDmdEditor.DMD_HEIGHT);
 		
 		uut.animationHandler = new  AnimationHandler(null,uut.clock,dmd);
-		uut.animationHandler.setScale(uut.scale);
+		uut.animationHandler.setScale(uut.view.scale);
 		uut.animationHandler.setEventHandler(eventHandler);
 		uut.paletteHandler = new PaletteHandler(uut, shell);
 
@@ -103,8 +103,8 @@ public class PinDmdEditorSWTTest {
 		byte[] emptyFrameDigest = { (byte)0xBF, 0x61, (byte)0x9E, (byte)0xAC, 0x0C, (byte)0xDF, 0x3F, 0x68,
 				(byte)0xD4, (byte)0x96, (byte)0xEA, (byte)0x93, 0x44, 0x13, 0x7E, (byte)0x8B };
 		uut.hashes.add(emptyFrameDigest);
-		uut.dmdWidget = dmdWidget;
-		uut.previewDmd = dmdWidget;
+		uut.view.dmdWidget = dmdWidget;
+		uut.view.previewDmd = dmdWidget;
 	}
 	
 	@Rule
@@ -139,9 +139,9 @@ public class PinDmdEditorSWTTest {
 		
 		uut.aniAction.loadAni("./src/test/resources/drwho-dump.txt.gz", false, true);
 		
-		SelectionChangedEvent e = new SelectionChangedEvent(uut.keyframeTableViewer, 
+		SelectionChangedEvent e = new SelectionChangedEvent(uut.view.keyframeTableViewer, 
 				new StructuredSelection(palMapping));
-		fireSelectionChanged(uut.keyframeTableViewer, e);
+		fireSelectionChanged(uut.view.keyframeTableViewer, e);
 		
 		// TODO add verify
 	}
@@ -198,7 +198,7 @@ public class PinDmdEditorSWTTest {
 	@Test
 	public void testPaletteTypeChanged() throws Exception {
 		ISelection s = new StructuredSelection(PaletteType.DEFAULT);
-		SelectionChangedEvent e = new SelectionChangedEvent(uut.paletteTypeComboViewer, s );
+		SelectionChangedEvent e = new SelectionChangedEvent(uut.view.paletteTypeComboViewer, s );
 		uut.onPaletteTypeChanged(e);
 	}
 	
@@ -209,20 +209,20 @@ public class PinDmdEditorSWTTest {
 		animation.setMutable(false);
 		uut.recordings.put("foo", animation );
 		uut.selectedRecording.set(animation);
-		trigger(SWT.Selection).on(uut.btnRemoveAni);
+		trigger(SWT.Selection).on(uut.view.btnRemoveAni);
 		
 		assertThat( uut.recordings.isEmpty(), equalTo(true));
 	}
 	
 	@Test
 	public void testDeleteKeyframe() throws Exception {
-		trigger(SWT.Selection).on(uut.btnDeleteKeyframe);
+		trigger(SWT.Selection).on(uut.view.btnDeleteKeyframe);
 		PalMapping palMapping = new PalMapping(0,"foo");
 		palMapping.animationName = "drwho-dump";
 		palMapping.frameIndex = 0;
 
 		uut.selectedPalMapping = palMapping; 
-		trigger(SWT.Selection).on(uut.btnDeleteKeyframe);
+		trigger(SWT.Selection).on(uut.view.btnDeleteKeyframe);
 	}
 	
 	@Test
@@ -232,7 +232,7 @@ public class PinDmdEditorSWTTest {
 		palMapping.frameIndex = 0;
 
 		uut.selectedPalMapping = palMapping; 
-		trigger(SWT.Selection).on(uut.btnFetchDuration);
+		trigger(SWT.Selection).on(uut.view.btnFetchDuration);
 	}
 
 	
@@ -240,13 +240,13 @@ public class PinDmdEditorSWTTest {
 	public void testCreateNewPalette() {
 		assertThat(uut.activePalette, notNullValue());
 		
-		trigger(SWT.Selection).on(uut.btnNewPalette);
+		trigger(SWT.Selection).on(uut.view.btnNewPalette);
 		assertThat(uut.activePalette, notNullValue());
 		assertThat(uut.project.palettes.size(), equalTo(10));
 		
 		// test that new palette is selected
 		Palette palette = uut.project.palettes.get(9);
-		Object element = ((StructuredSelection)uut.paletteComboViewer.getSelection()).getFirstElement();
+		Object element = ((StructuredSelection)uut.view.paletteComboViewer.getSelection()).getFirstElement();
 		assertThat(palette,equalTo(element));
 	}
 	@Test
@@ -260,8 +260,8 @@ public class PinDmdEditorSWTTest {
 		assertThat(uut.activePalette, notNullValue());
 		assertThat(uut.activePalette.name, equalTo("pal0"));
 		
-		uut.paletteComboViewer.getCombo().setText("2 - foo");
-		trigger(SWT.Selection).on(uut.btnRenamePalette);
+		uut.view.paletteComboViewer.getCombo().setText("2 - foo");
+		trigger(SWT.Selection).on(uut.view.btnRenamePalette);
 		assertThat(uut.activePalette, notNullValue());
 		assertThat(uut.activePalette.name, equalTo("foo"));
 	}
@@ -274,13 +274,13 @@ public class PinDmdEditorSWTTest {
 		animation.frames.add( new Frame());
 		anis.add(animation);
 		uut.animationHandler.setAnimations(anis);
-		assertThat(uut.drawToolBar.getEnabled(), equalTo(true));
+		assertThat(uut.view.drawToolBar.getEnabled(), equalTo(true));
 	}
 
 	@Test
 	public void testAniStart() {
 		uut.animationHandler.start();
-		assertThat(uut.drawToolBar.getEnabled(), equalTo(false));
+		assertThat(uut.view.drawToolBar.getEnabled(), equalTo(false));
 	}
 	
 	@Test
@@ -291,7 +291,7 @@ public class PinDmdEditorSWTTest {
 		uut.recordings.put("foo", animation );
 		uut.selectedRecording.set(animation);
 		
-		trigger(SWT.Selection).on(uut.btnAddKeyframe);
+		trigger(SWT.Selection).on(uut.view.btnAddKeyframe);
 		assertThat(uut.project.palMappings.size(), equalTo(1));
 		assertThat(uut.project.palMappings.get(0).name, equalTo("KeyFrame 1"));
 	}
@@ -315,7 +315,7 @@ public class PinDmdEditorSWTTest {
 		//assertThat( );
 
 		byte[] digest = {1,0,0,0};
-		trigger(SWT.Selection).on(uut.btnAddFrameSeq);
+		trigger(SWT.Selection).on(uut.view.btnAddFrameSeq);
 				
 		assertThat(uut.project.palMappings.size(), equalTo(1));
 		

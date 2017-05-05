@@ -26,7 +26,7 @@ public class PaletteHandlerTest {
 	public void setUp() throws Exception {
 		editor = new PinDmdEditor();
 		uut = new PaletteHandler(editor, null);
-		uut.editor.paletteComboViewer = mock(ComboViewer.class);
+		uut.editor.view.paletteComboViewer = mock(ComboViewer.class);
 		uut.editor.recentPalettesMenuManager = mock(RecentMenuManager.class);
 		uut.editor.paletteTool = mock(PaletteTool.class);
 	}

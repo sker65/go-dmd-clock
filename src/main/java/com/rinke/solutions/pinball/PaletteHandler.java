@@ -74,7 +74,7 @@ public class PaletteHandler {
 			if( pal.sameColors(cols)) {
 				editor.activePalette = pal;
 				editor.paletteTool.setPalette(editor.activePalette);	
-				editor.paletteComboViewer.setSelection(new StructuredSelection(editor.activePalette), true);
+				editor.view.paletteComboViewer.setSelection(new StructuredSelection(editor.activePalette), true);
 				return;
 			}
 		}
@@ -82,20 +82,20 @@ public class PaletteHandler {
 		editor.activePalette = newPalette;
 		editor.project.palettes.add(editor.activePalette);
 		editor.paletteTool.setPalette(editor.activePalette);
-		editor.paletteComboViewer.refresh();
-		editor.paletteComboViewer.setSelection(new StructuredSelection(editor.activePalette), true);
+		editor.view.paletteComboViewer.refresh();
+		editor.view.paletteComboViewer.setSelection(new StructuredSelection(editor.activePalette), true);
 	}
 	
 	public void newPalette() {
-		String name = editor.paletteComboViewer.getCombo().getText();
+		String name = editor.view.paletteComboViewer.getCombo().getText();
 		if (!isNewPaletteName(name)) {
 			name = "new" + UUID.randomUUID().toString().substring(0, 4);
 		}
 		editor.activePalette = new Palette(editor.activePalette.colors, editor.project.palettes.size(), name);
 		editor.project.palettes.add(editor.activePalette);
 		editor.paletteTool.setPalette(editor.activePalette);
-		editor.paletteComboViewer.refresh();
-		editor.paletteComboViewer.setSelection(new StructuredSelection(editor.activePalette), true);
+		editor.view.paletteComboViewer.refresh();
+		editor.view.paletteComboViewer.setSelection(new StructuredSelection(editor.activePalette), true);
 	}
 
 	public void savePalette() {
@@ -133,8 +133,8 @@ public class PaletteHandler {
 				importPalettes(palettesImported, true);
 			}
 			
-			editor.paletteComboViewer.setSelection(new StructuredSelection(editor.activePalette));
-			editor.paletteComboViewer.refresh();
+			editor.view.paletteComboViewer.setSelection(new StructuredSelection(editor.activePalette));
+			editor.view.paletteComboViewer.refresh();
 			editor.recentPalettesMenuManager.populateRecent(filename);
 		}
 	}
@@ -203,8 +203,8 @@ public class PaletteHandler {
 					if( p.type == PaletteType.DEFAULT ) c++;
 				}
 				if( c == 0 ) editor.project.palettes.get(0).type = PaletteType.DEFAULT;
-				editor.paletteComboViewer.setSelection(new StructuredSelection(editor.project.palettes.get(0)));
-				editor.paletteComboViewer.refresh();
+				editor.view.paletteComboViewer.setSelection(new StructuredSelection(editor.project.palettes.get(0)));
+				editor.view.paletteComboViewer.refresh();
 			} else {
 				messageUtil.warn("Palette cannot deleted", "Palette cannot deleted because it is used by: "+res);
 			}
