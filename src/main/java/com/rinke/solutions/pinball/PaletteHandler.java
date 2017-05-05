@@ -47,7 +47,7 @@ public class PaletteHandler {
 	}
 	
 	public void copyPalettePlaneUpgrade() {
-		String name = editor.paletteComboViewer.getCombo().getText();
+		String name = editor.activePalette.name;
 		if (!isNewPaletteName(name)) {
 			name = "new" + UUID.randomUUID().toString().substring(0, 4);
 		}

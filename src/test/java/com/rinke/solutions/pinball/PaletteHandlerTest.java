@@ -2,36 +2,33 @@ package com.rinke.solutions.pinball;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import org.eclipse.core.databinding.observable.Realm;
-import org.eclipse.jface.databinding.swt.SWTObservables;
 import org.eclipse.jface.viewers.ComboViewer;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Shell;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import com.fappel.swt.DisplayHelper;
 import com.rinke.solutions.pinball.model.Palette;
+import com.rinke.solutions.pinball.model.RGB;
 import com.rinke.solutions.pinball.util.RecentMenuManager;
+import com.rinke.solutions.pinball.widget.PaletteTool;
 
 public class PaletteHandlerTest {
 
 	PaletteHandler uut;
 	PinDmdEditor editor;
-	
+
 	@Before
 	public void setUp() throws Exception {
 		editor = new PinDmdEditor();
 		uut = new PaletteHandler(editor, null);
-		uut.editor.paletteComboViewer = Mockito.mock(ComboViewer.class);
-		uut.editor.recentPalettesMenuManager = Mockito.mock(RecentMenuManager.class);
+		uut.editor.paletteComboViewer = mock(ComboViewer.class);
+		uut.editor.recentPalettesMenuManager = mock(RecentMenuManager.class);
+		uut.editor.paletteTool = mock(PaletteTool.class);
 	}
 
 	@Test
@@ -60,18 +57,27 @@ public class PaletteHandlerTest {
 		uut.importPalettes(palettesImported, true);
 	}
 
+	@Test
+	public void testLoadPaletteString() throws Exception {
+		editor.project.palettes.clear();
+		uut.loadPalette("./src/test/resources/smartdmd.txt");
+	}
 
 	@Test
-			public void testLoadPaletteString() throws Exception {
-				editor.project.palettes.clear();
-				uut.loadPalette("./src/test/resources/smartdmd.txt");
-			}
-	
+	public void testLoadPaletteXml() throws Exception {
+		uut.loadPalette("./src/test/resources/defaultPalette.xml");
+	}
+
 	@Test
-			public void testLoadPaletteXml() throws Exception {
-				uut.loadPalette("./src/test/resources/defaultPalette.xml");
-			}
-
-
+	public void testCopyPalettePlaneUpgrade() throws Exception {
+		RGB[] colors = { 
+				new RGB(0,0,0), new RGB(1,1,1), new RGB(2,2,2), new RGB(3,3,3),
+				new RGB(4,0,0), new RGB(5,1,1), new RGB(6,2,2), new RGB(3,3,3),
+				new RGB(8,0,0), new RGB(9,1,1), new RGB(10,2,2), new RGB(11,3,3),
+				new RGB(12,0,0), new RGB(13,1,1), new RGB(14,2,2), new RGB(15,3,3),
+				};
+		uut.editor.activePalette = new Palette(colors,0,"foo");
+		uut.copyPalettePlaneUpgrade();
+	}
 
 }
