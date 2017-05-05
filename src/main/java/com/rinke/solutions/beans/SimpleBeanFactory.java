@@ -1,8 +1,6 @@
 
 package com.rinke.solutions.beans;
 
-import static org.hamcrest.Matchers.stringContainsInOrder;
-
 import java.beans.PropertyDescriptor;
 import java.beans.PropertyEditor;
 import java.beans.PropertyEditorManager;
