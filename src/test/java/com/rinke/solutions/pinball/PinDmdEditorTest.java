@@ -16,6 +16,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Observer;
+import java.util.Random;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -26,6 +27,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import com.rinke.solutions.pinball.PinDmdEditor.TabMode;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.AnimationType;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
@@ -35,6 +37,7 @@ import com.rinke.solutions.pinball.model.FrameSeq;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.PalMapping.SwitchMode;
 import com.rinke.solutions.pinball.test.Util;
+import com.rinke.solutions.pinball.util.ApplicationProperties;
 import com.rinke.solutions.pinball.util.RecentMenuManager;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -203,6 +206,21 @@ public class PinDmdEditorTest {
 		uut.dmd.setMask(data);
 		uut.onInvert();
 		assertEquals((byte)0xFF, (byte)uut.dmd.getFrame().mask.data[0]);
+	}
+
+	@Test
+	public void testFromLabel() throws Exception {
+		assertEquals(TabMode.KEYFRAME,TabMode.fromLabel("KeyFrame"));
+	}
+
+	@Test
+	public void testRefreshPin2DmdHost() throws Exception {
+		String filename = "foo.properties";
+		System.out.println("propfile: "+filename);
+		new FileOutputStream(filename).close(); // touch file
+		ApplicationProperties.setPropFile(filename);
+		uut.refreshPin2DmdHost("foo");
+		new File(filename).delete();
 	}
 
 }
