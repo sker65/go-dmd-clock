@@ -6,10 +6,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Observable;
 import java.util.UUID;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.eclipse.jface.viewers.AbstractListViewer;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.MessageBox;
@@ -31,16 +33,24 @@ import com.rinke.solutions.pinball.util.MessageUtil;
 
 @Slf4j
 @Bean
-public class PaletteHandler {
+public class PaletteHandler extends Observable {
 	
 	@Autowired
 	FileHelper fileHelper;
 	
 	PinDmdEditor editor;
+	
 	@Autowired
 	FileChooserUtil fileChooserUtil;
 	@Autowired
 	MessageUtil messageUtil;
+	
+	private Palette activePalette;
+
+	List<Palette> palettes;
+	
+	@Autowired
+	ViewModel viewModel;
 	
 	public PaletteHandler(PinDmdEditor editor, Shell shell) {
 		super();
@@ -48,7 +58,7 @@ public class PaletteHandler {
 	}
 	
 	private boolean isNewPaletteName(String text) {
-		for (Palette pal : editor.project.palettes) {
+		for (Palette pal : palettes) {
 			if (pal.name.equals(text))
 				return false;
 		}
@@ -56,12 +66,12 @@ public class PaletteHandler {
 	}
 	
 	public void copyPalettePlaneUpgrade() {
-		String name = editor.activePalette.name;
+		String name = activePalette.name;
 		if (!isNewPaletteName(name)) {
 			name = "new" + UUID.randomUUID().toString().substring(0, 4);
 		}
 		
-		RGB[] actCols = editor.activePalette.colors;
+		RGB[] actCols = activePalette.colors;
 		RGB[] cols = new RGB[actCols.length];
 		// copy
 		for( int i = 0; i< cols.length; i++) cols[i] = RGB.of(actCols[i]);
@@ -69,48 +79,45 @@ public class PaletteHandler {
 		cols[2] = RGB.of(actCols[4]);
 		cols[3] = RGB.of(actCols[15]);
 		
-		Palette newPalette = new Palette(cols, editor.project.palettes.size(), name);
-		for( Palette pal : editor.project.palettes ) {
+		Palette newPalette = new Palette(cols, palettes.size(), name);
+		for( Palette pal : palettes ) {
 			if( pal.sameColors(cols)) {
-				editor.activePalette = pal;
-				editor.paletteTool.setPalette(editor.activePalette);	
-				editor.view.paletteComboViewer.setSelection(new StructuredSelection(editor.activePalette), true);
+				activePalette = pal;
 				return;
 			}
 		}
 		
-		editor.activePalette = newPalette;
-		editor.project.palettes.add(editor.activePalette);
-		editor.paletteTool.setPalette(editor.activePalette);
-		editor.view.paletteComboViewer.refresh();
-		editor.view.paletteComboViewer.setSelection(new StructuredSelection(editor.activePalette), true);
+		setActivePalette(newPalette);
+		palettes.add(activePalette);
 	}
 	
-	public void newPalette() {
-		String name = editor.view.paletteComboViewer.getCombo().getText();
+	public void onNewPalette() {
+		String name = this.viewModel.getPaletteName();
+		log.info("onNewPalette name={}", name);
 		if (!isNewPaletteName(name)) {
 			name = "new" + UUID.randomUUID().toString().substring(0, 4);
 		}
-		editor.activePalette = new Palette(editor.activePalette.colors, editor.project.palettes.size(), name);
-		editor.project.palettes.add(editor.activePalette);
-		editor.paletteTool.setPalette(editor.activePalette);
-		editor.view.paletteComboViewer.refresh();
-		editor.view.paletteComboViewer.setSelection(new StructuredSelection(editor.activePalette), true);
+		Palette palette = new Palette(activePalette.colors, palettes.size(), name);
+		setActivePalette(palette);
+		palettes.add(palette);
 	}
 
 	public void savePalette() {
-		String filename = fileChooserUtil.choose(SWT.SAVE, editor.activePalette.name, new String[] { "*.xml", "*.json" }, new String[] { "Paletten XML", "Paletten JSON" });
+		String filename = fileChooserUtil.choose(SWT.SAVE, activePalette.name, new String[] { "*.xml", "*.json" }, new String[] { "Paletten XML", "Paletten JSON" });
 		if (filename != null) {
 			log.info("store palette to {}", filename);
-			fileHelper.storeObject(editor.activePalette, filename);
+			fileHelper.storeObject(activePalette, filename);
 		}
 	}
 
-	public void loadPalette() {
+	public String loadPalette() {
 		String filename = fileChooserUtil.choose(SWT.OPEN, null, new String[] { "*.xml", "*.json,", "*.txt", "*.dmc" }, new String[] { "Palette XML",
 				"Palette JSON", "smartdmd", "DMC" });
-		if (filename != null)
+		if (filename != null) {
 			loadPalette(filename);
+			return filename;
+		}
+		return null;
 	}
 
 	void loadPalette(String filename) {
@@ -123,7 +130,7 @@ public class PaletteHandler {
 			palettesImported = Arrays.asList(pal);
 		}
 		if( palettesImported != null ) {
-			String override = checkOverride(editor.project.palettes, palettesImported);
+			String override = checkOverride(palettes, palettesImported);
 			if (!override.isEmpty()) {
 				int res = messageUtil.warn( SWT.ICON_WARNING | SWT.OK | SWT.IGNORE | SWT.ABORT, "Override warning", "importing these palettes will override palettes: " + override + "\n");
 				if (res != SWT.ABORT) {
@@ -132,10 +139,6 @@ public class PaletteHandler {
 			} else {
 				importPalettes(palettesImported, true);
 			}
-			
-			editor.view.paletteComboViewer.setSelection(new StructuredSelection(editor.activePalette));
-			editor.view.paletteComboViewer.refresh();
-			editor.recentPalettesMenuManager.populateRecent(filename);
 		}
 	}
 
@@ -149,7 +152,7 @@ public class PaletteHandler {
 	}
 	
 	void importPalettes(java.util.List<Palette> palettesImported, boolean override) {
-		Map<Integer, Palette> map = getMap(editor.project.palettes);
+		Map<Integer, Palette> map = getMap(palettes);
 		for (Palette p : palettesImported) {
 			if (map.containsKey(p.index)) {
 				if (override)
@@ -158,8 +161,8 @@ public class PaletteHandler {
 				map.put(p.index, p);
 			}
 		}
-		editor.project.palettes.clear();
-		editor.project.palettes.addAll(map.values());
+		palettes.clear();
+		palettes.addAll(map.values());
 	}
 
 	String checkOverride(java.util.List<Palette> palettes2, java.util.List<Palette> palettesImported) {
@@ -182,33 +185,52 @@ public class PaletteHandler {
 	}
 	
 	public void onDeletePalette() {
-		if( editor.activePalette != null && editor.project.palettes.size()>1 ) {
+		if( activePalette != null && palettes.size()>1 ) {
 			// check if any scene is using this
 			List<String> res = new ArrayList<>();
 			for( Animation a: editor.scenes.values()) {
-				if( a.getPalIndex() == editor.activePalette.index ) {
+				if( a.getPalIndex() == activePalette.index ) {
 					res.add(a.getDesc());
 				}
 			}
 			for( Animation a: editor.recordings.values()) {
-				if( a.getPalIndex() == editor.activePalette.index ) {
+				if( a.getPalIndex() == activePalette.index ) {
 					res.add(a.getDesc());
 				}
 			}
 			if( res.isEmpty() ) {
-				editor.project.palettes.remove(editor.activePalette);
+				palettes.remove(activePalette);
 				// ensure there is a default palette
 				int c = 0;
-				for( Palette p : editor.project.palettes) {
+				for( Palette p : palettes) {
 					if( p.type == PaletteType.DEFAULT ) c++;
 				}
-				if( c == 0 ) editor.project.palettes.get(0).type = PaletteType.DEFAULT;
-				editor.view.paletteComboViewer.setSelection(new StructuredSelection(editor.project.palettes.get(0)));
-				editor.view.paletteComboViewer.refresh();
+				if( c == 0 ) palettes.get(0).type = PaletteType.DEFAULT;
+				setActivePalette(palettes.get(0));
 			} else {
 				messageUtil.warn("Palette cannot deleted", "Palette cannot deleted because it is used by: "+res);
 			}
 		}
+	}
+
+	public void setActivePalette(Palette palette) {
+		if( !palette.equals(activePalette) ) {
+			this.activePalette = palette;
+			setChanged();
+			notifyObservers();
+		}
+	}
+
+	public Palette getActivePalette() {
+		return this.activePalette;
+	}
+
+	public void setViewModel(ViewModel viewModel) {
+		 this.viewModel = viewModel;
+	}
+
+	public void setPalettes(List<Palette> palettes) {
+		 this.palettes = palettes;
 	}
 
 }

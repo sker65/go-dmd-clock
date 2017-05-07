@@ -27,6 +27,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.AnimationType;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
+import com.rinke.solutions.pinball.api.LicenseManagerFactory;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.test.Util;
 import com.rinke.solutions.pinball.ui.Progress;
@@ -60,6 +61,7 @@ public class PinDmdEditorIOSWTTest {
 
 	@Before
 	public void setUp() throws Exception {
+		uut.licManager = LicenseManagerFactory.getInstance();
 		uut.licManager.verify("src/test/resources/#3E002400164732.key");
 		uut.aniAction = new AnimationActionHandler(uut, shell) {
 
@@ -69,9 +71,11 @@ public class PinDmdEditorIOSWTTest {
 			}
 			
 		};
-		uut.recentAnimationsMenuManager = recentAnimationsMenuManager;
+		uut.view = new View();
+		uut.paletteHandler = new PaletteHandler(uut, shell);
+		uut.view.recentAnimationsMenuManager = recentAnimationsMenuManager;
 		uut.shell = shell;
-		uut.recentProjectsMenuManager = recentProjectsMenuManager;
+		uut.view.recentProjectsMenuManager = recentProjectsMenuManager;
 		uut.view.mntmSaveProject = menuItemMock;
 
 		uut.view.dmdWidget = mock(DMDWidget.class);

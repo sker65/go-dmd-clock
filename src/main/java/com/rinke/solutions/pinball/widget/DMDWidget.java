@@ -224,7 +224,7 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
         if( useColorIndex ) {
             cols = new Color[1<<numberOfSubframes];
             if( numberOfSubframes == 2) {
-				cols[0] = resourceManager.createColor(toSwtRGB(palette.colors[0]));
+ 				cols[0] = resourceManager.createColor(toSwtRGB(palette.colors[0]));
                 cols[1] = resourceManager.createColor(toSwtRGB(palette.colors[1]));
                 cols[2] = resourceManager.createColor(toSwtRGB(palette.colors[4]));
                 cols[3] = resourceManager.createColor(toSwtRGB(palette.colors[15]));
@@ -452,4 +452,5 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 	public Rect getSelection() {
 		return this.selection;
 	}
+
 }

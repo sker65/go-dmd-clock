@@ -48,6 +48,7 @@ public class PaletteTool implements ColorModifiedListener {
 	List<ColorChangedListerner> colorChangedListeners = new ArrayList<>();
 	List<ColorIndexChangedListerner> indexChangedListeners = new ArrayList<>();
 	ColorPicker colorPicker = new ColorPicker(Display.getDefault(), null);
+	private boolean btnCreated;
 
 	@FunctionalInterface
 	public static interface ColorChangedListerner {
@@ -70,15 +71,13 @@ public class PaletteTool implements ColorModifiedListener {
 		paletteBar.redraw();
 	}
 
-	public PaletteTool(Shell shell, Composite parent, int flags, Palette palette) {
-		this.palette = palette;
+	public PaletteTool(Shell shell, Composite parent, int flags) {
 		resManager = new LocalResourceManager(JFaceResources.getResources(),
 				parent);
 		paletteBar = new ToolBar(parent, flags);
 //		GridData gd = new GridData(SWT.LEFT, SWT.CENTER, false, false, 4, 1);
 //		gd.widthHint = 310;
 //		paletteBar.setLayoutData(gd);
-		createColorButtons(paletteBar, palette);
 		colorPicker.addListener(this);
 	}
 
@@ -121,11 +120,11 @@ public class PaletteTool implements ColorModifiedListener {
 		return image;
 	}
 
-	private void createColorButtons(ToolBar toolBar, Palette pal) {
+	private void createColorButtons(ToolBar toolBar) {
 		for (int i = 0; i < colBtn.length; i++) {
 			colBtn[i] = new ToolItem(toolBar, SWT.RADIO);
 			colBtn[i].setData(Integer.valueOf(i));
-			colBtn[i].setImage(getSquareImage(display, toSwtRGB(pal.colors[i])));
+			//colBtn[i].setImage(getSquareImage(display, toSwtRGB(pal.colors[i])));
 			colBtn[i].addListener(SWT.Selection, e -> {
 				int col = (Integer) e.widget.getData();
 				selectedColor = col;
@@ -138,6 +137,7 @@ public class PaletteTool implements ColorModifiedListener {
 			});
 			if( i % 4 == 3 && i < colBtn.length-1) new ToolItem(toolBar, SWT.SEPARATOR);
 		}
+		btnCreated = true;
 	}
 
 	public int getSelectedColor() {
@@ -149,6 +149,7 @@ public class PaletteTool implements ColorModifiedListener {
 	}
 
 	public void setPalette(Palette palette) {
+		if(!btnCreated) createColorButtons(paletteBar);
 		this.palette = palette;
 		for (int i = 0; i < colBtn.length; i++) {
 			colBtn[i].setImage(getSquareImage(display, toSwtRGB(palette.colors[i])));

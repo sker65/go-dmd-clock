@@ -54,8 +54,7 @@ public class About extends Dialog {
 	 * @param plugins 
 	 */
 	private void createContents(String pluginsPath, List<String> plugins) {
-	    
-	    
+	    	    
 		shlAboutPindmdEditor = new Shell(getParent(), getStyle());
 		shlAboutPindmdEditor.setSize(385, 259);
 		shlAboutPindmdEditor.setText("About pin2dmd editor");

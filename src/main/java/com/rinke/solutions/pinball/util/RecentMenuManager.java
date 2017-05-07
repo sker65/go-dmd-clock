@@ -49,6 +49,7 @@ public class RecentMenuManager {
 	}
 
 	public void populateRecent(String file) {
+		if( file == null ) return;
 		// repopulate remove oldest
 		Iterator<String> i = recentMenuItems.iterator();
 		while( i.hasNext() ) {

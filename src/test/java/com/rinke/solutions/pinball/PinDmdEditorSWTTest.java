@@ -70,9 +70,22 @@ public class PinDmdEditorSWTTest {
 		}
 	};
 	
+	Palette palette;
+	
 	@Before
 	public void setup() {
 		shell = displayHelper.createShell();
+
+		uut.dmdSize = DmdSize.Size128x32;
+		uut.paletteHandler = new PaletteHandler(uut, shell);
+		palette = new Palette(Palette.defaultColors(),1,"foo");
+
+		uut.paletteHandler.palettes = new ArrayList<Palette>();
+		uut.paletteHandler.palettes.add(palette);
+		
+		uut.paletteHandler.setActivePalette(palette);
+		uut.view = new View(uut);
+
 		Realm.runWithDefault(SWTObservables.getRealm(shell.getDisplay()), new Runnable() {
 
 			@Override
@@ -87,9 +100,12 @@ public class PinDmdEditorSWTTest {
 		uut.animationHandler = new  AnimationHandler(null,uut.clock,dmd);
 		uut.animationHandler.setScale(uut.view.scale);
 		uut.animationHandler.setEventHandler(eventHandler);
-		uut.paletteHandler = new PaletteHandler(uut, shell);
+		
+		uut.clipboardHandler = new ClipboardHandler(dmd, dmdWidget);
 
+		uut.paletteHandler.setActivePalette(palette);
 		uut.onNewProject();
+
 		uut.display = shell.getDisplay();
 		uut.shell = shell;
 		
@@ -97,12 +113,19 @@ public class PinDmdEditorSWTTest {
 		
 		uut.createBindings();
 		
+		uut.paletteHandler.setActivePalette(palette);
+		
 		byte[] digest = {1,0,0,0};
 		uut.hashes.add(digest);
 		uut.selectedHashIndex = 2;
 		byte[] emptyFrameDigest = { (byte)0xBF, 0x61, (byte)0x9E, (byte)0xAC, 0x0C, (byte)0xDF, 0x3F, 0x68,
 				(byte)0xD4, (byte)0x96, (byte)0xEA, (byte)0x93, 0x44, 0x13, 0x7E, (byte)0x8B };
 		uut.hashes.add(emptyFrameDigest);
+		
+		uut.paletteHandler.palettes = new ArrayList<Palette>();
+		uut.paletteHandler.palettes.add(palette);
+
+
 		uut.view.dmdWidget = dmdWidget;
 		uut.view.previewDmd = dmdWidget;
 	}
@@ -197,9 +220,7 @@ public class PinDmdEditorSWTTest {
 	
 	@Test
 	public void testPaletteTypeChanged() throws Exception {
-		ISelection s = new StructuredSelection(PaletteType.DEFAULT);
-		SelectionChangedEvent e = new SelectionChangedEvent(uut.view.paletteTypeComboViewer, s );
-		uut.onPaletteTypeChanged(e);
+		uut.onPaletteTypeChanged(PaletteType.DEFAULT);
 	}
 	
 	@Test
@@ -238,32 +259,32 @@ public class PinDmdEditorSWTTest {
 	
 	@Test
 	public void testCreateNewPalette() {
-		assertThat(uut.activePalette, notNullValue());
+		assertThat(uut.paletteHandler.getActivePalette(), notNullValue());
 		
 		trigger(SWT.Selection).on(uut.view.btnNewPalette);
-		assertThat(uut.activePalette, notNullValue());
-		assertThat(uut.project.palettes.size(), equalTo(10));
+		assertThat(uut.paletteHandler.getActivePalette(), notNullValue());
+		assertThat(uut.paletteHandler.palettes.size(), equalTo(2));
 		
 		// test that new palette is selected
-		Palette palette = uut.project.palettes.get(9);
+		Palette palette = uut.paletteHandler.palettes.get(1);
 		Object element = ((StructuredSelection)uut.view.paletteComboViewer.getSelection()).getFirstElement();
 		assertThat(palette,equalTo(element));
 	}
 	@Test
 	public void testOnlyDefaultPalette() {
-		assertThat(uut.activePalette, notNullValue());
+		assertThat(uut.paletteHandler.getActivePalette(), notNullValue());
 		assertThat(uut.project.palettes.size(), equalTo(9));
 	}
 	
 	@Test
 	public void testRenamePalette() {
-		assertThat(uut.activePalette, notNullValue());
-		assertThat(uut.activePalette.name, equalTo("pal0"));
+		assertThat(uut.paletteHandler.getActivePalette(), notNullValue());
+		assertThat(uut.paletteHandler.getActivePalette().name, equalTo("foo"));
 		
 		uut.view.paletteComboViewer.getCombo().setText("2 - foo");
 		trigger(SWT.Selection).on(uut.view.btnRenamePalette);
-		assertThat(uut.activePalette, notNullValue());
-		assertThat(uut.activePalette.name, equalTo("foo"));
+		assertThat(uut.paletteHandler.getActivePalette(), notNullValue());
+		assertThat(uut.paletteHandler.getActivePalette().name, equalTo("pal0"));
 	}
 	
 	@Test

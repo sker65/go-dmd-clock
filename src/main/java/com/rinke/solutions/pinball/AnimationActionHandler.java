@@ -131,7 +131,7 @@ public class AnimationActionHandler {
 			ani.init(dmd);
 			populatePalette(ani, editor.project.palettes);
 		}
-		editor.recentAnimationsMenuManager.populateRecent(filename);
+		editor.view.recentAnimationsMenuManager.populateRecent(filename);
 		editor.project.dirty = true;
 		return loadedList;
 	}

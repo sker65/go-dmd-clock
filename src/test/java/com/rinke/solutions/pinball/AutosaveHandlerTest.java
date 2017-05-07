@@ -16,16 +16,15 @@ import com.rinke.solutions.pinball.util.MessageUtil;
 public class AutosaveHandlerTest {
 	
 	AutosaveHandler uut;
-	PinDmdEditor editor;
 	
 	@Rule
 	public TemporaryFolder testFolder = new TemporaryFolder();
+	
 	private SWTDispatcher dispatcherMock;
 	private MessageUtil util;
 	
 	@Before
 	public void setup() {
-		editor = new PinDmdEditor();
 		dispatcherMock = mock(SWTDispatcher.class);
 		util = mock(MessageUtil.class);
 		uut = new AutosaveHandler(util, dispatcherMock ){
@@ -50,7 +49,6 @@ public class AutosaveHandlerTest {
 
 	@Test
 	public void testCheckAutoSaveAtStartup() throws Exception {
-		//uut.checkAutoSaveAtStartup();
 	}
 
 	@Test

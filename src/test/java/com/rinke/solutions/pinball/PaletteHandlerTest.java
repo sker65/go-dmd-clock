@@ -24,11 +24,13 @@ public class PaletteHandlerTest {
 
 	@Before
 	public void setUp() throws Exception {
-		editor = new PinDmdEditor();
+		editor = mock(PinDmdEditor.class);
 		uut = new PaletteHandler(editor, null);
-		uut.editor.view.paletteComboViewer = mock(ComboViewer.class);
-		uut.editor.recentPalettesMenuManager = mock(RecentMenuManager.class);
-		uut.editor.paletteTool = mock(PaletteTool.class);
+		uut.palettes = new ArrayList<Palette>();
+		
+		/*uut.editor.view.paletteComboViewer = mock(ComboViewer.class);
+		uut.editor.view.recentPalettesMenuManager = mock(RecentMenuManager.class);
+		uut.editor.paletteTool = mock(PaletteTool.class);*/
 	}
 
 	@Test
@@ -59,7 +61,7 @@ public class PaletteHandlerTest {
 
 	@Test
 	public void testLoadPaletteString() throws Exception {
-		editor.project.palettes.clear();
+		uut.palettes.clear();
 		uut.loadPalette("./src/test/resources/smartdmd.txt");
 	}
 
@@ -77,7 +79,7 @@ public class PaletteHandlerTest {
 				new RGB(8,0,0), new RGB(9,1,1), new RGB(10,2,2), new RGB(11,3,3),
 				new RGB(12,0,0), new RGB(13,1,1), new RGB(14,2,2), new RGB(15,3,3),
 				};
-		uut.editor.activePalette = new Palette(colors,0,"foo");
+		uut.setActivePalette( new Palette(colors,0,"foo"));
 		uut.copyPalettePlaneUpgrade();
 	}
 

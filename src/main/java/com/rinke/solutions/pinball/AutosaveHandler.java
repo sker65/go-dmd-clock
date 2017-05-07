@@ -22,9 +22,10 @@ public class AutosaveHandler implements Runnable {
 	
 	@Autowired
 	PinDmdEditor editor;
-	private long nextAutoSave;
 	MessageUtil messageUtil;
 	SWTDispatcher dispatcher;
+
+	private long nextAutoSave;
 
 	public AutosaveHandler(MessageUtil messageUtil, SWTDispatcher dis) {
 		super();

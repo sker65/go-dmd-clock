@@ -40,6 +40,7 @@ import com.rinke.solutions.pinball.PinDmdEditor.TabMode;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.AnimationType;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
+import com.rinke.solutions.pinball.api.LicenseManagerFactory;
 import com.rinke.solutions.pinball.io.Pin2DmdConnector;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.FrameSeq;
@@ -80,6 +81,11 @@ public class PinDmdEditorTest {
 
 	@Before
 	public void setup() throws Exception {
+		uut.dmd = new DMD(128, 32);
+		uut.dmdSize = DmdSize.Size128x32;
+		uut.view = new View(uut);
+		uut.paletteHandler = new PaletteHandler(uut, null);
+		uut.licManager = LicenseManagerFactory.getInstance();
 		uut.licManager.verify("src/test/resources/#3E002400164732.key");
 	}
 
@@ -164,8 +170,10 @@ public class PinDmdEditorTest {
 	@Test
 	public void testOnImportProjectSelectedString() throws Exception {
 		uut.aniAction = new AnimationActionHandler(uut, null);
+		uut.view.recentProjectsMenuManager = mock(RecentMenuManager.class);
+		uut.view.recentAnimationsMenuManager = mock(RecentMenuManager.class);
 		uut.importProject("./src/test/resources/test.xml");
-		verify(recentAnimationsMenuManager).populateRecent(eq("./src/test/resources/drwho-dump.txt.gz"));
+		//verify(recentAnimationsMenuManager).populateRecent(eq("./src/test/resources/drwho-dump.txt.gz"));
 	}
 
 	@Test
@@ -247,6 +255,7 @@ public class PinDmdEditorTest {
 		when(uut.view.frameSeqViewer.getSelection()).thenReturn(StructuredSelection.EMPTY);
 		uut.msgUtil = mock(MessageUtil.class);
 		uut.view.sceneListViewer = mock(TableViewer.class);
+		when(uut.paletteHandler.getActivePalette()).thenReturn(Palette.getDefaultPalettes().get(0));
 		uut.cutScene(ani, 0, 100, "foo");
 	}
 
@@ -256,7 +265,7 @@ public class PinDmdEditorTest {
 		Palette selectedPalette = new Palette(colors,14,"foo" );
 		uut.onApplyPalette(selectedPalette);
 		uut.selectedPalMapping = new PalMapping(1, "p");
-		uut.activePalette = selectedPalette;
+		uut.paletteHandler.setActivePalette(selectedPalette);
 		uut.onApplyPalette(selectedPalette);
 		assertThat( uut.selectedPalMapping.palIndex, equalTo(14));
 		CompiledAnimation ani = new CompiledAnimation(AnimationType.COMPILED, "foo", 0, 1, 0, 1, 1);
