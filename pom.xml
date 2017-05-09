@@ -22,7 +22,9 @@
     	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.build.timestamp.format>dd.MM.yyyy HH:mm:ss</maven.build.timestamp.format>
 		<buildNumber>${maven.build.timestamp}</buildNumber>
-		<lombok.version>1.16.4</lombok.version>
+		<lombok.version>1.16.16</lombok.version>
+		<!-- was 1.4.1 -->
+		<eclipse.databinding.version>1.4.1</eclipse.databinding.version>
   	</properties>
 	<profiles>
 		<profile>
@@ -400,12 +402,12 @@
 		<dependency>
 			<groupId>org.eclipse.core</groupId>
 			<artifactId>org.eclipse.core.databinding</artifactId>
-			<version>1.4.1</version>
+			<version>${eclipse.databinding.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.core</groupId>
 			<artifactId>org.eclipse.core.databinding.observable</artifactId>
-			<version>1.4.1</version>
+			<version>${eclipse.databinding.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.core</groupId>
@@ -422,6 +424,7 @@
 			<artifactId>org.eclipse.core.databinding.property</artifactId>
 			<version>1.4.100</version>
 		</dependency>
+		
 		<dependency>
 			<groupId>com.ibm.icu</groupId>
 			<artifactId>icu4j</artifactId>
