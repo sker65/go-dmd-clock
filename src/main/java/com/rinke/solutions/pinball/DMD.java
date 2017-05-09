@@ -177,23 +177,23 @@ public class DMD extends Observable {
         for (Plane p : frame.planes) {
 			Arrays.fill(p.data, (byte)0);
 		}
+        setChanged(); notifyObservers();
     }
 
     public void writeOr(Frame src) {
         if (src != null) {
-        	//if( src.planes.size()!=3) {
-        		if( frame.planes.size() < src.planes.size() ) {
-        			frame.planes.clear();
-        		}
-        		int i = 0;
-        		while( frame.planes.size() < src.planes.size() ) {
-        			frame.planes.add(new Plane(src.planes.get(i++).marker,new byte[bytesPerRow*height]));
-        		}
-        		//numberOfPlanes = frame.planes.size();
-        		for ( i = 0; i < src.planes.size(); i++) {
-					copyOr(frame.planes.get(i).data,src.planes.get(i).data);
-				}
-        	//s}
+    		if( frame.planes.size() < src.planes.size() ) {
+    			frame.planes.clear();
+    		}
+    		int i = 0;
+    		while( frame.planes.size() < src.planes.size() ) {
+    			frame.planes.add(new Plane(src.planes.get(i++).marker,new byte[bytesPerRow*height]));
+    		}
+    		//numberOfPlanes = frame.planes.size();
+    		for ( i = 0; i < src.planes.size(); i++) {
+				copyOr(frame.planes.get(i).data,src.planes.get(i).data);
+			}
+    		setChanged(); notifyObservers();
         }
     }
 
@@ -202,6 +202,7 @@ public class DMD extends Observable {
         	for(Plane p:frame.planes) {
         		copyAnd(p.data, mask);
         	}
+        	setChanged(); notifyObservers();
         }
     }
     
@@ -210,6 +211,7 @@ public class DMD extends Observable {
         	for(Plane p:frame.planes) {
         		copyNotAnd(p.data, mask);
         	}
+        	setChanged(); notifyObservers();
         }
     }
 

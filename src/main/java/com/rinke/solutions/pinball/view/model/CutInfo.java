@@ -1,4 +1,4 @@
-package com.rinke.solutions.pinball;
+package com.rinke.solutions.pinball.view.model;
 
 import java.util.Observable;
 

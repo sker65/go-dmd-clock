@@ -5,16 +5,20 @@ import java.beans.PropertyDescriptor;
 import java.beans.PropertyEditor;
 import java.beans.PropertyEditorManager;
 import java.io.InputStream;
+import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Properties;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -33,7 +37,7 @@ import org.xml.sax.helpers.DefaultHandler;
 * @author sr
 */
 @Slf4j
-public class SimpleBeanFactory extends DefaultHandler {
+public class SimpleBeanFactory extends DefaultHandler implements BeanFactory {
 
     /**
      * stores singletons
@@ -48,6 +52,8 @@ public class SimpleBeanFactory extends DefaultHandler {
      *  state of parser
      */
     private String aktbean;
+    
+    private PropertyProvider propertyProvider;
     
     /**
      * part of bean definition: a setter call for init. 
@@ -66,6 +72,7 @@ public class SimpleBeanFactory extends DefaultHandler {
          * alternatively: bean ref to set.
          */
         String ref;
+        
         /**
          * ctor using fields
          * @param setter setter method to call
@@ -85,27 +92,33 @@ public class SimpleBeanFactory extends DefaultHandler {
      * @author sr
      */
     private class BeanDefinition {
+    	String name;
         boolean isSingleton;
         Class<?> clazz;
         Method initMethod;
         List<SetterCall> setter = new ArrayList<SetterCall>();
-        public BeanDefinition(boolean isSingleton, Class<?> clazz, Method initMethod) {
+        public BeanDefinition(String name, boolean isSingleton, Class<?> clazz, Method initMethod) {
             this.isSingleton = isSingleton;
             this.clazz = clazz;
             this.initMethod = initMethod;
+            this.name = name;
         }
+		@Override
+		public String toString() {
+			return String.format("BeanDefinition [name=%s, isSingleton=%s, clazz=%s]", name, isSingleton, clazz.getSimpleName());
+		}
     }
 
     /**
      * the factory singleton
      */
-    private static SimpleBeanFactory theInstance;
+    private static BeanFactory theInstance;
     
     /**
      * accessor for the factory
      * @return the factory singleton
      */
-    public static SimpleBeanFactory getInstance() {
+    public static BeanFactory getInstance() {
         if( theInstance == null ) {
             theInstance = new SimpleBeanFactory(SimpleBeanFactory.class.getResourceAsStream("/context.xml"));
         }
@@ -123,18 +136,45 @@ public class SimpleBeanFactory extends DefaultHandler {
     public SimpleBeanFactory(InputStream is) {
         parse(is);
     }
+    
+    /* (non-Javadoc)
+	 * @see com.rinke.solutions.beans.BeanFactory#getBeansOfType(java.lang.Class)
+	 */
+    @Override
+	public <T> List<T> getBeansOfType(Class<T> clz) {
+    	List<T> res = new ArrayList<>();
+    	HashSet<String> ids = new HashSet<>();
+    	for(Entry<String, Object> item : singletons.entrySet()) {
+    		if( clz.isAssignableFrom(item.getValue().getClass())) {
+    			res.add((T)item.getValue());
+    			ids.add(item.getKey());
+    		}
+    	}
+    	for( Entry<String, BeanDefinition> i : beanDefs.entrySet()) {
+    		if( !ids.contains(i.getKey()) && clz.isAssignableFrom(i.getValue().clazz)) {
+    			res.add((T) getBean(i.getKey()));
+    		}
+    	}
+    	log.debug("getBeanOfType {} -> {}", clz, res);
+    	return res;
+    }
 
     public SimpleBeanFactory() {
 		super();
 	}
     
-    public void scanPackages(String pkg) {
+    /* (non-Javadoc)
+	 * @see com.rinke.solutions.beans.BeanFactory#scanPackages(java.lang.String)
+	 */
+    @Override
+	public void scanPackages(String pkg) {
+    	log.debug("scanning package {}", pkg);
     	Reflections clz = new Reflections(pkg);
     	Set<Class<?>> beans = clz.getTypesAnnotatedWith(Bean.class);
     	for(Class<?> c : beans ) {
-    		String simpleName = StringUtils.uncapitalize(c.getSimpleName());
+    		String simpleName = getBeannameFromClass(c);
     		if( simpleName.length()>0) {
-    			log.info("found bean {}", simpleName);
+    			log.debug("found bean {}", simpleName);
     			beanDefs.put(simpleName, buildDefs(c));
     		}
     	}
@@ -148,10 +188,14 @@ public class SimpleBeanFactory extends DefaultHandler {
 		} catch (NoSuchMethodException | SecurityException e1) {
 		}
 		try {
-			def = new BeanDefinition(true, c, init);
+			boolean isSingleton =  c.getAnnotation(Bean.class).scope().equals(Scope.SINGLETON);
+			def = new BeanDefinition(getBeannameFromClass(c), isSingleton, c, init);
 			for(Field f: c.getDeclaredFields() ) {
 				if(f.isAnnotationPresent(Autowired.class)) {
 					def.setter.add(new SetterCall(null, null, f.getName()));
+				} else if( f.isAnnotationPresent(Value.class)) {
+					Object val = getValueForField(f);
+					if( val != null ) def.setter.add(new SetterCall(null, val, f.getName()));
 				}
 			}
 		} catch (SecurityException e) {
@@ -159,6 +203,29 @@ public class SimpleBeanFactory extends DefaultHandler {
 		}
 		return def;
 	}
+
+	private Object getValueForField(Field f) {
+		Value annotation = f.getAnnotation(Value.class);
+		Object res = null;
+		String val;
+		if( propertyProvider != null ) {
+			val = propertyProvider.getProperty(f.getName());
+			if( val != null ) res = toObject(val,f.getType());
+			else if( annotation.defaultValue() != null ) res = toObject( annotation.defaultValue(), f.getType());
+		}
+		return res;
+	}
+
+	public static Object toObject(String value, Class<?> clazz ) {
+	    if( Boolean.class == clazz || Boolean.TYPE == clazz) return Boolean.parseBoolean( value );
+	    if( Byte.class == clazz || Byte.TYPE == clazz) return Byte.parseByte( value );
+	    if( Short.class == clazz || Short.TYPE == clazz) return Short.parseShort( value );
+	    if( Integer.class == clazz || Integer.TYPE == clazz) return Integer.parseInt( value );
+	    if( Long.class == clazz || Long.TYPE == clazz) return Long.parseLong( value );
+	    if( Float.class == clazz || Float.TYPE == clazz) return Float.parseFloat( value );
+	    if( Double.class == clazz || Double.TYPE == clazz) return Double.parseDouble( value );
+	    return value;
+	} 
 
 	/**
      * parser handler
@@ -180,7 +247,7 @@ public class SimpleBeanFactory extends DefaultHandler {
                     initMethod = Class.forName(classname).getMethod(initMethodName,new Class[]{});
                 }
                 Class<?> clazz = Class.forName(classname);
-                beanDefs.put(aktbean, new BeanDefinition("true".equals(attributes.getValue("singleton")),
+                beanDefs.put(aktbean, new BeanDefinition(aktbean,"true".equals(attributes.getValue("singleton")),
                         clazz,initMethod));
                 
             } else if (qName.equals("property")) {
@@ -208,8 +275,12 @@ public class SimpleBeanFactory extends DefaultHandler {
 
     // merge get / create
     
-    public Object getBean(String id) {
-    	log.info("getting bean {}",id);
+    /* (non-Javadoc)
+	 * @see com.rinke.solutions.beans.BeanFactory#getBean(java.lang.String)
+	 */
+    @Override
+	public Object getBean(String id) {
+    	log.debug("getting bean {}",id);
         if( singletons.get(id) != null ) {
             return singletons.get(id);
         } else {
@@ -250,21 +321,30 @@ public class SimpleBeanFactory extends DefaultHandler {
         }
     }
     
-    public void setSingleton(String name, Object instance) {
+    /* (non-Javadoc)
+	 * @see com.rinke.solutions.beans.BeanFactory#setSingleton(java.lang.String, java.lang.Object)
+	 */
+    @Override
+	public void setSingleton(String name, Object instance) {
     	singletons.put(name, instance);
-    	beanDefs.put(name, new BeanDefinition(true,instance.getClass(),null));
+    	beanDefs.put(name, new BeanDefinition(name,true,instance.getClass(),null));
     }
 
     private Object tryCreate(Class<?> clazz, Constructor<?> ctor) {
-    	log.info("try to create {} with {}", clazz.getSimpleName(), ctor);
+    	log.debug("create {} with {}", clazz.getSimpleName(), ctor);
 		try {
 			if( ctor.getParameterCount() == 0 ) {
 				ctor.setAccessible(true);
 				return ctor.newInstance();
 			} else {
 				List<Object> params = new ArrayList<Object>();
-				for( Class<?> pt : ctor.getParameterTypes() ) {
-					Object p = getBeanByType(pt);
+				AnnotatedType[] apt = ctor.getAnnotatedParameterTypes();
+				Class<?>[] pt = ctor.getParameterTypes();
+				for( int i=0; i<pt.length; i++ ) {
+					String desiredName = null;
+					Autowired aw = apt[i].getAnnotation(Autowired.class);
+					if( aw != null && !StringUtils.isEmpty(aw.name()) ) desiredName = aw.name();
+					Object p = getBeanByTypeAndName(pt[i], true, desiredName);
 					if( p == null ) return null;
 					params.add(p);
 				}
@@ -276,12 +356,34 @@ public class SimpleBeanFactory extends DefaultHandler {
 		}
 		return null;
 	}
+    
+    /* (non-Javadoc)
+	 * @see com.rinke.solutions.beans.BeanFactory#getBeanByType(java.lang.Class)
+	 */
+    @Override
+	public <T> T getBeanByType(Class<T> pt) {
+    	return getBeanByTypeAndName(pt, false, null);
+    }
 
-	private Object getBeanByType(Class<?> pt) {
-		for(Entry<String, BeanDefinition> i : beanDefs.entrySet()) {
-			if( pt.isAssignableFrom(i.getValue().clazz)) return getBean(i.getKey());
+	/* (non-Javadoc)
+	 * @see com.rinke.solutions.beans.BeanFactory#getBeanByTypeAndName(java.lang.Class, boolean, java.lang.String)
+	 */
+	@Override
+	public <T> T getBeanByTypeAndName(Class<T> pt, boolean ignoreError, String name) {
+		List<BeanDefinition> candidates = new ArrayList<>();
+		for(BeanDefinition item : beanDefs.values()) {
+			if( pt.isAssignableFrom(item.clazz)) candidates.add(item);
 		}
-		throw new RuntimeException("cannot create bean of type "+pt);
+		
+		if( candidates.size()==1) return (T) getBean(candidates.get(0).name);
+		if( name != null ) {
+			// filter by provided name to narrow scope
+			List<BeanDefinition> reduced = candidates.stream().filter(b->name.equals(b.name)).collect(Collectors.toList());
+			if( reduced.size() == 1) return (T) getBean(reduced.get(0).name);
+			if( !ignoreError ) throw new RuntimeException("cannot create bean of type "+pt + " candidates = "+reduced);
+		}
+		if( !ignoreError ) throw new RuntimeException("cannot create bean of type "+pt);
+		return null;
 	}
 
 	/**
@@ -297,16 +399,31 @@ public class SimpleBeanFactory extends DefaultHandler {
         }
 
     }
+    
+    private String getBeannameFromClass( Class<?> c) {
+    	return StringUtils.uncapitalize(c.getSimpleName());
+    }
 
+	/* (non-Javadoc)
+	 * @see com.rinke.solutions.beans.BeanFactory#setSingleton(java.lang.Object)
+	 */
+	@Override
 	public void setSingleton(Object o) {
-		setSingleton(StringUtils.uncapitalize(o.getClass().getSimpleName()), o);
+		setSingleton(getBeannameFromClass(o.getClass()), o);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.rinke.solutions.beans.BeanFactory#inject(java.lang.Object)
+	 */
+	@Override
 	public void inject(Object o) {
 		for( Field f : o.getClass().getDeclaredFields()) {
 			if( f.isAnnotationPresent(Autowired.class)) {
+				Autowired aw = f.getAnnotation(Autowired.class);
+				String desiredName = f.getName();
+				if( !StringUtils.isEmpty(aw.name()) ) desiredName = aw.name();
 				f.setAccessible(true);
-				Object val = getBeanByType(f.getType());
+				Object val = getBeanByTypeAndName(f.getType(), false, desiredName);
 				if( val == null) throw new RuntimeException("no candidate for field "+f.getName());
 				try {
 					f.set(o, val);
@@ -315,6 +432,14 @@ public class SimpleBeanFactory extends DefaultHandler {
 				}
 			}
 		}
+	}
+
+	/* (non-Javadoc)
+	 * @see com.rinke.solutions.beans.BeanFactory#setValueProvider(com.rinke.solutions.beans.SimpleBeanFactory.PropertyProvider)
+	 */
+	@Override
+	public void setValueProvider(PropertyProvider p) {
+		 this.propertyProvider = p;
 	}
 
 }

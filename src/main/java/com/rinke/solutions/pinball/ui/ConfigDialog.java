@@ -22,18 +22,20 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Text;
 
+import com.rinke.solutions.beans.Bean;
 import com.rinke.solutions.pinball.DmdSize;
-import com.rinke.solutions.pinball.LabelProviderAdapter;
 import com.rinke.solutions.pinball.io.ConnectorFactory;
 import com.rinke.solutions.pinball.io.Pin2DmdConnector;
 import com.rinke.solutions.pinball.io.Pin2DmdConnector.ConnectionHandle;
 import com.rinke.solutions.pinball.util.ApplicationProperties;
+import com.rinke.solutions.pinball.view.swt.LabelProviderAdapter;
 
 import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.TabFolder;
 
 @Slf4j
-public class Config extends Dialog {
+@Bean
+public class ConfigDialog extends Dialog {
     
 	protected Object result;
     protected Shell shell;
@@ -57,7 +59,7 @@ public class Config extends Dialog {
      * @param parent
      * @param style
      */
-    public Config(Shell parent) {
+    public ConfigDialog(Shell parent) {
         super(parent, SWT.CLOSE | SWT.TITLE | SWT.BORDER | SWT.OK | SWT.APPLICATION_MODAL);
         setText("Configuration");
         dmdSize = DmdSize.fromOrdinal(ApplicationProperties.getInteger("dmdSize",0));

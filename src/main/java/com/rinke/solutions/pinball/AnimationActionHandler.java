@@ -167,7 +167,7 @@ public class AnimationActionHandler {
 				Palette aniPalette = new Palette(ani.getAniColors(), palettes.size(), ani.getDesc());
 				palettes.add(aniPalette);
 				ani.setPalIndex(aniPalette.index);
-				editor.view.paletteComboViewer.refresh();
+				editor.paletteComboViewer.refresh();
 			}
 		}
 	}

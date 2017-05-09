@@ -25,9 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.rinke.solutions.pinball.DmdSize;
-import com.rinke.solutions.pinball.LabelProviderAdapter;
 import com.rinke.solutions.pinball.PinDmdEditor;
-import com.rinke.solutions.pinball.animation.Animation.EditMode;
 import com.rinke.solutions.pinball.io.ConnectorFactory;
 import com.rinke.solutions.pinball.io.IpConnector;
 import com.rinke.solutions.pinball.io.Pin2DmdConnector;
@@ -35,6 +33,7 @@ import com.rinke.solutions.pinball.io.Pin2DmdConnector.ConnectionHandle;
 import com.rinke.solutions.pinball.model.DefaultPalette;
 import com.rinke.solutions.pinball.model.DeviceMode;
 import com.rinke.solutions.pinball.util.ApplicationProperties;
+import com.rinke.solutions.pinball.view.swt.LabelProviderAdapter;
 
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.events.SelectionAdapter;

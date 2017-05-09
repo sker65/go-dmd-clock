@@ -1,4 +1,4 @@
-package com.rinke.solutions.pinball;
+package com.rinke.solutions.pinball.view.swt;
 
 import org.eclipse.jface.viewers.LabelProvider;
 

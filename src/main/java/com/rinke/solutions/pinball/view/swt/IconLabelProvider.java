@@ -1,4 +1,4 @@
-package com.rinke.solutions.pinball;
+package com.rinke.solutions.pinball.view.swt;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.jface.resource.ImageDescriptor;

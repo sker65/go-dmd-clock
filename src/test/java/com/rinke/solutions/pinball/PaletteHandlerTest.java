@@ -14,7 +14,7 @@ import org.junit.Test;
 import com.rinke.solutions.pinball.io.FileHelper;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.RGB;
-import com.rinke.solutions.pinball.util.RecentMenuManager;
+import com.rinke.solutions.pinball.view.swt.RecentMenuManager;
 import com.rinke.solutions.pinball.widget.PaletteTool;
 
 public class PaletteHandlerTest {
@@ -26,7 +26,7 @@ public class PaletteHandlerTest {
 	public void setUp() throws Exception {
 		editor = new PinDmdEditor();
 		uut = new PaletteHandler(editor, null);
-		uut.editor.view.paletteComboViewer = mock(ComboViewer.class);
+		uut.editor.paletteComboViewer = mock(ComboViewer.class);
 		uut.editor.recentPalettesMenuManager = mock(RecentMenuManager.class);
 		uut.editor.paletteTool = mock(PaletteTool.class);
 	}

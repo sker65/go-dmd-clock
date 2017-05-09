@@ -12,7 +12,7 @@ import static org.mockito.Mockito.*;
 
 public class SimpleBeanFactoryTest {
 	
-	SimpleBeanFactory uut;
+	BeanFactory uut;
 	
 	@Before
 	public void setup() {

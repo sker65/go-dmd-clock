@@ -30,7 +30,7 @@ import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.test.Util;
 import com.rinke.solutions.pinball.ui.Progress;
-import com.rinke.solutions.pinball.util.RecentMenuManager;
+import com.rinke.solutions.pinball.view.swt.RecentMenuManager;
 import com.rinke.solutions.pinball.widget.DMDWidget;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -72,12 +72,12 @@ public class PinDmdEditorIOSWTTest {
 		uut.recentAnimationsMenuManager = recentAnimationsMenuManager;
 		uut.shell = shell;
 		uut.recentProjectsMenuManager = recentProjectsMenuManager;
-		uut.view.mntmSaveProject = menuItemMock;
+		uut.mntmSaveProject = menuItemMock;
 
-		uut.view.dmdWidget = mock(DMDWidget.class);
-		uut.view.previewDmd = mock(DMDWidget.class);
-		uut.view.paletteComboViewer = mock(ComboViewer.class);
-		uut.view.keyframeTableViewer = mock(TableViewer.class);
+		uut.dmdWidget = mock(DMDWidget.class);
+		uut.previewDmd = mock(DMDWidget.class);
+		uut.paletteComboViewer = mock(ComboViewer.class);
+		uut.keyframeTableViewer = mock(TableViewer.class);
 		uut.animationHandler = mock(AnimationHandler.class);
 	}
 

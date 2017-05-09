@@ -1,7 +1,11 @@
 package com.rinke.solutions.pinball.widget;
 
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Observable;
+import java.util.Observer;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.PaintEvent;
@@ -12,7 +16,6 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.RGB;
-import org.eclipse.swt.graphics.Resource;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
@@ -27,7 +30,7 @@ import com.rinke.solutions.pinball.widget.PaletteTool.ColorChangedListerner;
 
 import static com.rinke.solutions.pinball.widget.SWTUtil.toSwtRGB;
 
-public class DMDWidget extends ResourceManagedCanvas implements ColorChangedListerner {
+public class DMDWidget extends ResourceManagedCanvas implements ColorChangedListerner, Observer {
 	
 	private Palette palette;	// color palette
 	private DMD dmd; 			// the model holding buffers etc.
@@ -50,7 +53,7 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 	private boolean scrollable = false;
 	private List<FrameChangedListerner> frameChangedListeners = new ArrayList<>();
 	private boolean maskLocked;
-	private boolean maskOut = false;
+	private boolean filterByMask = false;
 	// define the rubberband area for copy
 	private RGB areaColorNormal = new RGB(255,255,0);
 	private RGB areaColorHighlighted = new RGB(255,255,255);
@@ -63,6 +66,15 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 	@FunctionalInterface
 	public static interface FrameChangedListerner {
 		public void frameChanged(Frame frame);
+	}
+	
+	PropertyChangeSupport change = new PropertyChangeSupport(this);
+	public void addPropertyChangeListener(PropertyChangeListener l) {
+		change.addPropertyChangeListener(l);
+	}
+
+	public void removePropertyChangeListener(PropertyChangeListener l) {
+		change.removePropertyChangeListener(l);
 	}
 	
 	public DMDWidget(Composite parent, int style, DMD dmd, boolean scrollable) {
@@ -81,17 +93,27 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 		}
 		this.addDisposeListener(e->{if(this.cursor!=null) this.cursor.dispose();});
 		
-		//areaX = 10; areaY = 2; areaW = 30; areaH = 10;
-		
 		if( drawTool != null ) drawTool.setDMD(dmd);
 	}
 	
 	public void setSelection( int x, int y, int w, int h) {
-		if( w==0 && h==0)
+		if( w==0 && h==0) {
+			change.firePropertyChange("selection", this.selection, null);
 			this.selection = null;
-		else
-			this.selection = new Rect( x,y,x+w,y+h);
+		} else {
+			Rect r = new Rect( x,y,x+w,y+h);
+			change.firePropertyChange("selection", this.selection, r);
+			this.selection = r;
+		}
 		redraw();
+	}
+	
+	public void setSelection(Rect s) {
+		setSelection(s.x1, s.y1, s.x2-s.x1, s.y2-s.y1);
+	}
+	
+	public Rect getSelection() {
+		return this.selection;
 	}
 	
 	public void addListeners( FrameChangedListerner l) {
@@ -103,6 +125,7 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 		resolutionY = dmd.getHeight();
 		bytesPerRow = dmd.getBytesPerRow();
 		this.dmd = dmd;
+		dmd.addObserver(this);
 	}
 
 	private void resized(Event e) {
@@ -298,7 +321,7 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 	}
 
 	private void drawDMD(GC gcImage, Frame frame, int numberOfSubframes, boolean useColorIndex, Color[] cols) {
-		boolean checkMask = maskOut && frame.hasMask();
+		boolean checkMask = filterByMask && frame.hasMask();
 		byte[] maskData = checkMask?frame.mask.data:null;
 		for (int row = 0; row < resolutionY; row++) {
             for (int col = 0; col < resolutionX; col++) {
@@ -343,6 +366,7 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 	}
 
 	public void setPalette(Palette palette) {
+		change.firePropertyChange("palette", this.palette, palette);
 		this.palette = palette;
 		redraw();
 	}
@@ -360,6 +384,7 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 
 	public void setDrawTool(DrawTool drawTool) {
 		previousDrawTool = this.drawTool;
+		change.firePropertyChange("drawTool", this.drawTool, drawTool);
 		this.drawTool = drawTool;
 		if(drawTool!= null) {
 			previousDrawTool = this.drawTool;
@@ -373,15 +398,12 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 		}
 	}
 
-	public void setSelection(Rect s) {
-		setSelection(s.x1, s.y1, s.x2-s.x1, s.y2-s.y1);
-	}
-
 	public boolean isDrawingEnabled() {
 		return drawingEnabled;
 	}
 
 	public void setDrawingEnabled(boolean drawingEnabled) {
+		change.firePropertyChange("drawingEnabled", this.drawingEnabled, drawingEnabled);
 		this.drawingEnabled = drawingEnabled;
 	}
 
@@ -398,6 +420,7 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 
 	public void setShowMask(boolean showMask) {
 		boolean old = this.showMask;
+		change.firePropertyChange("showMask", old, showMask);
 		this.showMask = showMask;
 		if( old != showMask ) {
 			redraw();
@@ -414,8 +437,8 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 		this.setMaskLocked(mask.locked);
 	}
 
-	public void setMaskOut(boolean maskOut) {
-		 this.maskOut = maskOut;
+	public void setFilterByMask(boolean maskOut) {
+		 this.filterByMask = maskOut;
 	}
 
 	public boolean isMouseOnAreaMark() {
@@ -449,7 +472,13 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 		}
 	}
 
-	public Rect getSelection() {
-		return this.selection;
+	public boolean isMaskLocked() {
+		return maskLocked;
 	}
+
+	@Override
+	public void update(Observable o, Object arg) {
+		if( o == this.dmd ) redraw();
+	}
+
 }

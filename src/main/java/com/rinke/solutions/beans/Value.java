@@ -9,6 +9,6 @@ import static java.lang.annotation.ElementType.*;
 @Target(value={CONSTRUCTOR,METHOD,PARAMETER,FIELD,ANNOTATION_TYPE})
 @Retention(value=RetentionPolicy.RUNTIME)
 @Documented
-public @interface Autowired {
-	String name() default "";
+public @interface Value {
+	String defaultValue();
 }

@@ -9,4 +9,6 @@ import static java.lang.annotation.ElementType.*;
 @Target(value={TYPE})
 @Retention(value=RetentionPolicy.RUNTIME)
 @Documented
-public @interface Bean {}
+public @interface Bean {
+	Scope scope() default Scope.SINGLETON;
+}
