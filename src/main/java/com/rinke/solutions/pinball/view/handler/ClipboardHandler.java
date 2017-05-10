@@ -12,4 +12,29 @@ public class ClipboardHandler extends ViewHandler {
 		super(vm,m,d);
 	}
 	
+	// CMD Handler
+	public void onCut() {
+		
+	}
+	
+	public void onPaste() {
+		
+	}
+	
+	public void onCopy() {
+		
+	}
+
+	public void onPasteHoover() {
+		
+	}
+	
+	public void onSelectAll() {
+		
+	}
+
+	public void onRemoveSelection() {
+		
+	}
+
 }

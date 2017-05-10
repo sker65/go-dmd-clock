@@ -28,6 +28,7 @@ import com.rinke.solutions.pinball.io.ConnectorFactory;
 import com.rinke.solutions.pinball.io.Pin2DmdConnector;
 import com.rinke.solutions.pinball.io.Pin2DmdConnector.ConnectionHandle;
 import com.rinke.solutions.pinball.util.ApplicationProperties;
+import com.rinke.solutions.pinball.view.View;
 import com.rinke.solutions.pinball.view.swt.LabelProviderAdapter;
 
 import org.eclipse.swt.widgets.Spinner;
@@ -275,4 +276,5 @@ public class ConfigDialog extends Dialog {
 
 		shell.close();
 	}
+
 }

@@ -15,6 +15,8 @@ public interface BeanFactory {
 	public <T> T getBeanByType(Class<T> pt);
 
 	public <T> T getBeanByTypeAndName(Class<T> pt, boolean ignoreError, String name);
+	
+	public <T> T getBeanOfType(Class<T> pt, String name);
 
 	public void setSingleton(Object o);
 

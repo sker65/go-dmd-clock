@@ -155,6 +155,11 @@ public class PaletteTool implements ColorModifiedListener {
 		}
 	}
 	
+	public Palette getPalette() {
+		return palette;
+	}
+
+	
 	RGB tmpRgb = new RGB(0,0,0);
 	
 	public void changeColor() {

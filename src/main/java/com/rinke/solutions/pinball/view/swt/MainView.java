@@ -107,9 +107,10 @@ import com.rinke.solutions.pinball.widget.RectTool;
 import com.rinke.solutions.pinball.widget.SelectTool;
 import com.rinke.solutions.pinball.widget.SetPixelTool;
 import static com.rinke.solutions.pinball.view.model.ViewCmd.*;
+import org.eclipse.core.databinding.beans.PojoProperties;
 
 @Slf4j
-public class View {
+public class MainView {
 	
 	private DataBindingContext m_bindingContext;
 	
@@ -138,6 +139,86 @@ public class View {
 		log.debug("dispatchCmd '{}', params={}", name, params);
 		dispatcher.dispatch(new Command<Object[]>(params, name));
 	}
+	
+	/**
+	 * Launch the application.
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		Display display = Display.getDefault();
+		Realm.runWithDefault(SWTObservables.getRealm(display), new Runnable() {
+			public void run() {
+				try {
+					MainView mainView = new MainView();
+					mainView.open();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+
+	void init() {
+		beanFactory = new SimpleBeanFactory();
+		beanFactory.scanPackages("com.rinke.solutions.pinball");
+		
+		// support bean factory methods by scanning @Bean annotation at method level
+		beanFactory.setSingleton(display);
+		beanFactory.setSingleton(shell);
+		beanFactory.setSingleton("plugins", Arrays.asList(""));
+		beanFactory.setSingleton("pluginsPath", "foo");
+		beanFactory.setSingleton("beanFactory", beanFactory);
+		
+		beanFactory.inject(this);
+	}
+	
+	@Autowired ViewModel vm;
+	@Autowired Model model;
+	@Autowired RecordingsHandler recordingsHandler;
+	@Autowired Config config;
+	
+	/**
+	 * Open the window.
+	 */
+	public void open() {
+		display = Display.getDefault();
+		shell = new Shell();
+		
+		Project p = new Project();
+		p.palMappings.add( new PalMapping(1, "KeyFrame 1", SwitchMode.PALETTE));
+		p.palMappings.add( new PalMapping(2, "KeyFrame 2", SwitchMode.REPLACE));
+		p.palMappings.add( new PalMapping(2, "KeyFrame 3", SwitchMode.FOLLOW));
+		p.palMappings.add( new PalMapping(2, "KeyFrame 4", SwitchMode.EVENT));
+		
+		init();
+		
+		vm.loadTestData();
+		
+		model.recordings.addObserver((o,a)->recordingsHandler.populate());
+
+		// load some recording
+		String filename = "./src/test/resources/drwho-dump.txt.gz";
+		Animation animation = Animation.buildAnimationFromFile(filename, AnimationType.MAME);
+		model.recordings.put(animation.getDesc(), animation);
+		
+		List<ViewHandler> handlers = beanFactory.getBeansOfType(ViewHandler.class);
+		handlers.forEach(h->dispatcher.registerHandler(h));
+		
+		createContents(shell,vm.dmd);
+		
+		vm.addPropertyChangeListener( e->viewModelChanged(e) );
+
+		vm.init();
+		
+		shell.open();
+		shell.layout();
+		while (!shell.isDisposed()) {
+			if (!display.readAndDispatch()) {
+				display.sleep();
+			}
+		}
+	}
+
 
 	protected Shell shell;
 	RecentMenuManager recentProjectsMenuManager;
@@ -247,7 +328,7 @@ public class View {
 		gd_dmdPreWidget.widthHint = 235;
 		previewDmd.setLayoutData(gd_dmdPreWidget);
 		previewDmd.setDrawingEnabled(false);
-		previewDmd.setPalette(vm.getPreviewPalettes().get(0));
+		previewDmd.setPalette(vm.previewPalettes.get(0));
 		previewDmd.setFilterByMask(true);
 		new Label(grpKeyframe, SWT.NONE);
 		new Label(grpKeyframe, SWT.NONE);
@@ -363,78 +444,6 @@ public class View {
 		return grpKeyframe;
 	}
 
-	/**
-	 * Launch the application.
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		Display display = Display.getDefault();
-		Realm.runWithDefault(SWTObservables.getRealm(display), new Runnable() {
-			public void run() {
-				try {
-					View window = new View();
-					window.open();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
-
-	void init() {
-		beanFactory = new SimpleBeanFactory();
-		beanFactory.scanPackages("com.rinke.solutions.pinball");
-		beanFactory.setSingleton(display);
-		beanFactory.setSingleton(shell);
-		beanFactory.inject(this);
-	}
-	
-	@Autowired ViewModel vm;
-	@Autowired Model model;
-	@Autowired RecordingsHandler recordingsHandler;
-	@Autowired Config config;
-	
-	/**
-	 * Open the window.
-	 */
-	public void open() {
-		display = Display.getDefault();
-		shell = new Shell();
-		
-		Project p = new Project();
-		p.palMappings.add( new PalMapping(1, "KeyFrame 1", SwitchMode.PALETTE));
-		p.palMappings.add( new PalMapping(2, "KeyFrame 2", SwitchMode.REPLACE));
-		p.palMappings.add( new PalMapping(2, "KeyFrame 3", SwitchMode.FOLLOW));
-		p.palMappings.add( new PalMapping(2, "KeyFrame 4", SwitchMode.EVENT));
-		
-		init();
-		
-		vm.loadTestData();
-		
-		model.recordings.addObserver((o,a)->recordingsHandler.populate());
-
-		// load some recording
-		String filename = "./src/test/resources/drwho-dump.txt.gz";
-		Animation animation = Animation.buildAnimationFromFile(filename, AnimationType.MAME);
-		model.recordings.put(animation.getDesc(), animation);
-		
-		List<ViewHandler> handlers = beanFactory.getBeansOfType(ViewHandler.class);
-		handlers.forEach(h->dispatcher.registerHandler(h));
-		
-		createContents(shell,vm.dmd);
-		vm.addPropertyChangeListener( e->viewModelChanged(e) );
-
-		vm.init();
-		
-		shell.open();
-		shell.layout();
-		while (!shell.isDisposed()) {
-			if (!display.readAndDispatch()) {
-				display.sleep();
-			}
-		}
-	}
-	
 	/**
 	 * creates the top level menu
 	 */
@@ -683,7 +692,7 @@ public class View {
 
 		MenuItem mntmAbout = new MenuItem(menu_4, SWT.NONE);
 		mntmAbout.setText("About");
-		mntmAbout.addListener(SWT.Selection, e -> dispatchCmd(ABOUT));
+		mntmAbout.addListener(SWT.Selection, e -> dispatchCmd(ABOUT) );
 	}
 
 	public void setProjectFilename(String projectFilename) {
@@ -1051,10 +1060,10 @@ public class View {
 		grpPalettes.setText("Palettes");
 
 		paletteComboViewer = new ComboViewer(grpPalettes, SWT.NONE);
-		Combo paletteViewerCombo = paletteComboViewer.getCombo();
-		GridData gd_combo = new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1);
-		gd_combo.widthHint = 166;
-		paletteViewerCombo.setLayoutData(gd_combo);
+		paletteViewerCombo = paletteComboViewer.getCombo();
+		GridData gd_paletteViewerCombo = new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1);
+		gd_paletteViewerCombo.widthHint = 166;
+		paletteViewerCombo.setLayoutData(gd_paletteViewerCombo);
 
 		ObservableListContentProvider listContentProvider = new ObservableListContentProvider();
 		paletteComboViewer.setLabelProvider(new LabelProviderAdapter<Palette>(o -> o.index + " - " + o.name));
@@ -1342,6 +1351,7 @@ public class View {
 	private Combo frameSeqCombo;
 
 	private Display display;
+	private Combo paletteViewerCombo;
 
 	private void setProp(Object bean, String propName, Object val) {
 		try {
@@ -1413,6 +1423,15 @@ public class View {
 		}
 		return null;
 	}
+
+	public PaletteTool getPaletteTool() {
+		return paletteTool;
+	}
+
+	public void setPaletteTool(PaletteTool paletteTool) {
+		 this.paletteTool = paletteTool;
+	}
+	
 	protected DataBindingContext initDataBindings() {
 		DataBindingContext bindingContext = new DataBindingContext();
 		//
@@ -1577,6 +1596,14 @@ public class View {
 		IObservableValue observeTextTxtDelayValObserveWidget = WidgetProperties.text(SWT.Modify).observe(txtDelayVal);
 		IObservableValue delayVmObserveValue = BeanProperties.value("delay").observe(vm);
 		bindingContext.bindValue(observeTextTxtDelayValObserveWidget, delayVmObserveValue, null, null);
+		//
+		IObservableValue observeTextPaletteViewerComboObserveWidget = WidgetProperties.text().observe(paletteViewerCombo);
+		IObservableValue editedPaletteNameVmObserveValue = BeanProperties.value("editedPaletteName").observe(vm);
+		bindingContext.bindValue(observeTextPaletteViewerComboObserveWidget, editedPaletteNameVmObserveValue, null, null);
+		//
+		IObservableValue palettePaletteToolObserveValue = PojoProperties.value("palette").observe(paletteTool);
+		IObservableValue selectedPaletteVmObserveValue = BeanProperties.value("selectedPalette").observe(vm);
+		bindingContext.bindValue(palettePaletteToolObserveValue, selectedPaletteVmObserveValue, null, null);
 		//
 		return bindingContext;
 	}

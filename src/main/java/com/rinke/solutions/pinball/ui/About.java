@@ -17,7 +17,12 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Shell;
 
-public class About extends Dialog {
+import com.rinke.solutions.beans.Autowired;
+import com.rinke.solutions.beans.Bean;
+import com.rinke.solutions.pinball.view.View;
+
+@Bean
+public class About extends Dialog implements View {
 
 	protected Shell shlAboutPindmdEditor;
 
@@ -30,13 +35,18 @@ public class About extends Dialog {
 		super(parent, SWT.CLOSE | SWT.TITLE | SWT.BORDER | SWT.OK | SWT.APPLICATION_MODAL);
 		setText("About pin2dmd editor");
 	}
+	
+	@Autowired
+	String pluginsPath;
+	@Autowired
+	List<String> plugins;
 
 	/**
 	 * Open the dialog.
 	 * @param pluginsPath 
 	 * @return the result
 	 */
-	public void open(String pluginsPath, List<String> plugins) {
+	public void open() {
 		createContents(pluginsPath, plugins);
 		shlAboutPindmdEditor.open();
 		shlAboutPindmdEditor.layout();
@@ -127,5 +137,13 @@ public class About extends Dialog {
 	    }
 
 	    return version;
+	}
+
+	public void setPluginsPath(String pluginsPath) {
+		 this.pluginsPath = pluginsPath;
+	}
+
+	public void setPlugins(List<String> plugins) {
+		 this.plugins = plugins;
 	} 
 }

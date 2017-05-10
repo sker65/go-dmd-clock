@@ -13,6 +13,8 @@ import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.model.Bookmark;
 import com.rinke.solutions.pinball.model.Mask;
 import com.rinke.solutions.pinball.model.PalMapping;
+import com.rinke.solutions.pinball.model.Palette;
+import com.rinke.solutions.pinball.util.ObservableList;
 import com.rinke.solutions.pinball.util.ObservableMap;
 
 @Bean
@@ -28,4 +30,6 @@ public class Model {
 	public List<Mask> masks = new ArrayList<>();
 	
 	public Map<String,Set<Bookmark>> bookmarksMap = new HashMap<>();
+	
+	public ObservableList<Palette> palettes = new ObservableList<Palette>(new ArrayList<>());
 }

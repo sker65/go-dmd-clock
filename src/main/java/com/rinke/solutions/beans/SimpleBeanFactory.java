@@ -97,6 +97,8 @@ public class SimpleBeanFactory extends DefaultHandler implements BeanFactory {
         Class<?> clazz;
         Method initMethod;
         List<SetterCall> setter = new ArrayList<SetterCall>();
+        String factoryBeanname;
+        Method factoryMethod;
         public BeanDefinition(String name, boolean isSingleton, Class<?> clazz, Method initMethod) {
             this.isSingleton = isSingleton;
             this.clazz = clazz;
@@ -106,6 +108,12 @@ public class SimpleBeanFactory extends DefaultHandler implements BeanFactory {
 		@Override
 		public String toString() {
 			return String.format("BeanDefinition [name=%s, isSingleton=%s, clazz=%s]", name, isSingleton, clazz.getSimpleName());
+		}
+		public void setFactoryBeanName(String factoryName) {
+			this.factoryBeanname = factoryName;
+		}
+		public void setFactoryMethod(Method factoryMethod) {
+			 this.factoryMethod = factoryMethod;
 		}
     }
 
@@ -173,14 +181,41 @@ public class SimpleBeanFactory extends DefaultHandler implements BeanFactory {
     	Set<Class<?>> beans = clz.getTypesAnnotatedWith(Bean.class);
     	for(Class<?> c : beans ) {
     		String simpleName = getBeannameFromClass(c);
+    		Bean can = c.getAnnotation(Bean.class);
+    		if( !StringUtils.isEmpty(can.name()) ) simpleName = can.name();
     		if( simpleName.length()>0) {
     			log.debug("found bean {}", simpleName);
-    			beanDefs.put(simpleName, buildDefs(c));
+    			beanDefs.put(simpleName, buildDefs(c, true));
+        		// scan for bean factory methods
+        		for( Method f : c.getMethods() ) {
+        			if( f.isAnnotationPresent(Bean.class) ) {
+        				Bean an = f.getAnnotation(Bean.class);
+        				// this method creates a bean and should be called, when getBean tries to create an instance
+        				String beanName = getBeannameFromMethodName(f.getName());
+        				if( !StringUtils.isEmpty(an.name()) ) beanName = an.name();
+        				beanDefs.put(beanName, buildFactoryDef(f,simpleName, an.scope()));
+        			}
+        		}
     		}
     	}
     }
 
-	private BeanDefinition buildDefs(Class<?> c) {
+	private BeanDefinition buildFactoryDef(Method f, String factoryName, Scope scope) {
+		// get type from method
+		Class<?> returnType = f.getReturnType();
+		BeanDefinition def = buildDefs(returnType, scope.equals(Scope.SINGLETON));
+		def.setFactoryBeanName(factoryName);
+		def.setFactoryMethod(f);
+		return def;
+	}
+
+	private String getBeannameFromMethodName(String name) {
+		if( name.startsWith("get") ) name = name.substring(3);
+		if( name.startsWith("create") ) name = name.substring(6);
+		return StringUtils.uncapitalize(name);
+	}
+
+	private BeanDefinition buildDefs(Class<?> c, boolean singleton) {
 		BeanDefinition def = null;
 		Method init = null;
 		try {
@@ -188,7 +223,8 @@ public class SimpleBeanFactory extends DefaultHandler implements BeanFactory {
 		} catch (NoSuchMethodException | SecurityException e1) {
 		}
 		try {
-			boolean isSingleton =  c.getAnnotation(Bean.class).scope().equals(Scope.SINGLETON);
+			Bean ba = c.getAnnotation(Bean.class);
+			boolean isSingleton = ba!=null ? ba.scope().equals(Scope.SINGLETON) : singleton;
 			def = new BeanDefinition(getBeannameFromClass(c), isSingleton, c, init);
 			for(Field f: c.getDeclaredFields() ) {
 				if(f.isAnnotationPresent(Autowired.class)) {
@@ -288,9 +324,15 @@ public class SimpleBeanFactory extends DefaultHandler implements BeanFactory {
             if( def == null ) throw new RuntimeException("no bean with name '"+id+"' found");
             Object bean = null;
             try {
-            	for( Constructor<?> ctor : def.clazz.getDeclaredConstructors() ) {
-            		bean = tryCreate(def.clazz, ctor);
-            		if( bean != null) break;
+            	if( def.factoryBeanname != null ) {
+            		// create factory bean first
+            		Object factory = getBean(def.factoryBeanname);
+            		bean = def.factoryMethod.invoke(factory);
+            	} else {
+	            	for( Constructor<?> ctor : def.clazz.getDeclaredConstructors() ) {
+	            		bean = tryCreate(def.clazz, ctor);
+	            		if( bean != null) break;
+	            	}
             	}
             	if( bean == null ) {
             		throw new RuntimeException("could not create bean: "+id);
@@ -368,6 +410,7 @@ public class SimpleBeanFactory extends DefaultHandler implements BeanFactory {
 	/* (non-Javadoc)
 	 * @see com.rinke.solutions.beans.BeanFactory#getBeanByTypeAndName(java.lang.Class, boolean, java.lang.String)
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	public <T> T getBeanByTypeAndName(Class<T> pt, boolean ignoreError, String name) {
 		List<BeanDefinition> candidates = new ArrayList<>();
@@ -375,7 +418,7 @@ public class SimpleBeanFactory extends DefaultHandler implements BeanFactory {
 			if( pt.isAssignableFrom(item.clazz)) candidates.add(item);
 		}
 		
-		if( candidates.size()==1) return (T) getBean(candidates.get(0).name);
+		if( candidates.size()==1 ) return (T) getBean(candidates.get(0).name);
 		if( name != null ) {
 			// filter by provided name to narrow scope
 			List<BeanDefinition> reduced = candidates.stream().filter(b->name.equals(b.name)).collect(Collectors.toList());
@@ -440,6 +483,11 @@ public class SimpleBeanFactory extends DefaultHandler implements BeanFactory {
 	@Override
 	public void setValueProvider(PropertyProvider p) {
 		 this.propertyProvider = p;
+	}
+
+	@Override
+	public <T> T getBeanOfType(Class<T> pt, String name) {
+		return getBeanByTypeAndName(pt, false, name);
 	}
 
 }

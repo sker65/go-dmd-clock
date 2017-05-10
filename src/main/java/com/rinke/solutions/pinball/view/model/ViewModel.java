@@ -69,6 +69,7 @@ public class ViewModel {
 	// maybe not the real palette model class, but an variant for view model
 	public WritableList palettes = new WritableList();
 	public Palette selectedPalette = Palette.getDefaultPalettes().get(0);
+	public String editedPaletteName;
 	
 	public java.util.List<Palette> previewPalettes = Palette.previewPalettes();
 
@@ -643,6 +644,14 @@ public class ViewModel {
 
 	public void setHashLbl(String[] hashLbl) {
 		firePropertyChange("hashLbl", this.hashLbl, this.hashLbl = hashLbl);
+	}
+
+	public String getEditedPaletteName() {
+		return editedPaletteName;
+	}
+
+	public void setEditedPaletteName(String editedPaletteName) {
+		firePropertyChange("editedPaletteName", this.editedPaletteName, this.editedPaletteName = editedPaletteName);
 	}
 
 }

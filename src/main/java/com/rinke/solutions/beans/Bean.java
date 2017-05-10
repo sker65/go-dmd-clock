@@ -11,4 +11,5 @@ import static java.lang.annotation.ElementType.*;
 @Documented
 public @interface Bean {
 	Scope scope() default Scope.SINGLETON;
+	String name() default "";
 }

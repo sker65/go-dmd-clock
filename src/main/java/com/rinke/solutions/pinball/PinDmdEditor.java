@@ -701,7 +701,12 @@ public class PinDmdEditor implements EventHandler {
 
 		MenuItem mntmAbout = new MenuItem(menu_4, SWT.NONE);
 		mntmAbout.setText("About");
-		mntmAbout.addListener(SWT.Selection, e -> new About(shell).open(pluginsPath, loadedPlugins));
+		mntmAbout.addListener(SWT.Selection, e -> { 
+			About a = new About(shell);
+			a.setPluginsPath(pluginsPath);
+			a.setPlugins(loadedPlugins);
+			a.open();
+		});
 	}
 
 
@@ -1573,7 +1578,8 @@ public class PinDmdEditor implements EventHandler {
 		if (SWT.getPlatform().equals("cocoa")) {
 			CocoaGuiEnhancer enhancer = new CocoaGuiEnhancer("Pin2dmd Editor");
 			enhancer.hookApplicationMenu(display, e -> e.doit = dirtyCheck(),
-					new ActionAdapter(() -> new About(shell).open(pluginsPath, loadedPlugins) ),
+					// skipped setting of plugin list / plugin path
+					new ActionAdapter(() -> new About(shell).open()),
 					new ActionAdapter(() -> new ConfigDialog(shell).open(null)) );
 		}
 		

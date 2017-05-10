@@ -33,6 +33,7 @@ import com.rinke.solutions.pinball.io.Pin2DmdConnector.ConnectionHandle;
 import com.rinke.solutions.pinball.model.DefaultPalette;
 import com.rinke.solutions.pinball.model.DeviceMode;
 import com.rinke.solutions.pinball.util.ApplicationProperties;
+import com.rinke.solutions.pinball.view.View;
 import com.rinke.solutions.pinball.view.swt.LabelProviderAdapter;
 
 import org.eclipse.swt.widgets.Text;
@@ -41,9 +42,8 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Scale;
 
 @Slf4j
-public class DeviceConfig extends Dialog {
+public class DeviceConfig extends Dialog implements View {
     
-    protected Object result;
     protected Shell shell;
     private String lastPath;
     private ComboViewer deviceModecomboViewer;
@@ -110,7 +110,7 @@ public class DeviceConfig extends Dialog {
      * Open the dialog.
      * @return the result
      */
-    public Object open() {
+    public void open() {
         createContents();
         
         Button btnOk = new Button(shell, SWT.NONE);
@@ -130,7 +130,6 @@ public class DeviceConfig extends Dialog {
                 display.sleep();
             }
         }
-        return result;
     }
 
     /**
