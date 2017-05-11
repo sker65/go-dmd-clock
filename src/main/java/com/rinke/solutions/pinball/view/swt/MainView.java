@@ -169,6 +169,7 @@ public class MainView {
 		beanFactory.setSingleton("plugins", Arrays.asList(""));
 		beanFactory.setSingleton("pluginsPath", "foo");
 		beanFactory.setSingleton("beanFactory", beanFactory);
+		beanFactory.setSingleton("recentPalettesMenuManager",recentPalettesMenuManager);
 		
 		beanFactory.inject(this);
 	}
@@ -1380,10 +1381,15 @@ public class MainView {
 			vm.setDeleteRecordingEnabled(nv!=null);
 		} else if( p.equals("selectedScene") ) {
 			vm.setDeleteSceneEnabled(nv!=null);
-		} else if( p.equals("hashLbl")) {
+		} 
+		
+		else if( p.equals("hashLbl")) {
 			btns.forEach(b->b.setText(vm.hashLbl[(int) b.getData()]));
 		} else if( p.equals("hashButtonEnabled") || p.equals("hashButtonsEnabled")) { // beware of the 's'
 			btns.forEach(b->b.setEnabled(vm.hashButtonEnabled[(int) b.getData()] && vm.hashButtonsEnabled ));
+		} else if( p.equals("livePreview") ) { 
+			mntmUploadPalettes.setEnabled(((Boolean) nv).booleanValue());
+			mntmUploadProject.setEnabled(((Boolean) nv).booleanValue());
 		} 
 		
 		if( viewerBindingMap.containsKey(p)) {

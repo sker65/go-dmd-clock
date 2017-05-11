@@ -334,7 +334,7 @@ public class SimpleBeanFactory extends DefaultHandler implements BeanFactory {
             		Object factory = getBean(def.factoryBeanname);
             		bean = def.factoryMethod.invoke(factory);
             	} else {
-            		List<Constructor<?>> ctors = Arrays.asList(def.clazz.getDeclaredConstructors());
+            		List<Constructor<?>> ctors = new ArrayList<>(Arrays.asList(def.clazz.getDeclaredConstructors()));
             		Optional<Constructor<?>> defCtor = ctors.stream().filter(c->c.getParameterCount()==0).findFirst();
             		// prefer default ctor (if any)
             		if( defCtor.isPresent() ) {

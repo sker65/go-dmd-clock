@@ -25,7 +25,6 @@ import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.ui.Progress;
 import com.rinke.solutions.pinball.util.FileChooserUtil;
-import com.rinke.solutions.pinball.util.ObservableMap;
 
 @Slf4j
 @Bean

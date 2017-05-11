@@ -157,6 +157,8 @@ public class ViewModel {
 
 	public Rect dmdSelection;
 	
+	public boolean livePreview;
+	
 	public java.util.List<Palette> getPreviewPalettes() {
 		return previewPalettes;
 	}
@@ -652,6 +654,14 @@ public class ViewModel {
 
 	public void setEditedPaletteName(String editedPaletteName) {
 		firePropertyChange("editedPaletteName", this.editedPaletteName, this.editedPaletteName = editedPaletteName);
+	}
+
+	public boolean isLivePreview() {
+		return livePreview;
+	}
+
+	public void setLivePreview(boolean livePreview) {
+		firePropertyChange("livePreview", this.livePreview, this.livePreview = livePreview);
 	}
 
 }

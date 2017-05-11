@@ -4,10 +4,13 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.Optional;
 
 import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.Bean;
+import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
+import com.rinke.solutions.pinball.animation.EditMode;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.PalMapping.SwitchMode;
 import com.rinke.solutions.pinball.model.Project;
@@ -30,37 +33,27 @@ public class KeyFrameHandler extends ViewHandler {
 	}
 	
 	public void onDeleteKeyFrame( TypedLabel item ) {
-		PalMapping p = search( item );
-		if( p != null ) {
+		model.getPalMapping(item).ifPresent( p-> {
 			model.palMappings.remove(p);
 			populate();
-		}
+		});
 		checkReleaseMask();
 	}
 	
 	private void populate() {
 		vm.keyframes.clear();
-		for(PalMapping p : model.palMappings) {
-			vm.keyframes.add( new TypedLabel(p.switchMode.name(), p.name));
-		}
+		model.palMappings.stream()
+			.map(p->vm.keyframes.add( new TypedLabel(p.switchMode.name(), p.name)));
 	}
 
 	public void onFetchDuration() {
 		vm.setDuration( vm.timecode - saveTimeCode );
-		PalMapping selectedPalMapping = search( vm.selectedKeyFrame);
-		if( selectedPalMapping != null ) {
-			selectedPalMapping.durationInMillis = vm.duration;
-			selectedPalMapping.durationInFrames = (int) selectedPalMapping.durationInMillis / 30;
-		}
+		model.getPalMapping( vm.selectedKeyFrame).ifPresent(p->{
+			p.durationInMillis = vm.duration;
+			p.durationInFrames = (int) p.durationInMillis / 30;
+		});
 	}
-	
-	private PalMapping search( TypedLabel sel) {
-		for(PalMapping p : model.palMappings) {
-			if( p.name.equals(sel.label)) return p;
-		}
-		return null;
-	}
-	
+		
 	public void onSortKeyFrames() {
 		Collections.sort(model.palMappings, new Comparator<PalMapping>() {
 			@Override
@@ -77,12 +70,12 @@ public class KeyFrameHandler extends ViewHandler {
 	 */
 	public void onAddFrameSeq(SwitchMode switchMode) {
 		// retrieve switch mode from selected scene edit mode!!
-		if (vm.selectedFrameSeq != null) {
+		Optional<CompiledAnimation> optScene = model.getScene(vm.selectedFrameSeq);
+		if (optScene.isPresent() ) {
 			if (vm.selectedHashIndex != -1) {
-				CompiledAnimation ani = model.scenes.get(vm.selectedFrameSeq.label);
 				//  add index, add ref to framesSeq
 				if( !switchMode.equals(SwitchMode.PALETTE)) {
-					switch(ani.getEditMode()) {
+					switch( optScene.map(ani->ani.getEditMode()).orElse(EditMode.FIXED) ) {
 					case REPLACE:
 						switchMode = SwitchMode.REPLACE;
 						break;
@@ -96,25 +89,33 @@ public class KeyFrameHandler extends ViewHandler {
 						switchMode = SwitchMode.EVENT;
 					}
 				}
-				PalMapping palMapping = new PalMapping(0, "KeyFrame " + ani.getDesc());
-				palMapping.setDigest(vm.hashes.get(vm.selectedHashIndex));
-				palMapping.palIndex = vm.selectedPalette.index;
-				palMapping.frameSeqName = ani.getDesc();
-				palMapping.animationName = vm.selectedRecording.label;
-				palMapping.switchMode = switchMode;
-				palMapping.frameIndex = vm.actFrame;
-				if (vm.maskVisible) {
-					palMapping.withMask = true;
-					palMapping.maskNumber = vm.maskNumber;
-					model.masks.get(vm.maskNumber).locked = true;
-					//onMaskChecked(true);
-				}
-				if (!checkForDuplicateKeyFrames(palMapping)) {
-					model.palMappings.add(palMapping);
-					populate();
-				} else {
-					messageUtil.warn("duplicate hash", "There is already another Keyframe that uses the same hash");
-				}
+				
+				final SwitchMode sm = switchMode;		
+				Optional<PalMapping> optPalMapping = optScene.map( s-> {
+					PalMapping palMapping = new PalMapping(0, "KeyFrame " + s.getDesc());
+					palMapping.setDigest(vm.hashes.get(vm.selectedHashIndex));
+					palMapping.palIndex = vm.selectedPalette.index;
+					palMapping.frameSeqName = s.getDesc();
+					palMapping.animationName = vm.selectedRecording.label;
+					palMapping.switchMode = sm;
+					palMapping.frameIndex = vm.actFrame;
+					if (vm.maskVisible) {
+						palMapping.withMask = true;
+						palMapping.maskNumber = vm.maskNumber;
+						model.masks.get(vm.maskNumber).locked = true;
+						//onMaskChecked(true);
+					}
+					return palMapping;
+				});
+				
+				optPalMapping.ifPresent(pal->{
+					if (!checkForDuplicateKeyFrames(pal)) {
+						model.palMappings.add(pal);
+						populate();
+					} else {
+						messageUtil.warn("duplicate hash", "There is already another Keyframe that uses the same hash");
+					}
+				});
 			} else {
 				messageUtil.warn("no hash selected", "in order to create a key frame mapping, you must select a hash");
 			}

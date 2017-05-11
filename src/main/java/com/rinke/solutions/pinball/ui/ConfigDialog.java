@@ -45,7 +45,7 @@ public class ConfigDialog extends Dialog implements View {
     protected Shell shell;
     private DmdSize dmdSize;
     
-    @Value(key=Config.PIN2DMD_ADRESS_PROP_KEY)
+    @Value(key=Config.PIN2DMD_ADRESS)
     private String address;
     
     public boolean okPressed;
