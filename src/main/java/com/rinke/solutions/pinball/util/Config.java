@@ -28,6 +28,7 @@ public class Config implements BeanFactory.PropertyProvider {
 
 	public Config() {
 		super();
+		this.propertiesFilename = this.getFilename();
 	}
 
 	public Config(String file) {

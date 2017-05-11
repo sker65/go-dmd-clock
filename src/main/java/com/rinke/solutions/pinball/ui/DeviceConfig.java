@@ -7,7 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ComboViewer;
-import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
@@ -20,26 +19,12 @@ import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Scale;
 import org.eclipse.swt.widgets.Shell;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import com.rinke.solutions.pinball.DmdSize;
-import com.rinke.solutions.pinball.PinDmdEditor;
-import com.rinke.solutions.pinball.io.ConnectorFactory;
-import com.rinke.solutions.pinball.io.IpConnector;
-import com.rinke.solutions.pinball.io.Pin2DmdConnector;
-import com.rinke.solutions.pinball.io.Pin2DmdConnector.ConnectionHandle;
 import com.rinke.solutions.pinball.model.DefaultPalette;
 import com.rinke.solutions.pinball.model.DeviceMode;
-import com.rinke.solutions.pinball.util.ApplicationProperties;
 import com.rinke.solutions.pinball.view.View;
-import com.rinke.solutions.pinball.view.swt.LabelProviderAdapter;
-
-import org.eclipse.swt.widgets.Text;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.widgets.Scale;
 
 @Slf4j
 public class DeviceConfig extends Dialog implements View {

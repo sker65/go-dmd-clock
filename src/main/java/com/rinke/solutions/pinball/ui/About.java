@@ -19,9 +19,10 @@ import org.eclipse.swt.widgets.Shell;
 
 import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.Bean;
+import com.rinke.solutions.beans.Scope;
 import com.rinke.solutions.pinball.view.View;
 
-@Bean
+@Bean(scope=Scope.PROTOTYPE)
 public class About extends Dialog implements View {
 
 	protected Shell shlAboutPindmdEditor;

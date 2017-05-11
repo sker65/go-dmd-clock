@@ -23,11 +23,14 @@ import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Text;
 
 import com.rinke.solutions.beans.Bean;
+import com.rinke.solutions.beans.Scope;
+import com.rinke.solutions.beans.Value;
 import com.rinke.solutions.pinball.DmdSize;
 import com.rinke.solutions.pinball.io.ConnectorFactory;
 import com.rinke.solutions.pinball.io.Pin2DmdConnector;
 import com.rinke.solutions.pinball.io.Pin2DmdConnector.ConnectionHandle;
 import com.rinke.solutions.pinball.util.ApplicationProperties;
+import com.rinke.solutions.pinball.util.Config;
 import com.rinke.solutions.pinball.view.View;
 import com.rinke.solutions.pinball.view.swt.LabelProviderAdapter;
 
@@ -35,13 +38,16 @@ import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.TabFolder;
 
 @Slf4j
-@Bean
-public class ConfigDialog extends Dialog {
+@Bean(scope=Scope.PROTOTYPE)
+public class ConfigDialog extends Dialog implements View {
     
 	protected Object result;
     protected Shell shell;
     private DmdSize dmdSize;
+    
+    @Value(key=Config.PIN2DMD_ADRESS_PROP_KEY)
     private String address;
+    
     public boolean okPressed;
 
     private ComboViewer dmdSizeViewer;
@@ -80,14 +86,17 @@ public class ConfigDialog extends Dialog {
 		connector.release(handle);
 		this.address = address;
 	}
+	
+	public void setAddress( String address ) {
+		this.address = address;
+	}
 
     /**
      * Open the dialog.
      * @return the result
      */
-    public Object open(String address) {
+    public void open() {
         createContents();
-        this.address = address;
         pin2dmdHost.setText(address!=null?address:"");
         
         btnAutosaveActive.setSelection(ApplicationProperties.getBoolean(ApplicationProperties.AUTOSAVE, false));
@@ -104,7 +113,6 @@ public class ConfigDialog extends Dialog {
                 display.sleep();
             }
         }
-        return result;
     }
 
     /**
@@ -276,5 +284,6 @@ public class ConfigDialog extends Dialog {
 
 		shell.close();
 	}
+
 
 }

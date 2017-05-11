@@ -241,14 +241,17 @@ public class SimpleBeanFactory extends DefaultHandler implements BeanFactory {
 	}
 
 	private Object getValueForField(Field f) {
-		Value annotation = f.getAnnotation(Value.class);
+		Value valAnno = f.getAnnotation(Value.class);
 		Object res = null;
+		String key = f.getName();
+		if( !StringUtils.isEmpty(valAnno.key()) ) key = valAnno.key();
 		String val;
 		if( propertyProvider != null ) {
-			val = propertyProvider.getProperty(f.getName());
+			val = propertyProvider.getProperty(key);
 			if( val != null ) res = toObject(val,f.getType());
-			else if( annotation.defaultValue() != null ) res = toObject( annotation.defaultValue(), f.getType());
+			else if( !StringUtils.isEmpty(valAnno.defaultValue()) ) res = toObject( valAnno.defaultValue(), f.getType());
 		}
+		log.debug("retrieving value for field: {} -> {}", f.getName(), res); 
 		return res;
 	}
 

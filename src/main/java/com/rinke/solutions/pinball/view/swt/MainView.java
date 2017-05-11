@@ -160,6 +160,7 @@ public class MainView {
 
 	void init() {
 		beanFactory = new SimpleBeanFactory();
+		beanFactory.setValueProvider(new Config());
 		beanFactory.scanPackages("com.rinke.solutions.pinball");
 		
 		// support bean factory methods by scanning @Bean annotation at method level

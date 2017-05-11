@@ -10,5 +10,6 @@ import static java.lang.annotation.ElementType.*;
 @Retention(value=RetentionPolicy.RUNTIME)
 @Documented
 public @interface Value {
-	String defaultValue();
+	String defaultValue() default "";
+	String key() default "";
 }

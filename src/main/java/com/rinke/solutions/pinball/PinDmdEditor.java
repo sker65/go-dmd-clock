@@ -663,7 +663,8 @@ public class PinDmdEditor implements EventHandler {
 		mntmConfig.setText("Configuration");
 		mntmConfig.addListener(SWT.Selection, e -> {
 			ConfigDialog config = new ConfigDialog(shell);
-			config.open(pin2dmdAdress);
+			config.setAddress(pin2dmdAdress);
+			config.open();
 			if( config.okPressed ) {
 				refreshPin2DmdHost(config.getPin2DmdHost());
 				if( !dmdSize.equals(config.getDmdSize())) {
@@ -1580,7 +1581,7 @@ public class PinDmdEditor implements EventHandler {
 			enhancer.hookApplicationMenu(display, e -> e.doit = dirtyCheck(),
 					// skipped setting of plugin list / plugin path
 					new ActionAdapter(() -> new About(shell).open()),
-					new ActionAdapter(() -> new ConfigDialog(shell).open(null)) );
+					new ActionAdapter(() -> new ConfigDialog(shell).open()) );
 		}
 		
 		createContents(shell, dmd);
