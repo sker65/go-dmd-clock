@@ -11,11 +11,13 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -332,10 +334,20 @@ public class SimpleBeanFactory extends DefaultHandler implements BeanFactory {
             		Object factory = getBean(def.factoryBeanname);
             		bean = def.factoryMethod.invoke(factory);
             	} else {
-	            	for( Constructor<?> ctor : def.clazz.getDeclaredConstructors() ) {
-	            		bean = tryCreate(def.clazz, ctor);
-	            		if( bean != null) break;
-	            	}
+            		List<Constructor<?>> ctors = Arrays.asList(def.clazz.getDeclaredConstructors());
+            		Optional<Constructor<?>> defCtor = ctors.stream().filter(c->c.getParameterCount()==0).findFirst();
+            		// prefer default ctor (if any)
+            		if( defCtor.isPresent() ) {
+            			bean = tryCreate(def.clazz, defCtor.get());
+            			ctors.remove(defCtor.get());
+            		}
+            		// if defaultCtor wasn't successful, try the others
+            		if( bean == null ) {
+    	            	for( Constructor<?> ctor : ctors ) {
+    	            		bean = tryCreate(def.clazz, ctor);
+    	            		if( bean != null) break;
+    	            	}
+            		}
             	}
             	if( bean == null ) {
             		throw new RuntimeException("could not create bean: "+id);
