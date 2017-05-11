@@ -27,12 +27,13 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AniWriter extends Worker {
 	
+	public static final String ANIM = "ANIM";
 	private List<Palette> palettes;
 	private int version;
 	private String filename;
 	private List<Animation> anis;
 	private Map<String,Integer> offsetMap;
-	private String header = "ANIM";
+	private String header = ANIM;
 	
 	public AniWriter(List<Animation> anis, String filename, int version, List<Palette> palettes, ProgressEventListener progressEvt) {
 		this.anis = anis;

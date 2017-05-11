@@ -33,7 +33,10 @@ public class AniReader {
 		try {
 			is = new DataInputStream(new FileInputStream(filename));
 			byte[] magic = new byte[4];
-			is.read(magic); //
+			is.read(magic);
+			if( !AniWriter.ANIM.equals(new String(magic, "UTF-8")) ) {
+				throw new RuntimeException("bad file format: " + filename);
+			}
 			version = is.readShort(); // version
 			log.info("version is {}",version);
 			int numberOfAnimations = is.readShort();

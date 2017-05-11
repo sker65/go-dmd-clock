@@ -866,7 +866,7 @@ public class PinDmdEditor implements EventHandler {
 					Frame f = cani.render(tmp, false);
 					for( int j = 0; j < f.planes.size(); j++) {
 						if (((1 << j) & p.mask) == 0) {
-							Arrays.fill(f.planes.get(j).data, (byte)0);
+							//Arrays.fill(f.planes.get(j).data, (byte)0);
 						}
 					}
 				}
