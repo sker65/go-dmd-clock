@@ -638,7 +638,7 @@ public class PinDmdEditor implements EventHandler {
 		setViewerSelection(frameSeqViewer, cutScene);
 
 		if( ApplicationProperties.getBoolean(ApplicationProperties.AUTOKEYFRAME)) {
-			onAddFrameSeqClicked(SwitchMode.REPLACE);
+			if( selectedRecording.isPresent() ) onAddFrameSeqClicked(SwitchMode.REPLACE);
 		}
 
 		setViewerSelection(sceneListViewer, cutScene);
@@ -1385,18 +1385,18 @@ public class PinDmdEditor implements EventHandler {
 
 		btnMarkStart.setText("Mark Start");
 		btnMarkStart.addListener(SWT.Selection, e -> {
-			cutInfo.setStart(selectedRecording.get().actFrame);
+			cutInfo.setStart(getSourceAnimation().actFrame);
 		});
 
 		btnMarkEnd.setText("Mark End");
 		btnMarkEnd.addListener(SWT.Selection, e -> {
-			cutInfo.setEnd(selectedRecording.get().actFrame);
+			cutInfo.setEnd(getSourceAnimation().actFrame);
 		});
 
 		btnCut.setText("Cut");
 		btnCut.addListener(SWT.Selection, e -> {
 			// respect number of planes while cutting / copying
-				cutScene(selectedRecording.get(), cutInfo.getStart(), cutInfo.getEnd(), buildUniqueName(scenes));
+				cutScene(getSourceAnimation(), cutInfo.getStart(), cutInfo.getEnd(), buildUniqueName(scenes));
 				log.info("cutting out scene from {}", cutInfo);
 				cutInfo.reset();
 			});
@@ -1850,6 +1850,12 @@ public class PinDmdEditor implements EventHandler {
 		
 		return grpKeyframe;
 	}
+	
+	Animation getSourceAnimation() {
+		if( selectedRecording.isPresent() ) return selectedRecording.get();
+		else if ( selectedScene.isPresent() ) return selectedScene.get();
+		return null;
+	}
 
 	private void onEventSpinnerChanged(Spinner spinner, int i) {
 		if( selectedPalMapping != null ) {
@@ -2060,6 +2066,7 @@ public class PinDmdEditor implements EventHandler {
 		if( current != null ) scenesPosMap.put(current.getDesc(), current.actFrame);
 		if( a != null ) {
 			// deselect recording
+			cutInfo.reset();
 			dmdWidget.resetSelection();
 			aniListViewer.setSelection(StructuredSelection.EMPTY);
 			goDmdGroup.updateAnimation(a);
@@ -2110,7 +2117,8 @@ public class PinDmdEditor implements EventHandler {
 		if( current == null && a == null ) return;
 		if(a!= null && current != null && a.getDesc().equals(current.getDesc())) return;
 		if( current != null ) recordingsPosMap.put(current.getDesc(), current.actFrame);
-		if( a != null) {		
+		if( a != null) {
+			cutInfo.reset();
 			dmdWidget.resetSelection();
 			sceneListViewer.setSelection(StructuredSelection.EMPTY);
 			btnMask.setEnabled(true);
