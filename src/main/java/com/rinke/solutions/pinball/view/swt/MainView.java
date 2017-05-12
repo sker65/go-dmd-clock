@@ -106,7 +106,10 @@ import com.rinke.solutions.pinball.widget.PaletteTool;
 import com.rinke.solutions.pinball.widget.RectTool;
 import com.rinke.solutions.pinball.widget.SelectTool;
 import com.rinke.solutions.pinball.widget.SetPixelTool;
+import com.thoughtworks.xstream.XStream;
+
 import static com.rinke.solutions.pinball.view.model.ViewCmd.*;
+
 import org.eclipse.core.databinding.beans.PojoProperties;
 
 @Slf4j
@@ -169,7 +172,6 @@ public class MainView {
 		beanFactory.setSingleton("plugins", Arrays.asList(""));
 		beanFactory.setSingleton("pluginsPath", "foo");
 		beanFactory.setSingleton("beanFactory", beanFactory);
-		beanFactory.setSingleton("recentPalettesMenuManager",recentPalettesMenuManager);
 		
 		beanFactory.inject(this);
 	}
@@ -203,10 +205,11 @@ public class MainView {
 		Animation animation = Animation.buildAnimationFromFile(filename, AnimationType.MAME);
 		model.recordings.put(animation.getDesc(), animation);
 		
+		createContents(shell,vm.dmd);
+		beanFactory.setSingleton("recentPalettesMenuManager",recentPalettesMenuManager);
+
 		List<ViewHandler> handlers = beanFactory.getBeansOfType(ViewHandler.class);
 		handlers.forEach(h->dispatcher.registerHandler(h));
-		
-		createContents(shell,vm.dmd);
 		
 		vm.addPropertyChangeListener( e->viewModelChanged(e) );
 
@@ -1422,6 +1425,9 @@ public class MainView {
 				}
 			}
 		}
+		// new vm is ready
+		XStream xStream = new XStream();
+		log.info( xStream.toXML(vm) );
 	}
 	
 	private Class<?> toPrimitive(Class<?> clz) {
@@ -1438,7 +1444,6 @@ public class MainView {
 	public void setPaletteTool(PaletteTool paletteTool) {
 		 this.paletteTool = paletteTool;
 	}
-	
 	protected DataBindingContext initDataBindings() {
 		DataBindingContext bindingContext = new DataBindingContext();
 		//
@@ -1611,6 +1616,10 @@ public class MainView {
 		IObservableValue palettePaletteToolObserveValue = PojoProperties.value("palette").observe(paletteTool);
 		IObservableValue selectedPaletteVmObserveValue = BeanProperties.value("selectedPalette").observe(vm);
 		bindingContext.bindValue(palettePaletteToolObserveValue, selectedPaletteVmObserveValue, null, null);
+		//
+		IObservableValue observeSelectionBtnLivePreviewObserveWidget = WidgetProperties.selection().observe(btnLivePreview);
+		IObservableValue livePreviewVmObserveValue = BeanProperties.value("livePreview").observe(vm);
+		bindingContext.bindValue(observeSelectionBtnLivePreviewObserveWidget, livePreviewVmObserveValue, null, null);
 		//
 		return bindingContext;
 	}

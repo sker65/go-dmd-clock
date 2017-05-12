@@ -9,13 +9,21 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.Bean;
-import com.rinke.solutions.pinball.view.CmdDispatcher.Command;
 import com.rinke.solutions.pinball.view.handler.ViewHandler;
+import com.rinke.solutions.pinball.view.model.ViewModel;
+import com.rinke.solutions.pinball.view.model.XStreamUtil;
 
 @Slf4j
 @Bean
 public class ReflectionDispatcher implements CmdDispatcher {
+	
+	@Autowired
+	ViewModel viewModel;
+	
+	@Autowired
+	XStreamUtil xStreamUtil;
 	
 	List<ViewHandler> handler = new ArrayList<>();
 
@@ -48,6 +56,8 @@ public class ReflectionDispatcher implements CmdDispatcher {
 			log.error("**** cmd {} was not handled", cmd);
 			//throw new RuntimeException("cmd "+cmd.name+ " was not handled");
 		}
+		
+		//log.info( xStreamUtil.toXML(viewModel) );
 	}
 
 	private Throwable unroll(Throwable e) {

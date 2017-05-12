@@ -1,10 +1,16 @@
 package com.rinke.solutions.pinball.view.handler;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.util.HashMap;
+import java.util.Map;
+
 import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.Value;
 import com.rinke.solutions.pinball.DeviceMode;
 import com.rinke.solutions.pinball.io.Pin2DmdConnector;
 import com.rinke.solutions.pinball.io.Pin2DmdConnector.ConnectionHandle;
+import com.rinke.solutions.pinball.io.Pin2DmdConnector.UsbCmd;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.util.Config;
 import com.rinke.solutions.pinball.util.MessageUtil;
@@ -23,10 +29,14 @@ public class LivePreviewHandler {
 	
 	@Value(key=Config.PIN2DMD_ADRESS)
 	private String pin2dmdAdress;
+	
 	private ConnectionHandle handle;
 	
 	@Autowired
 	private MessageUtil messageUtil;
+	
+	@Autowired
+	ExportHandler exportHandler;
 
 	public LivePreviewHandler(ViewModel vm, Model model, CmdDispatcher dispatcher) {
 		super();
@@ -35,6 +45,25 @@ public class LivePreviewHandler {
 		this.dispatcher = dispatcher;
 	}
 
+	public void onUploadProject() {
+		Map<String, ByteArrayOutputStream> captureOutput = new HashMap<>();
+		exportHandler.exportProject("a.dat", f -> {
+			ByteArrayOutputStream stream = new ByteArrayOutputStream();
+			captureOutput.put(f, stream);
+			return stream;
+		}, true);
+
+		connector.transferFile("pin2dmd.pal", new ByteArrayInputStream(captureOutput.get("a.dat").toByteArray()));
+		if (captureOutput.containsKey("a.fsq")) {
+			connector.transferFile("pin2dmd.fsq", new ByteArrayInputStream(captureOutput.get("a.fsq").toByteArray()));
+		}
+		try {
+			Thread.sleep(1500);
+		} catch (InterruptedException e) {
+		}
+		connector.sendCmd(UsbCmd.RESET);
+	}
+	
 	public void onUploadPalette(Palette palette) {
 		if(vm.isLivePreview() && connector != null) {
 			connector.upload(palette);
@@ -51,8 +80,6 @@ public class LivePreviewHandler {
 				}
 				// upload actual palette
 				connector.switchToPal(vm.selectedPalette.index, handle);
-				// bind menu directly to vm
-				//setEnableUsbTooling(!livePreviewIsOn);
 			} catch (RuntimeException ex) {
 				messageUtil.warn("usb problem", "Message was: " + ex.getMessage());
 				vm.setLivePreview(false);
@@ -61,14 +88,12 @@ public class LivePreviewHandler {
 			if (handle != null) {
 				try {
 					connector.release(handle);
-					//setEnableUsbTooling(!livePreviewIsOn);
 				} catch (RuntimeException ex) {
 					messageUtil.warn("usb problem", "Message was: " + ex.getMessage());
 				}
 				handle = null;
 			}
 		}
-
 	}
 
 

@@ -17,7 +17,6 @@ import com.rinke.solutions.pinball.animation.EditMode;
 import com.rinke.solutions.pinball.model.Bookmark;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.PaletteType;
-import com.rinke.solutions.pinball.view.CmdDispatcher;
 import com.rinke.solutions.pinball.widget.DMDWidget.Rect;
 
 @Bean
