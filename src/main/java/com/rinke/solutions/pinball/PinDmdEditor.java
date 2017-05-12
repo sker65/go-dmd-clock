@@ -299,7 +299,9 @@ public class PinDmdEditor implements EventHandler {
 	private EditMode editMode;
 	private ClipboardHandler clipboardHandler;
 	private TabMode tabMode;
-	private AutosaveHandler autoSaveHandler;;
+	private AutosaveHandler autoSaveHandler;
+	private Observer cutObserver1;
+	private Observer cutObserver2;;
 	
 	enum TabMode {
 		KEYFRAME("KeyFrame"), GODMD("goDMD"), PROP("Properties");
@@ -462,9 +464,10 @@ public class PinDmdEditor implements EventHandler {
 		ObserverManager.bind(animationHandler, e -> btnPrev.setEnabled(e), () -> animationHandler.isStopped() && animationHandler.hasAnimations());
 		ObserverManager.bind(animationHandler, e -> btnNext.setEnabled(e), () -> animationHandler.isStopped() && animationHandler.hasAnimations());
 
-		ObserverManager.bind(cutInfo, e -> btnCut.setEnabled(e), () -> (cutInfo.getStart() > 0 && cutInfo.getEnd() > 0));
+		cutObserver1 = ObserverManager.bind(cutInfo, e -> btnCut.setEnabled(e), () -> (cutInfo.canCut() ));
 
-		ObserverManager.bind(cutInfo, e -> btnMarkEnd.setEnabled(e), () -> (cutInfo.getStart() > 0));
+		cutObserver2 = ObserverManager.bind(cutInfo, e -> btnMarkEnd.setEnabled(e),
+				() -> (cutInfo.canMarkEnd(getSourceAnimation()!=null?getSourceAnimation().actFrame:0)));
 
 		//ObserverManager.bind(animations, e -> btnStartStop.setEnabled(e), () -> !this.animations.isEmpty() && animationHandler.isStopped());
 		ObserverManager.bind(recordings, e -> btnPrev.setEnabled(e), () -> !this.recordings.isEmpty());
@@ -2804,6 +2807,9 @@ public class PinDmdEditor implements EventHandler {
 			lblPlanesVal.setText("" + evt.frame.planes.size());
 
 			updateHashes(evt.frame);
+			
+			cutObserver1.update(cutInfo, null);
+			cutObserver2.update(cutInfo, null);
 			
 			lastTimeCode = evt.frame.timecode;
 			if (livePreviewActive && evt.frame != null) {

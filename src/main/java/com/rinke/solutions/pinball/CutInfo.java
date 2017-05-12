@@ -46,4 +46,12 @@ public class CutInfo extends Observable {
         return "CutInfo [start=" + start + ", end=" + end + "]";
     }
 
+	public boolean canCut() {
+		return end>start;
+	}
+
+	public boolean canMarkEnd(int actFrame) {
+		return actFrame>start;
+	}
+
 }
