@@ -159,6 +159,10 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 	public boolean isSelectionSet() {
 		return selection!=null;
 	}
+	
+	public void setPitch(int p) {
+		this.pitch = p;
+	}
 
 	@Override
 	public void setBounds(int x, int y, int width, int height) {

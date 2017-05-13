@@ -686,13 +686,13 @@ public class PinDmdEditor implements EventHandler {
 		Project projectToImport = (Project) fileHelper.loadObject(filename);
 		// merge into existing Project
 		HashSet<String> collisions = new HashSet<>();
-		for (String key : projectToImport.frameSeqMap.keySet()) {
+		/*for (String key : projectToImport.frameSeqMap.keySet()) {
 			if (project.frameSeqMap.containsKey(key)) {
 				collisions.add(key);
 			} else {
 				project.frameSeqMap.put(key, projectToImport.frameSeqMap.get(key));
 			}
-		}
+		}*/
 		if (!collisions.isEmpty()) {
 			MessageBox messageBox = new MessageBox(shell, SWT.ICON_WARNING | SWT.OK | SWT.IGNORE | SWT.ABORT);
 
@@ -843,21 +843,21 @@ public class PinDmdEditor implements EventHandler {
 		licManager.requireOneOf(Capability.VPIN, Capability.REALPIN, Capability.GODMD);
 
 		// rebuild frame seq map	
-		project.frameSeqMap.clear();
+		HashMap <String,FrameSeq> frameSeqMap = new HashMap<>();
 		for (PalMapping p : project.palMappings) {
 			if (p.frameSeqName != null) {
 				FrameSeq frameSeq = new FrameSeq(p.frameSeqName);
 				if (p.switchMode.equals(SwitchMode.ADD) || p.switchMode.equals(SwitchMode.FOLLOW) ) {
 					frameSeq.mask = 0b11111100;
 				}
-				project.frameSeqMap.put(p.frameSeqName, frameSeq);
+				frameSeqMap.put(p.frameSeqName, frameSeq);
 			}
 		}
 		
 		// VPIN
 		if( !realPin ) {
 			List<Animation> anis = new ArrayList<>();
-			for (FrameSeq p : project.frameSeqMap.values()) {
+			for (FrameSeq p : frameSeqMap.values()) {
 				Animation ani = scenes.get(p.name);
 				// copy without extending frames
 				CompiledAnimation cani = ani.cutScene(ani.start, ani.end, 0);
@@ -901,7 +901,7 @@ public class PinDmdEditor implements EventHandler {
 		} else {
 			// for all referenced frame mapping we must also copy the frame data as
 			// there are two models
-			for (FrameSeq p : project.frameSeqMap.values()) {
+			for (FrameSeq p : frameSeqMap.values()) {
 				CompiledAnimation ani = scenes.get(p.name);				
 				ani.actFrame = 0;
 				DMD tmp = new DMD(dmdSize.width, dmdSize.height);
@@ -924,7 +924,7 @@ public class PinDmdEditor implements EventHandler {
 			try {
 				Map<String, Integer> map = new HashMap<String, Integer>();
 				BinaryExporter exporter = BinaryExporterFactory.getInstance();
-				if (!project.frameSeqMap.isEmpty()) {
+				if (!frameSeqMap.isEmpty()) {
 					log.info("exporter instance {} wrinting FSQ", exporter);
 					DataOutputStream dos = new DataOutputStream(streamProvider.buildStream(replaceExtensionTo("fsq", filename)));
 					map = exporter.writeFrameSeqTo(dos, project, 
@@ -976,11 +976,7 @@ public class PinDmdEditor implements EventHandler {
 		}
 		
 		storeOrDeleteProjectAnimations(aniFilename);
-
-		Map<String,FrameSeq> frameSeqMapSave = project.frameSeqMap;
-		project.frameSeqMap = null; // remove this for saving
-		fileHelper.storeObject(project, filename);
-		project.frameSeqMap = frameSeqMapSave;
+		fileHelper.storeObject(project, filename);		
 		project.dirty = false;
 	}
 

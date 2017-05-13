@@ -85,6 +85,7 @@ public class GifExporter extends Dialog {
 		int width = dmd.getWidth() * pitch +20;
 		int height = dmd.getHeight() * pitch +20;;
 		dmdWidget.setBounds(0, 0, width, height);
+		dmdWidget.setPitch(pitch);
 		
 		progressBar.setMinimum(0);
 		progressBar.setMaximum(ani.getFrameCount(dmd));
@@ -111,7 +112,9 @@ public class GifExporter extends Dialog {
 						
 						gifWriter.writeToSequence(ImageUtil.convert(swtImage), ani.getRefreshDelay());
 						
-						display.asyncExec(()->progressBar.setSelection(ani.actFrame));
+						display.asyncExec(()->{
+							if( !progressBar.isDisposed()) progressBar.setSelection(ani.actFrame);	
+						});
 	
 						LOG.info("exporting frame {} to {}", ani.actFrame, filename);
 						if (abort || ani.hasEnded())
@@ -204,7 +207,7 @@ public class GifExporter extends Dialog {
         GridData gd_comboSize = new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1);
         gd_comboSize.widthHint = 99;
         comboSize.setLayoutData(gd_comboSize);
-        comboSize.setItems(new String[] {"2","3","4"});
+        comboSize.setItems(new String[] {"2","3","4","6","8"});
         comboSize.select(0);
         
         Button btnSave = new Button(grpConfig, SWT.NONE);
