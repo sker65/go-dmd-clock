@@ -17,6 +17,8 @@ public class ViewCmd {
 	public static final String SELECTED_BOOKMARK = "selectedBookmark";
 	
 	// drawing handler
+	public static final String MARK_START = "markStart";
+	public static final String MARK_END = "markEnd";
 	public static final String CUT_SCENE = "cutScene";
 	public static final String DELAY_TXT_CHANGED = "delayTxtChanged";
 	public static final String REDO = "redo";
@@ -38,7 +40,7 @@ public class ViewCmd {
 	public static final String START_STOP = "startStop";
 
 	// recordings handler
-	public static final String SORT_RECORDING = "sortRecording";
+	public static final String SORT_RECORDING = "sortRecordings";
 	public static final String DELETE_RECORDING = "deleteRecording";
 	
 	// menu handler

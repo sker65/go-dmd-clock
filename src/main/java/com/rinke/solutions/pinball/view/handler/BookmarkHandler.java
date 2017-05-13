@@ -31,6 +31,10 @@ public class BookmarkHandler extends ViewHandler {
 		vm.setBookmarks(bookmarks);
 	}
 	
+	public void onSelectedBookmark() {	
+		// need when empty list gets selected
+	}
+	
 	public void onSelectedBookmark(Bookmark bookmark) {	
 		if( bookmark != null ) {
 			vm.setActFrame(bookmark.pos);

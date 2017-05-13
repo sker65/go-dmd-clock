@@ -1,6 +1,6 @@
 package com.rinke.solutions.pinball.widget;
 
-import com.rinke.solutions.pinball.widget.DMDWidget.Rect;
+import com.rinke.solutions.pinball.view.model.Rect;
 
 import lombok.extern.slf4j.Slf4j;
 

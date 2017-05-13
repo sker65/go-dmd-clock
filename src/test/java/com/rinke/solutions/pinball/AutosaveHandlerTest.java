@@ -45,7 +45,7 @@ public class AutosaveHandlerTest {
 	@Test
 	public void testRun() throws Exception {
 		uut.run();
-		verify(dispatcherMock).timerExec(eq(300000), eq(uut));
+		verify(dispatcherMock).exec(eq(300000), eq(uut));
 	}
 
 	@Test

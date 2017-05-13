@@ -19,7 +19,7 @@ public class CompiledAnimationTest {
 	public void setup() {
 		Animation ani = Animation.buildAnimationFromFile("./src/test/resources/drwho-dump.txt.gz", AnimationType.MAME);
 		DMD dmd = new DMD(PinDmdEditor.DMD_WIDTH, PinDmdEditor.DMD_HEIGHT);
-		dmd.setNumberOfSubframes(4);
+		dmd.setNumberOfPlanes(4);
 		ani.render(dmd, false);
 		uut = (CompiledAnimation) ani.cutScene(30, 200, 4);
 		uut.setDesc("foo");
@@ -28,7 +28,7 @@ public class CompiledAnimationTest {
 	@Test
 	public void testCommitDMDchanges() throws Exception {
 		DMD dmd = new DMD(PinDmdEditor.DMD_WIDTH, PinDmdEditor.DMD_HEIGHT);
-		dmd.setNumberOfSubframes(4);
+		dmd.setNumberOfPlanes(4);
 		Frame frame = uut.render(dmd , true);
 		byte sum=0;
 		for (Plane p : frame.planes) {

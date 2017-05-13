@@ -1,8 +1,68 @@
 package com.rinke.solutions.pinball.view.swt;
 
+import static com.rinke.solutions.pinball.view.model.ViewCmd.ABOUT;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.ADD_FRAME_SEQ;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.ADD_KEY_FRAME;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.APPLY_PALETTE;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.CONFIGURATION;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.COPY;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.COPY_AND_MOVE_TO_NEXT_FRAME;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.COPY_AND_MOVE_TO_PREV_FRAME;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.CUT;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.CUT_SCENE;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.DELAY_TXT_CHANGED;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.DELETE_BOOKMARK;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.DELETE_KEY_FRAME;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.DELETE_MASK;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.DELETE_PALETTE;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.DELETE_RECORDING;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.DELETE_SCENE;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.DEVICE_CONFIGURATION;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.EXPORT_GIF;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.EXPORT_GO_DMD;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.EXPORT_REALPIN_PROJECT;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.EXPORT_VPIN_PROJECT;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.FETCH_DURATION;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.FRAME_CHANGED;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.HASH_SELECTED;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.IMPORT_PROJECT;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.INVERT_MASK;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.LOAD_ANI;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.LOAD_ANI_WITH_FC;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.LOAD_PALETTE;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.LOAD_PROJECT;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.MARK_END;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.MARK_START;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.MASK_ACTIVE;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.NEW_BOOKMARK;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.NEW_PALETTE;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.NEW_PROJECT;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.NEXT_FRAME;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.PASTE;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.PASTE_HOOVER;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.PREV_FRAME;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.QUIT;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.REDO;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.REMOVE_SELECTION;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.RENAME_PALETTE;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.SAVE_ANI_WITH_FC;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.SAVE_PALETTE;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.SAVE_PROJECT;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.SAVE_SINGLE_ANI_WITH_FC;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.SELECTED_BOOKMARK;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.SELECT_ALL;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.SORT_KEY_FRAMES;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.SORT_RECORDING;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.SORT_SCENES;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.START_STOP;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.UNDO;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.UPLOAD_PALETTE;
+import static com.rinke.solutions.pinball.view.model.ViewCmd.UPLOAD_PROJECT;
+
 import java.beans.PropertyChangeEvent;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -17,8 +77,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.databinding.DataBindingContext;
 import org.eclipse.core.databinding.beans.BeanProperties;
 import org.eclipse.core.databinding.beans.BeansObservables;
+import org.eclipse.core.databinding.beans.PojoObservables;
+import org.eclipse.core.databinding.beans.PojoProperties;
 import org.eclipse.core.databinding.observable.Realm;
-import org.eclipse.core.databinding.observable.list.IObservableList;
 import org.eclipse.core.databinding.observable.map.IObservableMap;
 import org.eclipse.core.databinding.observable.set.IObservableSet;
 import org.eclipse.core.databinding.observable.value.IObservableValue;
@@ -44,8 +105,6 @@ import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.program.Program;
@@ -71,27 +130,18 @@ import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.GoDmdGroup;
 import com.rinke.solutions.pinball.PinDmdEditor;
 import com.rinke.solutions.pinball.PinDmdEditor.TabMode;
-// muss hier raus (nur demo daten laden )
-import com.rinke.solutions.pinball.animation.Animation;
-import com.rinke.solutions.pinball.animation.AnimationType;
 // maybe split in two types (for decoupling)
 import com.rinke.solutions.pinball.animation.EditMode;
 // 
 import com.rinke.solutions.pinball.model.Bookmark;
-import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.PalMapping.SwitchMode;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.PaletteType;
-import com.rinke.solutions.pinball.model.Project;
 import com.rinke.solutions.pinball.ui.RegisterLicense;
 import com.rinke.solutions.pinball.ui.UsbConfig;
 import com.rinke.solutions.pinball.util.Config;
 import com.rinke.solutions.pinball.view.CmdDispatcher;
 import com.rinke.solutions.pinball.view.CmdDispatcher.Command;
-import com.rinke.solutions.pinball.view.handler.BookmarkHandler;
-import com.rinke.solutions.pinball.view.handler.HashButtonHandler;
-import com.rinke.solutions.pinball.view.handler.KeyFrameHandler;
-import com.rinke.solutions.pinball.view.handler.PlayingAniHandler;
 import com.rinke.solutions.pinball.view.handler.RecordingsHandler;
 import com.rinke.solutions.pinball.view.handler.ViewHandler;
 import com.rinke.solutions.pinball.view.model.Model;
@@ -103,14 +153,11 @@ import com.rinke.solutions.pinball.widget.DrawTool;
 import com.rinke.solutions.pinball.widget.FloodFillTool;
 import com.rinke.solutions.pinball.widget.LineTool;
 import com.rinke.solutions.pinball.widget.PaletteTool;
+import com.rinke.solutions.pinball.widget.PasteTool;
 import com.rinke.solutions.pinball.widget.RectTool;
 import com.rinke.solutions.pinball.widget.SelectTool;
 import com.rinke.solutions.pinball.widget.SetPixelTool;
-import com.thoughtworks.xstream.XStream;
-
-import static com.rinke.solutions.pinball.view.model.ViewCmd.*;
-
-import org.eclipse.core.databinding.beans.PojoProperties;
+// muss hier raus (nur demo daten laden )
 
 @Slf4j
 public class MainView {
@@ -187,26 +234,20 @@ public class MainView {
 	public void open() {
 		display = Display.getDefault();
 		shell = new Shell();
-		
-		Project p = new Project();
-		p.palMappings.add( new PalMapping(1, "KeyFrame 1", SwitchMode.PALETTE));
-		p.palMappings.add( new PalMapping(2, "KeyFrame 2", SwitchMode.REPLACE));
-		p.palMappings.add( new PalMapping(2, "KeyFrame 3", SwitchMode.FOLLOW));
-		p.palMappings.add( new PalMapping(2, "KeyFrame 4", SwitchMode.EVENT));
-		
+
 		init();
 		
-		vm.loadTestData();
-		
-		model.recordings.addObserver((o,a)->recordingsHandler.populate());
-
 		// load some recording
-		String filename = "./src/test/resources/drwho-dump.txt.gz";
-		Animation animation = Animation.buildAnimationFromFile(filename, AnimationType.MAME);
-		model.recordings.put(animation.getDesc(), animation);
+//		String filename = "./src/test/resources/drwho-dump.txt.gz";
+//		Animation animation = Animation.buildAnimationFromFile(filename, AnimationType.MAME);
+//		model.recordings.put(animation.getDesc(), animation);
+		
+		//model.recordings.clear();
 		
 		createContents(shell,vm.dmd);
 		beanFactory.setSingleton("recentPalettesMenuManager",recentPalettesMenuManager);
+		beanFactory.setSingleton("recentProjectsMenuManager",recentProjectsMenuManager);
+		beanFactory.setSingleton("recentAnimationsMenuManager", recentAnimationsMenuManager);
 
 		List<ViewHandler> handlers = beanFactory.getBeansOfType(ViewHandler.class);
 		handlers.forEach(h->dispatcher.registerHandler(h));
@@ -214,6 +255,13 @@ public class MainView {
 		vm.addPropertyChangeListener( e->viewModelChanged(e) );
 
 		vm.init();
+		//ProjectHandler projectHandler = beanFactory.getBeanByType(ProjectHandler.class);
+		//projectHandler.loadProject("/Users/stefanri/Documents/privat/Pinball/drive-download-20170501T144233Z-001/SFII.xml");
+		
+		vm.availableEditModes.addObserver((o,p)->{
+			editModeViewer.setInput(vm.availableEditModes);
+			editModeViewer.refresh();
+		});
 		
 		shell.open();
 		shell.layout();
@@ -542,15 +590,12 @@ public class MainView {
 		MenuItem mntmPaste = new MenuItem(menu_5, SWT.NONE);
 		mntmPaste.setText("Paste\tCtrl-V");
 		mntmPaste.setAccelerator(SWT.MOD1 + 'V');
-		mntmPaste.addListener(SWT.Selection, e -> dispatchCmd(PASTE, vm.selectedPalette));
-//	VIEW		clipboardHandler.onPaste(); 
-//			dmdRedraw();
-//		});
+		mntmPaste.addListener(SWT.Selection, e -> dispatchCmd(PASTE));
 
 		MenuItem mntmPasteWithHover = new MenuItem(menu_5, SWT.NONE);
 		mntmPasteWithHover.setText("Paste Over\tShift-Ctrl-V");
 		mntmPasteWithHover.setAccelerator(SWT.MOD1 + SWT.MOD2 + 'V');
-		mntmPasteWithHover.addListener(SWT.Selection, e -> dispatchCmd(PASTE_HOOVER, vm.selectedPalette));
+		mntmPasteWithHover.addListener(SWT.Selection, e -> dispatchCmd(PASTE_HOOVER));
 		
 		MenuItem mntmSelectAll = new MenuItem(menu_5, SWT.NONE);
 		mntmSelectAll.setText("Select All\tCtrl-A");
@@ -755,11 +800,9 @@ public class MainView {
 		aniList.setLayoutData(gd_aniList);
 		aniList.setLinesVisible(true);
 		aniList.addKeyListener(new EscUnselect(recordingsListViewer));
-		
-//VIEW		aniListViewer.setContentProvider(ArrayContentProvider.getInstance());
-//		aniListViewer.setLabelProvider(new LabelProviderAdapter<Animation>(ani -> ani.getDesc()));
-//		aniListViewer.setInput(recordings.values());
-//		aniListViewer.addSelectionChangedListener(event -> onRecordingSelectionChanged(getFirstSelected(event)));
+		recordingsListViewer.addSelectionChangedListener(event -> vm.setSelectedRecording(getFirstSelected(event)));
+		registerProp("selectedRecording", recordingsListViewer);
+
 		
 		// created edit support for ani / recordings
 //VIEW		TableViewerColumn viewerCol1 = new TableViewerColumn(aniListViewer, SWT.LEFT);
@@ -778,10 +821,8 @@ public class MainView {
 		sceneList.setLayoutData(gd_list);
 		sceneList.setLinesVisible(true);
 		sceneList.addKeyListener(new EscUnselect(sceneListViewer));
-//VIEW		sceneListViewer.setContentProvider(ArrayContentProvider.getInstance());
-//		sceneListViewer.setLabelProvider(new LabelProviderAdapter<Animation>(o -> o.getDesc()));
-//		sceneListViewer.setInput(scenes.values());
-//		sceneListViewer.addSelectionChangedListener(event -> onSceneSelectionChanged(getFirstSelected(event)));
+		sceneListViewer.addSelectionChangedListener(event -> vm.setSelectedScene(getFirstSelected(event)));
+		registerProp("selectedScene", sceneListViewer);
 
 //VIEW		TableViewerColumn viewerCol2 = new TableViewerColumn(sceneListViewer, SWT.LEFT);
 //		viewerCol2.setEditingSupport(new GenericTextCellEditor<Animation>(sceneListViewer, ani -> ani.getDesc(), (ani, v) -> {
@@ -831,10 +872,6 @@ public class MainView {
 		btnRemoveAni.setText("Remove");
 		btnRemoveAni.setEnabled(false);
 		btnRemoveAni.addListener(SWT.Selection, e -> dispatchCmd(DELETE_RECORDING, vm.selectedRecording));
-//VIEW		{
-//			project.bookmarksMap.remove(selectedRecording.get().getDesc());
-//			onRemove(selectedRecording, recordings);
-//		} );
 
 		btnSortAni = new Button(composite_1, SWT.NONE);
 		btnSortAni.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
@@ -999,7 +1036,7 @@ public class MainView {
 
 		btnStartStop = new Button(composite, SWT.NONE);
 		btnStartStop.setText("Start");
-		btnStartStop.addListener(SWT.Selection, e -> dispatchCmd(START_STOP, vm.animationIsStopped ));
+		btnStartStop.addListener(SWT.Selection, e -> dispatchCmd(START_STOP ));
 
 		btnPrev = new Button(composite, SWT.NONE);
 		btnPrev.setText("<");
@@ -1016,18 +1053,13 @@ public class MainView {
 		btnCut.setToolTipText("Cuts out a new scene for editing and use a replacement or color mask");
 
 		btnMarkStart.setText("Mark Start");
-		btnMarkStart.addListener(SWT.Selection, e -> vm.cutInfo.setStart(vm.actFrame));
+		btnMarkStart.addListener(SWT.Selection, e -> dispatchCmd(MARK_START));
 
 		btnMarkEnd.setText("Mark End");
-		btnMarkEnd.addListener(SWT.Selection,  e -> vm.cutInfo.setEnd(vm.actFrame) );
+		btnMarkEnd.addListener(SWT.Selection,  e -> dispatchCmd(MARK_END) );
 
 		btnCut.setText("Cut");
 		btnCut.addListener(SWT.Selection, e -> dispatchCmd(CUT_SCENE, vm.cutInfo) );
-//	VIEW		// respect number of planes while cutting / copying
-//				cutScene(selectedRecording.get(), cutInfo.getStart(), cutInfo.getEnd(), buildUniqueName(scenes));
-//				log.info("cutting out scene from {}", cutInfo);
-//				cutInfo.reset();
-//			});
 
 		Button btnIncPitch = new Button(composite, SWT.NONE);
 		btnIncPitch.setText("+");
@@ -1070,12 +1102,12 @@ public class MainView {
 		gd_paletteViewerCombo.widthHint = 166;
 		paletteViewerCombo.setLayoutData(gd_paletteViewerCombo);
 
-		ObservableListContentProvider listContentProvider = new ObservableListContentProvider();
-		paletteComboViewer.setLabelProvider(new LabelProviderAdapter<Palette>(o -> o.index + " - " + o.name));
-		paletteComboViewer.setContentProvider(listContentProvider);
-		//
-		IObservableList palettesVmObserveList = BeanProperties.list("palettes").observe(vm);
-		paletteComboViewer.setInput(palettesVmObserveList);
+//		ObservableListContentProvider listContentProvider = new ObservableListContentProvider();
+//		paletteComboViewer.setLabelProvider(new LabelProviderAdapter<Palette>(o -> o.index + " - " + o.name));
+//		paletteComboViewer.setContentProvider(listContentProvider);
+//		//
+//		IObservableList palettesVmObserveList = BeanProperties.list("palettes").observe(vm);
+//		paletteComboViewer.setInput(palettesVmObserveList);
 		//
 		paletteComboViewer.addSelectionChangedListener( e-> setProp(vm, "selectedPalette", getFirstSelected(e)));
 		registerProp("selectedPalette", paletteComboViewer);		
@@ -1168,35 +1200,35 @@ public class MainView {
 
 		ToolItem tltmPen = new ToolItem(drawToolBar, SWT.RADIO);
 		tltmPen.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/pencil.png")));
-		tltmPen.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("pencil")));
+		tltmPen.addListener(SWT.Selection, e -> dispatchCmd("setDrawTool", "pencil"));
 
 		ToolItem tltmFill = new ToolItem(drawToolBar, SWT.RADIO);
 		tltmFill.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/color-fill.png")));
-		tltmFill.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("fill")));
+		tltmFill.addListener(SWT.Selection, e -> dispatchCmd("setDrawTool", "fill"));
 
 		ToolItem tltmRect = new ToolItem(drawToolBar, SWT.RADIO);
 		tltmRect.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/rect.png")));
-		tltmRect.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("rect")));
+		tltmRect.addListener(SWT.Selection, e -> dispatchCmd("setDrawTool", "rect"));
 
 		ToolItem tltmLine = new ToolItem(drawToolBar, SWT.RADIO);
 		tltmLine.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/line.png")));
-		tltmLine.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("line")));
+		tltmLine.addListener(SWT.Selection, e -> dispatchCmd("setDrawTool", "line"));
 
 		ToolItem tltmCircle = new ToolItem(drawToolBar, SWT.RADIO);
 		tltmCircle.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/oval.png")));
-		tltmCircle.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("circle")));
+		tltmCircle.addListener(SWT.Selection, e -> dispatchCmd("setDrawTool", "circle"));
 
 		ToolItem tltmFilledCircle = new ToolItem(drawToolBar, SWT.RADIO);
 		tltmFilledCircle.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/oval2.png")));
-		tltmFilledCircle.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("filledCircle")));
+		tltmFilledCircle.addListener(SWT.Selection, e -> dispatchCmd("setDrawTool", "filledCircle"));
 
-		//		ToolItem tltmColorize = new ToolItem(drawToolBar, SWT.RADIO);
-//		tltmColorize.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/colorize.png")));
-//		tltmColorize.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("colorize")));
-		
 		ToolItem tltmMark = new ToolItem(drawToolBar, SWT.RADIO);
 		tltmMark.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/select.png")));
-		tltmMark.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("select")));
+		tltmMark.addListener(SWT.Selection, e -> dispatchCmd("setDrawTool", "select"));
+
+		ToolItem tltmPaste = new ToolItem(drawToolBar, SWT.RADIO);
+		tltmPaste.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/paste.png")));
+		tltmPaste.addListener(SWT.Selection, e -> dispatchCmd("setDrawTool", "paste"));
 
 		drawTools.put("pencil", new SetPixelTool(paletteTool.getSelectedColor()));
 		drawTools.put("fill", new FloodFillTool(paletteTool.getSelectedColor()));
@@ -1204,21 +1236,14 @@ public class MainView {
 		drawTools.put("line", new LineTool(paletteTool.getSelectedColor()));
 		drawTools.put("circle", new CircleTool(paletteTool.getSelectedColor(), false));
 		drawTools.put("filledCircle", new CircleTool(paletteTool.getSelectedColor(), true));
-//		drawTools.put("colorize", new ColorizeTool(paletteTool.getSelectedColor()));
+		drawTools.put("paste", new PasteTool(paletteTool.getSelectedColor(),0,0,0,0));
 		drawTools.put("select", new SelectTool(paletteTool.getSelectedColor(), dmdWidget));
 		// notify draw tool on color changes
 		drawTools.values().forEach(d -> paletteTool.addIndexListener(d));
+
 		// let draw tools notify when draw action is finished
+		drawTools.values().forEach(d->d.addObserver((dm,o)->dispatchCmd("frameChanged")));
 
-//VIEW		drawTools.values().forEach(d->d.addObserver((dm,o)->updateHashes(dm)));
-
-//VIEW changeListener on active palette
-//		paletteTool.addListener(palette -> {
-//			if (livePreviewActive) {
-//				connector.upload(activePalette, handle);
-//			}
-//		});
-		
 		editModeViewer = new ComboViewer(grpDrawing, SWT.READ_ONLY);
 		Combo combo_2 = editModeViewer.getCombo();
 		GridData gd_combo_2 = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
@@ -1272,7 +1297,6 @@ public class MainView {
 		btnMask.setLayoutData(gd_btnMask);
 		btnMask.setText("Mask");
 		btnMask.setEnabled(false);
-		btnMask.addListener(SWT.Selection, e -> dispatchCmd(MASK_ACTIVE,btnMask.getSelection()));
 		
 		btnInvert = new Button(grpDrawing, SWT.NONE);
 		btnInvert.setText("Invert");
@@ -1306,34 +1330,27 @@ public class MainView {
 		// include binding created with SWT-Designer
 		m_bindingContext = initDataBindings();
 		
-		// add some bindings manually (SWT Designer doesn't like parsing these??? )
-		ObservableListContentProvider listContentProvider1 = new ObservableListContentProvider();
-		recordingsListViewer.setLabelProvider(new IconLabelProvider<TypedLabel>(shell, o -> o.getIconAndText()));
-		recordingsListViewer.setContentProvider(listContentProvider1);
+		ObservableListContentProvider listContentProvider_5 = new ObservableListContentProvider();
+		IObservableMap[] observeMap = BeansObservables.observeMaps(listContentProvider_5.getKnownElements(), TypedLabel.class, new String[]{"type", "label"});
+		recordingsListViewer.setLabelProvider(new IconMapLabelProvider(shell,observeMap));
+		recordingsListViewer.setContentProvider(listContentProvider_5);
 		//
-		IObservableList recordingsVmObserveList = BeanProperties.list("recordings").observe(vm);
-		recordingsListViewer.setInput(recordingsVmObserveList);
+		recordingsListViewer.setInput(vm.getRecordings());
 		//
 		ObservableListContentProvider listContentProvider_1 = new ObservableListContentProvider();
-		sceneListViewer.setLabelProvider(new IconLabelProvider<TypedLabel>(shell, o -> o.getIconAndText()));
+		IObservableMap[] observeMap_1 = BeansObservables.observeMaps(listContentProvider_1.getKnownElements(), TypedLabel.class, new String[]{"type", "label"});
+		sceneListViewer.setLabelProvider(new IconMapLabelProvider(shell,observeMap_1));
 		sceneListViewer.setContentProvider(listContentProvider_1);
 		//
-		IObservableList scenesVmObserveList = BeanProperties.list("scenes").observe(vm);
-		sceneListViewer.setInput(scenesVmObserveList);
+		sceneListViewer.setInput(vm.getScenes());
 		//
 		ObservableListContentProvider listContentProvider_2 = new ObservableListContentProvider();
-		keyframeTableViewer.setLabelProvider(new IconLabelProvider<TypedLabel>(shell, o -> o.getIconAndText()));
+		IObservableMap[] observeMap_2 = BeansObservables.observeMaps(listContentProvider_2.getKnownElements(), TypedLabel.class, new String[]{"type", "label"});
+		keyframeTableViewer.setLabelProvider(new IconMapLabelProvider(shell,observeMap_2));
 		keyframeTableViewer.setContentProvider(listContentProvider_2);
 		//
-		//IObservableList keyframesVmObserveList = BeanProperties.list("keyframes").observe(vm);
-		keyframeTableViewer.setInput(vm.keyframes);
+		keyframeTableViewer.setInput(vm.getKeyframes());
 
-		ObservableSetContentProvider setContentProvider = new ObservableSetContentProvider();
-		bookmarkComboViewer.setLabelProvider(new LabelProviderAdapter<Bookmark>(o -> o.name+" - "+o.pos));
-		bookmarkComboViewer.setContentProvider(setContentProvider);
-		//
-		IObservableSet bookmarksVmObserveSet = BeanProperties.set("bookmarks").observe(vm);
-		bookmarkComboViewer.setInput(bookmarksVmObserveSet);
 		//
 		
 	}
@@ -1348,11 +1365,17 @@ public class MainView {
 		else viewer.setSelection(StructuredSelection.EMPTY);
 	}
 	
+	private void registerProp(String propName, TableViewer viewer) {
+		tableViewerBindingMap.put(propName, viewer);
+	}
+
 	private void registerProp( String propName, AbstractListViewer viewer) {
 		viewerBindingMap.put(propName, viewer);
 	}
 	
 	Map<String,AbstractListViewer> viewerBindingMap = new HashMap<>();
+	Map<String,TableViewer> tableViewerBindingMap = new HashMap<>();
+	
 	private Combo frameSeqCombo;
 
 	private Display display;
@@ -1367,55 +1390,100 @@ public class MainView {
 	}
 
 	private void viewModelChanged(PropertyChangeEvent e) {
-		log.debug("view model changed {} {}->{}", e.getPropertyName(), e.getOldValue(), e.getNewValue());
-		String p = e.getPropertyName();
+		String propName = e.getPropertyName();
 		Object nv = e.getNewValue();
 		Object ov = e.getOldValue();
+		if( nv == null && ov == null ) return;
+		log.debug("view model changed {} {}->{}", e.getPropertyName(), e.getOldValue(), e.getNewValue());
 		
 		Stream<Button> btns = Arrays.stream(btnHash);
 		// scan special arrays
-		if( p.equals("hashButtonSelected") ) {
+		if( propName.equals("hashButtonSelected") ) {
 			btns.forEach(b->b.setSelection(vm.hashButtonSelected[(int) b.getData()]));
 		} else
 			// these should be done elsewhere
-			if( p.equals("selectedKeyFrame") ) {
+			if( propName.equals("selectedKeyFrame") ) {
 			vm.setDeleteKeyFrameEnabled(nv!=null);
-		} else if( p.equals("selectedRecording") ) {
-			vm.setDeleteRecordingEnabled(nv!=null);
-		} else if( p.equals("selectedScene") ) {
+		} else if( propName.equals("selectedScene") ) {
 			vm.setDeleteSceneEnabled(nv!=null);
+		} else if( propName.equals("frameRedraw") ) {
+			dmdWidget.redraw();
+			previewDmd.redraw();
 		} 
 		
-		else if( p.equals("hashLbl")) {
+		else if( propName.equals("hashLbl")) {
 			btns.forEach(b->b.setText(vm.hashLbl[(int) b.getData()]));
-		} else if( p.equals("hashButtonEnabled") || p.equals("hashButtonsEnabled")) { // beware of the 's'
+		} else if( propName.equals("hashButtonEnabled") || propName.equals("hashButtonsEnabled")) { // beware of the 's'
 			btns.forEach(b->b.setEnabled(vm.hashButtonEnabled[(int) b.getData()] && vm.hashButtonsEnabled ));
-		} else if( p.equals("livePreview") ) { 
+		} else if( propName.equals("livePreview") ) { 
 			mntmUploadPalettes.setEnabled(((Boolean) nv).booleanValue());
 			mntmUploadProject.setEnabled(((Boolean) nv).booleanValue());
+		} else if( propName.equals("drawTool") ) { 
+			DrawTool drawTool = drawTools.get(nv);
+			dmdWidget.setDrawTool(drawTool);
+		} else if( propName.equals("numberOfPlanes") ) { 
+			paletteTool.setNumberOfPlanes((Integer)nv);
 		} 
 		
-		if( viewerBindingMap.containsKey(p)) {
-			setViewerSelection(viewerBindingMap.get(p), nv);
+		if( viewerBindingMap.containsKey(propName)) {
+			setViewerSelection(viewerBindingMap.get(propName), nv);
 		}
+		if( tableViewerBindingMap.containsKey(propName)) {
+			setViewerSelection(tableViewerBindingMap.get(propName), nv);
+		}
+		callOnChangedHandlers(propName, nv, ov);
+	}
+	
+	private static class HandlerInvocation {
+		ViewHandler handler;
+		Method method;
+		public HandlerInvocation(ViewHandler handler, Method method) {
+			super();
+			this.handler = handler;
+			this.method = method;
+		}
+		@Override
+		public String toString() {
+			return String.format("HandlerInvocation [handler=%s, method=%s]", handler.getClass().getSimpleName(), method.getName());
+		}
+	}
+	
+	Map<String,List<HandlerInvocation>> invocationCache = new HashMap<>();
+
+	void callOnChangedHandlers(String propName, Object nv, Object ov) {
+		if( invocationCache.containsKey(propName)) {
+			for( HandlerInvocation hi : invocationCache.get(propName)) {
+				try {
+					hi.method.invoke(hi.handler, new Object[]{ov,nv});
+				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+					log.error("error calling {}", hi, e);
+				}
+			}
+		} else {
+			searchAndCallChangeHandlers(propName, nv, ov);
+		}
+	}
+
+	void searchAndCallChangeHandlers(String propName, Object nv, Object ov) {
 		Class<?> clz = nv!=null?nv.getClass():(ov!=null?ov.getClass():null);
 		Class<?> clz1 = null;
+		String methodName = "on"+StringUtils.capitalize(propName)+"Changed";
 		if( clz != null ) {
-			String methodName = "on"+StringUtils.capitalize(p)+"Changed";
 			clz1 = toPrimitive(clz);
 			for(ViewHandler h : dispatcher.getViewHandlers()) {
-//				log.debug("looking for method {}({}) in {}", methodName, clz,h); 
 				try {
-					Method m = h.getClass().getDeclaredMethod(methodName, new Class<?>[]{clz,clz});
+					Method m = findMethod(methodName, h.getClass(), clz );
 					m.invoke(h, new Object[]{ov,nv});
+					addToCache(propName,m,h);
 				} catch ( SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e1) {
 					log.error("error calling {}", methodName, e1);
 					//throw new RuntimeException("error calling "+methodName, e1);
 				} catch (NoSuchMethodException e1) {
 					if( clz1 != null ) {
 						try {
-							Method m = h.getClass().getDeclaredMethod(methodName, new Class<?>[]{clz1,clz1});
+							Method m = findMethod(methodName, h.getClass(), clz1 );
 							m.invoke(h, new Object[]{ov,nv});
+							addToCache(propName,m,h);
 						} catch (SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e2) {
 							log.error("error calling {}", methodName, e2);
 						} catch (NoSuchMethodException e2) {
@@ -1425,14 +1493,44 @@ public class MainView {
 				}
 			}
 		}
-		// new vm is ready
-		XStream xStream = new XStream();
-		log.info( xStream.toXML(vm) );
+		// if no method found add an empty list, to prevent repeated search
+		if( !invocationCache.containsKey(propName) ) {
+			invocationCache.put(propName, new ArrayList<>());
+		}
 	}
 	
+	private Method findMethod(String methodName, Class<?> handler, Class<?> clz) throws NoSuchMethodException {
+		for(Method m : handler.getDeclaredMethods()) {
+			if( methodName.equals(m.getName())) {
+				if( m.getParameterCount()==2 ) {
+					Class<?>[] parameterTypes = m.getParameterTypes();
+					if( parameterTypes[0].isAssignableFrom(clz) && parameterTypes[1].isAssignableFrom(clz)) {
+						return m;
+					}
+				}
+			}
+		}
+		throw new NoSuchMethodException();
+	}
+
+	synchronized private void addToCache(String propName, Method m, ViewHandler h) {
+		List<HandlerInvocation> list = invocationCache.get(propName);
+		if( list == null ) {
+			list = new ArrayList<>();
+			invocationCache.put(propName, list);
+		}
+		HandlerInvocation i = new HandlerInvocation(h, m);
+		list.add(i);
+		log.debug("add invocation to cache {}", i);
+	}
+
 	private Class<?> toPrimitive(Class<?> clz) {
 		if( Integer.class.equals(clz) ) {
 			return Integer.TYPE;
+		} else if( Boolean.class.equals(clz)) {
+			return Boolean.TYPE;
+		} else if( Long.class.equals(clz)) {
+			return Long.TYPE;
 		}
 		return null;
 	}
@@ -1470,22 +1568,6 @@ public class MainView {
 		IObservableValue observeSelectionScaleObserveWidget = WidgetProperties.selection().observe(scale);
 		IObservableValue actFrameVmObserveValue = BeanProperties.value("actFrame").observe(vm);
 		bindingContext.bindValue(observeSelectionScaleObserveWidget, actFrameVmObserveValue, null, null);
-		//
-		ObservableListContentProvider listContentProvider_3 = new ObservableListContentProvider();
-		IObservableMap observeMap_2 = BeansObservables.observeMap(listContentProvider_3.getKnownElements(), TypedLabel.class, "label");
-		frameSeqViewer.setLabelProvider(new ObservableMapLabelProvider(observeMap_2));
-		frameSeqViewer.setContentProvider(listContentProvider_3);
-		//
-		IObservableList scenesVmObserveList = BeanProperties.list("scenes").observe(vm);
-		frameSeqViewer.setInput(scenesVmObserveList);
-		//
-		IObservableValue observeSingleSelectionSceneListViewer = ViewerProperties.singleSelection().observe(sceneListViewer);
-		IObservableValue selectedSceneVmObserveValue = BeanProperties.value("selectedScene").observe(vm);
-		bindingContext.bindValue(observeSingleSelectionSceneListViewer, selectedSceneVmObserveValue, null, null);
-		//
-		IObservableValue observeSingleSelectionAniListViewer = ViewerProperties.singleSelection().observe(recordingsListViewer);
-		IObservableValue selectedRecordingVmObserveValue = BeanProperties.value("selectedRecording").observe(vm);
-		bindingContext.bindValue(observeSingleSelectionAniListViewer, selectedRecordingVmObserveValue, null, null);
 		//
 		IObservableValue observeSingleSelectionKeyframeTableViewer = ViewerProperties.singleSelection().observe(keyframeTableViewer);
 		IObservableValue selectedKeyFrameVmObserveValue = BeanProperties.value("selectedKeyFrame").observe(vm);
@@ -1620,6 +1702,47 @@ public class MainView {
 		IObservableValue observeSelectionBtnLivePreviewObserveWidget = WidgetProperties.selection().observe(btnLivePreview);
 		IObservableValue livePreviewVmObserveValue = BeanProperties.value("livePreview").observe(vm);
 		bindingContext.bindValue(observeSelectionBtnLivePreviewObserveWidget, livePreviewVmObserveValue, null, null);
+		//
+		IObservableValue observeEnabledBtnDeleteColMaskObserveWidget = WidgetProperties.enabled().observe(btnDeleteColMask);
+		IObservableValue deleteColMaskEnabledVmObserveValue = BeanProperties.value("deleteColMaskEnabled").observe(vm);
+		bindingContext.bindValue(observeEnabledBtnDeleteColMaskObserveWidget, deleteColMaskEnabledVmObserveValue, null, null);
+		//
+		IObservableValue observeEnabledBtnInvertObserveWidget_1 = WidgetProperties.enabled().observe(btnInvert);
+		IObservableValue invertMaskEnabledVmObserveValue = BeanProperties.value("invertMaskEnabled").observe(vm);
+		bindingContext.bindValue(observeEnabledBtnInvertObserveWidget_1, invertMaskEnabledVmObserveValue, null, null);
+		//
+		ObservableSetContentProvider setContentProvider = new ObservableSetContentProvider();
+		IObservableMap observeMap = PojoObservables.observeMap(setContentProvider.getKnownElements(), Bookmark.class, "label");
+		bookmarkComboViewer.setLabelProvider(new ObservableMapLabelProvider(observeMap));
+		bookmarkComboViewer.setContentProvider(setContentProvider);
+		//
+		IObservableSet bookmarksVmObserveSet = BeanProperties.set("bookmarks").observe(vm);
+		bookmarkComboViewer.setInput(bookmarksVmObserveSet);
+		//
+		ObservableListContentProvider listContentProvider = new ObservableListContentProvider();
+		IObservableMap observeMap_1 = PojoObservables.observeMap(listContentProvider.getKnownElements(), Palette.class, "label");
+		paletteComboViewer.setLabelProvider(new ObservableMapLabelProvider(observeMap_1));
+		paletteComboViewer.setContentProvider(listContentProvider);
+		//
+		paletteComboViewer.setInput(vm.getPalettes());
+		//
+		ObservableListContentProvider listContentProvider_1 = new ObservableListContentProvider();
+		IObservableMap observeMap_2 = BeansObservables.observeMap(listContentProvider_1.getKnownElements(), TypedLabel.class, "label");
+		frameSeqViewer.setLabelProvider(new ObservableMapLabelProvider(observeMap_2));
+		frameSeqViewer.setContentProvider(listContentProvider_1);
+		//
+		frameSeqViewer.setInput(vm.getScenes());
+		//
+		IObservableValue paletteDmdWidgetObserveValue = BeanProperties.value("palette").observe(dmdWidget);
+		bindingContext.bindValue(paletteDmdWidgetObserveValue, selectedPaletteVmObserveValue, null, null);
+		//
+		IObservableValue observeEnabledMaskSpinnerObserveWidget = WidgetProperties.enabled().observe(maskSpinner);
+		IObservableValue maskSpinnerEnabledVmObserveValue = BeanProperties.value("maskSpinnerEnabled").observe(vm);
+		bindingContext.bindValue(observeEnabledMaskSpinnerObserveWidget, maskSpinnerEnabledVmObserveValue, null, null);
+		//
+		IObservableValue observeEnabledBtnMaskObserveWidget = WidgetProperties.enabled().observe(btnMask);
+		IObservableValue maskOnEnabledVmObserveValue = BeanProperties.value("maskOnEnabled").observe(vm);
+		bindingContext.bindValue(observeEnabledBtnMaskObserveWidget, maskOnEnabledVmObserveValue, null, null);
 		//
 		return bindingContext;
 	}

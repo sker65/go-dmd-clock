@@ -95,6 +95,12 @@ public class LivePreviewHandler {
 			}
 		}
 	}
+	
+	public void onSelectedPaletteChanged(Palette ov, Palette nv) {
+		if( vm.livePreview ) {
+			connector.upload(nv, handle);
+		}
+	}
 
 
 }

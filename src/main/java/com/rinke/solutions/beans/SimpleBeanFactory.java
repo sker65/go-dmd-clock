@@ -74,6 +74,7 @@ public class SimpleBeanFactory extends DefaultHandler implements BeanFactory {
          * alternatively: bean ref to set.
          */
         String ref;
+		private Class<?> requiredType;
         
         /**
          * ctor using fields
@@ -81,10 +82,11 @@ public class SimpleBeanFactory extends DefaultHandler implements BeanFactory {
          * @param value value to set
          * @param ref or bean ref to set
          */
-        public SetterCall(Method setter, Object value, String ref) {
+        public SetterCall(Method setter, Object value, String ref, Class<?> requiredType) {
             this.setter = setter;
             this.value = value;
             this.ref = ref;
+            this.requiredType = requiredType;
         }
     }
     
@@ -193,13 +195,14 @@ public class SimpleBeanFactory extends DefaultHandler implements BeanFactory {
         			if( f.isAnnotationPresent(Bean.class) ) {
         				Bean an = f.getAnnotation(Bean.class);
         				// this method creates a bean and should be called, when getBean tries to create an instance
-        				String beanName = getBeannameFromMethodName(f.getName());
+        				String beanName = getBeannameFromClass(f.getReturnType());//getBeannameFromMethodName(f.getName());
         				if( !StringUtils.isEmpty(an.name()) ) beanName = an.name();
         				beanDefs.put(beanName, buildFactoryDef(f,simpleName, an.scope()));
         			}
         		}
     		}
     	}
+    	log.info("scan package {} finished: {}", pkg, toString());
     }
 
 	private BeanDefinition buildFactoryDef(Method f, String factoryName, Scope scope) {
@@ -230,10 +233,10 @@ public class SimpleBeanFactory extends DefaultHandler implements BeanFactory {
 			def = new BeanDefinition(getBeannameFromClass(c), isSingleton, c, init);
 			for(Field f: c.getDeclaredFields() ) {
 				if(f.isAnnotationPresent(Autowired.class)) {
-					def.setter.add(new SetterCall(null, null, f.getName()));
+					def.setter.add(new SetterCall(null, null, f.getName(), f.getType()));
 				} else if( f.isAnnotationPresent(Value.class)) {
 					Object val = getValueForField(f);
-					if( val != null ) def.setter.add(new SetterCall(null, val, f.getName()));
+					if( val != null ) def.setter.add(new SetterCall(null, val, f.getName(), f.getType()));
 				}
 			}
 		} catch (SecurityException e) {
@@ -300,13 +303,13 @@ public class SimpleBeanFactory extends DefaultHandler implements BeanFactory {
                 if( value != null ) {
                     PropertyEditor pe = PropertyEditorManager.findEditor(pd.getPropertyType());
                     pe.setAsText(value);
-                    beanDefs.get(aktbean).setter.add(new SetterCall(pd.getWriteMethod(),pe.getValue(),null));
+                    beanDefs.get(aktbean).setter.add(new SetterCall(pd.getWriteMethod(),pe.getValue(),null, pd.getPropertyType()));
                 }
                 
                 // has it a reference (must already defined).
                 String ref = attributes.getValue("ref");
                 if( ref != null ) {
-                    beanDefs.get(aktbean).setter.add(new SetterCall(pd.getWriteMethod(),null,ref));
+                    beanDefs.get(aktbean).setter.add(new SetterCall(pd.getWriteMethod(),null,ref, pd.getPropertyType()));
                 }
             }
         } catch (Exception e) {
@@ -353,7 +356,7 @@ public class SimpleBeanFactory extends DefaultHandler implements BeanFactory {
             		throw new RuntimeException("could not create bean: "+id);
             	}
                 for (SetterCall call : def.setter) {
-                    Object v = call.value != null ? call.value : getBean( call.ref );
+                    Object v = call.value != null ? call.value : getBeanByTypeAndName(call.requiredType, false, call.ref);
                     if( call.setter != null ) {
                     	call.setter.invoke(bean,new Object[] {v});
                     } else {
@@ -434,13 +437,13 @@ public class SimpleBeanFactory extends DefaultHandler implements BeanFactory {
 		}
 		
 		if( candidates.size()==1 ) return (T) getBean(candidates.get(0).name);
-		if( name != null ) {
+		if( name != null && candidates.size()>1) {
 			// filter by provided name to narrow scope
 			List<BeanDefinition> reduced = candidates.stream().filter(b->name.equals(b.name)).collect(Collectors.toList());
 			if( reduced.size() == 1) return (T) getBean(reduced.get(0).name);
 			if( !ignoreError ) throw new RuntimeException("cannot create bean of type "+pt + " candidates = "+reduced);
 		}
-		if( !ignoreError ) throw new RuntimeException("cannot create bean of type "+pt);
+		if( !ignoreError ) throw new RuntimeException("cannot create bean of type '"+pt+"' no beanDef availbable in "+this.toString());
 		return null;
 	}
 
@@ -459,7 +462,7 @@ public class SimpleBeanFactory extends DefaultHandler implements BeanFactory {
     }
     
     private String getBeannameFromClass( Class<?> c) {
-    	return StringUtils.uncapitalize(c.getSimpleName());
+    	return StringUtils.uncapitalize(c.getName());
     }
 
 	/* (non-Javadoc)

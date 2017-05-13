@@ -18,7 +18,7 @@ public class Config implements BeanFactory.PropertyProvider {
 
 	private String propertiesFilename = "pin2dmd.properties";
 	public static final String PIN2DMD_ADRESS = "pin2dmdAdress";
-	public static final String PIN2DMD_DMDSIZE_PROP_KEY = "dmdSize";
+	public static final String DMDSIZE = "dmdSize";
 	public static final String GODMD_ENABLED_PROP_KEY = "godmdEnabled";
 	public static final String AUTOSAVE_INTERVAL = "autosaveInterval";
 	public static final String AUTOSAVE = "autosave";
@@ -28,7 +28,6 @@ public class Config implements BeanFactory.PropertyProvider {
 
 	public Config() {
 		super();
-		this.propertiesFilename = this.getFilename();
 	}
 
 	public Config(String file) {

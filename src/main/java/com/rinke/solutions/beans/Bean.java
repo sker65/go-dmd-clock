@@ -6,7 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import static java.lang.annotation.ElementType.*;
 
-@Target(value={TYPE})
+@Target(value={TYPE,METHOD})
 @Retention(value=RetentionPolicy.RUNTIME)
 @Documented
 public @interface Bean {

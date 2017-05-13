@@ -13,6 +13,7 @@ import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.animation.EditMode;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.PalMapping.SwitchMode;
+import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.Project;
 import com.rinke.solutions.pinball.util.MessageUtil;
 import com.rinke.solutions.pinball.view.CmdDispatcher;
@@ -26,10 +27,31 @@ public class KeyFrameHandler extends ViewHandler {
 	private int saveTimeCode;
 	@Autowired
 	private MessageUtil messageUtil;
+	@Autowired
+	private PaletteHandler paletteHandler;
 
 	public KeyFrameHandler(ViewModel vm, Model m, CmdDispatcher d) {
 		super(vm, m, d);
-		populate();
+		model.palMappings.addObserver((o,a)->populate());
+	}
+	
+	public void onSelectedKeyFrameChanged(TypedLabel ov, TypedLabel nv) {
+		Optional<PalMapping> p = model.getPalMapping(nv);
+		if( p.isPresent() ) {
+			PalMapping m = p.get();
+			// TODO depends on switch mode
+			vm.setSelectedFrameSeq(m.frameSeqName);
+			CompiledAnimation cani = model.scenes.get(m.animationName);
+			EditMode editMode = cani.getEditMode();
+			vm.setSelectedScene(new TypedLabel(editMode.label, cani.getDesc()));
+			if( !EditMode.FOLLOW.equals(editMode) ) {
+				vm.setMaskNumber(m.maskNumber);
+			}
+			// scene setzen reicht, palette switched automatisch
+			// Palette palette = paletteHandler.getPaletteByIndex(m.palIndex);
+			vm.setActFrame(m.frameIndex);
+			
+		}
 	}
 	
 	public void onDeleteKeyFrame( TypedLabel item ) {
@@ -42,8 +64,9 @@ public class KeyFrameHandler extends ViewHandler {
 	
 	private void populate() {
 		vm.keyframes.clear();
-		model.palMappings.stream()
-			.map(p->vm.keyframes.add( new TypedLabel(p.switchMode.name(), p.name)));
+		for( PalMapping p : model.palMappings) {
+			vm.keyframes.add( new TypedLabel(p.switchMode.name(), p.name));
+		}
 	}
 
 	public void onFetchDuration() {
@@ -70,7 +93,7 @@ public class KeyFrameHandler extends ViewHandler {
 	 */
 	public void onAddFrameSeq(SwitchMode switchMode) {
 		// retrieve switch mode from selected scene edit mode!!
-		Optional<CompiledAnimation> optScene = model.getScene(vm.selectedFrameSeq);
+		Optional<CompiledAnimation> optScene = model.getScene(new TypedLabel(null, vm.selectedFrameSeq));
 		if (optScene.isPresent() ) {
 			if (vm.selectedHashIndex != -1) {
 				//  add index, add ref to framesSeq

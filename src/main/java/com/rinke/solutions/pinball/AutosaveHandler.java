@@ -10,7 +10,7 @@ import org.eclipse.swt.widgets.Shell;
 
 import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.Bean;
-import com.rinke.solutions.pinball.swt.SWTDispatcher;
+import com.rinke.solutions.pinball.swt.TimerExec;
 import com.rinke.solutions.pinball.util.ApplicationProperties;
 import com.rinke.solutions.pinball.util.MessageUtil;
 
@@ -24,9 +24,9 @@ public class AutosaveHandler implements Runnable {
 	PinDmdEditor editor;
 	private long nextAutoSave;
 	MessageUtil messageUtil;
-	SWTDispatcher dispatcher;
+	TimerExec dispatcher;
 
-	public AutosaveHandler(MessageUtil messageUtil, SWTDispatcher dis) {
+	public AutosaveHandler(MessageUtil messageUtil, TimerExec dis) {
 		super();
 		this.messageUtil = messageUtil;
 		this.dispatcher = dis;
@@ -47,7 +47,7 @@ public class AutosaveHandler implements Runnable {
 			doAutoSave();
 			nextAutoSave = now + interval;
 		}
-		dispatcher.timerExec(300*1000, this);
+		dispatcher.exec(300*1000, this);
 	}
 
 	private void doAutoSave() {

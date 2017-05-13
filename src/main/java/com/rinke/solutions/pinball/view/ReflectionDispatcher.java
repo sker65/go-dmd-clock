@@ -3,8 +3,11 @@ package com.rinke.solutions.pinball.view;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import lombok.Synchronized;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
@@ -32,19 +35,57 @@ public class ReflectionDispatcher implements CmdDispatcher {
 		handler.add(o);
 	}
 	
+	private static class HandlerInvocation {
+		public Method m;
+		public ViewHandler handler;
+		public HandlerInvocation(Method m, ViewHandler handler) {
+			super();
+			this.m = m;
+			this.handler = handler;
+		}
+		@Override
+		public String toString() {
+			return String.format("HandlerInvocation [m=%s, handler=%s]", m.getName(), handler.getClass().getSimpleName());
+		}
+	}
+	
+	Map<Command,List<HandlerInvocation>> invocationCache = new HashMap<>();
+	
 	@Override
 	public <T> void dispatch(Command<T> cmd) {
 		boolean wasHandled = false;
-		String methodName = "on"+StringUtils.capitalize(cmd.name);
+		List<HandlerInvocation> invocationList = invocationCache.get(cmd);
+		if( invocationList != null ) {
+			callCachedHandlers(cmd, invocationList);
+			wasHandled = true;
+		} else {
+			String methodName = "on"+StringUtils.capitalize(cmd.name);
+			wasHandled = scanForHandlers(cmd, methodName);
+		}
+		if( !wasHandled ) {
+			log.error("**** cmd {} was not handled", cmd);
+			throw new RuntimeException("cmd "+cmd.name+ " was not handled");
+		}
+		//log.info( xStreamUtil.toXML(viewModel) );
+	}
+
+	<T> boolean scanForHandlers(Command<T> cmd,  String methodName) {
+		boolean wasHandled = false;
 		for( ViewHandler handler : handler) {
 			Method[] methods = handler.getClass().getDeclaredMethods();
 			for( Method m : methods) {
 				if( m.getName().equals(methodName) ) {
 					try {
-						if( cmd.param != null || m.getParameterCount() > 0) m.invoke(handler, cmd.param);
-						else m.invoke(handler);
-						wasHandled = true;
-						break;
+						if( cmd.param != null && m.getParameterCount() > 0) {
+							m.invoke(handler, cmd.param);
+							addToCache(m,handler,cmd);
+							wasHandled = true;
+							break;
+						} else if( cmd.param == null && m.getParameterCount()==0) {
+							m.invoke(handler);
+							wasHandled = true;
+							break;
+						}
 					} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 						log.error("Error calling {}", m.getName(), unroll(e));
 						throw new RuntimeException("error calling "+m.getName(), unroll(e));
@@ -52,12 +93,31 @@ public class ReflectionDispatcher implements CmdDispatcher {
 				}
 			}
 		}
-		if( !wasHandled ) {
-			log.error("**** cmd {} was not handled", cmd);
-			//throw new RuntimeException("cmd "+cmd.name+ " was not handled");
+		return wasHandled;
+	}
+
+	<T> void callCachedHandlers(Command<T> cmd, List<HandlerInvocation> invocationList) {
+		for( HandlerInvocation hi : invocationList ) {
+			try {
+				if( cmd.param != null ) {
+					hi.m.invoke(hi.handler, cmd.param);
+				} else {
+					hi.m.invoke(hi.handler);
+				}
+			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+				log.error("Error calling {}", hi.m.getName(), unroll(e));
+				throw new RuntimeException("error calling "+hi.m.getName(), unroll(e));
+			}
 		}
-		
-		//log.info( xStreamUtil.toXML(viewModel) );
+	}
+	
+	synchronized private <T> void addToCache(Method m, ViewHandler handler, Command<T> cmd) {
+		List<HandlerInvocation> invocationList = invocationCache.get(cmd);
+		if( invocationList == null ) {
+			invocationList = new ArrayList<>();
+			invocationCache.put(cmd, invocationList);
+		}
+		invocationList.add(new HandlerInvocation(m, handler));
 	}
 
 	private Throwable unroll(Throwable e) {

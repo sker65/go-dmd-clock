@@ -1,7 +1,10 @@
 package com.rinke.solutions.pinball.view.handler;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.Optional;
 import java.util.Set;
 
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +26,7 @@ public class RecordingsHandler extends ViewHandler {
 
 	public RecordingsHandler(ViewModel vm, Model model, CmdDispatcher d) {
 		super(vm, model,d);
+		model.recordings.addObserver((o,a)->populate());
 	}
 
 	public void populate() {
@@ -32,24 +36,31 @@ public class RecordingsHandler extends ViewHandler {
 		}
 	}
 	
+	public void onSortRecordings() {
+		ArrayList<TypedLabel> list = new ArrayList<>(vm.recordings);
+		Collections.sort(list, (o1,o2)->o1.label.compareTo(o2.label));
+		vm.recordings.clear();
+		vm.recordings.addAll(list);	
+	}
+	
 	public void onSelectedRecordingChanged(TypedLabel oldVal, TypedLabel newVal) {
 		log.info("onRecordingSelectionChanged: {}", newVal);
-		Animation current = oldVal==null?null:model.recordings.get(oldVal.label);
-		Animation a = newVal==null?null:model.recordings.get(newVal.label);
+		Optional<Animation> currentRecording = model.getRecording(oldVal);
+		Optional<Animation> newRecording = model.getRecording(newVal);
 		
-		if( current == null && a == null ) return;
-		if(a!= null && current != null && a.getDesc().equals(current.getDesc())) return;
-		if( current != null ) model.recordingsPosMap.put(oldVal.label, vm.actFrame);
-		if( a != null) {		
+		if( currentRecording.isPresent() ) model.recordingsPosMap.put(oldVal.label, vm.actFrame);
+		if( newRecording.isPresent() ) {		
+			Animation rec = newRecording.get();
 			vm.setDmdSelection(null); //dmdWidget.resetSelection();
 			vm.setSelectedScene(null);
 			vm.setMaskOnEnabled(true);
+			vm.setMaskVisible(false);
 			vm.setMaskSpinnerEnabled(true);
 			vm.availableEditModes.clear();
 			vm.availableEditModes.addAll(Arrays.asList( EditMode.FIXED ));
 			vm.setHashButtonsEnabled(true);
-			vm.setActFrame(model.recordingsPosMap.getOrDefault(a.getDesc(), 0));
-			vm.setSelectedEditMode(a.getEditMode());
+			vm.setActFrame(model.recordingsPosMap.getOrDefault(rec.getDesc(), 0));
+			vm.setSelectedEditMode(rec.getEditMode());
 			// bound to select dmdAni
 			// playing ani
 			// dmd.setNumberOfSubframes(numberOfPlanes);
@@ -58,13 +69,14 @@ public class RecordingsHandler extends ViewHandler {
 			// if( set != null ) bookmarkComboViewer.setInput(set);
 			// else bookmarkComboViewer.setInput(Collections.EMPTY_SET);
 			// bookmarkComboViewer.setInput(Collections.EMPTY_SET);
+			vm.setPlayingAni(rec);
 		}
-		vm.setPlayingAni(a);
 		//goDmdGroup.updateAniModel(a);
 		//btnRemoveAni.setEnabled(a != null);
-		vm.setAddColSceneEnabled(a != null && vm.selectedFrameSeq!=null);
-		vm.setAddEventEnabled(a!=null);
-		vm.setAddPaletteSwitchEnabled(a!=null);
+		vm.setAddColSceneEnabled(newRecording.isPresent() && vm.selectedFrameSeq!=null);
+		vm.setAddEventEnabled(newRecording.isPresent());
+		vm.setAddPaletteSwitchEnabled(newRecording.isPresent());
+		vm.setDeleteRecordingEnabled(newRecording.isPresent());
 	}
 
 }

@@ -15,17 +15,15 @@ import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.EditMode;
 import com.rinke.solutions.pinball.model.Bookmark;
+import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.PaletteType;
-import com.rinke.solutions.pinball.widget.DMDWidget.Rect;
+import com.rinke.solutions.pinball.util.ObservableList;
+import com.rinke.solutions.pinball.view.model.ViewModel.PasteData;
 
 @Bean
 public class ViewModel {
-
-	private static final long serialVersionUID = 1L;
 	
-	public int numberOfHashButtons = 4;
-
 	private PropertyChangeSupport change = new PropertyChangeSupport(this);
 
 	private void firePropertyChange(String propName, Object oldValue, Object newValue) {
@@ -41,6 +39,8 @@ public class ViewModel {
 	}
 	
 	public void init() {
+		availableEditModes.addAll(Arrays.asList(EditMode.values()));
+		availablePaletteTypes.addAll(Arrays.asList(PaletteType.values()));
 		setSelectedEditMode(EditMode.FIXED);
 		setSelectedPaletteType(PaletteType.NORMAL);
 		for(int i = 0; i < numberOfHashButtons; i++ ) {
@@ -56,14 +56,46 @@ public class ViewModel {
 		
 		bookmarks.add( new Bookmark("foo", 200));
 		
-		availableEditModes.addAll(Arrays.asList(EditMode.values()));
-		availablePaletteTypes.addAll(Arrays.asList(PaletteType.values()));
 		
 		palettes.add( new Palette(Palette.defaultColors(), 1, "default") );
 		palettes.add( new Palette(Palette.defaultColors(), 2, "foo") );
 	}
 
+	public static class PasteData {
+		public int dx,dy;
+		public int width;
+		public int height;
+		public Frame frame;
+		public boolean maskOnly;
+		public PasteData(int dx, int dy, int width, int height, Frame frame, boolean maskOnly) {
+			super();
+			this.dx = dx;
+			this.dy = dy;
+			this.width = width;
+			this.height = height;
+			this.frame = frame;
+			this.maskOnly = maskOnly;
+		}
+		public PasteData() {
+			super();
+		}
+		public PasteData(PasteData src) {
+			this.dx = src.dx;
+			this.dy = src.dy;
+			this.width = src.width;
+			this.height = src.height;
+			this.frame = new Frame(src.frame);
+			this.maskOnly = src.maskOnly;
+		}
+	}
+	
+	public PasteData pasteData;
+	
+	public int numberOfHashButtons = 4;
 	public DMD dmd = new DMD(128,32);
+	public String drawTool;
+	// syntetic property just to trigger redraw
+	public long frameRedraw;
 
 	// maybe not the real palette model class, but an variant for view model
 	public WritableList palettes = new WritableList();
@@ -84,33 +116,32 @@ public class ViewModel {
 	public boolean[] hashButtonEnabled = new boolean[numberOfHashButtons];
 	public boolean hashButtonsEnabled;
 	
-	
 	public String projectFilename;
 	
 	public TypedLabel selectedRecording;
 	public TypedLabel selectedScene;
 	public TypedLabel selectedKeyFrame;
-	public TypedLabel selectedFrameSeq;
+	public String selectedFrameSeq;
 	public WritableList recordings = new WritableList();
 	public WritableList scenes = new WritableList();
 	public WritableList keyframes = new WritableList();
 	
 	// this is for playing anis
 	public Animation playingAni;
-	public boolean animationIsStopped;
+	public boolean animationIsPlaying;
 	public int minFrame;
 	public int actFrame;
 	public int maxFrame;
-	public int frameIncrement; // TODO not bound? 
 	public int delay;
 	public int timecode;
-	public CutInfo cutInfo = new CutInfo();
+	public int skip;
+	public CutInfo cutInfo;
 	
 	public Bookmark selectedBookmark;
 	public TreeSet<Bookmark> bookmarks = new TreeSet<>();
 	public String editedBookmarkName;
 	
-	public WritableList availableEditModes = new WritableList();
+	public ObservableList<EditMode> availableEditModes = new ObservableList<EditMode>(new ArrayList<>());
 	public EditMode selectedEditMode;
 	
 	public List<PaletteType> availablePaletteTypes = new ArrayList<>();
@@ -146,6 +177,8 @@ public class ViewModel {
 	
 	public boolean copyToNextEnabled;
 	public boolean copyToPrevEnabled;
+	public boolean deleteColMaskEnabled;
+	public boolean invertMaskEnabled;
 	
 	public String startStopLabel = "Start";
 	
@@ -157,6 +190,8 @@ public class ViewModel {
 	public Rect dmdSelection;
 	
 	public boolean livePreview;
+	
+	public String shellTitle;
 	
 	public java.util.List<Palette> getPreviewPalettes() {
 		return previewPalettes;
@@ -206,12 +241,6 @@ public class ViewModel {
 	public void setScenes(WritableList scenes) {
 		firePropertyChange("scenes", this.scenes, this.scenes = scenes);
 	}
-	public boolean isAnimationIsStopped() {
-		return animationIsStopped;
-	}
-	public void setAnimationIsStopped(boolean animationIsStopped) {
-		firePropertyChange("animationIsStopped", this.animationIsStopped, this.animationIsStopped = animationIsStopped);
-	}
 	public int getActFrame() {
 		return actFrame;
 	}
@@ -236,10 +265,10 @@ public class ViewModel {
 	public void setBookmarks(TreeSet<Bookmark> bookmarks) {
 		firePropertyChange("bookmarks", this.bookmarks, this.bookmarks = bookmarks);
 	}
-	public WritableList getAvailableEditModes() {
+	public ObservableList<EditMode> getAvailableEditModes() {
 		return availableEditModes;
 	}
-	public void setAvailableEditModes(WritableList availableEditModes) {
+	public void setAvailableEditModes(ObservableList<EditMode> availableEditModes) {
 		firePropertyChange("availableEditModes", this.availableEditModes, this.availableEditModes = availableEditModes);
 	}
 	public EditMode getSelectedEditMode() {
@@ -575,11 +604,11 @@ public class ViewModel {
 		firePropertyChange("hashes", this.hashes, this.hashes = hashes);
 	}
 
-	public TypedLabel getSelectedFrameSeq() {
+	public String getSelectedFrameSeq() {
 		return selectedFrameSeq;
 	}
 
-	public void setSelectedFrameSeq(TypedLabel selectedFrameSeq) {
+	public void setSelectedFrameSeq(String selectedFrameSeq) {
 		firePropertyChange("selectedFrameSeq", this.selectedFrameSeq, this.selectedFrameSeq = selectedFrameSeq);
 	}
 
@@ -631,14 +660,6 @@ public class ViewModel {
 		firePropertyChange("maxFrame", this.maxFrame, this.maxFrame = maxFrame);
 	}
 
-	public int getFrameIncrement() {
-		return frameIncrement;
-	}
-
-	public void setFrameIncrement(int frameIncrement) {
-		firePropertyChange("frameIncrement", this.frameIncrement, this.frameIncrement = frameIncrement);
-	}
-
 	public String[] getHashLbl() {
 		return hashLbl;
 	}
@@ -661,6 +682,70 @@ public class ViewModel {
 
 	public void setLivePreview(boolean livePreview) {
 		firePropertyChange("livePreview", this.livePreview, this.livePreview = livePreview);
+	}
+
+	public String getShellTitle() {
+		return shellTitle;
+	}
+
+	public void setShellTitle(String shellTitle) {
+		firePropertyChange("shellTitle", this.shellTitle, this.shellTitle = shellTitle);
+	}
+
+	public String getDrawTool() {
+		return drawTool;
+	}
+
+	public void setDrawTool(String drawTool) {
+		firePropertyChange("drawTool", this.drawTool, this.drawTool = drawTool);
+	}
+
+	public PasteData getPasteData() {
+		return pasteData;
+	}
+
+	public void setPasteData(PasteData pasteData) {
+		firePropertyChange("pasteData", this.pasteData, this.pasteData = pasteData);
+	}
+
+	public boolean isAnimationIsPlaying() {
+		return animationIsPlaying;
+	}
+
+	public void setAnimationIsPlaying(boolean animationIsPlaying) {
+		firePropertyChange("animationIsPlaying", this.animationIsPlaying, this.animationIsPlaying = animationIsPlaying);
+	}
+
+	public boolean isDeleteColMaskEnabled() {
+		return deleteColMaskEnabled;
+	}
+
+	public void setDeleteColMaskEnabled(boolean deleteColMaskEnabled) {
+		firePropertyChange("deleteColMaskEnabled", this.deleteColMaskEnabled, this.deleteColMaskEnabled = deleteColMaskEnabled);
+	}
+
+	public boolean isInvertMaskEnabled() {
+		return invertMaskEnabled;
+	}
+
+	public void setInvertMaskEnabled(boolean invertMaskEnabled) {
+		firePropertyChange("invertMaskEnabled", this.invertMaskEnabled, this.invertMaskEnabled = invertMaskEnabled);
+	}
+
+	public long getFrameRedraw() {
+		return frameRedraw;
+	}
+
+	public void setFrameRedraw(long frameRedraw) {
+		firePropertyChange("frameRedraw", this.frameRedraw, this.frameRedraw = frameRedraw);
+	}
+
+	public int getSkip() {
+		return skip;
+	}
+
+	public void setSkip(int skip) {
+		firePropertyChange("skip", this.skip, this.skip = skip);
 	}
 
 }

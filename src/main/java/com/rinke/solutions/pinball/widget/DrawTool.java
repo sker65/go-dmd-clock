@@ -7,7 +7,6 @@ import org.eclipse.swt.widgets.Event;
 
 import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.model.Palette;
-import com.rinke.solutions.pinball.widget.PaletteTool.ColorChangedListerner;
 import com.rinke.solutions.pinball.widget.PaletteTool.ColorIndexChangedListerner;
 
 /*
@@ -15,6 +14,7 @@ import com.rinke.solutions.pinball.widget.PaletteTool.ColorIndexChangedListerner
  * - must create a tmp buffer on each event to support tool drawing like lasso
  * - must support undo redo somehow
  * - can only be active if animation is stopped.
+ * 
  * 
  */
 

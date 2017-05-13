@@ -100,9 +100,9 @@ public class PinDmdEditorTest {
 		p.switchMode = SwitchMode.PALETTE;
 		p.frameSeqName = "foo";
 
-		List<Frame> frames = new ArrayList<Frame>();
-		FrameSeq fs = new FrameSeq(frames, "foo");
-		uut.project.frameSeqMap.put("foo", fs);
+		//List<Frame> frames = new ArrayList<Frame>();
+		//FrameSeq fs = new FrameSeq(frames, "foo");
+		//uut.project.frameSeqMap.put("foo", fs);
 
 		uut.project.palMappings.add(p);
 

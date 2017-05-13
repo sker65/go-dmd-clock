@@ -20,6 +20,20 @@ public class FileChooserUtil {
 		super();
 		this.shell = shell;
 	}
+	
+	public static String replaceExtensionTo(String newExt, String filename) {
+		int p = filename.lastIndexOf(".");
+		if (p != -1)
+			return filename.substring(0, p) + "." + newExt;
+		return filename;
+	}
+	
+	public static String buildRelFilename(String parent, String file) {
+		if( file.contains(File.separator)) return file;
+		return new File(parent).getParent() + File.separator + new File(file).getName();
+	}
+	
+
 
 	// testability overridden by tests
 	protected FileChooser createFileChooser(Shell shell, int flags) {

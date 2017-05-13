@@ -9,6 +9,7 @@ import java.util.UUID;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
 
 import com.rinke.solutions.beans.Autowired;
@@ -20,6 +21,7 @@ import com.rinke.solutions.pinball.io.PaletteImporter;
 import com.rinke.solutions.pinball.io.SmartDMDImporter;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.PaletteType;
+import com.rinke.solutions.pinball.model.RGB;
 import com.rinke.solutions.pinball.util.FileChooserUtil;
 import com.rinke.solutions.pinball.util.MessageUtil;
 import com.rinke.solutions.pinball.view.CmdDispatcher;
@@ -43,6 +45,7 @@ public class PaletteHandler extends ViewHandler {
 	
 	public PaletteHandler(ViewModel vm, Model m, CmdDispatcher d) {
 		super(vm,m,d);
+		model.palettes.addObserver((o,a)->populate());
 	}
 
 	private boolean isNewPaletteName(String text) {
@@ -55,10 +58,34 @@ public class PaletteHandler extends ViewHandler {
 	
 	public void populate() {
 		vm.palettes.clear();
-		for( Palette p : model.palettes ) {
-			vm.palettes.add(p);
-		}
+		vm.palettes.addAll(model.palettes);
 	}
+	
+	public void copyPalettePlaneUpgrade() {
+		String name = vm.selectedPalette.name;
+		if (!isNewPaletteName(name)) {
+			name = "new" + UUID.randomUUID().toString().substring(0, 4);
+		}
+		
+		RGB[] actCols = vm.selectedPalette.colors;
+		RGB[] cols = new RGB[actCols.length];
+		// copy
+		for( int i = 0; i< cols.length; i++) cols[i] = RGB.of(actCols[i]);
+		
+		cols[2] = RGB.of(actCols[4]);
+		cols[3] = RGB.of(actCols[15]);
+		
+		Palette newPalette = new Palette(cols, vm.palettes.size(), name);
+		for( Palette pal : (List<Palette>)vm.palettes ) {
+			if( pal.sameColors(cols)) {
+				vm.setSelectedPalette(pal);
+				return;
+			}
+		}
+		vm.palettes.add(newPalette);
+		vm.setSelectedPalette(newPalette);
+	}
+
 	
 	public void onNewPalette() {
 		String name = vm.editedPaletteName;
@@ -202,5 +229,13 @@ public class PaletteHandler extends ViewHandler {
 
 	public void onSelectedPaletteChanged( Palette ov, Palette nv) {
 		// forward to palette tool -> we need a boundable prop any way
+		vm.setSelectedPaletteType(nv== null?null:nv.type);
+	}
+
+	public Palette getPaletteByIndex(int palIndex) {
+		for( Palette p : (List<Palette>)vm.palettes) {
+			if( p.index == palIndex ) return p;
+		}
+		return null;
 	}
 }

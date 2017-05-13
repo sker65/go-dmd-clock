@@ -18,8 +18,8 @@ import com.rinke.solutions.beans.Bean;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.renderer.ImageUtil;
+import com.rinke.solutions.pinball.view.model.Rect;
 import com.rinke.solutions.pinball.widget.DMDWidget;
-import com.rinke.solutions.pinball.widget.DMDWidget.Rect;
 import com.rinke.solutions.pinball.widget.PasteTool;
 
 /**

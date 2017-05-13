@@ -25,6 +25,8 @@ import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.rinke.solutions.beans.Bean;
+import com.rinke.solutions.beans.Scope;
 import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.PinDmdEditor;
 import com.rinke.solutions.pinball.animation.Animation;
@@ -33,9 +35,11 @@ import com.rinke.solutions.pinball.io.GifSequenceWriter;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.renderer.ImageUtil;
+import com.rinke.solutions.pinball.view.View;
 import com.rinke.solutions.pinball.widget.DMDWidget;
 
-public class GifExporter extends Dialog {
+@Bean(scope=Scope.PROTOTYPE)
+public class GifExporter extends Dialog implements View {
     
     private static final Logger LOG = LoggerFactory.getLogger(GifExporter.class);
 
@@ -64,11 +68,9 @@ public class GifExporter extends Dialog {
      * @param parent
      * @param style
      */
-    public GifExporter(Shell parent, Palette palette, Animation ani) {
+    public GifExporter(Shell parent) {
         super(parent, SWT.CLOSE | SWT.TITLE | SWT.BORDER | SWT.OK | SWT.APPLICATION_MODAL);
         //setText("Device Config");
-        this.ani = ani;
-        this.palette = palette;
     }
     
 
@@ -87,7 +89,7 @@ public class GifExporter extends Dialog {
 	
 		if( ani instanceof CompiledAnimation ) {
 			CompiledAnimation cani = (CompiledAnimation)ani;
-			dmd.setNumberOfSubframes(cani.frames.get(0).planes.size());
+			dmd.setNumberOfPlanes(cani.frames.get(0).planes.size());
 		}
 		
 		ImageOutputStream outputStream;
@@ -159,7 +161,7 @@ public class GifExporter extends Dialog {
      * Open the dialog.
      * @return the result
      */
-    public Object open() {
+    public void open() {
         createContents();
         shell.open();
         shell.layout();
@@ -170,7 +172,6 @@ public class GifExporter extends Dialog {
             }
             if( writer != null && !writer.isAlive() ) shell.close();
         }
-        return result;
     }
 
     /**
@@ -219,9 +220,16 @@ public class GifExporter extends Dialog {
         btnCancel.addListener(SWT.Selection, e->abort());
     }
 
-
 	private void abort() {
 		abort = true;
 		shell.close();
+	}
+
+	public void setAni(Animation ani) {
+		 this.ani = ani;
+	}
+	
+	public void setPalette(Palette palette) {
+		this.palette = palette;
 	}
 }

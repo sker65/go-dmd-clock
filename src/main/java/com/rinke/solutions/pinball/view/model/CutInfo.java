@@ -15,10 +15,16 @@ public class CutInfo extends Observable {
         super();
     }
 
-    private int start;
-    private int end;
+    public int start;
+    public int end;
     
-    public int getStart() {
+    public CutInfo(int start, int end) {
+		super();
+		this.start = start;
+		this.end = end;
+	}
+
+	public int getStart() {
         return start;
     }
     

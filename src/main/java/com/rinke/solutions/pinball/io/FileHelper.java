@@ -76,6 +76,7 @@ public class FileHelper {
         xstream = new XStream();
         xstream.registerConverter(new DefaultConstructorConverter(xstream.getMapper(),
         		xstream.getReflectionProvider()));
+        xstream.ignoreUnknownElements();
         jstream = new XStream(new JettisonMappedXmlDriver());
         jstream = new XStream(new JettisonMappedXmlDriver());
         

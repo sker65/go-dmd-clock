@@ -6,6 +6,7 @@ import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Plane;
 import com.rinke.solutions.pinball.renderer.ImageUtil;
 import com.rinke.solutions.pinball.util.ByteUtil;
+import com.rinke.solutions.pinball.view.model.ViewModel.PasteData;
 
 /**
  * pastes a frame (from clipboard) over the current dmd image. planes to use are depending on the dmd draw mask
@@ -28,6 +29,17 @@ public class PasteTool extends DrawTool {
 		this.dx = dx;
 		this.dy = dy;
 	}
+	
+	public PasteTool(int actualColor, PasteData d) {
+		super(actualColor);
+		planeSize = d.width*d.height/8;
+		height = d.height;
+		width = d.width;
+		this.dx = d.dx;
+		this.dy = d.dy;
+		this.maskOnly = d.maskOnly;
+	}
+
 
 	@Override
 	public boolean mouseMove(int ix, int iy) {
