@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.rinke.solutions.pinball</groupId>
 	<artifactId>go-dmd-clock</artifactId>
-	<version>2.0.1.0</version>
+	<version>2.1.0.0</version>
 	<repositories>
 		<repository>
     	    <id>maven-eclipse-repo</id>
@@ -536,12 +536,12 @@
 		<dependency>
 	       <groupId>com.rinke.solutions.pinball</groupId>
     	    <artifactId>license-api</artifactId>
-        	<version>0.1.25-SNAPSHOT</version>
+        	<version>0.1.26</version>
 		</dependency>
 		<dependency>
 	       <groupId>com.rinke.solutions.pinball</groupId>
     	    <artifactId>pin2dmd-tools</artifactId>
-        	<version>0.0.8</version>
+        	<version>0.0.9</version>
 		</dependency>
 	</dependencies>
 	<build>

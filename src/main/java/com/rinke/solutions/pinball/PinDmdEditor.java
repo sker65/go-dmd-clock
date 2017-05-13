@@ -927,12 +927,9 @@ public class PinDmdEditor implements EventHandler {
 				if (!frameSeqMap.isEmpty()) {
 					log.info("exporter instance {} wrinting FSQ", exporter);
 					DataOutputStream dos = new DataOutputStream(streamProvider.buildStream(replaceExtensionTo("fsq", filename)));
-					map = exporter.writeFrameSeqTo(dos, project, 
+					map = exporter.writeFrameSeqTo(dos, frameSeqMap, 
 							ApplicationProperties.getBoolean(ApplicationProperties.OLDEXPORT)?1:2);
 					dos.close();
-//					XStream xStream = new XStream();
-//					xStream.toXML(project.frameSeqMap.values(), new FileWriter("/Users/stefanri/fsq.xml"));
-					
 				}
 
 				project.version = 1;
