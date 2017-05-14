@@ -3,18 +3,13 @@ package com.rinke.solutions.pinball;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
-import java.util.UUID;
 import java.util.zip.GZIPOutputStream;
 
 import lombok.extern.slf4j.Slf4j;
@@ -26,10 +21,13 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Text;
 
 import com.rinke.solutions.pinball.api.LicenseException;
 import com.rinke.solutions.pinball.util.HttpUtil;
@@ -76,6 +74,52 @@ public class GlobalExceptionHandler {
     private int returnCode;
     private MultiStatus multiStatus;
     
+    private static class MyErrorDialog extends ErrorDialog {
+
+		public MyErrorDialog(Shell parentShell, String dialogTitle, String message, IStatus status, int displayMask) {
+			super(parentShell, dialogTitle, message, status, displayMask);
+		}
+		
+        private String notes;
+
+		protected void createButtonsForButtonBar(Composite parent) {
+            createButton(parent, IDialogConstants.ABORT_ID, IDialogConstants.ABORT_LABEL, true);
+            createButton(parent, IDialogConstants.PROCEED_ID, IDialogConstants.PROCEED_LABEL, false);
+            createButton(parent, UPLOAD, "Upload Error Report", false);
+            createDetailsButton(parent);
+        }
+
+        @Override
+        protected void buttonPressed(int id) {
+            super.buttonPressed(id);
+            if( id == UPLOAD || id == IDialogConstants.ABORT_ID || id == IDialogConstants.PROCEED_ID) {
+                setReturnCode(id);
+                setNotes(text.getText());
+                close();
+            }
+        }
+        
+        private void setNotes(String n) {
+			this.notes = n;
+		}
+
+		Text text = null;
+
+		@Override
+		protected void createDialogAndButtonArea(Composite parent) {
+			super.createDialogAndButtonArea(parent);
+			new Label(parent, 0).setText("Notes:  ");
+			text = new Text(parent, SWT.MULTI | SWT.BORDER | SWT.WRAP | SWT.V_SCROLL);
+			text.setEditable(true);
+			text.setLayoutData(new GridData(GridData.FILL_BOTH));
+		}
+
+		public String getNotes() {
+			return notes;
+		}
+   	
+    }
+    
     public void showError(Exception e) {
         display.asyncExec(new Runnable() {
             
@@ -92,32 +136,17 @@ public class GlobalExceptionHandler {
             	} else {
                     MultiStatus status = createMultiStatus(e.getLocalizedMessage(), e);
                     setMultiStatus(status);
-                    ErrorDialog errorDialog = new ErrorDialog(Display.getCurrent().getActiveShell(),
+                    
+                    MyErrorDialog errorDialog = new MyErrorDialog(
+                    		Display.getCurrent().getActiveShell(),
                             "Error", "Ein unerwarteter Fehler ist aufgetreten", status,
-                            IStatus.OK | IStatus.INFO | IStatus.WARNING | IStatus.ERROR) {
-                    	
-                        protected void createButtonsForButtonBar(Composite parent) {
-                            createButton(parent, IDialogConstants.ABORT_ID, IDialogConstants.ABORT_LABEL, true);
-                            createButton(parent, IDialogConstants.PROCEED_ID, IDialogConstants.PROCEED_LABEL, false);
-                            createButton(parent, UPLOAD, "Upload Error Report", false);
-                            createDetailsButton(parent);
-                        }
-
-                        @Override
-                        protected void buttonPressed(int id) {
-                            super.buttonPressed(id);
-                            if( id == UPLOAD || id == IDialogConstants.ABORT_ID || id == IDialogConstants.PROCEED_ID) {
-                                setReturnCode(id);
-                                close();
-                            }
-                        }
-                        
-                    };
+                            IStatus.OK | IStatus.INFO | IStatus.WARNING | IStatus.ERROR);
+                    
                     int ret = errorDialog.open();
                     setReturnCode(errorDialog.getReturnCode());
                     if( ret == IDialogConstants.ABORT_ID ) System.exit(1);
     				if( ret == UPLOAD) {
-    					uploadReport();
+    					uploadReport(errorDialog.getNotes());
     				}
 
                 }
@@ -125,7 +154,7 @@ public class GlobalExceptionHandler {
                 lastException=null;
             }
 
-			void uploadReport() {
+			void uploadReport(String notes) {
 				try {
 					HttpUtil httpUtil = new HttpUtil();
 					SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss-SSS_");
@@ -135,6 +164,10 @@ public class GlobalExceptionHandler {
 					GZIPOutputStream stream = new GZIPOutputStream(new FileOutputStream(tempFile));
 					PrintWriter writer = new PrintWriter(stream);
 					IStatus[] children = getMultiStatus().getChildren();
+					if( notes != null ) {
+						writer.println("***** NOTES: ******");
+						writer.println(notes);
+					}
 					for( IStatus s: children) {
 						//System.out.println(s.getMessage());
 						writer.println(s.getMessage());
