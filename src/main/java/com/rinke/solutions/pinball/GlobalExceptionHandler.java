@@ -33,6 +33,7 @@ import org.eclipse.swt.widgets.Shell;
 
 import com.rinke.solutions.pinball.api.LicenseException;
 import com.rinke.solutions.pinball.util.HttpUtil;
+import com.rinke.solutions.pinball.util.VersionUtil;
 
 @Slf4j
 public class GlobalExceptionHandler {
@@ -162,7 +163,9 @@ public class GlobalExceptionHandler {
             Status status = new Status(IStatus.ERROR, PKG, stackTrace.toString());
             childStatuses.add(status);
         }
-        
+        Status statusVersion = new Status(IStatus.INFO, PKG, "--- version: "+VersionUtil.getVersion() );
+        childStatuses.add(statusVersion);
+
         Status status = new Status(IStatus.ERROR, PKG, "----- last "+MAX_NO_OF_LOGLINES+" log lines ----");
         childStatuses.add(status);
         

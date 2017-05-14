@@ -17,6 +17,8 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Shell;
 
+import com.rinke.solutions.pinball.util.VersionUtil;
+
 public class About extends Dialog {
 
 	protected Shell shlAboutPindmdEditor;
@@ -78,7 +80,7 @@ public class About extends Dialog {
 		
 		Label lblVersion = new Label(shlAboutPindmdEditor, SWT.NONE);
 		lblVersion.setBounds(72, 126, 283, 67);
-		String lbl = getVersion()+"\nPluginPath: "+pluginsPath+"\nLoaded Plugins:";
+		String lbl = VersionUtil.getVersion()+"\nPluginPath: "+pluginsPath+"\nLoaded Plugins:";
 		for( String p : plugins ) {
 			lbl += "\n"+p;
 		}
@@ -86,46 +88,4 @@ public class About extends Dialog {
 		
 	}
 	
-	public synchronized String getVersion() {
-		
-		String className = this.getClass().getSimpleName() + ".class";
-		String classPath = this.getClass().getResource(className).toString();
-		if (!classPath.startsWith("jar")) {
-		  // Class not from JAR
-		  return "";
-		}
-		String version = "";
-		
-		String manifestPath = classPath.substring(0, classPath.lastIndexOf("!") + 1) + 
-		    "/META-INF/MANIFEST.MF";
-		
-	    // try to load from maven properties first
-	    try {
-			Manifest manifest = new Manifest(new URL(manifestPath).openStream());
-			Attributes attr = manifest.getMainAttributes();
-	            version = "Version: " + attr.getValue("version");
-	            version += "\nat: " + attr.getValue("buildNumber");
-	            version += "\nBuild: " + attr.getValue("drone");
-	    } catch (Exception e) {
-	        // ignore
-	    }
-
-	    // fallback to using Java API
-	    if (version == null) {
-	        Package aPackage = getClass().getPackage();
-	        if (aPackage != null) {
-	            version = aPackage.getImplementationVersion();
-	            if (version == null) {
-	                version = aPackage.getSpecificationVersion();
-	            }
-	        }
-	    }
-
-	    if (version == null) {
-	        // we could not compute the version so use a blank
-	        version = "";
-	    }
-
-	    return version;
-	} 
 }
