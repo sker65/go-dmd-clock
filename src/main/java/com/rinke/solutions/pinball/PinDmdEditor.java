@@ -52,6 +52,10 @@ import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.program.Program;
@@ -124,20 +128,14 @@ import com.rinke.solutions.pinball.util.ObservableMap;
 import com.rinke.solutions.pinball.util.ObservableProperty;
 import com.rinke.solutions.pinball.util.RecentMenuManager;
 import com.rinke.solutions.pinball.widget.CircleTool;
-import com.rinke.solutions.pinball.widget.ColorizeTool;
-import com.rinke.solutions.pinball.widget.SelectTool;
 import com.rinke.solutions.pinball.widget.DMDWidget;
 import com.rinke.solutions.pinball.widget.DrawTool;
 import com.rinke.solutions.pinball.widget.FloodFillTool;
 import com.rinke.solutions.pinball.widget.LineTool;
 import com.rinke.solutions.pinball.widget.PaletteTool;
 import com.rinke.solutions.pinball.widget.RectTool;
+import com.rinke.solutions.pinball.widget.SelectTool;
 import com.rinke.solutions.pinball.widget.SetPixelTool;
-
-import org.eclipse.swt.events.KeyAdapter;
-import org.eclipse.swt.events.KeyEvent;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
 
 
 //@Slf4j
@@ -576,7 +574,7 @@ public class PinDmdEditor implements EventHandler {
 
 		GlobalExceptionHandler.getInstance().setDisplay(display);
 		GlobalExceptionHandler.getInstance().setShell(shell);
-
+		
 		autoSaveHandler.checkAutoSaveAtStartup();
 
 		display.timerExec(animationHandler.getRefreshDelay(), cyclicRedraw);
