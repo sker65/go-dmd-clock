@@ -579,7 +579,12 @@ public class PinDmdEditor implements EventHandler {
 
 		display.timerExec(animationHandler.getRefreshDelay(), cyclicRedraw);
 		display.timerExec(1000*300, autoSaveHandler);
-
+		
+//		CutInfo c = null;
+//		display.timerExec(500, ()->{
+//			System.out.println(c.canCut());
+//		});
+//
 		processCmdLine();
 
 		int retry = 0;

@@ -4,6 +4,8 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.StatusLine;
@@ -25,6 +27,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
+@Slf4j
 public class HttpUtil {
 
 	public int postFile(String fileName, String userName, String password, String url) throws Exception {
@@ -55,7 +58,7 @@ public class HttpUtil {
 			// do something useful with the response body
 			// and ensure it is fully consumed
 			String res = EntityUtils.toString(resEntity);
-			System.out.println("Status: "+status+" res: "+res);
+			log.info("Status: {} res: {}",status,res);
 		} finally {
 			response.close();
 		}
