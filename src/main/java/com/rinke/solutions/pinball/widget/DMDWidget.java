@@ -240,10 +240,33 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 	}
 	
 	public Image drawImage(Display display,int w, int h) {
-        // int colIdx[] = {0,1,4,15};
+		// int colIdx[] = {0,1,4,15};
     	int numberOfSubframes = dmd.getNumberOfPlanes();
     	boolean useColorIndex = numberOfSubframes < 8;
-        Color cols[] = {};
+
+        Color bg = resourceManager.createColor(new RGB(10, 10, 10));
+
+		Image image =  new Image(display, w, h);		
+        GC gcImage = new GC(image);
+        gcImage.setBackground(bg);
+        gcImage.fillRectangle(0, 0, w, h);
+		if( palette != null ) {
+	        Color[] cols = setupColors(numberOfSubframes, useColorIndex);
+	        drawDMD(gcImage, dmd.getFrame(), numberOfSubframes, useColorIndex, cols);
+	        if( showMask && dmd.getFrame().mask != null) {
+	            drawMask(display, cols, image, gcImage);
+	        }
+	        if( isSelectionSet() && !isShowMask() ) {
+	            drawSelection(display, image, gcImage);
+	        }
+		}
+		
+        gcImage.dispose();
+        return image;
+	}
+
+	Color[] setupColors(int numberOfSubframes, boolean useColorIndex) {
+		Color cols[] = {};
         if( showMask ) cols = new Color[1<<numberOfSubframes];
         if( useColorIndex ) {
             cols = new Color[1<<numberOfSubframes];
@@ -258,23 +281,7 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
                 }
             }
         }
-
-        Color bg = resourceManager.createColor(new RGB(10, 10, 10));
-
-		Image image =  new Image(display, w, h);		
-        GC gcImage = new GC(image);
-        gcImage.setBackground(bg);
-        gcImage.fillRectangle(0, 0, w, h);
-        drawDMD(gcImage, dmd.getFrame(), numberOfSubframes, useColorIndex, cols);
-        if( showMask && dmd.getFrame().mask != null) {
-            drawMask(display, cols, image, gcImage);
-        }
-        if( isSelectionSet() && !isShowMask() ) {
-            drawSelection(display, image, gcImage);
-        }
-		
-        gcImage.dispose();
-        return image;
+		return cols;
 	}
 
 	private void drawMask(Display display, Color[] cols, Image image, GC gcImage) {

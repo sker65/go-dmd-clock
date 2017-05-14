@@ -1,9 +1,12 @@
 package com.rinke.solutions.pinball.view.handler;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.MessageBox;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,6 +26,7 @@ import com.rinke.solutions.pinball.model.PalMapping.SwitchMode;
 import com.rinke.solutions.pinball.swt.TimerExec;
 import com.rinke.solutions.pinball.util.ApplicationProperties;
 import com.rinke.solutions.pinball.util.Config;
+import com.rinke.solutions.pinball.util.MessageUtil;
 import com.rinke.solutions.pinball.util.ObservableMap;
 import com.rinke.solutions.pinball.view.CmdDispatcher;
 import com.rinke.solutions.pinball.view.CmdDispatcher.Command;
@@ -48,6 +52,8 @@ public class PlayingAniHandler extends ViewHandler {
 	
 	@Autowired
 	PaletteHandler paletteHandler;
+	@Autowired
+	MessageUtil messageUtil;
 	
 	@Value(key=Config.AUTOKEYFRAME)
 	boolean autoCreateKeyframe;
@@ -72,7 +78,6 @@ public class PlayingAniHandler extends ViewHandler {
 		if( nv == null ) {
 			vm.dmd.clear();
 		} else {
-			vm.setDrawingEnabled(nv.isMutable());
 			this.ani = nv;
 			vm.setMinFrame(ani.start);
 			vm.setMaxFrame(ani.end);
@@ -81,6 +86,7 @@ public class PlayingAniHandler extends ViewHandler {
 			vm.dmd.setNumberOfPlanes(vm.numberOfPlanes);
 			vm.setPrevEnabled(ani!=null && vm.actFrame>vm.minFrame);
 			vm.setNextEnabled(ani!=null && vm.actFrame<=vm.maxFrame);
+			vm.setDrawingEnabled(nv.isMutable());
 			renderAni();
 		}
 		vm.setMarkStartEnabled(nv!=null);

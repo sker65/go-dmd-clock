@@ -53,6 +53,7 @@ public class RecordingsHandler extends ViewHandler {
 			Animation rec = newRecording.get();
 			vm.setDmdSelection(null); //dmdWidget.resetSelection();
 			vm.setSelectedScene(null);
+
 			vm.setMaskOnEnabled(true);
 			vm.setMaskVisible(false);
 			vm.setMaskSpinnerEnabled(true);
