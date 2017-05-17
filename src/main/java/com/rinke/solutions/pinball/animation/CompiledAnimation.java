@@ -1,5 +1,7 @@
 package com.rinke.solutions.pinball.animation;
 
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.util.List;
 import java.util.Optional;
 
@@ -11,11 +13,26 @@ import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Mask;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.Plane;
+import com.rinke.solutions.pinball.view.model.PropertyChangeSupported;
 
-public class CompiledAnimation extends Animation {
+public class CompiledAnimation extends Animation implements PropertyChangeSupported {
 
 	public List<Frame> frames;
 	
+	PropertyChangeSupport change = new PropertyChangeSupport(this);
+
+	public void addPropertyChangeListener(PropertyChangeListener l) {
+		change.addPropertyChangeListener(l);
+	}
+
+	public void removePropertyChangeListener(PropertyChangeListener l) {
+		change.removePropertyChangeListener(l);
+	}
+
+	private void firePropertyChange(String propertyName, Object oldValue, Object newValue) {
+		change.firePropertyChange(propertyName, oldValue, newValue);
+	}
+
 	public CompiledAnimation(AnimationType type, String name, int start,
 			int end, int skip, int cycles, int holdCycles) {
 		this(type, name, start, end, skip, cycles, holdCycles, 128, 32);
@@ -117,6 +134,11 @@ public class CompiledAnimation extends Animation {
 		super.setDimension(width, height);
 		if( !frames.isEmpty() ) throw new RuntimeException("cannot set dimension, when already allocates frames");
 	}
-	
+
+	@Override
+	public void setEditMode(EditMode editMode) {
+		firePropertyChange("editMode", this.editMode, editMode);
+		super.setEditMode(editMode);
+	}
 
 }

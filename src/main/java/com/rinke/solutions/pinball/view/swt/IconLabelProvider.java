@@ -1,5 +1,6 @@
 package com.rinke.solutions.pinball.view.swt;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.JFaceResources;
@@ -31,7 +32,7 @@ public class IconLabelProvider<T> extends OwnerDrawLabelProvider {
     }
 
 	public Image getImage(Object o) {
-		String icon = "/icons/"+resolver.resolve((T) o).getLeft()+".png";
+		String icon = "/icons/"+(resolver.resolve((T) o).getLeft()).toLowerCase()+".png";
 		return resManager.createImage(
 				ImageDescriptor.createFromFile(IconLabelProvider.class, icon));
 	}

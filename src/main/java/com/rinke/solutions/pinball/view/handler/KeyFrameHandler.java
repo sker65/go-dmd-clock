@@ -27,6 +27,7 @@ public class KeyFrameHandler extends ViewHandler {
 	private int saveTimeCode;
 	@Autowired
 	private MessageUtil messageUtil;
+	
 	@Autowired
 	private PaletteHandler paletteHandler;
 
@@ -43,14 +44,13 @@ public class KeyFrameHandler extends ViewHandler {
 			vm.setSelectedFrameSeq(m.frameSeqName);
 			CompiledAnimation cani = model.scenes.get(m.animationName);
 			EditMode editMode = cani.getEditMode();
-			vm.setSelectedScene(new TypedLabel(editMode.label, cani.getDesc()));
+			vm.setSelectedScene(cani);
 			if( !EditMode.FOLLOW.equals(editMode) ) {
-				vm.setMaskNumber(m.maskNumber);
+				vm.setSelectedMaskNumber(m.maskNumber);
 			}
 			// scene setzen reicht, palette switched automatisch
 			// Palette palette = paletteHandler.getPaletteByIndex(m.palIndex);
-			vm.setActFrame(m.frameIndex);
-			
+			vm.setSelectedFrame(m.frameIndex);
 		}
 	}
 	
@@ -62,7 +62,7 @@ public class KeyFrameHandler extends ViewHandler {
 		checkReleaseMask();
 	}
 	
-	private void populate() {
+	public void populate() {
 		vm.keyframes.clear();
 		for( PalMapping p : model.palMappings) {
 			vm.keyframes.add( new TypedLabel(p.switchMode.name(), p.name));
@@ -119,13 +119,13 @@ public class KeyFrameHandler extends ViewHandler {
 					palMapping.setDigest(vm.hashes.get(vm.selectedHashIndex));
 					palMapping.palIndex = vm.selectedPalette.index;
 					palMapping.frameSeqName = s.getDesc();
-					palMapping.animationName = vm.selectedRecording.label;
+					palMapping.animationName = vm.selectedRecording.getDesc();
 					palMapping.switchMode = sm;
-					palMapping.frameIndex = vm.actFrame;
+					palMapping.frameIndex = vm.selectedFrame;
 					if (vm.maskVisible) {
 						palMapping.withMask = true;
-						palMapping.maskNumber = vm.maskNumber;
-						model.masks.get(vm.maskNumber).locked = true;
+						palMapping.maskNumber = vm.selectedMaskNumber;
+						model.masks.get(vm.selectedMaskNumber).locked = true;
 						//onMaskChecked(true);
 					}
 					return palMapping;
@@ -152,16 +152,16 @@ public class KeyFrameHandler extends ViewHandler {
 		if (vm.selectedHashIndex != -1) {
 			palMapping.setDigest(vm.hashes.get(vm.selectedHashIndex));
 		}
-		palMapping.animationName = vm.selectedRecording.label;
-		palMapping.frameIndex = vm.actFrame;
+		palMapping.animationName = vm.selectedRecording.getDesc();
+		palMapping.frameIndex = vm.selectedFrame;
 		if( switchMode.equals(SwitchMode.EVENT)) {
-			palMapping.durationInMillis = (vm.eventHigh<<8) + vm.eventLow;
+			palMapping.durationInMillis = (vm.selectedEventHigh<<8) + vm.selectedEventLow;
 		}
 		palMapping.switchMode = switchMode;
 		if (vm.maskVisible) {
 			palMapping.withMask = true;
-			palMapping.maskNumber = vm.maskNumber;
-			model.masks.get(vm.maskNumber).locked = true;
+			palMapping.maskNumber = vm.selectedMaskNumber;
+			model.masks.get(vm.selectedMaskNumber).locked = true;
 		}
 
 		if (!checkForDuplicateKeyFrames(palMapping)) {
@@ -194,7 +194,7 @@ public class KeyFrameHandler extends ViewHandler {
 		}
 		for (int i = 0; i < model.masks.size(); i++) {
 			model.masks.get(i).locked = useMasks.contains(i);
-			if( i == vm.maskNumber ) vm.setMaskLocked(useMasks.contains(i));
+			if( i == vm.selectedMaskNumber ) vm.setMaskLocked(useMasks.contains(i));
 		}	
 	}
 

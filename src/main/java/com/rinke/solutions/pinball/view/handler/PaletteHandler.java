@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +16,7 @@ import org.eclipse.swt.SWT;
 import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.Bean;
 import com.rinke.solutions.pinball.animation.Animation;
+import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.io.DMCImporter;
 import com.rinke.solutions.pinball.io.FileHelper;
 import com.rinke.solutions.pinball.io.PaletteImporter;
@@ -124,14 +126,12 @@ public class PaletteHandler extends ViewHandler {
 
 	List<String> searchUsingAnimations(Palette selectedPalette) {
 		List<String> res = new ArrayList<>();
-		for( TypedLabel tl : (List<TypedLabel>)vm.scenes) {
-			Animation a = model.scenes.get(tl.label);
+		for( CompiledAnimation a : vm.scenes) {
 			if( a.getPalIndex() == selectedPalette.index ) {
 				res.add(a.getDesc());
 			}
 		}
-		for( TypedLabel tl: (List<TypedLabel>)vm.recordings) {
-			Animation a = model.recordings.get(tl.label);
+		for( Animation a: vm.recordings) {
 			if( a.getPalIndex() == selectedPalette.index ) {
 				res.add(a.getDesc());
 			}
@@ -144,7 +144,7 @@ public class PaletteHandler extends ViewHandler {
 
 		model.getPalMapping(vm.selectedKeyFrame).ifPresent(p->p.palIndex = selectedPalette.index);
 		// change palette in ANI file
-		model.getScene(vm.selectedScene).ifPresent(s->s.setPalIndex(selectedPalette.index));
+		Optional.ofNullable(vm.selectedScene).ifPresent(s->s.setPalIndex(selectedPalette.index));
 	}
 
 	private PaletteImporter getImporterByFilename(String filename) {

@@ -60,4 +60,6 @@ public interface CmdDispatcher {
 	public void registerHandler(ViewHandler o);
 	
 	public List<ViewHandler> getViewHandlers();
+	
+	public void checkChangeHandlers(Object viewModel);
 }

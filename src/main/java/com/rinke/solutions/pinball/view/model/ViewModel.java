@@ -11,8 +11,10 @@ import java.util.TreeSet;
 import org.eclipse.core.databinding.observable.list.WritableList;
 
 import com.rinke.solutions.beans.Bean;
+import com.rinke.solutions.databinding.BindingTarget;
 import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.animation.Animation;
+import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.animation.EditMode;
 import com.rinke.solutions.pinball.model.Bookmark;
 import com.rinke.solutions.pinball.model.Frame;
@@ -39,7 +41,7 @@ public class ViewModel {
 	}
 	
 	public void init() {
-		availableEditModes.addAll(Arrays.asList(EditMode.values()));
+		availableEditModes.replace(Arrays.asList(EditMode.values()));
 		availablePaletteTypes.addAll(Arrays.asList(PaletteType.values()));
 		setSelectedEditMode(EditMode.FIXED);
 		setSelectedPaletteType(PaletteType.NORMAL);
@@ -49,10 +51,10 @@ public class ViewModel {
 	}
 	
 	public void loadTestData() {
-		recordings.add(new TypedLabel(EditMode.FIXED.name(), "Recording1"));
-		scenes.add(new TypedLabel(EditMode.REPLACE.name(), "Scence 1"));
-		scenes.add(new TypedLabel(EditMode.COLMASK.name(), "Scence 2"));
-		scenes.add(new TypedLabel(EditMode.FOLLOW.name(), "Scence 3"));
+//		recordings.add(new TypedLabel(EditMode.FIXED.name(), "Recording1"));
+//		scenes.add(new TypedLabel(EditMode.REPLACE.name(), "Scence 1"));
+//		scenes.add(new TypedLabel(EditMode.COLMASK.name(), "Scence 2"));
+//		scenes.add(new TypedLabel(EditMode.FOLLOW.name(), "Scence 3"));
 		
 		bookmarks.add( new Bookmark("foo", 200));
 		
@@ -98,17 +100,17 @@ public class ViewModel {
 	public long frameRedraw;
 
 	// maybe not the real palette model class, but an variant for view model
-	public WritableList palettes = new WritableList();
+	@BindingTarget public ObservableList<Palette> palettes = new ObservableList<>(new ArrayList<>());
 	public Palette selectedPalette = Palette.getDefaultPalettes().get(0);
 	public String editedPaletteName;
 	
 	public java.util.List<Palette> previewPalettes = Palette.previewPalettes();
 
 	public int selectedHashIndex;
-	public int numberOfPlanes;
-	public int duration;
-	public int eventHigh;
-	public int eventLow;
+	@BindingTarget public int numberOfPlanes;
+	@BindingTarget public int duration;
+	@BindingTarget public int selectedEventHigh;
+	@BindingTarget public int selectedEventLow;
 	
 	public List<byte[]> hashes = new ArrayList<byte[]>(numberOfHashButtons);
 	public String hashLbl[] = new String[numberOfHashButtons];
@@ -118,22 +120,22 @@ public class ViewModel {
 	
 	public String projectFilename;
 	
-	public TypedLabel selectedRecording;
-	public TypedLabel selectedScene;
+	public Animation selectedRecording;
+	public CompiledAnimation selectedScene;
 	public TypedLabel selectedKeyFrame;
 	public String selectedFrameSeq;
-	public WritableList recordings = new WritableList();
-	public WritableList scenes = new WritableList();
-	public WritableList keyframes = new WritableList();
+	@BindingTarget public ObservableList<Animation> recordings = new ObservableList<>(new ArrayList<>());
+	@BindingTarget public ObservableList<CompiledAnimation> scenes = new ObservableList<>(new ArrayList<>());
+	@BindingTarget public ObservableList<TypedLabel> keyframes = new ObservableList<>(new ArrayList<>());
 	
 	// this is for playing anis
 	public Animation playingAni;
 	public boolean animationIsPlaying;
-	public int minFrame;
-	public int actFrame;
-	public int maxFrame;
-	public int delay;
-	public int timecode;
+	@BindingTarget public int minFrame;
+	@BindingTarget public int selectedFrame;
+	@BindingTarget public int maxFrame;
+	@BindingTarget public int delay;
+	@BindingTarget public int timecode;
 	public int skip;
 	public CutInfo cutInfo;
 	
@@ -141,46 +143,45 @@ public class ViewModel {
 	public TreeSet<Bookmark> bookmarks = new TreeSet<>();
 	public String editedBookmarkName;
 	
-	public ObservableList<EditMode> availableEditModes = new ObservableList<EditMode>(new ArrayList<>());
+	@BindingTarget public ObservableList<EditMode> availableEditModes = new ObservableList<EditMode>(new ArrayList<>());
 	public EditMode selectedEditMode;
 	
 	public List<PaletteType> availablePaletteTypes = new ArrayList<>();
 	public PaletteType selectedPaletteType;
 
-	public int maskNumber;
+	@BindingTarget public int selectedMaskNumber;
 	public boolean maskVisible;
 	public boolean maskLocked;
 	
 	// controls enabled / disable
-	public boolean maskSpinnerEnabled;
-	public boolean maskInvertEnabled;
+	@BindingTarget public boolean maskNumberEnabled;
+	@BindingTarget public boolean maskInvertEnabled;
 	
-	public boolean deleteKeyFrameEnabled;
-	public boolean deleteRecordingEnabled;
-	public boolean deleteSceneEnabled;
+	@BindingTarget public boolean deleteKeyFrameEnabled;
+	@BindingTarget public boolean deleteRecordingEnabled;
+	@BindingTarget public boolean deleteSceneEnabled;
 	
-	public boolean addPaletteSwitchEnabled;
-	public boolean addColSceneEnabled;
-	public boolean addFetchEnabled;
-	public boolean addEventEnabled;
+	@BindingTarget public boolean addPaletteSwitchEnabled;
+	@BindingTarget public boolean addColSceneEnabled;
+	@BindingTarget public boolean fetchDurationEnabled;
+	@BindingTarget public boolean addEventEnabled;
 
-	public boolean maskOnEnabled;
-	public boolean undoEnabled;
-	public boolean redoEnabled;
+	@BindingTarget public boolean maskOnEnabled;
+	@BindingTarget public boolean undoEnabled;
+	@BindingTarget public boolean redoEnabled;
 	
-	public boolean markStartEnabled;
-	public boolean markStopEnabled;
-	public boolean cutEnabled;
-	public boolean startStopEnabled;
-	public boolean prevEnabled;
-	public boolean nextEnabled;
+	@BindingTarget public boolean markStartEnabled;
+	@BindingTarget public boolean markEndEnabled;
+	@BindingTarget public boolean cutEnabled;
+	@BindingTarget public boolean startStopEnabled;
+	@BindingTarget public boolean prevEnabled;
+	@BindingTarget public boolean nextEnabled;
 	
-	public boolean copyToNextEnabled;
-	public boolean copyToPrevEnabled;
-	public boolean deleteColMaskEnabled;
-	public boolean invertMaskEnabled;
+	@BindingTarget public boolean copyToNextEnabled;
+	@BindingTarget public boolean copyToPrevEnabled;
+	@BindingTarget public boolean deleteColMaskEnabled;
 	
-	public String startStopLabel = "Start";
+	@BindingTarget public String startStopLabel = "Start";
 	
 	public boolean drawingEnabled;
 	public int drawMask;
@@ -192,6 +193,8 @@ public class ViewModel {
 	public boolean livePreview;
 	
 	public String shellTitle;
+	
+	// --- generated getter / setter code --- do not edit
 	
 	public java.util.List<Palette> getPreviewPalettes() {
 		return previewPalettes;
@@ -211,42 +214,14 @@ public class ViewModel {
 	public void setProjectFilename(String projectFilename) {
 		firePropertyChange("projectFilename", this.projectFilename, this.projectFilename = projectFilename);
 	}
-	public TypedLabel getSelectedRecording() {
-		return selectedRecording;
-	}
-	public void setSelectedRecording(TypedLabel selectedRecording) {
-		firePropertyChange("selectedRecording", this.selectedRecording, this.selectedRecording = selectedRecording);
-	}
-	public TypedLabel getSelectedScene() {
-		return selectedScene;
-	}
-	public void setSelectedScene(TypedLabel selectedScene) {
-		firePropertyChange("selectedScene", this.selectedScene, this.selectedScene = selectedScene);
-	}
+	
 	public TypedLabel getSelectedKeyFrame() {
 		return selectedKeyFrame;
 	}
 	public void setSelectedKeyFrame(TypedLabel selectedKeyFrame) {
 		firePropertyChange("selectedKeyFrame", this.selectedKeyFrame, this.selectedKeyFrame = selectedKeyFrame);
 	}
-	public WritableList getRecordings() {
-		return recordings;
-	}
-	public void setRecordings(WritableList recordings) {
-		firePropertyChange("recordings", this.recordings, this.recordings = recordings);
-	}
-	public WritableList getScenes() {
-		return scenes;
-	}
-	public void setScenes(WritableList scenes) {
-		firePropertyChange("scenes", this.scenes, this.scenes = scenes);
-	}
-	public int getActFrame() {
-		return actFrame;
-	}
-	public void setActFrame(int actFrame) {
-		firePropertyChange("actFrame", this.actFrame, this.actFrame = actFrame);
-	}
+	
 	public CutInfo getCutInfo() {
 		return cutInfo;
 	}
@@ -277,21 +252,7 @@ public class ViewModel {
 	public void setSelectedEditMode(EditMode selectedEditMode) {
 		firePropertyChange("selectedEditMode", this.selectedEditMode, this.selectedEditMode = selectedEditMode);
 	}
-	public int getMaskNumber() {
-		return maskNumber;
-	}
-	public void setMaskNumber(int maskNumber) {
-		firePropertyChange("maskNumber", this.maskNumber, this.maskNumber = maskNumber);
-	}
-
-	public boolean isMaskSpinnerEnabled() {
-		return maskSpinnerEnabled;
-	}
-
-	public void setMaskSpinnerEnabled(boolean maskSpinnerEnabled) {
-		firePropertyChange("maskSpinnerEnabled", this.maskSpinnerEnabled, this.maskSpinnerEnabled = maskSpinnerEnabled);
-	}
-
+	
 	public boolean isMaskInvertEnabled() {
 		return maskInvertEnabled;
 	}
@@ -330,14 +291,6 @@ public class ViewModel {
 
 	public void setMarkStartEnabled(boolean markStartEnabled) {
 		firePropertyChange("markStartEnabled", this.markStartEnabled, this.markStartEnabled = markStartEnabled);
-	}
-
-	public boolean isMarkStopEnabled() {
-		return markStopEnabled;
-	}
-
-	public void setMarkStopEnabled(boolean markStopEnabled) {
-		firePropertyChange("markStopEnabled", this.markStopEnabled, this.markStopEnabled = markStopEnabled);
 	}
 
 	public boolean[] getHashButtonSelected() {
@@ -404,12 +357,12 @@ public class ViewModel {
 		firePropertyChange("addColSceneEnabled", this.addColSceneEnabled, this.addColSceneEnabled = addColSceneEnabled);
 	}
 
-	public boolean isAddFetchEnabled() {
-		return addFetchEnabled;
+	public boolean isFetchDurationEnabled() {
+		return fetchDurationEnabled;
 	}
 
-	public void setAddFetchEnabled(boolean addFetchEnabled) {
-		firePropertyChange("addFetchEnabled", this.addFetchEnabled, this.addFetchEnabled = addFetchEnabled);
+	public void setFetchDurationEnabledEnabled(boolean fetchDurationEnabled) {
+		firePropertyChange("fetchDurationEnabled", this.fetchDurationEnabled, this.fetchDurationEnabled = fetchDurationEnabled);
 	}
 
 	public boolean isAddEventEnabled() {
@@ -426,22 +379,6 @@ public class ViewModel {
 
 	public void setDuration(int duration) {
 		firePropertyChange("duration", this.duration, this.duration = duration);
-	}
-
-	public int getEventHigh() {
-		return eventHigh;
-	}
-
-	public void setEventHigh(int eventHigh) {
-		firePropertyChange("eventHigh", this.eventHigh, this.eventHigh = eventHigh);
-	}
-
-	public int getEventLow() {
-		return eventLow;
-	}
-
-	public void setEventLow(int eventLow) {
-		firePropertyChange("eventLow", this.eventLow, this.eventLow = eventLow);
 	}
 
 	public boolean isPrevEnabled() {
@@ -474,14 +411,6 @@ public class ViewModel {
 
 	public void setCutEnabled(boolean cutEnabled) {
 		firePropertyChange("cutEnabled", this.cutEnabled, this.cutEnabled = cutEnabled);
-	}
-
-	public String getStartStopLabel() {
-		return startStopLabel;
-	}
-
-	public void setStartStopLabel(String startStopLabel) {
-		firePropertyChange("startStopLabel", this.startStopLabel, this.startStopLabel = startStopLabel);
 	}
 
 	public int getDelay() {
@@ -564,28 +493,12 @@ public class ViewModel {
 		firePropertyChange("editedBookmarkName", this.editedBookmarkName, this.editedBookmarkName = editedBookmarkName);
 	}
 
-	public WritableList getPalettes() {
-		return palettes;
-	}
-
-	public void setPalettes(WritableList palettes) {
-		firePropertyChange("palettes", this.palettes, this.palettes = palettes);
-	}
-
 	public Palette getSelectedPalette() {
 		return selectedPalette;
 	}
 
 	public void setSelectedPalette(Palette selectedPalette) {
 		firePropertyChange("selectedPalette", this.selectedPalette, this.selectedPalette = selectedPalette);
-	}
-
-	public WritableList getKeyframes() {
-		return keyframes;
-	}
-
-	public void setKeyframes(WritableList keyframes) {
-		firePropertyChange("keyframes", this.keyframes, this.keyframes = keyframes);
 	}
 
 	public boolean isMaskLocked() {
@@ -724,14 +637,6 @@ public class ViewModel {
 		firePropertyChange("deleteColMaskEnabled", this.deleteColMaskEnabled, this.deleteColMaskEnabled = deleteColMaskEnabled);
 	}
 
-	public boolean isInvertMaskEnabled() {
-		return invertMaskEnabled;
-	}
-
-	public void setInvertMaskEnabled(boolean invertMaskEnabled) {
-		firePropertyChange("invertMaskEnabled", this.invertMaskEnabled, this.invertMaskEnabled = invertMaskEnabled);
-	}
-
 	public long getFrameRedraw() {
 		return frameRedraw;
 	}
@@ -746,6 +651,114 @@ public class ViewModel {
 
 	public void setSkip(int skip) {
 		firePropertyChange("skip", this.skip, this.skip = skip);
+	}
+
+	public void setHashButtonEnabled(boolean[] hashButtonEnabled) {
+		firePropertyChange("hashButtonEnabled", this.hashButtonEnabled, this.hashButtonEnabled = hashButtonEnabled);
+	}
+
+	public boolean isMarkEndEnabled() {
+		return markEndEnabled;
+	}
+
+	public void setMarkEndEnabled(boolean markEndEnabled) {
+		firePropertyChange("markEndEnabled", this.markEndEnabled, this.markEndEnabled = markEndEnabled);
+	}
+
+	public String getStartStopLabel() {
+		return startStopLabel;
+	}
+
+	public void setStartStopLabel(String startStopLabel) {
+		firePropertyChange("startStopLabel", this.startStopLabel, this.startStopLabel = startStopLabel);
+	}
+
+	public int getSelectedMaskNumber() {
+		return selectedMaskNumber;
+	}
+
+	public void setSelectedMaskNumber(int selectedMaskNumber) {
+		firePropertyChange("selectedMaskNumber", this.selectedMaskNumber, this.selectedMaskNumber = selectedMaskNumber);
+	}
+
+	public boolean isMaskNumberEnabled() {
+		return maskNumberEnabled;
+	}
+
+	public void setMaskNumberEnabled(boolean maskNumberEnabled) {
+		firePropertyChange("maskNumberEnabled", this.maskNumberEnabled, this.maskNumberEnabled = maskNumberEnabled);
+	}
+
+	public int getSelectedEventHigh() {
+		return selectedEventHigh;
+	}
+
+	public void setSelectedEventHigh(int selectedEventHigh) {
+		firePropertyChange("selectedEventHigh", this.selectedEventHigh, this.selectedEventHigh = selectedEventHigh);
+	}
+
+	public int getSelectedEventLow() {
+		return selectedEventLow;
+	}
+
+	public void setSelectedEventLow(int selectedEventLow) {
+		firePropertyChange("selectedEventLow", this.selectedEventLow, this.selectedEventLow = selectedEventLow);
+	}
+
+	public int getSelectedFrame() {
+		return selectedFrame;
+	}
+
+	public void setSelectedFrame(int selectedFrame) {
+		firePropertyChange("selectedFrame", this.selectedFrame, this.selectedFrame = selectedFrame);
+	}
+
+	public ObservableList<TypedLabel> getKeyframes() {
+		return keyframes;
+	}
+
+	public void setKeyframes(ObservableList<TypedLabel> keyframes) {
+		firePropertyChange("keyframes", this.keyframes, this.keyframes = keyframes);
+	}
+
+	public ObservableList<CompiledAnimation> getScenes() {
+		return scenes;
+	}
+
+	public void setScenes(ObservableList<CompiledAnimation> scenes) {
+		firePropertyChange("scenes", this.scenes, this.scenes = scenes);
+	}
+
+	public CompiledAnimation getSelectedScene() {
+		return selectedScene;
+	}
+
+	public void setSelectedScene(CompiledAnimation selectedScene) {
+		firePropertyChange("selectedScene", this.selectedScene, this.selectedScene = selectedScene);
+	}
+
+	public Animation getSelectedRecording() {
+		return selectedRecording;
+	}
+
+	public void setSelectedRecording(Animation selectedRecording) {
+		firePropertyChange("selectedRecording", this.selectedRecording, this.selectedRecording = selectedRecording);
+	}
+
+	public ObservableList<Animation> getRecordings() {
+		return recordings;
+	}
+
+	public void setRecordings(ObservableList<Animation> recordings) {
+		firePropertyChange("recordings", this.recordings, this.recordings = recordings);
+	}
+
+	public ObservableList<Palette> getPalettes() {
+		return palettes;
+	}
+
+	public void setPalettes(ObservableList<Palette> palettes) {
+		firePropertyChange("palettes", this.palettes, this.palettes = palettes);
 	}
 
 }

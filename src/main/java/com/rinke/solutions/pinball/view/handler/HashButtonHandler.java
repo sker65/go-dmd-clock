@@ -3,6 +3,8 @@ package com.rinke.solutions.pinball.view.handler;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.rinke.solutions.beans.Bean;
 import com.rinke.solutions.pinball.view.CmdDispatcher;
 import com.rinke.solutions.pinball.view.model.Model;
@@ -18,24 +20,27 @@ public class HashButtonHandler extends ViewHandler {
 		super(vm,m,d);
 	}
 	
+	private void setLabelAndState(String lbl, int i) {
+		vm.hashLbl[i]= ( lbl != null ? lbl : "");
+		vm.hashButtonEnabled[i] = !StringUtils.isEmpty(lbl);
+	}
+	
 	public void onUpdateHashes(List<byte[]> hashes) {
 		int i = 0;
 		for (byte[] p : hashes) {
 			String hash = getPrintableHashes(p);
 			// disable for empty frame: crc32 for empty frame is B2AA7578
 			if (hash.startsWith("B2AA7578" /* "BF619EAC0CDF3F68D496EA9344137E8B" */)) {
-				vm.hashLbl[i] = "";
-				vm.hashButtonEnabled[i] = false;
+				setLabelAndState("", i);
 			} else {
-				vm.hashLbl[i]=hash;
+				setLabelAndState(hash, i);
 			}
 			i++;
 			if (i >= vm.hashLbl.length)
 				break;
 		}
 		while (i < vm.numberOfHashButtons) {
-			vm.hashLbl[i] = "";
-			vm.hashButtonEnabled[i] = false;
+			setLabelAndState("", i);
 			i++;
 		}
 		// copy is essential to propagate change

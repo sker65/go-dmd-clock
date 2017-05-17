@@ -9,6 +9,7 @@ import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.Bean;
 import com.rinke.solutions.beans.BeanFactory;
 import com.rinke.solutions.beans.Value;
+import com.rinke.solutions.pinball.AniActionHandler;
 import com.rinke.solutions.pinball.util.MessageUtil;
 import com.rinke.solutions.pinball.view.CmdDispatcher;
 import com.rinke.solutions.pinball.view.View;
@@ -27,6 +28,9 @@ public class MenuHandler extends ViewHandler {
 	
 	@Autowired
 	private MessageUtil messageUtil;
+	
+	@Autowired
+	AniActionHandler aniActionHandler;
 	
 	@Value
 	private boolean nodirty; // if set ignore dirty check
@@ -74,6 +78,10 @@ public class MenuHandler extends ViewHandler {
 		// dirty check
 		if( couldQuit())
 			shell.close();
+	}
+	
+	public void onLoadAniWithFC(boolean append) {
+		aniActionHandler.onLoadAniWithFC(append);
 	}
 
 }

@@ -6,7 +6,7 @@ import java.beans.PropertyChangeSupport;
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.core.databinding.conversion.IConverter;
 
-public class TypedLabel implements IConverter {
+public class TypedLabel implements IConverter, PropertyChangeSupported {
 	private static final long serialVersionUID = 1L;
 	
 	public String type; // used for icon in labels
@@ -22,6 +22,10 @@ public class TypedLabel implements IConverter {
 		change.removePropertyChangeListener(l);
 	}
 
+	private void firePropertyChange(String propertyName, String oldValue, String newValue) {
+		change.firePropertyChange(propertyName, oldValue, newValue);
+	}
+	
 	public TypedLabel( String type, String label) {
 		this.type = type;
 		this.label = label;
@@ -31,10 +35,6 @@ public class TypedLabel implements IConverter {
 	}
 	public void setType(String type) {
 		firePropertyChange("type", this.type, this.type = type);
-	}
-	
-	private void firePropertyChange(String propertyName, String oldValue, String newValue) {
-		change.firePropertyChange(propertyName, oldValue, newValue);
 	}
 	
 	public String getLabel() {

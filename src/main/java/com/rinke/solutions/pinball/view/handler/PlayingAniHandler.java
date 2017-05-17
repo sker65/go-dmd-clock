@@ -84,8 +84,8 @@ public class PlayingAniHandler extends ViewHandler {
 			vm.setSkip(ani.skip);
 			vm.setNumberOfPlanes(ani.getRenderer().getNumberOfPlanes());
 			vm.dmd.setNumberOfPlanes(vm.numberOfPlanes);
-			vm.setPrevEnabled(ani!=null && vm.actFrame>vm.minFrame);
-			vm.setNextEnabled(ani!=null && vm.actFrame<=vm.maxFrame);
+			vm.setPrevEnabled(ani!=null && vm.selectedFrame>vm.minFrame);
+			vm.setNextEnabled(ani!=null && vm.selectedFrame<=vm.maxFrame);
 			vm.setDrawingEnabled(nv.isMutable());
 			renderAni();
 		}
@@ -94,20 +94,20 @@ public class PlayingAniHandler extends ViewHandler {
 	
 	public void onCutInfoChanged(CutInfo ov, CutInfo nv) {
 		if( nv != null ) {
-			vm.setMarkStopEnabled(vm.actFrame > nv.start);
+			vm.setMarkEndEnabled(vm.selectedFrame > nv.start);
 			vm.setCutEnabled(nv.end > nv.start);
 		} else {
-			vm.setMarkStopEnabled(false);
+			vm.setMarkEndEnabled(false);
 			vm.setCutEnabled(false);
 		}
 	}
 	
 	public void onMarkStart() {
-		vm.setCutInfo(new CutInfo(vm.actFrame, 0));
+		vm.setCutInfo(new CutInfo(vm.selectedFrame, 0));
 	}
 	
 	public void onMarkEnd() {
-		vm.setCutInfo(new CutInfo(vm.cutInfo.start, vm.actFrame));
+		vm.setCutInfo(new CutInfo(vm.cutInfo.start, vm.selectedFrame));
 	}
 	
 	public void onCutScene( CutInfo cutInfo ) {
@@ -134,7 +134,7 @@ public class PlayingAniHandler extends ViewHandler {
 	 * @param anis the map containing the keys
 	 * @return the new unique name
 	 */
-	String buildUniqueName(List<TypedLabel> nameList) {
+	String buildUniqueName(List<CompiledAnimation> nameList) {
 		int no = nameList.size();
 		String name = "Scene " + no;
 		while( nameList.contains(name)) {
@@ -146,8 +146,8 @@ public class PlayingAniHandler extends ViewHandler {
 
 	private void scheduleFrameInc() {
 		log.debug("schedule {}", vm.delay);
-		if( vm.actFrame<=vm.maxFrame ) {
-			timerExec.exec(vm.delay+1, ()->vm.setActFrame(vm.actFrame+1));
+		if( vm.selectedFrame<=vm.maxFrame ) {
+			timerExec.exec(vm.delay+1, ()->vm.setSelectedFrame(vm.selectedFrame+1));
 		} else {
 			vm.setAnimationIsPlaying(false);
 		}
@@ -163,14 +163,14 @@ public class PlayingAniHandler extends ViewHandler {
 	}
 	
 	public void onPrevFrame() {
-		vm.setActFrame(vm.actFrame-1);
+		vm.setSelectedFrame(vm.selectedFrame-1);
 	}
 	
 	public void onNextFrame() {
-		vm.setActFrame(vm.actFrame+1);
+		vm.setSelectedFrame(vm.selectedFrame+1);
 	}
 	
-	public void onActFrameChanged(int ov, int nv) {
+	public void onSelectedFrameChanged(int ov, int nv) {
 		if( nv != ani.actFrame ) {
 			Frame f = renderAni();
 			if( ani.end != vm.maxFrame ) { // sometimes end gets updated while rendering
@@ -180,9 +180,9 @@ public class PlayingAniHandler extends ViewHandler {
 			vm.setTimecode((int) ani.getTimeCode(ani.actFrame));
 			updateHashes(f);
 		}
-		vm.setPrevEnabled(ani!=null && vm.actFrame>vm.minFrame);
-		vm.setNextEnabled(ani!=null && vm.actFrame<=vm.maxFrame);
-		vm.setMarkStopEnabled(vm.cutInfo != null && vm.actFrame > vm.cutInfo.start);
+		vm.setPrevEnabled(ani!=null && vm.selectedFrame>vm.minFrame);
+		vm.setNextEnabled(ani!=null && vm.selectedFrame<=vm.maxFrame);
+		vm.setMarkEndEnabled(vm.cutInfo != null && vm.selectedFrame > vm.cutInfo.start);
 		ani.actFrame = nv;
 		if( vm.animationIsPlaying ) scheduleFrameInc();
 	}

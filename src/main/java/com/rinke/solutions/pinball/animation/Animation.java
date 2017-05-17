@@ -74,7 +74,7 @@ public class Animation {
 	public int width;
 	public int height;
 
-	private EditMode editMode = EditMode.FIXED;
+	protected EditMode editMode = EditMode.FIXED;
 
 	public void setAniColors(RGB[] rgb) {
 		this.aniColors = rgb;
@@ -232,9 +232,16 @@ public class Animation {
 	public void setRefreshDelay(int refreshDelay) {
 		this.refreshDelay = refreshDelay;
 	}
+	
 	public Animation(AnimationType type, String name, int start, int end, int skip,
 			int cycles, int holdCycles) {
-		this(type, name, start, end, skip,cycles, holdCycles,128, 32);
+		this(type, name, start, end, skip,cycles, holdCycles, 128, 32);
+	}
+	
+	public Animation(AnimationType type, String name, int start, int end, int skip,
+			int cycles, int holdCycles, String desc) {
+		this(type, name, start, end, skip,cycles, holdCycles, 128, 32);
+		setDesc(desc);
 	}
 	
 	public Animation(AnimationType type, String name, int start, int end, int skip,

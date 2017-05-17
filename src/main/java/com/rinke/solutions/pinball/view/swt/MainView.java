@@ -1,5 +1,6 @@
 package com.rinke.solutions.pinball.view.swt;
 
+import static com.rinke.solutions.databinding.WidgetProp.*;
 import static com.rinke.solutions.pinball.view.model.ViewCmd.*;
 
 import java.beans.PropertyChangeEvent;
@@ -17,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.core.databinding.DataBindingContext;
 import org.eclipse.core.databinding.beans.BeanProperties;
 import org.eclipse.core.databinding.beans.BeansObservables;
@@ -42,6 +44,7 @@ import org.eclipse.jface.viewers.ComboViewer;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.viewers.TableTreeViewer;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
@@ -69,10 +72,15 @@ import org.eclipse.swt.widgets.ToolItem;
 
 import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.SimpleBeanFactory;
+import com.rinke.solutions.databinding.DataBinder;
+import com.rinke.solutions.databinding.GuiBinding;
+import com.rinke.solutions.databinding.WidgetProp;
 import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.GoDmdGroup;
 import com.rinke.solutions.pinball.PinDmdEditor;
 import com.rinke.solutions.pinball.PinDmdEditor.TabMode;
+import com.rinke.solutions.pinball.animation.Animation;
+import com.rinke.solutions.pinball.animation.CompiledAnimation;
 // maybe split in two types (for decoupling)
 import com.rinke.solutions.pinball.animation.EditMode;
 // 
@@ -192,19 +200,19 @@ public class MainView {
 		beanFactory.setSingleton("recentProjectsMenuManager",recentProjectsMenuManager);
 		beanFactory.setSingleton("recentAnimationsMenuManager", recentAnimationsMenuManager);
 
+		DataBinder dataBinder = new DataBinder();
+		dataBinder.bind(this, vm);
+		
 		List<ViewHandler> handlers = beanFactory.getBeansOfType(ViewHandler.class);
 		handlers.forEach(h->dispatcher.registerHandler(h));
+		
+		dispatcher.checkChangeHandlers(vm);
 		
 		vm.addPropertyChangeListener( e->viewModelChanged(e) );
 
 		vm.init();
 		//ProjectHandler projectHandler = beanFactory.getBeanByType(ProjectHandler.class);
 		//projectHandler.loadProject("/Users/stefanri/Documents/privat/Pinball/drive-download-20170501T144233Z-001/SFII.xml");
-		
-		vm.availableEditModes.addObserver((o,p)->{
-			editModeViewer.setInput(vm.availableEditModes);
-			editModeViewer.refresh();
-		});
 		
 		shell.open();
 		shell.layout();
@@ -223,68 +231,84 @@ public class MainView {
 	PaletteTool paletteTool;
 		
 	private int numberOfHashes = 4;
+	ResourceManager resManager;
 
 	/** instance level SWT widgets */
 	Button btnHash[] = new Button[numberOfHashes];
 	// UI / swt widgets
-	Label lblTcval;
-	Label lblFrameNo;
-	Text txtDuration;
-	Scale scale;
-	ComboViewer paletteComboViewer;
-	TableViewer recordingsListViewer;
-	TableViewer keyframeTableViewer;
-	Button btnRemoveAni;
-	Button btnDeleteKeyframe;
-	Button btnAddKeyframe;
-	Button btnFetchDuration;
-	Button btnPrev;
-	Button btnNext;
+	@GuiBinding( prop=LABEL, propName="timecode" ) Label timecode;
+	@GuiBinding( prop=LABEL, propName="selectedFrame" ) Label actFrame;
+	@GuiBinding( prop=TEXT, propName="duration" ) Text txtDuration;
+	@GuiBinding( props={MIN,MAX,SELECTION} ) Scale frame;
+	
+	@GuiBinding( prop=INPUT, propName="palettes" ) ComboViewer paletteComboViewer;
+	@GuiBinding( prop=INPUT, propName="recordings" ) TableViewer recordingsListViewer;
+	@GuiBinding( prop=INPUT, propName="scenes" ) TableViewer sceneListViewer;
+	@GuiBinding( prop=INPUT, propName="keyframes" ) TableViewer keyframeTableViewer;
+		
+	@GuiBinding( prop=ENABLED ) Button deleteRecording;
+	@GuiBinding( prop=ENABLED ) Button deleteKeyFrame;
+	@GuiBinding( prop=ENABLED ) Button addPaletteSwitch;
+	@GuiBinding( prop=ENABLED ) Button fetchDuration;
+	@GuiBinding( prop=ENABLED ) Button prev;
+	@GuiBinding( prop=ENABLED ) Button next;
+	
 	ComboViewer paletteTypeComboViewer;
 	DMDWidget dmdWidget;
-	ResourceManager resManager;
 	Button btnNewPalette;
 	Button btnRenamePalette;
 	ToolBar drawToolBar;
 	ComboViewer frameSeqViewer;
-	Button btnMarkStart;
-	Button btnMarkEnd;
-	Button btnCut;
-	Button btnStartStop;
-	Button btnAddFrameSeq;
+	
+	@GuiBinding( prop=ENABLED ) Button markStart;
+	@GuiBinding( prop=ENABLED ) Button markEnd;
+	@GuiBinding( prop=ENABLED ) Button cut;
+	@GuiBinding( props= { ENABLED, LABEL } ) Button startStop;
+	@GuiBinding( prop=ENABLED ) Button addColScene;
+	
 	DMDWidget previewDmd;
-	Label lblPlanesVal;
-	Text txtDelayVal;
+	@GuiBinding( prop=LABEL, propName="numberOfPlanes" ) Label numberOfPlanes;
+	@GuiBinding( prop=TEXT, propName="delay" ) Text txtDelayVal;
 	private Button btnSortAni;
-	private Button btnMask;
+	@GuiBinding( prop=ENABLED ) private Button maskOn;
+	
 	private Menu menuPopRecentProjects;
 	private Menu mntmRecentAnimations;
 	private Menu mntmRecentPalettes;
-	Spinner maskSpinner;
+	
+	@GuiBinding( props={ENABLED,SELECTION} ) Spinner maskNumber;
 	private GoDmdGroup goDmdGroup;
+
+	@GuiBinding( prop=ENABLED ) private Button copyToNext;
+	@GuiBinding( prop=ENABLED ) private Button undo;
+	@GuiBinding( prop=ENABLED ) private Button redo;
+	@GuiBinding( prop=ENABLED ) private Button copyToPrev;
+	private Button btnLivePreview;
+	@GuiBinding( prop=ENABLED ) Button deleteColMask;
+	@GuiBinding( prop=ENABLED ) private Button deleteScene;
+	@GuiBinding( prop=SELECTION ) private Spinner eventHigh;
+	@GuiBinding( prop=SELECTION ) private Spinner eventLow;
+	@GuiBinding( prop=ENABLED ) private Button addEvent;
+
 	private MenuItem mntmUploadProject;
 	private MenuItem mntmUploadPalettes;
-	private Button btnCopyToNext;
-	private Button btnUndo;
-	private Button btnRedo;
-	private Button btnCopyToPrev;
-	private Button btnLivePreview;
 	MenuItem mntmSaveProject;
-	Button btnDeleteColMask;
-	private ComboViewer editModeViewer;
-	TableViewer sceneListViewer;
-	private Button btnRemoveScene;
-	private Spinner spinnerDeviceId;
-	private Spinner spinnerEventId;
-	private Button btnAddEvent;
-	private Composite grpKeyframe;
-	private Text textProperty;
-	private ComboViewer bookmarkComboViewer;
-	Button btnInvert;
 	private MenuItem mntmUndo;
 	private MenuItem mntmRedo;
+
+	@GuiBinding( prop=INPUT, propName="availableEditModes" ) private ComboViewer editModeViewer;
+	
+	private Composite grpKeyframe;
+	private Text textProperty; // for general goDMD properties
+	private ComboViewer bookmarkComboViewer;
+	
+	@GuiBinding( prop=ENABLED ) Button maskInvert;
+	private Combo comboBookmark;
+	
+	private Combo frameSeqCombo;
+	private Combo paletteViewerCombo;
+
 	Map<String, DrawTool> drawTools = new HashMap<>();
-	private Combo combo_3;
 
 	private SimpleBeanFactory beanFactory;
 	
@@ -333,14 +357,14 @@ public class MainView {
 
 		int btnWidth = 155;
 
-		btnAddKeyframe = new Button(grpKeyframe, SWT.NONE);
-		btnAddKeyframe.setToolTipText("Adds a key frame that switches palette");
+		addPaletteSwitch = new Button(grpKeyframe, SWT.NONE);
+		addPaletteSwitch.setToolTipText("Adds a key frame that switches palette");
 		GridData gd_btnAddKeyframe = new GridData(SWT.LEFT, SWT.BOTTOM, false, false, 1, 1);
 		gd_btnAddKeyframe.widthHint = btnWidth;
-		btnAddKeyframe.setLayoutData(gd_btnAddKeyframe);
-		btnAddKeyframe.setText("Add Palette Switch");
-		btnAddKeyframe.setEnabled(false);
-		btnAddKeyframe.addListener(SWT.Selection, e -> dispatchCmd(ADD_KEY_FRAME, SwitchMode.PALETTE));
+		addPaletteSwitch.setLayoutData(gd_btnAddKeyframe);
+		addPaletteSwitch.setText("Add Palette Switch");
+		addPaletteSwitch.setEnabled(false);
+		addPaletteSwitch.addListener(SWT.Selection, e -> dispatchCmd(ADD_KEY_FRAME, SwitchMode.PALETTE));
 		
 		Label label = new Label(grpKeyframe, SWT.NONE);
 		label.setText(" ");
@@ -357,15 +381,15 @@ public class MainView {
 		gd_frameSeqCombo.widthHint = 100;
 		frameSeqCombo.setLayoutData(gd_frameSeqCombo);
 		
-		btnAddFrameSeq = new Button(grpKeyframe, SWT.NONE);
+		addColScene = new Button(grpKeyframe, SWT.NONE);
 		GridData gd_btnAddFrameSeq = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
 		gd_btnAddFrameSeq.widthHint = btnWidth;
-		btnAddFrameSeq.setLayoutData(gd_btnAddFrameSeq);
-		btnAddFrameSeq.setToolTipText("Adds a keyframe that triggers playback of a scene");
-		btnAddFrameSeq.setText("Add ColorScene Switch");
+		addColScene.setLayoutData(gd_btnAddFrameSeq);
+		addColScene.setToolTipText("Adds a keyframe that triggers playback of a scene");
+		addColScene.setText("Add ColorScene Switch");
 		// TODO add switch mode depend on ani scene
-		btnAddFrameSeq.addListener(SWT.Selection, e -> dispatchCmd(ADD_FRAME_SEQ,SwitchMode.REPLACE));
-		btnAddFrameSeq.setEnabled(false);
+		addColScene.addListener(SWT.Selection, e -> dispatchCmd(ADD_FRAME_SEQ,SwitchMode.REPLACE));
+		addColScene.setEnabled(false);
 		new Label(grpKeyframe, SWT.NONE);
 		new Label(grpKeyframe, SWT.NONE);
 		
@@ -384,14 +408,14 @@ public class MainView {
 //			}
 		});
 		
-		btnFetchDuration = new Button(grpKeyframe, SWT.NONE);
+		fetchDuration = new Button(grpKeyframe, SWT.NONE);
 		GridData gd_btnFetchDuration = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
 		gd_btnFetchDuration.widthHint = btnWidth;
-		btnFetchDuration.setLayoutData(gd_btnFetchDuration);
-		btnFetchDuration.setToolTipText("Fetches duration for palette switches by calculating the difference between actual timestamp and keyframe timestamp");
-		btnFetchDuration.setText("Fetch Duration");
-		btnFetchDuration.setEnabled(false);
-		btnFetchDuration.addListener(SWT.Selection, e -> dispatchCmd(FETCH_DURATION));
+		fetchDuration.setLayoutData(gd_btnFetchDuration);
+		fetchDuration.setToolTipText("Fetches duration for palette switches by calculating the difference between actual timestamp and keyframe timestamp");
+		fetchDuration.setText("Fetch Duration");
+		fetchDuration.setEnabled(false);
+		fetchDuration.addListener(SWT.Selection, e -> dispatchCmd(FETCH_DURATION));
 //	VIEW		if (selectedPalMapping != null) {
 //				selectedPalMapping.durationInMillis = lastTimeCode - saveTimeCode;
 //				selectedPalMapping.durationInFrames = (int) selectedPalMapping.durationInMillis / FRAME_RATE;
@@ -419,23 +443,23 @@ public class MainView {
 		gd_composite_5.widthHint = 134;
 		composite_5.setLayoutData(gd_composite_5);
 		
-		spinnerDeviceId = new Spinner(composite_5, SWT.BORDER);
-		spinnerDeviceId.setMaximum(255);
-		spinnerDeviceId.setMinimum(0);
+		eventHigh = new Spinner(composite_5, SWT.BORDER);
+		eventHigh.setMaximum(255);
+		eventHigh.setMinimum(0);
 //VIEW		spinnerDeviceId.addModifyListener(e->onEventSpinnerChanged(spinnerDeviceId, 8));
 		
-		spinnerEventId = new Spinner(composite_5, SWT.BORDER);
-		spinnerEventId.setMaximum(255);
-		spinnerEventId.setMinimum(0);
+		eventLow = new Spinner(composite_5, SWT.BORDER);
+		eventLow.setMaximum(255);
+		eventLow.setMinimum(0);
 //VIEW		spinnerEventId.addModifyListener(e->onEventSpinnerChanged(spinnerEventId, 0));
 		
-		btnAddEvent = new Button(grpKeyframe, SWT.NONE);
+		addEvent = new Button(grpKeyframe, SWT.NONE);
 		GridData gd_btnAddEvent = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
 		gd_btnAddEvent.widthHint = btnWidth;
-		btnAddEvent.setLayoutData(gd_btnAddEvent);
-		btnAddEvent.setText("Add Event");
+		addEvent.setLayoutData(gd_btnAddEvent);
+		addEvent.setText("Add Event");
 		new Label(grpKeyframe, SWT.NONE);
-		btnAddEvent.addListener(SWT.Selection, e->dispatchCmd(ADD_KEY_FRAME,SwitchMode.EVENT));
+		addEvent.addListener(SWT.Selection, e->dispatchCmd(ADD_KEY_FRAME,SwitchMode.EVENT));
 		
 		return grpKeyframe;
 	}
@@ -736,16 +760,17 @@ public class MainView {
 		int colWidth = 220;
 
 		recordingsListViewer = new TableViewer(shell, SWT.BORDER | SWT.V_SCROLL);
-		Table aniList = recordingsListViewer.getTable();
-		GridData gd_aniList = new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1);
-		gd_aniList.heightHint = listHeight;
-		gd_aniList.widthHint = listWidth;
-		aniList.setLayoutData(gd_aniList);
-		aniList.setLinesVisible(true);
-		aniList.addKeyListener(new EscUnselect(recordingsListViewer));
+		Table recordingsList = recordingsListViewer.getTable();
+		GridData gd_recordingsList = new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1);
+		gd_recordingsList.heightHint = listHeight;
+		gd_recordingsList.widthHint = listWidth;
+		recordingsList.setLayoutData(gd_recordingsList);
+		recordingsList.setLinesVisible(true);
+		recordingsList.addKeyListener(new EscUnselect(recordingsListViewer));
+		recordingsListViewer.setLabelProvider(new IconLabelProvider<Animation>(shell,t -> Pair.of(t.getEditMode().name(),t.getDesc())));
+		
 		recordingsListViewer.addSelectionChangedListener(event -> vm.setSelectedRecording(getFirstSelected(event)));
-		registerProp("selectedRecording", recordingsListViewer);
-
+		registerProp("selectedRecording", "recordingsListViewer", recordingsListViewer);
 		
 		// created edit support for ani / recordings
 //VIEW		TableViewerColumn viewerCol1 = new TableViewerColumn(aniListViewer, SWT.LEFT);
@@ -764,8 +789,10 @@ public class MainView {
 		sceneList.setLayoutData(gd_list);
 		sceneList.setLinesVisible(true);
 		sceneList.addKeyListener(new EscUnselect(sceneListViewer));
+		sceneListViewer.setLabelProvider(new IconLabelProvider<CompiledAnimation>(shell,t -> Pair.of(t.getEditMode().name(),t.getDesc())));
+		
 		sceneListViewer.addSelectionChangedListener(event -> vm.setSelectedScene(getFirstSelected(event)));
-		registerProp("selectedScene", sceneListViewer);
+		registerProp("selectedScene", "sceneListViewer", sceneListViewer);
 
 //VIEW		TableViewerColumn viewerCol2 = new TableViewerColumn(sceneListViewer, SWT.LEFT);
 //		viewerCol2.setEditingSupport(new GenericTextCellEditor<Animation>(sceneListViewer, ani -> ani.getDesc(), (ani, v) -> {
@@ -784,6 +811,7 @@ public class MainView {
 		keyframeList.setLinesVisible(true);
 		keyframeList.setLayoutData(gd_keyframeList);
 		keyframeList.addKeyListener(new EscUnselect(keyframeTableViewer));
+		keyframeTableViewer.setLabelProvider(new IconLabelProvider<TypedLabel>(shell,t -> Pair.of(t.type,t.label)));
 
 //VIEW		keyframeTableViewer.setContentProvider(ArrayContentProvider.getInstance());
 //		keyframeTableViewer.setInput(project.palMappings);
@@ -810,11 +838,11 @@ public class MainView {
 		gd_composite_1.widthHint = listWidth;
 		composite_1.setLayoutData(gd_composite_1);
 
-		btnRemoveAni = new Button(composite_1, SWT.NONE);
-		btnRemoveAni.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
-		btnRemoveAni.setText("Remove");
-		btnRemoveAni.setEnabled(false);
-		btnRemoveAni.addListener(SWT.Selection, e -> dispatchCmd(DELETE_RECORDING, vm.selectedRecording));
+		deleteRecording = new Button(composite_1, SWT.NONE);
+		deleteRecording.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
+		deleteRecording.setText("Remove");
+		deleteRecording.setEnabled(false);
+		deleteRecording.addListener(SWT.Selection, e -> dispatchCmd(DELETE_RECORDING, vm.selectedRecording));
 
 		btnSortAni = new Button(composite_1, SWT.NONE);
 		btnSortAni.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
@@ -825,11 +853,11 @@ public class MainView {
 		composite_4.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
 		composite_4.setLayout(new GridLayout(2, false));
 		
-		btnRemoveScene = new Button(composite_4, SWT.NONE);
-		btnRemoveScene.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
-		btnRemoveScene.setEnabled(false);
-		btnRemoveScene.setText("Remove");
-		btnRemoveScene.addListener(SWT.Selection, e -> dispatchCmd(DELETE_SCENE, vm.selectedScene) );
+		deleteScene = new Button(composite_4, SWT.NONE);
+		deleteScene.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
+		deleteScene.setEnabled(false);
+		deleteScene.setText("Remove");
+		deleteScene.addListener(SWT.Selection, e -> dispatchCmd(DELETE_SCENE, vm.selectedScene) );
 		
 		Button btnSortScene = new Button(composite_4, SWT.NONE);
 		btnSortScene.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
@@ -842,13 +870,13 @@ public class MainView {
 		gd_composite_2.widthHint = listWidth;
 		composite_2.setLayoutData(gd_composite_2);
 
-		btnDeleteKeyframe = new Button(composite_2, SWT.NONE);
+		deleteKeyFrame = new Button(composite_2, SWT.NONE);
 		GridData gd_btnDeleteKeyframe = new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1);
 		gd_btnDeleteKeyframe.widthHint = 88;
-		btnDeleteKeyframe.setLayoutData(gd_btnDeleteKeyframe);
-		btnDeleteKeyframe.setText("Remove");
-		btnDeleteKeyframe.setEnabled(false);
-		btnDeleteKeyframe.addListener(SWT.Selection, e -> dispatchCmd(DELETE_KEY_FRAME, vm.selectedKeyFrame) );
+		deleteKeyFrame.setLayoutData(gd_btnDeleteKeyframe);
+		deleteKeyFrame.setText("Remove");
+		deleteKeyFrame.setEnabled(false);
+		deleteKeyFrame.addListener(SWT.Selection, e -> dispatchCmd(DELETE_KEY_FRAME, vm.selectedKeyFrame) );
 //VIEW	{
 //			if (selectedPalMapping != null) {
 //				project.palMappings.remove(selectedPalMapping);
@@ -863,10 +891,10 @@ public class MainView {
 		btnSortKeyFrames.addListener(SWT.Selection, e ->dispatchCmd(SORT_KEY_FRAMES));
 		new Label(composite_2, SWT.NONE);
 
-		scale = new Scale(shell, SWT.NONE);
+		frame = new Scale(shell, SWT.NONE);
 		GridData gd_scale = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
 		gd_scale.widthHint = 826;
-		scale.setLayoutData(gd_scale);
+		frame.setLayoutData(gd_scale);
 //VIEW		scale.addListener(SWT.Selection, e -> animationHandler.setPos(scale.getSelection()));
 		
 		CTabFolder tabFolder = new CTabFolder(shell, SWT.FLAT);
@@ -913,22 +941,22 @@ public class MainView {
 		Label lblFrame = new Label(grpDetails, SWT.NONE);
 		lblFrame.setText("Frame:");
 
-		lblFrameNo = new Label(grpDetails, SWT.NONE);
+		actFrame = new Label(grpDetails, SWT.NONE);
 		GridData gd_lblFrameNo = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
 		gd_lblFrameNo.widthHint = 66;
 		gd_lblFrameNo.minimumWidth = 60;
-		lblFrameNo.setLayoutData(gd_lblFrameNo);
-		lblFrameNo.setText("---");
+		actFrame.setLayoutData(gd_lblFrameNo);
+		actFrame.setText("---");
 
 		Label lblTimecode = new Label(grpDetails, SWT.NONE);
 		lblTimecode.setText("Timecode:");
 
-		lblTcval = new Label(grpDetails, SWT.NONE);
+		timecode = new Label(grpDetails, SWT.NONE);
 		GridData gd_lblTcval = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
 		gd_lblTcval.widthHint = 62;
 		gd_lblTcval.minimumWidth = 80;
-		lblTcval.setLayoutData(gd_lblTcval);
-		lblTcval.setText("---");
+		timecode.setLayoutData(gd_lblTcval);
+		timecode.setText("---");
 
 		Label lblDelay = new Label(grpDetails, SWT.NONE);
 		lblDelay.setText("Delay:");
@@ -961,8 +989,8 @@ public class MainView {
 		Label lblPlanes = new Label(grpDetails, SWT.NONE);
 		lblPlanes.setText("Planes:");
 
-		lblPlanesVal = new Label(grpDetails, SWT.NONE);
-		lblPlanesVal.setText("---");
+		numberOfPlanes = new Label(grpDetails, SWT.NONE);
+		numberOfPlanes.setText("---");
 		new Label(grpDetails, SWT.NONE);
 
 		btnLivePreview = new Button(grpDetails, SWT.CHECK);
@@ -977,32 +1005,32 @@ public class MainView {
 		composite.setLayoutData(gd_composite);
 		composite.setLayout(new GridLayout(11, false));
 
-		btnStartStop = new Button(composite, SWT.NONE);
-		btnStartStop.setText("Start");
-		btnStartStop.addListener(SWT.Selection, e -> dispatchCmd(START_STOP ));
+		startStop = new Button(composite, SWT.NONE);
+		startStop.setText("Start");
+		startStop.addListener(SWT.Selection, e -> dispatchCmd(START_STOP ));
 
-		btnPrev = new Button(composite, SWT.NONE);
-		btnPrev.setText("<");
-		btnPrev.addListener(SWT.Selection, e -> dispatchCmd(PREV_FRAME));
+		prev = new Button(composite, SWT.NONE);
+		prev.setText("<");
+		prev.addListener(SWT.Selection, e -> dispatchCmd(PREV_FRAME));
 
-		btnNext = new Button(composite, SWT.NONE);
-		btnNext.setText(">");
-		btnNext.addListener(SWT.Selection, e -> dispatchCmd(NEXT_FRAME));
+		next = new Button(composite, SWT.NONE);
+		next.setText(">");
+		next.addListener(SWT.Selection, e -> dispatchCmd(NEXT_FRAME));
 
-		btnMarkStart = new Button(composite, SWT.NONE);
-		btnMarkStart.setToolTipText("Marks start of scene for cutting");
-		btnMarkEnd = new Button(composite, SWT.NONE);
-		btnCut = new Button(composite, SWT.NONE);
-		btnCut.setToolTipText("Cuts out a new scene for editing and use a replacement or color mask");
+		markStart = new Button(composite, SWT.NONE);
+		markStart.setToolTipText("Marks start of scene for cutting");
+		markEnd = new Button(composite, SWT.NONE);
+		cut = new Button(composite, SWT.NONE);
+		cut.setToolTipText("Cuts out a new scene for editing and use a replacement or color mask");
 
-		btnMarkStart.setText("Mark Start");
-		btnMarkStart.addListener(SWT.Selection, e -> dispatchCmd(MARK_START));
+		markStart.setText("Mark Start");
+		markStart.addListener(SWT.Selection, e -> dispatchCmd(MARK_START));
 
-		btnMarkEnd.setText("Mark End");
-		btnMarkEnd.addListener(SWT.Selection,  e -> dispatchCmd(MARK_END) );
+		markEnd.setText("Mark End");
+		markEnd.addListener(SWT.Selection,  e -> dispatchCmd(MARK_END) );
 
-		btnCut.setText("Cut");
-		btnCut.addListener(SWT.Selection, e -> dispatchCmd(CUT_SCENE, vm.cutInfo) );
+		cut.setText("Cut");
+		cut.addListener(SWT.Selection, e -> dispatchCmd(CUT_SCENE, vm.cutInfo) );
 
 		Button btnIncPitch = new Button(composite, SWT.NONE);
 		btnIncPitch.setText("+");
@@ -1013,16 +1041,16 @@ public class MainView {
 		btnDecPitch.addListener(SWT.Selection, e -> dmdWidget.decPitch());
 		
 		bookmarkComboViewer = new ComboViewer(composite, SWT.NONE);
-		combo_3 = bookmarkComboViewer.getCombo();
+		comboBookmark = bookmarkComboViewer.getCombo();
 		GridData gd_combo_3 = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
 		gd_combo_3.widthHint = 106;
-		combo_3.setLayoutData(gd_combo_3);
+		comboBookmark.setLayoutData(gd_combo_3);
 		bookmarkComboViewer.addSelectionChangedListener(e->dispatchCmd(SELECTED_BOOKMARK,getFirstSelected(e)));
-		registerProp(SELECTED_BOOKMARK, bookmarkComboViewer);
+		registerProp(SELECTED_BOOKMARK, "bookmarkComboViewer",bookmarkComboViewer);
 			
 		Button btnNewBookMark = new Button(composite, SWT.NONE);
 		btnNewBookMark.setText("New");
-		btnNewBookMark.addListener(SWT.Selection, e -> dispatchCmd(NEW_BOOKMARK, vm.actFrame));
+		btnNewBookMark.addListener(SWT.Selection, e -> dispatchCmd(NEW_BOOKMARK, vm.selectedFrame));
 
 		Button btnDelBookmark = new Button(composite, SWT.NONE);
 		btnDelBookmark.setText("Del.");
@@ -1044,16 +1072,10 @@ public class MainView {
 		GridData gd_paletteViewerCombo = new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1);
 		gd_paletteViewerCombo.widthHint = 166;
 		paletteViewerCombo.setLayoutData(gd_paletteViewerCombo);
-
-//		ObservableListContentProvider listContentProvider = new ObservableListContentProvider();
-//		paletteComboViewer.setLabelProvider(new LabelProviderAdapter<Palette>(o -> o.index + " - " + o.name));
-//		paletteComboViewer.setContentProvider(listContentProvider);
-//		//
-//		IObservableList palettesVmObserveList = BeanProperties.list("palettes").observe(vm);
-//		paletteComboViewer.setInput(palettesVmObserveList);
+		paletteComboViewer.setLabelProvider(new LabelProviderAdapter<Palette>(o -> o.index + " - " + o.name));
 		//
 		paletteComboViewer.addSelectionChangedListener( e-> setProp(vm, "selectedPalette", getFirstSelected(e)));
-		registerProp("selectedPalette", paletteComboViewer);		
+		registerProp("selectedPalette", "paletteComboViewer",paletteComboViewer);		
 		//
 
 		paletteTypeComboViewer = new ComboViewer(grpPalettes, SWT.READ_ONLY);
@@ -1066,7 +1088,7 @@ public class MainView {
 		paletteTypeComboViewer.setInput(vm.availablePaletteTypes);
 		paletteTypeComboViewer.setLabelProvider(new LabelProviderAdapter<PaletteType>(o -> o.label));
 		paletteTypeComboViewer.addSelectionChangedListener( e-> setProp(vm, "selectedPaletteType", getFirstSelected(e)));
-		registerProp("selectedPaletteType", paletteTypeComboViewer);
+		registerProp("selectedPaletteType", "paletteTypeComboViewer", paletteTypeComboViewer);
 						
 		Button btnApplyPalette = new Button(grpPalettes, SWT.NONE);
 		btnApplyPalette.setText("Apply");
@@ -1192,11 +1214,10 @@ public class MainView {
 		GridData gd_combo_2 = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
 		gd_combo_2.widthHint = 141;
 		combo_2.setLayoutData(gd_combo_2);
-		editModeViewer.setContentProvider(ArrayContentProvider.getInstance());
 		editModeViewer.setLabelProvider(new LabelProviderAdapter<EditMode>(o -> o.label));
-		editModeViewer.setInput(vm.availableEditModes);
+		
 		editModeViewer.addSelectionChangedListener(e->setProp(vm, "selectedEditMode", getFirstSelected(e)));
-		registerProp("selectedEditMode", editModeViewer);
+		registerProp("selectedEditMode", "editModeViewer", editModeViewer);
 		
 		// TODO the list depends on animation type
 		// for immutable only fixed ist selectable
@@ -1226,76 +1247,53 @@ public class MainView {
 		Label lblMaskNo = new Label(grpDrawing, SWT.NONE);
 		lblMaskNo.setText("Mask No:");
 
-		maskSpinner = new Spinner(grpDrawing, SWT.BORDER);
-		maskSpinner.setToolTipText("select the mask to use");
-		maskSpinner.setMinimum(0);
-		maskSpinner.setMaximum(9);
-		maskSpinner.setEnabled(false);
+		maskNumber = new Spinner(grpDrawing, SWT.BORDER);
+		maskNumber.setToolTipText("select the mask to use");
+		maskNumber.setMinimum(0);
+		maskNumber.setMaximum(9);
+		maskNumber.setEnabled(false);
 // 
 //VIEW		maskSpinner.addListener(SWT.Selection, e -> onMaskNumberChanged(maskSpinner.getSelection()));
 		
-		btnMask = new Button(grpDrawing, SWT.CHECK);
+		maskOn = new Button(grpDrawing, SWT.CHECK);
 		GridData gd_btnMask = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
 		gd_btnMask.widthHint = 62;
-		btnMask.setLayoutData(gd_btnMask);
-		btnMask.setText("Mask");
-		btnMask.setEnabled(false);
+		maskOn.setLayoutData(gd_btnMask);
+		maskOn.setText("Mask");
+		maskOn.setEnabled(false);
 		
-		btnInvert = new Button(grpDrawing, SWT.NONE);
-		btnInvert.setText("Invert");
-		btnInvert.addListener(SWT.Selection, e->dispatchCmd(INVERT_MASK));
-		btnInvert.setEnabled(false);
+		maskInvert = new Button(grpDrawing, SWT.NONE);
+		maskInvert.setText("Invert");
+		maskInvert.addListener(SWT.Selection, e->dispatchCmd(INVERT_MASK));
+		maskInvert.setEnabled(false);
 		
-		btnCopyToPrev = new Button(grpDrawing, SWT.NONE);
-		btnCopyToPrev.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
-		btnCopyToPrev.setText("CopyToPrev");
-		btnCopyToPrev.addListener(SWT.Selection, e->dispatchCmd(COPY_AND_MOVE_TO_PREV_FRAME));
+		copyToPrev = new Button(grpDrawing, SWT.NONE);
+		copyToPrev.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+		copyToPrev.setText("CopyToPrev");
+		copyToPrev.addListener(SWT.Selection, e->dispatchCmd(COPY_AND_MOVE_TO_PREV_FRAME));
 		
-		btnCopyToNext = new Button(grpDrawing, SWT.NONE);
-		btnCopyToNext.setToolTipText("copy the actual scene / color mask to next frame and move forward");
-		btnCopyToNext.setText("CopyToNext");
-		btnCopyToNext.addListener(SWT.Selection, e->dispatchCmd(COPY_AND_MOVE_TO_NEXT_FRAME));
+		copyToNext = new Button(grpDrawing, SWT.NONE);
+		copyToNext.setToolTipText("copy the actual scene / color mask to next frame and move forward");
+		copyToNext.setText("CopyToNext");
+		copyToNext.addListener(SWT.Selection, e->dispatchCmd(COPY_AND_MOVE_TO_NEXT_FRAME));
 		
-		btnUndo = new Button(grpDrawing, SWT.NONE);
-		btnUndo.setText("&Undo");
-		btnUndo.addListener(SWT.Selection, e -> dispatchCmd(UNDO));
+		undo = new Button(grpDrawing, SWT.NONE);
+		undo.setText("&Undo");
+		undo.addListener(SWT.Selection, e -> dispatchCmd(UNDO));
 		
-		btnRedo = new Button(grpDrawing, SWT.NONE);
-		btnRedo.setText("&Redo");
-		btnRedo.addListener(SWT.Selection, e -> dispatchCmd(REDO));
+		redo = new Button(grpDrawing, SWT.NONE);
+		redo.setText("&Redo");
+		redo.addListener(SWT.Selection, e -> dispatchCmd(REDO));
 		
-		btnDeleteColMask = new Button(grpDrawing, SWT.NONE);
-		btnDeleteColMask.setText("Delete");
-		btnDeleteColMask.setEnabled(false);
+		deleteColMask = new Button(grpDrawing, SWT.NONE);
+		deleteColMask.setText("Delete");
+		deleteColMask.setEnabled(false);
 		new Label(grpDrawing, SWT.NONE);
-		btnDeleteColMask.addListener(SWT.Selection, e -> dispatchCmd(DELETE_MASK));
+		deleteColMask.addListener(SWT.Selection, e -> dispatchCmd(DELETE_MASK));
 		
 		// include binding created with SWT-Designer
 		m_bindingContext = initDataBindings();
-		
-		ObservableListContentProvider listContentProvider_5 = new ObservableListContentProvider();
-		IObservableMap[] observeMap = BeansObservables.observeMaps(listContentProvider_5.getKnownElements(), TypedLabel.class, new String[]{"type", "label"});
-		recordingsListViewer.setLabelProvider(new IconMapLabelProvider(shell,observeMap));
-		recordingsListViewer.setContentProvider(listContentProvider_5);
-		//
-		recordingsListViewer.setInput(vm.getRecordings());
-		//
-		ObservableListContentProvider listContentProvider_1 = new ObservableListContentProvider();
-		IObservableMap[] observeMap_1 = BeansObservables.observeMaps(listContentProvider_1.getKnownElements(), TypedLabel.class, new String[]{"type", "label"});
-		sceneListViewer.setLabelProvider(new IconMapLabelProvider(shell,observeMap_1));
-		sceneListViewer.setContentProvider(listContentProvider_1);
-		//
-		sceneListViewer.setInput(vm.getScenes());
-		//
-		ObservableListContentProvider listContentProvider_2 = new ObservableListContentProvider();
-		IObservableMap[] observeMap_2 = BeansObservables.observeMaps(listContentProvider_2.getKnownElements(), TypedLabel.class, new String[]{"type", "label"});
-		keyframeTableViewer.setLabelProvider(new IconMapLabelProvider(shell,observeMap_2));
-		keyframeTableViewer.setContentProvider(listContentProvider_2);
-		//
-		keyframeTableViewer.setInput(vm.getKeyframes());
-
-		//
-		
+				
 	}
 
 	private void setViewerSelection(TableViewer viewer, Object sel) {
@@ -1308,21 +1306,20 @@ public class MainView {
 		else viewer.setSelection(StructuredSelection.EMPTY);
 	}
 	
-	private void registerProp(String propName, TableViewer viewer) {
-		tableViewerBindingMap.put(propName, viewer);
+	private void registerProp(String propName, String name, TableViewer viewer) {
+		log.debug("registering property {} for viewer {}", propName, name);
+		tableViewerBindingMap.put(propName, Pair.of(name,viewer));
 	}
 
-	private void registerProp( String propName, AbstractListViewer viewer) {
-		viewerBindingMap.put(propName, viewer);
+	private void registerProp( String propName, String name, AbstractListViewer viewer) {
+		log.debug("registering property {} for viewer {}", propName, name);
+		viewerBindingMap.put(propName, Pair.of(name,viewer));
 	}
 	
-	Map<String,AbstractListViewer> viewerBindingMap = new HashMap<>();
-	Map<String,TableViewer> tableViewerBindingMap = new HashMap<>();
-	
-	private Combo frameSeqCombo;
+	Map<String,Pair<String,AbstractListViewer>> viewerBindingMap = new HashMap<>();
+	Map<String,Pair<String,TableViewer>> tableViewerBindingMap = new HashMap<>();
 
 	private Display display;
-	private Combo paletteViewerCombo;
 
 	private void setProp(Object bean, String propName, Object val) {
 		try {
@@ -1369,10 +1366,14 @@ public class MainView {
 		} 
 		
 		if( viewerBindingMap.containsKey(propName)) {
-			setViewerSelection(viewerBindingMap.get(propName), nv);
+			Pair<String, AbstractListViewer> p = viewerBindingMap.get(propName);
+			log.debug("propagating to viewer {} {}", p.getLeft(), nv);
+			setViewerSelection(p.getRight(), nv);
 		}
 		if( tableViewerBindingMap.containsKey(propName)) {
-			setViewerSelection(tableViewerBindingMap.get(propName), nv);
+			Pair<String, TableViewer> p = tableViewerBindingMap.get(propName);
+			log.debug("propagating to viewer {} {}", p.getLeft(), nv);
+			setViewerSelection(p.getRight(), nv);
 		}
 		callOnChangedHandlers(propName, nv, ov);
 	}
@@ -1485,132 +1486,22 @@ public class MainView {
 	public void setPaletteTool(PaletteTool paletteTool) {
 		 this.paletteTool = paletteTool;
 	}
+	
 	protected DataBindingContext initDataBindings() {
 		DataBindingContext bindingContext = new DataBindingContext();
-		//
-		IObservableValue observeSelectionMaskSpinnerObserveWidget = WidgetProperties.selection().observe(maskSpinner);
-		IObservableValue maskNumberVmObserveValue = BeanProperties.value("maskNumber").observe(vm);
-		bindingContext.bindValue(observeSelectionMaskSpinnerObserveWidget, maskNumberVmObserveValue, null, null);
-		//
-		IObservableValue observeEnabledBtnInvertObserveWidget = WidgetProperties.enabled().observe(btnInvert);
-		IObservableValue maskInvertEnabledVmObserveValue = BeanProperties.value("maskInvertEnabled").observe(vm);
-		bindingContext.bindValue(observeEnabledBtnInvertObserveWidget, maskInvertEnabledVmObserveValue, null, null);
-		//
-		IObservableValue observeEnabledBtnRemoveAniObserveWidget = WidgetProperties.enabled().observe(btnRemoveAni);
-		IObservableValue recordingDeleteEnabledVmObserveValue = BeanProperties.value("deleteRecordingEnabled").observe(vm);
-		bindingContext.bindValue(observeEnabledBtnRemoveAniObserveWidget, recordingDeleteEnabledVmObserveValue, null, null);
-		//
-		IObservableValue observeEnabledBtnRemoveSceneObserveWidget = WidgetProperties.enabled().observe(btnRemoveScene);
-		IObservableValue sceneDeleteEnabledVmObserveValue = BeanProperties.value("deleteSceneEnabled").observe(vm);
-		bindingContext.bindValue(observeEnabledBtnRemoveSceneObserveWidget, sceneDeleteEnabledVmObserveValue, null, null);
-		//
-		IObservableValue observeEnabledBtnDeleteKeyframeObserveWidget = WidgetProperties.enabled().observe(btnDeleteKeyframe);
-		IObservableValue keyFrameDeleteEnabledVmObserveValue = BeanProperties.value("deleteKeyFrameEnabled").observe(vm);
-		bindingContext.bindValue(observeEnabledBtnDeleteKeyframeObserveWidget, keyFrameDeleteEnabledVmObserveValue, null, null);
-		//
-		IObservableValue observeSelectionScaleObserveWidget = WidgetProperties.selection().observe(scale);
-		IObservableValue actFrameVmObserveValue = BeanProperties.value("actFrame").observe(vm);
-		bindingContext.bindValue(observeSelectionScaleObserveWidget, actFrameVmObserveValue, null, null);
 		//
 		IObservableValue observeSingleSelectionKeyframeTableViewer = ViewerProperties.singleSelection().observe(keyframeTableViewer);
 		IObservableValue selectedKeyFrameVmObserveValue = BeanProperties.value("selectedKeyFrame").observe(vm);
 		bindingContext.bindValue(observeSingleSelectionKeyframeTableViewer, selectedKeyFrameVmObserveValue, null, null);
 		//
-		IObservableValue observeEnabledBtnUndoObserveWidget = WidgetProperties.enabled().observe(btnUndo);
-		IObservableValue undoEnabledVmObserveValue = BeanProperties.value("undoEnabled").observe(vm);
-		bindingContext.bindValue(observeEnabledBtnUndoObserveWidget, undoEnabledVmObserveValue, null, null);
-		//
-		IObservableValue observeEnabledBtnRedoObserveWidget = WidgetProperties.enabled().observe(btnRedo);
-		IObservableValue redoEnabledVmObserveValue = BeanProperties.value("redoEnabled").observe(vm);
-		bindingContext.bindValue(observeEnabledBtnRedoObserveWidget, redoEnabledVmObserveValue, null, null);
-		//
-		IObservableValue observeEnabledBtnAddKeyframeObserveWidget = WidgetProperties.enabled().observe(btnAddKeyframe);
-		IObservableValue addPaletteSwitchEnabledVmObserveValue = BeanProperties.value("addPaletteSwitchEnabled").observe(vm);
-		bindingContext.bindValue(observeEnabledBtnAddKeyframeObserveWidget, addPaletteSwitchEnabledVmObserveValue, null, null);
-		//
-		IObservableValue observeEnabledBtnAddFrameSeqObserveWidget = WidgetProperties.enabled().observe(btnAddFrameSeq);
-		IObservableValue addColSceneEnabledVmObserveValue = BeanProperties.value("addColSceneEnabled").observe(vm);
-		bindingContext.bindValue(observeEnabledBtnAddFrameSeqObserveWidget, addColSceneEnabledVmObserveValue, null, null);
-		//
-		IObservableValue observeEnabledBtnFetchDurationObserveWidget = WidgetProperties.enabled().observe(btnFetchDuration);
-		IObservableValue addFetchEnabledVmObserveValue = BeanProperties.value("addFetchEnabled").observe(vm);
-		bindingContext.bindValue(observeEnabledBtnFetchDurationObserveWidget, addFetchEnabledVmObserveValue, null, null);
-		//
-		IObservableValue observeEnabledBtnAddEventObserveWidget = WidgetProperties.enabled().observe(btnAddEvent);
-		IObservableValue addEventEnabledVmObserveValue = BeanProperties.value("addEventEnabled").observe(vm);
-		bindingContext.bindValue(observeEnabledBtnAddEventObserveWidget, addEventEnabledVmObserveValue, null, null);
-		//
-		IObservableValue observeTextTxtDurationObserveWidget = WidgetProperties.text(SWT.Modify).observe(txtDuration);
-		IObservableValue durationVmObserveValue = BeanProperties.value("duration").observe(vm);
-		bindingContext.bindValue(observeTextTxtDurationObserveWidget, durationVmObserveValue, null, null);
-		//
-		IObservableValue observeSelectionSpinnerDeviceIdObserveWidget = WidgetProperties.selection().observe(spinnerDeviceId);
-		IObservableValue eventHighVmObserveValue = BeanProperties.value("eventHigh").observe(vm);
-		bindingContext.bindValue(observeSelectionSpinnerDeviceIdObserveWidget, eventHighVmObserveValue, null, null);
-		//
-		IObservableValue observeSelectionSpinnerEventIdObserveWidget = WidgetProperties.selection().observe(spinnerEventId);
-		IObservableValue eventLowVmObserveValue = BeanProperties.value("eventLow").observe(vm);
-		bindingContext.bindValue(observeSelectionSpinnerEventIdObserveWidget, eventLowVmObserveValue, null, null);
-		//
-		IObservableValue observeEnabledBtnStartStopObserveWidget = WidgetProperties.enabled().observe(btnStartStop);
-		IObservableValue startStopEnabledVmObserveValue = BeanProperties.value("startStopEnabled").observe(vm);
-		bindingContext.bindValue(observeEnabledBtnStartStopObserveWidget, startStopEnabledVmObserveValue, null, null);
-		//
-		IObservableValue observeEnabledBtnPrevObserveWidget = WidgetProperties.enabled().observe(btnPrev);
-		IObservableValue prevEnabledVmObserveValue = BeanProperties.value("prevEnabled").observe(vm);
-		bindingContext.bindValue(observeEnabledBtnPrevObserveWidget, prevEnabledVmObserveValue, null, null);
-		//
-		IObservableValue observeEnabledBtnNextObserveWidget = WidgetProperties.enabled().observe(btnNext);
-		IObservableValue nextEnabledVmObserveValue = BeanProperties.value("nextEnabled").observe(vm);
-		bindingContext.bindValue(observeEnabledBtnNextObserveWidget, nextEnabledVmObserveValue, null, null);
-		//
-		IObservableValue observeEnabledBtnMarkStartObserveWidget = WidgetProperties.enabled().observe(btnMarkStart);
-		IObservableValue markStartEnabledVmObserveValue = BeanProperties.value("markStartEnabled").observe(vm);
-		bindingContext.bindValue(observeEnabledBtnMarkStartObserveWidget, markStartEnabledVmObserveValue, null, null);
-		//
-		IObservableValue observeEnabledBtnMarkEndObserveWidget = WidgetProperties.enabled().observe(btnMarkEnd);
-		IObservableValue markStopEnabledVmObserveValue = BeanProperties.value("markStopEnabled").observe(vm);
-		bindingContext.bindValue(observeEnabledBtnMarkEndObserveWidget, markStopEnabledVmObserveValue, null, null);
-		//
-		IObservableValue observeEnabledBtnCutObserveWidget = WidgetProperties.enabled().observe(btnCut);
-		IObservableValue cutEnabledVmObserveValue = BeanProperties.value("cutEnabled").observe(vm);
-		bindingContext.bindValue(observeEnabledBtnCutObserveWidget, cutEnabledVmObserveValue, null, null);
-		//
-		IObservableValue observeTextBtnStartStopObserveWidget = WidgetProperties.text().observe(btnStartStop);
-		IObservableValue startStopLabelVmObserveValue = BeanProperties.value("startStopLabel").observe(vm);
-		bindingContext.bindValue(observeTextBtnStartStopObserveWidget, startStopLabelVmObserveValue, null, null);
-		//
-		IObservableValue observeTextLblFrameNoObserveWidget = WidgetProperties.text().observe(lblFrameNo);
-		bindingContext.bindValue(observeTextLblFrameNoObserveWidget, actFrameVmObserveValue, null, null);
-		//
-		IObservableValue observeTextLblTcvalObserveWidget = WidgetProperties.text().observe(lblTcval);
-		IObservableValue timecodeVmObserveValue = BeanProperties.value("timecode").observe(vm);
-		bindingContext.bindValue(observeTextLblTcvalObserveWidget, timecodeVmObserveValue, null, null);
-		//
-		IObservableValue observeTextLblPlanesValObserveWidget = WidgetProperties.text().observe(lblPlanesVal);
-		IObservableValue numberOfPlanesVmObserveValue = BeanProperties.value("numberOfPlanes").observe(vm);
-		bindingContext.bindValue(observeTextLblPlanesValObserveWidget, numberOfPlanesVmObserveValue, null, null);
-		//
-		IObservableValue observeEnabledBtnCopyToPrevObserveWidget = WidgetProperties.enabled().observe(btnCopyToPrev);
-		IObservableValue copyToPrevEnabledVmObserveValue = BeanProperties.value("copyToPrevEnabled").observe(vm);
-		bindingContext.bindValue(observeEnabledBtnCopyToPrevObserveWidget, copyToPrevEnabledVmObserveValue, null, null);
-		//
-		IObservableValue observeEnabledBtnCopyToNextObserveWidget = WidgetProperties.enabled().observe(btnCopyToNext);
-		IObservableValue copyToNextEnabledVmObserveValue = BeanProperties.value("copyToNextEnabled").observe(vm);
-		bindingContext.bindValue(observeEnabledBtnCopyToNextObserveWidget, copyToNextEnabledVmObserveValue, null, null);
-		//
-		IObservableValue observeEnabledDrawToolBarObserveWidget = WidgetProperties.enabled().observe(drawToolBar);
-		IObservableValue drawingEnabledVmObserveValue = BeanProperties.value("drawingEnabled").observe(vm);
-		bindingContext.bindValue(observeEnabledDrawToolBarObserveWidget, drawingEnabledVmObserveValue, null, null);
-		//
-		IObservableValue observeSelectionBtnMaskObserveWidget = WidgetProperties.selection().observe(btnMask);
+		IObservableValue observeSelectionBtnMaskObserveWidget = WidgetProperties.selection().observe(maskOn);
 		IObservableValue maskVisibleVmObserveValue = BeanProperties.value("maskVisible").observe(vm);
 		bindingContext.bindValue(observeSelectionBtnMaskObserveWidget, maskVisibleVmObserveValue, null, null);
 		//
 		IObservableValue showMaskDmdWidgetObserveValue = BeanProperties.value("showMask").observe(dmdWidget);
 		bindingContext.bindValue(showMaskDmdWidgetObserveValue, maskVisibleVmObserveValue, null, null);
 		//
-		IObservableValue observeTextCombo_3ObserveWidget = WidgetProperties.text().observe(combo_3);
+		IObservableValue observeTextCombo_3ObserveWidget = WidgetProperties.text().observe(comboBookmark);
 		IObservableValue editedBookmarkNameVmObserveValue = BeanProperties.value("editedBookmarkName").observe(vm);
 		bindingContext.bindValue(observeTextCombo_3ObserveWidget, editedBookmarkNameVmObserveValue, null, null);
 		//
@@ -1621,18 +1512,6 @@ public class MainView {
 		IObservableValue observeSelectionFrameSeqComboObserveWidget = WidgetProperties.selection().observe(frameSeqCombo);
 		IObservableValue selectedFrameSeqVmObserveValue = BeanProperties.value("selectedFrameSeq").observe(vm);
 		bindingContext.bindValue(observeSelectionFrameSeqComboObserveWidget, selectedFrameSeqVmObserveValue, null, null);
-		//
-		IObservableValue observeMinScaleObserveWidget = WidgetProperties.minimum().observe(scale);
-		IObservableValue minFrameVmObserveValue = BeanProperties.value("minFrame").observe(vm);
-		bindingContext.bindValue(observeMinScaleObserveWidget, minFrameVmObserveValue, null, null);
-		//
-		IObservableValue observeMaxScaleObserveWidget = WidgetProperties.maximum().observe(scale);
-		IObservableValue maxFrameVmObserveValue = BeanProperties.value("maxFrame").observe(vm);
-		bindingContext.bindValue(observeMaxScaleObserveWidget, maxFrameVmObserveValue, null, null);
-		//
-		IObservableValue observeTextTxtDelayValObserveWidget = WidgetProperties.text(SWT.Modify).observe(txtDelayVal);
-		IObservableValue delayVmObserveValue = BeanProperties.value("delay").observe(vm);
-		bindingContext.bindValue(observeTextTxtDelayValObserveWidget, delayVmObserveValue, null, null);
 		//
 		IObservableValue observeTextPaletteViewerComboObserveWidget = WidgetProperties.text().observe(paletteViewerCombo);
 		IObservableValue editedPaletteNameVmObserveValue = BeanProperties.value("editedPaletteName").observe(vm);
@@ -1646,14 +1525,6 @@ public class MainView {
 		IObservableValue livePreviewVmObserveValue = BeanProperties.value("livePreview").observe(vm);
 		bindingContext.bindValue(observeSelectionBtnLivePreviewObserveWidget, livePreviewVmObserveValue, null, null);
 		//
-		IObservableValue observeEnabledBtnDeleteColMaskObserveWidget = WidgetProperties.enabled().observe(btnDeleteColMask);
-		IObservableValue deleteColMaskEnabledVmObserveValue = BeanProperties.value("deleteColMaskEnabled").observe(vm);
-		bindingContext.bindValue(observeEnabledBtnDeleteColMaskObserveWidget, deleteColMaskEnabledVmObserveValue, null, null);
-		//
-		IObservableValue observeEnabledBtnInvertObserveWidget_1 = WidgetProperties.enabled().observe(btnInvert);
-		IObservableValue invertMaskEnabledVmObserveValue = BeanProperties.value("invertMaskEnabled").observe(vm);
-		bindingContext.bindValue(observeEnabledBtnInvertObserveWidget_1, invertMaskEnabledVmObserveValue, null, null);
-		//
 		ObservableSetContentProvider setContentProvider = new ObservableSetContentProvider();
 		IObservableMap observeMap = PojoObservables.observeMap(setContentProvider.getKnownElements(), Bookmark.class, "label");
 		bookmarkComboViewer.setLabelProvider(new ObservableMapLabelProvider(observeMap));
@@ -1662,30 +1533,8 @@ public class MainView {
 		IObservableSet bookmarksVmObserveSet = BeanProperties.set("bookmarks").observe(vm);
 		bookmarkComboViewer.setInput(bookmarksVmObserveSet);
 		//
-		ObservableListContentProvider listContentProvider = new ObservableListContentProvider();
-		IObservableMap observeMap_1 = PojoObservables.observeMap(listContentProvider.getKnownElements(), Palette.class, "label");
-		paletteComboViewer.setLabelProvider(new ObservableMapLabelProvider(observeMap_1));
-		paletteComboViewer.setContentProvider(listContentProvider);
-		//
-		paletteComboViewer.setInput(vm.getPalettes());
-		//
-		ObservableListContentProvider listContentProvider_1 = new ObservableListContentProvider();
-		IObservableMap observeMap_2 = BeansObservables.observeMap(listContentProvider_1.getKnownElements(), TypedLabel.class, "label");
-		frameSeqViewer.setLabelProvider(new ObservableMapLabelProvider(observeMap_2));
-		frameSeqViewer.setContentProvider(listContentProvider_1);
-		//
-		frameSeqViewer.setInput(vm.getScenes());
-		//
 		IObservableValue paletteDmdWidgetObserveValue = BeanProperties.value("palette").observe(dmdWidget);
 		bindingContext.bindValue(paletteDmdWidgetObserveValue, selectedPaletteVmObserveValue, null, null);
-		//
-		IObservableValue observeEnabledMaskSpinnerObserveWidget = WidgetProperties.enabled().observe(maskSpinner);
-		IObservableValue maskSpinnerEnabledVmObserveValue = BeanProperties.value("maskSpinnerEnabled").observe(vm);
-		bindingContext.bindValue(observeEnabledMaskSpinnerObserveWidget, maskSpinnerEnabledVmObserveValue, null, null);
-		//
-		IObservableValue observeEnabledBtnMaskObserveWidget = WidgetProperties.enabled().observe(btnMask);
-		IObservableValue maskOnEnabledVmObserveValue = BeanProperties.value("maskOnEnabled").observe(vm);
-		bindingContext.bindValue(observeEnabledBtnMaskObserveWidget, maskOnEnabledVmObserveValue, null, null);
 		//
 		return bindingContext;
 	}

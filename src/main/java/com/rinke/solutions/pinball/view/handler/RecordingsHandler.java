@@ -26,29 +26,32 @@ public class RecordingsHandler extends ViewHandler {
 
 	public RecordingsHandler(ViewModel vm, Model model, CmdDispatcher d) {
 		super(vm, model,d);
+	}
+	
+	public void init() {
 		model.recordings.addObserver((o,a)->populate());
 	}
 
 	public void populate() {
 		vm.recordings.clear();
 		for(Animation c: model.recordings.values()) {
-			vm.recordings.add( new TypedLabel("fixed", c.getDesc()));
+			vm.recordings.add( c );
 		}
 	}
 	
 	public void onSortRecordings() {
-		ArrayList<TypedLabel> list = new ArrayList<>(vm.recordings);
-		Collections.sort(list, (o1,o2)->o1.label.compareTo(o2.label));
+		ArrayList<Animation> list = new ArrayList<>(vm.recordings);
+		Collections.sort(list, (o1,o2)->o1.getDesc().compareTo(o2.getDesc()));
 		vm.recordings.clear();
 		vm.recordings.addAll(list);	
 	}
 	
-	public void onSelectedRecordingChanged(TypedLabel oldVal, TypedLabel newVal) {
+	public void onSelectedRecordingChanged(Animation oldVal, Animation newVal) {
 		log.info("onRecordingSelectionChanged: {}", newVal);
-		Optional<Animation> currentRecording = model.getRecording(oldVal);
-		Optional<Animation> newRecording = model.getRecording(newVal);
+		Optional<Animation> currentRecording = Optional.ofNullable(oldVal);
+		Optional<Animation> newRecording = Optional.ofNullable(newVal);
 		
-		if( currentRecording.isPresent() ) model.recordingsPosMap.put(oldVal.label, vm.actFrame);
+		if( currentRecording.isPresent() ) model.recordingsPosMap.put(oldVal.getDesc(), vm.selectedFrame);
 		if( newRecording.isPresent() ) {		
 			Animation rec = newRecording.get();
 			vm.setDmdSelection(null); //dmdWidget.resetSelection();
@@ -56,11 +59,9 @@ public class RecordingsHandler extends ViewHandler {
 
 			vm.setMaskOnEnabled(true);
 			vm.setMaskVisible(false);
-			vm.setMaskSpinnerEnabled(true);
-			vm.availableEditModes.clear();
-			vm.availableEditModes.addAll(Arrays.asList( EditMode.FIXED ));
-			vm.setHashButtonsEnabled(true);
-			vm.setActFrame(model.recordingsPosMap.getOrDefault(rec.getDesc(), 0));
+			vm.setMaskNumberEnabled(true);
+			vm.availableEditModes.replace(Arrays.asList( EditMode.FIXED ));
+			vm.setSelectedFrame(model.recordingsPosMap.getOrDefault(rec.getDesc(), 0));
 			vm.setSelectedEditMode(rec.getEditMode());
 			// bound to select dmdAni
 			// playing ani
@@ -78,6 +79,21 @@ public class RecordingsHandler extends ViewHandler {
 		vm.setAddEventEnabled(newRecording.isPresent());
 		vm.setAddPaletteSwitchEnabled(newRecording.isPresent());
 		vm.setDeleteRecordingEnabled(newRecording.isPresent());
+	}
+	
+	public void onDeleteRecording(Animation recToDelete) {
+		// keep track of input files
+		String key = recToDelete.getDesc();
+		String filename = recToDelete.getName();
+		model.recordings.remove(key);
+		model.bookmarksMap.remove(key);
+		model.inputFiles.remove(filename);
+		populate();
+		if( recToDelete.equals(vm.playingAni)) {
+			vm.setPlayingAni(null);
+		}
+		vm.setSelectedRecording(null);
+		model.setDirty(true);
 	}
 
 }

@@ -38,6 +38,10 @@ public class DrawingHandler extends ViewHandler {
 	public void onSelectedPaletteChanged(Palette ov, Palette nv) {
 		//vm.dmdWidget.setPalette ...
 	}
+	
+	public void onPlayingAniChanged(Animation ov, Animation nv) {
+		setupDraw(nv);
+	}
 
 	public void onDrawingEnabledChanged(boolean ov, boolean nv) {	
 		vm.setCopyToNextEnabled(nv);
@@ -79,11 +83,11 @@ public class DrawingHandler extends ViewHandler {
 	
 	public void onMaskVisibleChanged(boolean maskWasVisible, boolean maskIsVisible) {	
 		vm.setMaskInvertEnabled(maskIsVisible);
-		Optional<CompiledAnimation> scene = model.getScene(vm.selectedScene);
+		Optional<CompiledAnimation> scene = Optional.ofNullable(vm.selectedScene);
 		if( maskIsVisible ) {
 			if( vm.selectedRecording != null ) {
 				// set the current global mask
-				setupGlobalMask(vm.maskNumber);
+				setupGlobalMask(vm.selectedMaskNumber);
 				vm.setDrawingEnabled(true);
 				vm.setNumberOfPlanes(1);
 			}
@@ -99,7 +103,7 @@ public class DrawingHandler extends ViewHandler {
 			}
 		} else {
 			if( vm.selectedEditMode.equals(EditMode.FIXED) ) {
-				commitGlobalMask(vm.maskNumber);
+				commitGlobalMask(vm.selectedMaskNumber);
 			}
 			// mask of means not in any case disable drawing of course
 			if( scene.isPresent() ) {
@@ -117,7 +121,7 @@ public class DrawingHandler extends ViewHandler {
 		vm.setMaskLocked(mask.locked);
 	}
 	
-	public void onMaskNumberChanged( int ov, int nv) {
+	public void onSelectedMaskNumberChanged( int ov, int nv) {
 		if( vm.maskVisible && vm.selectedEditMode.equals(EditMode.FIXED)) {
 			commitGlobalMask(ov);
 			setupGlobalMask(nv);
@@ -131,7 +135,7 @@ public class DrawingHandler extends ViewHandler {
 	}
 
 	public void onSelectedEditModeChanged( EditMode ov, EditMode nv ) {
-		Optional<CompiledAnimation> scene = model.getScene(vm.selectedScene);
+		Optional<CompiledAnimation> scene = Optional.ofNullable(vm.selectedScene);
 		if( scene.isPresent()) {
 			CompiledAnimation cani = scene.get();
 			if( cani.isDirty() && !cani.getEditMode().equals(nv)) {
@@ -148,26 +152,32 @@ public class DrawingHandler extends ViewHandler {
 	}
 
 	void setupDraw(Animation cani) {
-		switch( cani.getEditMode() ) {
+		if( cani == null ) return;
+		switch( saveGetEditModeForAni(cani) ) {
 		case FOLLOW:
 			((CompiledAnimation) cani).ensureMask();
 			vm.setMaskOnEnabled(true);
 			vm.setHashButtonsEnabled(true);
-			vm.setMaskSpinnerEnabled(false);
+			vm.setMaskNumberEnabled(false);
 			break;
 		case REPLACE:
 		case COLMASK:
 			vm.setMaskOnEnabled(false);
 			vm.setHashButtonsEnabled(false);
-			vm.setMaskSpinnerEnabled(false);
+			vm.setMaskNumberEnabled(false);
 			break;
 		case FIXED:
 			vm.setMaskOnEnabled(true);
 			vm.setHashButtonsEnabled(true);
-			vm.setMaskSpinnerEnabled(true);
+			vm.setMaskNumberEnabled(true);
 		}		
 	}
 	
+	private EditMode saveGetEditModeForAni(Animation cani) {
+		if( cani.getEditMode() != null ) return cani.getEditMode();
+		return cani instanceof CompiledAnimation ? EditMode.REPLACE : EditMode.FIXED;
+	}
+
 	private void setDrawMaskByEditMode(EditMode mode) {
 		if( vm.maskVisible) {
 			// only draw on mask
@@ -184,7 +194,7 @@ public class DrawingHandler extends ViewHandler {
 		vm.setDrawTool(name);
 	}
 	
-	public void onActFrameChanged(int ov, int nv) {
+	public void onSelectedFrameChanged(int ov, int nv) {
 		vm.setCopyToNextEnabled(vm.drawingEnabled && nv<vm.maxFrame);
 		vm.setCopyToPrevEnabled(vm.drawingEnabled && nv>vm.minFrame);
 	}

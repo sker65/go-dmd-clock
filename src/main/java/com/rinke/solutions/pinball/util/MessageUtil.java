@@ -27,4 +27,8 @@ public class MessageUtil {
 		return messageBox.open();
 	}
 
+	public void error(String header, String msg) {
+		warn(SWT.ICON_ERROR | SWT.OK, header, msg);
+	}
+
 }

@@ -65,7 +65,7 @@ public class AniActionHandler {
 		anisToSave.forEach(a->a.setDirty(false));
 	}
 
-	protected void onLoadAniWithFC(boolean append) {
+	public void onLoadAniWithFC(boolean append) {
 		List<String> filenames = fileChooserUtil.chooseMulti(SWT.OPEN|SWT.MULTI, null, new String[] { "*.properties;*.ani;*.txt.gz;*.pcap;*.pcap.gz;*.*" }, new String[] { "Animationen",
 				"properties, txt.gz, ani, mov" });
 

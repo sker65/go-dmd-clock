@@ -1,11 +1,15 @@
 package com.rinke.solutions.pinball.view;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import lombok.Synchronized;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +18,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.Bean;
+import com.rinke.solutions.pinball.util.MessageUtil;
 import com.rinke.solutions.pinball.view.handler.ViewHandler;
 import com.rinke.solutions.pinball.view.model.ViewModel;
 import com.rinke.solutions.pinball.view.model.XStreamUtil;
@@ -24,6 +29,9 @@ public class ReflectionDispatcher implements CmdDispatcher {
 	
 	@Autowired
 	ViewModel viewModel;
+	
+	@Autowired
+	MessageUtil messageUtil;
 	
 	@Autowired
 	XStreamUtil xStreamUtil;
@@ -51,6 +59,29 @@ public class ReflectionDispatcher implements CmdDispatcher {
 	
 	Map<Command,List<HandlerInvocation>> invocationCache = new HashMap<>();
 	
+	public void checkChangeHandlers(Object viewModel) {
+		Pattern p = Pattern.compile("on([A-Z].*)Changed");
+		for( ViewHandler h : handler) {
+			for(Method m : h.getClass().getMethods() ) {
+				Matcher matcher = p.matcher(m.getName());
+				if( matcher.matches() ) {
+					String propName = StringUtils.uncapitalize(matcher.group(1));
+					try {
+						Field f = viewModel.getClass().getDeclaredField(propName);
+						Parameter[] parameters = m.getParameters();
+						if( !(parameters[0].getType().isAssignableFrom(f.getType()) && 
+								parameters[1].getType().isAssignableFrom(f.getType()) )) {
+							throw new RuntimeException("change handler has incomptible params for "+f+": "+m);
+						}
+					} catch (NoSuchFieldException | SecurityException e) {
+						log.error("change handler found with no prop in model: {}", m);
+						throw new RuntimeException("change handler found with no prop in model: "+m);
+					}
+				}
+			}
+		}
+	}
+	
 	@Override
 	public <T> void dispatch(Command<T> cmd) {
 		boolean wasHandled = false;
@@ -64,7 +95,8 @@ public class ReflectionDispatcher implements CmdDispatcher {
 		}
 		if( !wasHandled ) {
 			log.error("**** cmd {} was not handled", cmd);
-			throw new RuntimeException("cmd "+cmd.name+ " was not handled");
+			//throw new RuntimeException("cmd "+cmd.name+ " was not handled");
+			messageUtil.error("Command not handled", "The command '"+cmd+"' was not handled. (maybe not implemented)");
 		}
 		//log.info( xStreamUtil.toXML(viewModel) );
 	}
