@@ -848,7 +848,7 @@ public class PinDmdEditor implements EventHandler {
 		// rebuild frame seq map	
 		HashMap <String,FrameSeq> frameSeqMap = new HashMap<>();
 		for (PalMapping p : project.palMappings) {
-			if (p.frameSeqName != null) {
+			if (p.frameSeqName != null && scenes.containsKey(p.frameSeqName)) {
 				FrameSeq frameSeq = new FrameSeq(p.frameSeqName);
 				if (p.switchMode.equals(SwitchMode.ADD) || p.switchMode.equals(SwitchMode.FOLLOW) ) {
 					frameSeq.mask = 0b11111100;
@@ -905,7 +905,7 @@ public class PinDmdEditor implements EventHandler {
 			// for all referenced frame mapping we must also copy the frame data as
 			// there are two models
 			for (FrameSeq p : frameSeqMap.values()) {
-				CompiledAnimation ani = scenes.get(p.name);				
+				CompiledAnimation ani = scenes.get(p.name);			
 				ani.actFrame = 0;
 				DMD tmp = new DMD(dmdSize.width, dmdSize.height);
 				for (int i = 0; i <= ani.end; i++) {
