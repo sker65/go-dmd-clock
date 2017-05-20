@@ -50,14 +50,17 @@ public class DataBinder {
 			GuiBinding ano = f.getAnnotation(GuiBinding.class);
 			if( f.isAnnotationPresent(GuiBinding.class)) {
 				List<WidgetProp> props = new ArrayList<>();
+				List<String> propNames = new ArrayList<>();
+				if( !StringUtils.isEmpty(ano.propName())) propNames.add(ano.propName());
+				if( ano.propNames().length>0 ) propNames.addAll(Arrays.asList(ano.propNames()));
 				if( !WidgetProp.NONE.equals(ano.prop())) props.add(ano.prop());
 				props.addAll(Arrays.asList(ano.props()));
+				int i = 0;
 				for( WidgetProp p : props) {
 					// create camel case key as string
 					String key = p.prefix + (StringUtils.isEmpty(p.prefix) ? f.getName() : StringUtils.capitalize(f.getName())) + p.postfix;
+					if( propNames.size() > i) key = propNames.get(i++);
 					// iterate over given propNames
-					if( !StringUtils.isEmpty(ano.propName())) key = ano.propName();
-					
 					WidgetBinding widgetBinding = new WidgetBinding(f, p, key);
 					log.error("add binding {}", widgetBinding);
 					viewWidgetBindingMap.put(key, widgetBinding);

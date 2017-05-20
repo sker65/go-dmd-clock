@@ -18,9 +18,12 @@ import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.animation.EditMode;
 import com.rinke.solutions.pinball.model.Bookmark;
 import com.rinke.solutions.pinball.model.Frame;
+import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.PaletteType;
 import com.rinke.solutions.pinball.util.ObservableList;
+import com.rinke.solutions.pinball.util.ObservableMap;
+import com.rinke.solutions.pinball.util.ObservableSet;
 import com.rinke.solutions.pinball.view.model.ViewModel.PasteData;
 
 @Bean
@@ -101,8 +104,8 @@ public class ViewModel {
 
 	// maybe not the real palette model class, but an variant for view model
 	@BindingTarget public ObservableList<Palette> palettes = new ObservableList<>(new ArrayList<>());
-	public Palette selectedPalette = Palette.getDefaultPalettes().get(0);
-	public String editedPaletteName;
+	@BindingTarget public Palette selectedPalette = Palette.getDefaultPalettes().get(0);
+	@BindingTarget public String editedPaletteName;
 	
 	public java.util.List<Palette> previewPalettes = Palette.previewPalettes();
 
@@ -120,10 +123,10 @@ public class ViewModel {
 	
 	public String projectFilename;
 	
-	public Animation selectedRecording;
-	public CompiledAnimation selectedScene;
-	public TypedLabel selectedKeyFrame;
-	public String selectedFrameSeq;
+	@BindingTarget public Animation selectedRecording;
+	@BindingTarget public CompiledAnimation selectedScene;
+	@BindingTarget public PalMapping selectedKeyFrame;
+	@BindingTarget public CompiledAnimation selectedFrameSeq;
 	@BindingTarget public ObservableList<Animation> recordings = new ObservableList<>(new ArrayList<>());
 	@BindingTarget public ObservableList<CompiledAnimation> scenes = new ObservableList<>(new ArrayList<>());
 	@BindingTarget public ObservableList<TypedLabel> keyframes = new ObservableList<>(new ArrayList<>());
@@ -139,17 +142,18 @@ public class ViewModel {
 	public int skip;
 	public CutInfo cutInfo;
 	
-	public Bookmark selectedBookmark;
-	public TreeSet<Bookmark> bookmarks = new TreeSet<>();
-	public String editedBookmarkName;
+	@BindingTarget public Bookmark selectedBookmark;
+	@BindingTarget public ObservableSet<Bookmark> bookmarks = new ObservableSet<>(new TreeSet<>());
+	@BindingTarget public String editedBookmarkName;
 	
 	@BindingTarget public ObservableList<EditMode> availableEditModes = new ObservableList<EditMode>(new ArrayList<>());
-	public EditMode selectedEditMode;
+	@BindingTarget public EditMode selectedEditMode;
 	
-	public List<PaletteType> availablePaletteTypes = new ArrayList<>();
-	public PaletteType selectedPaletteType;
+	@BindingTarget public ObservableList<PaletteType> availablePaletteTypes = new ObservableList<>(new ArrayList<>());
+	@BindingTarget public PaletteType selectedPaletteType;
 
 	@BindingTarget public int selectedMaskNumber;
+	
 	public boolean maskVisible;
 	public boolean maskLocked;
 	
@@ -215,13 +219,6 @@ public class ViewModel {
 		firePropertyChange("projectFilename", this.projectFilename, this.projectFilename = projectFilename);
 	}
 	
-	public TypedLabel getSelectedKeyFrame() {
-		return selectedKeyFrame;
-	}
-	public void setSelectedKeyFrame(TypedLabel selectedKeyFrame) {
-		firePropertyChange("selectedKeyFrame", this.selectedKeyFrame, this.selectedKeyFrame = selectedKeyFrame);
-	}
-	
 	public CutInfo getCutInfo() {
 		return cutInfo;
 	}
@@ -237,7 +234,7 @@ public class ViewModel {
 	public Set<Bookmark> getBookmarks() {
 		return bookmarks;
 	}
-	public void setBookmarks(TreeSet<Bookmark> bookmarks) {
+	public void setBookmarks(ObservableSet<Bookmark> bookmarks) {
 		firePropertyChange("bookmarks", this.bookmarks, this.bookmarks = bookmarks);
 	}
 	public ObservableList<EditMode> getAvailableEditModes() {
@@ -477,11 +474,11 @@ public class ViewModel {
 		firePropertyChange("selectedPaletteType", this.selectedPaletteType, this.selectedPaletteType = selectedPaletteType);
 	}
 
-	public List<PaletteType> getAvailablePaletteTypes() {
+	public ObservableList<PaletteType> getAvailablePaletteTypes() {
 		return availablePaletteTypes;
 	}
 
-	public void setAvailablePaletteTypes(List<PaletteType> availablePaletteTypes) {
+	public void setAvailablePaletteTypes(ObservableList<PaletteType> availablePaletteTypes) {
 		firePropertyChange("availablePaletteTypes", this.availablePaletteTypes, this.availablePaletteTypes = availablePaletteTypes);
 	}
 
@@ -515,14 +512,6 @@ public class ViewModel {
 
 	public void setHashes(List<byte[]> hashes) {
 		firePropertyChange("hashes", this.hashes, this.hashes = hashes);
-	}
-
-	public String getSelectedFrameSeq() {
-		return selectedFrameSeq;
-	}
-
-	public void setSelectedFrameSeq(String selectedFrameSeq) {
-		firePropertyChange("selectedFrameSeq", this.selectedFrameSeq, this.selectedFrameSeq = selectedFrameSeq);
 	}
 
 	public Rect getDmdSelection() {
@@ -759,6 +748,22 @@ public class ViewModel {
 
 	public void setPalettes(ObservableList<Palette> palettes) {
 		firePropertyChange("palettes", this.palettes, this.palettes = palettes);
+	}
+
+	public CompiledAnimation getSelectedFrameSeq() {
+		return selectedFrameSeq;
+	}
+
+	public void setSelectedFrameSeq(CompiledAnimation selectedFrameSeq) {
+		firePropertyChange("selectedFrameSeq", this.selectedFrameSeq, this.selectedFrameSeq = selectedFrameSeq);
+	}
+
+	public PalMapping getSelectedKeyFrame() {
+		return selectedKeyFrame;
+	}
+
+	public void setSelectedKeyFrame(PalMapping selectedKeyFrame) {
+		firePropertyChange("selectedKeyFrame", this.selectedKeyFrame, this.selectedKeyFrame = selectedKeyFrame);
 	}
 
 }

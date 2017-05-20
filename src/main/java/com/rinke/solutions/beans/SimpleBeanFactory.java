@@ -184,21 +184,23 @@ public class SimpleBeanFactory extends DefaultHandler implements BeanFactory {
     	Reflections clz = new Reflections(pkg);
     	Set<Class<?>> beans = clz.getTypesAnnotatedWith(Bean.class);
     	for(Class<?> c : beans ) {
-    		String simpleName = getBeannameFromClass(c);
-    		Bean can = c.getAnnotation(Bean.class);
-    		if( !StringUtils.isEmpty(can.name()) ) simpleName = can.name();
-    		if( simpleName.length()>0) {
-    			log.debug("found bean {}", simpleName);
-    			beanDefs.put(simpleName, buildDefs(c, true));
-        		// scan for bean factory methods
-        		for( Method f : c.getMethods() ) {
-        			if( f.isAnnotationPresent(Bean.class) ) {
-        				Bean an = f.getAnnotation(Bean.class);
-        				// this method creates a bean and should be called, when getBean tries to create an instance
-        				String beanName = getBeannameFromClass(f.getReturnType());//getBeannameFromMethodName(f.getName());
-        				if( !StringUtils.isEmpty(an.name()) ) beanName = an.name();
-        				beanDefs.put(beanName, buildFactoryDef(f,simpleName, an.scope()));
-        			}
+    		if( c.isAnnotationPresent(Bean.class) ) {
+        		String simpleName = getBeannameFromClass(c);
+        		Bean can = c.getAnnotation(Bean.class);
+        		if( can!= null && !StringUtils.isEmpty(can.name()) ) simpleName = can.name();
+        		if( simpleName.length()>0) {
+        			log.debug("found bean {}", simpleName);
+        			beanDefs.put(simpleName, buildDefs(c, true));
+            		// scan for bean factory methods
+            		for( Method f : c.getMethods() ) {
+            			if( f.isAnnotationPresent(Bean.class) ) {
+            				Bean an = f.getAnnotation(Bean.class);
+            				// this method creates a bean and should be called, when getBean tries to create an instance
+            				String beanName = getBeannameFromClass(f.getReturnType());//getBeannameFromMethodName(f.getName());
+            				if( !StringUtils.isEmpty(an.name()) ) beanName = an.name();
+            				beanDefs.put(beanName, buildFactoryDef(f,simpleName, an.scope()));
+            			}
+            		}
         		}
     		}
     	}

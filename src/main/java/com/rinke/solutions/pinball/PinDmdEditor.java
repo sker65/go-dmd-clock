@@ -149,7 +149,6 @@ import com.rinke.solutions.pinball.widget.SelectTool;
 import com.rinke.solutions.pinball.widget.SetPixelTool;
 
 
-@Slf4j
 public class PinDmdEditor implements EventHandler {
 
 	private static final int FRAME_RATE = 40;
@@ -1981,7 +1980,7 @@ public class PinDmdEditor implements EventHandler {
 				if (!frameSeqMap.isEmpty()) {
 					log.info("exporter instance {} wrinting FSQ", exporter);
 					DataOutputStream dos = new DataOutputStream(streamProvider.buildStream(replaceExtensionTo("fsq", filename)));
-					map = exporter.writeFrameSeqTo(dos, project, 
+					map = exporter.writeFrameSeqTo(dos, frameSeqMap, 
 							ApplicationProperties.getBoolean(ApplicationProperties.OLDEXPORT)?1:2);
 					dos.close();
 //					XStream xStream = new XStream();

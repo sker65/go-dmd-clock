@@ -27,7 +27,7 @@ public class SimpleBeanFactoryTest {
 	@Test
 	public void testScanPackages() throws Exception {
 		uut.scanPackages("com.rinke.solutions.pinball");
-		Object bean = uut.getBean("autosaveHandler");
+		Object bean = uut.getBean("com.rinke.solutions.pinball.view.handler.RecordingsHandler");
 		assertNotNull(bean);
 	}
 

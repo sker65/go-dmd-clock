@@ -24,6 +24,7 @@ import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.util.Config;
 import com.rinke.solutions.pinball.util.ObservableList;
 import com.rinke.solutions.pinball.util.ObservableMap;
+import com.rinke.solutions.pinball.util.ObservableSet;
 
 @Bean
 public class Model {
@@ -55,7 +56,7 @@ public class Model {
 		
 	public List<Mask> masks = new ArrayList<>();
 	
-	public Map<String,Set<Bookmark>> bookmarksMap = new HashMap<>();
+	public Map<String,ObservableSet<Bookmark>> bookmarksMap = new HashMap<>();
 	
 	public ObservableList<Palette> palettes = new ObservableList<Palette>(new ArrayList<>());
 	
@@ -103,17 +104,20 @@ public class Model {
 		firePropertyChange("dirty", this.dirty, this.dirty = dirty);
 	}
 	
-	private Optional<PalMapping> search( TypedLabel sel) {
+	private Optional<PalMapping> search( String sel) {
 		for(PalMapping p : palMappings) {
-			if( p.name.equals(sel.label)) return Optional.of(p);
+			if( p.name.equals(sel)) return Optional.of(p);
 		}
 		return Optional.empty();
 	}
 
 	public Optional<PalMapping> getPalMapping(TypedLabel sel) {
+		return sel==null?Optional.empty():search(sel.label);
+	}
+	
+	public Optional<PalMapping> getPalMapping(String sel) {
 		return sel==null?Optional.empty():search(sel);
 	}
-
 
 	public Optional<CompiledAnimation> getScene(TypedLabel sel) {
 		return sel==null?Optional.empty():Optional.ofNullable(scenes.get(sel.label));

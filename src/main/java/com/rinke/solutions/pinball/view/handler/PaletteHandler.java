@@ -140,9 +140,9 @@ public class PaletteHandler extends ViewHandler {
 	}
 	
 	public void onApplyPalette(Palette selectedPalette) {
-		log.info("change index in Keyframe {} to {}", vm.selectedKeyFrame.label, selectedPalette.index);
+		log.info("change palette index in Keyframe {} to {}", vm.selectedKeyFrame.name, selectedPalette.index);
 
-		model.getPalMapping(vm.selectedKeyFrame).ifPresent(p->p.palIndex = selectedPalette.index);
+		Optional.ofNullable(vm.selectedKeyFrame).ifPresent(p->p.palIndex = selectedPalette.index);
 		// change palette in ANI file
 		Optional.ofNullable(vm.selectedScene).ifPresent(s->s.setPalIndex(selectedPalette.index));
 	}

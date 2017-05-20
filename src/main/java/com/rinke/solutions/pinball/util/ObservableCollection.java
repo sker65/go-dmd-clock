@@ -163,4 +163,8 @@ public class ObservableCollection<T> extends Observable implements Collection<T>
 	public void propertyChange(PropertyChangeEvent evt) {
 		setChanged(); notifyObservers();
 	}
+
+	public Collection<T> getDelegate() {
+		return delegate;
+	}
 }

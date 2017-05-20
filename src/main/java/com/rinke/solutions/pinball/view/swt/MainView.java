@@ -200,11 +200,11 @@ public class MainView {
 		beanFactory.setSingleton("recentProjectsMenuManager",recentProjectsMenuManager);
 		beanFactory.setSingleton("recentAnimationsMenuManager", recentAnimationsMenuManager);
 
-		DataBinder dataBinder = new DataBinder();
-		dataBinder.bind(this, vm);
-		
 		List<ViewHandler> handlers = beanFactory.getBeansOfType(ViewHandler.class);
 		handlers.forEach(h->dispatcher.registerHandler(h));
+
+		DataBinder dataBinder = new DataBinder();
+		dataBinder.bind(this, vm);
 		
 		dispatcher.checkChangeHandlers(vm);
 		
@@ -241,10 +241,17 @@ public class MainView {
 	@GuiBinding( prop=TEXT, propName="duration" ) Text txtDuration;
 	@GuiBinding( props={MIN,MAX,SELECTION} ) Scale frame;
 	
-	@GuiBinding( prop=INPUT, propName="palettes" ) ComboViewer paletteComboViewer;
-	@GuiBinding( prop=INPUT, propName="recordings" ) TableViewer recordingsListViewer;
-	@GuiBinding( prop=INPUT, propName="scenes" ) TableViewer sceneListViewer;
-	@GuiBinding( prop=INPUT, propName="keyframes" ) TableViewer keyframeTableViewer;
+	@GuiBinding( props={INPUT,SELECTION}, propNames={"palettes", "selectedPalette"} )
+	ComboViewer paletteComboViewer;
+	@GuiBinding( prop=LABEL, propName="editedPaletteName" ) 
+	private Combo paletteViewerCombo;
+
+	@GuiBinding( props={INPUT,SELECTION}, propNames={"recordings", "selectedRecording"} )
+	TableViewer recordingsListViewer;
+	@GuiBinding( props={INPUT,SELECTION}, propNames={"scenes", "selectedScene"} )
+	TableViewer sceneListViewer;
+	@GuiBinding( props={INPUT,SELECTION}, propNames={"keyframes", "selectedKeyFrame"} )
+	TableViewer keyframeTableViewer;
 		
 	@GuiBinding( prop=ENABLED ) Button deleteRecording;
 	@GuiBinding( prop=ENABLED ) Button deleteKeyFrame;
@@ -253,11 +260,15 @@ public class MainView {
 	@GuiBinding( prop=ENABLED ) Button prev;
 	@GuiBinding( prop=ENABLED ) Button next;
 	
+	@GuiBinding( props={INPUT,SELECTION}, propNames={"availablePaletteTypes", "selectedPaletteType"} )
 	ComboViewer paletteTypeComboViewer;
+	
 	DMDWidget dmdWidget;
 	Button btnNewPalette;
 	Button btnRenamePalette;
 	ToolBar drawToolBar;
+	
+	@GuiBinding( props={INPUT,SELECTION}, propNames={"scenes", "selectedFrameSeq"} )
 	ComboViewer frameSeqViewer;
 	
 	@GuiBinding( prop=ENABLED ) Button markStart;
@@ -296,17 +307,19 @@ public class MainView {
 	private MenuItem mntmUndo;
 	private MenuItem mntmRedo;
 
-	@GuiBinding( prop=INPUT, propName="availableEditModes" ) private ComboViewer editModeViewer;
+	@GuiBinding( props={INPUT,SELECTION}, propNames={"availableEditModes", "selectedEditMode"} )
+	private ComboViewer editModeViewer;
 	
 	private Composite grpKeyframe;
 	private Text textProperty; // for general goDMD properties
+
+	@GuiBinding( props={INPUT,SELECTION}, propNames={"bookmarks", "selectedBookmark"} )
 	private ComboViewer bookmarkComboViewer;
+	@GuiBinding( prop=LABEL, propName="editedBookmarkName" ) private Combo comboBookmark;
 	
 	@GuiBinding( prop=ENABLED ) Button maskInvert;
-	private Combo comboBookmark;
 	
 	private Combo frameSeqCombo;
-	private Combo paletteViewerCombo;
 
 	Map<String, DrawTool> drawTools = new HashMap<>();
 
@@ -1085,10 +1098,7 @@ public class MainView {
 		gd_combo_1.widthHint = 96;
 		combo_1.setLayoutData(gd_combo_1);
 		paletteTypeComboViewer.setContentProvider(ArrayContentProvider.getInstance());
-		paletteTypeComboViewer.setInput(vm.availablePaletteTypes);
 		paletteTypeComboViewer.setLabelProvider(new LabelProviderAdapter<PaletteType>(o -> o.label));
-		paletteTypeComboViewer.addSelectionChangedListener( e-> setProp(vm, "selectedPaletteType", getFirstSelected(e)));
-		registerProp("selectedPaletteType", "paletteTypeComboViewer", paletteTypeComboViewer);
 						
 		Button btnApplyPalette = new Button(grpPalettes, SWT.NONE);
 		btnApplyPalette.setText("Apply");
@@ -1337,21 +1347,15 @@ public class MainView {
 		log.debug("view model changed {} {}->{}", e.getPropertyName(), e.getOldValue(), e.getNewValue());
 		
 		Stream<Button> btns = Arrays.stream(btnHash);
+		
+		// Could be done via change Handler for the view part
 		// scan special arrays
 		if( propName.equals("hashButtonSelected") ) {
 			btns.forEach(b->b.setSelection(vm.hashButtonSelected[(int) b.getData()]));
-		} else
-			// these should be done elsewhere
-			if( propName.equals("selectedKeyFrame") ) {
-			vm.setDeleteKeyFrameEnabled(nv!=null);
-		} else if( propName.equals("selectedScene") ) {
-			vm.setDeleteSceneEnabled(nv!=null);
 		} else if( propName.equals("frameRedraw") ) {
 			dmdWidget.redraw();
 			previewDmd.redraw();
-		} 
-		
-		else if( propName.equals("hashLbl")) {
+		} else if( propName.equals("hashLbl")) {
 			btns.forEach(b->b.setText(vm.hashLbl[(int) b.getData()]));
 		} else if( propName.equals("hashButtonEnabled") || propName.equals("hashButtonsEnabled")) { // beware of the 's'
 			btns.forEach(b->b.setEnabled(vm.hashButtonEnabled[(int) b.getData()] && vm.hashButtonsEnabled ));
@@ -1363,7 +1367,11 @@ public class MainView {
 			dmdWidget.setDrawTool(drawTool);
 		} else if( propName.equals("numberOfPlanes") ) { 
 			paletteTool.setNumberOfPlanes((Integer)nv);
-		} 
+		} else if( propName.equals("maskVisible") ) {
+			dmdWidget.setShowMask(((Boolean) nv).booleanValue());
+		} else if( propName.equals("maskLocked") ) {
+			dmdWidget.setMaskLocked(((Boolean) nv).booleanValue());
+		}
 		
 		if( viewerBindingMap.containsKey(propName)) {
 			Pair<String, AbstractListViewer> p = viewerBindingMap.get(propName);
@@ -1489,52 +1497,6 @@ public class MainView {
 	
 	protected DataBindingContext initDataBindings() {
 		DataBindingContext bindingContext = new DataBindingContext();
-		//
-		IObservableValue observeSingleSelectionKeyframeTableViewer = ViewerProperties.singleSelection().observe(keyframeTableViewer);
-		IObservableValue selectedKeyFrameVmObserveValue = BeanProperties.value("selectedKeyFrame").observe(vm);
-		bindingContext.bindValue(observeSingleSelectionKeyframeTableViewer, selectedKeyFrameVmObserveValue, null, null);
-		//
-		IObservableValue observeSelectionBtnMaskObserveWidget = WidgetProperties.selection().observe(maskOn);
-		IObservableValue maskVisibleVmObserveValue = BeanProperties.value("maskVisible").observe(vm);
-		bindingContext.bindValue(observeSelectionBtnMaskObserveWidget, maskVisibleVmObserveValue, null, null);
-		//
-		IObservableValue showMaskDmdWidgetObserveValue = BeanProperties.value("showMask").observe(dmdWidget);
-		bindingContext.bindValue(showMaskDmdWidgetObserveValue, maskVisibleVmObserveValue, null, null);
-		//
-		IObservableValue observeTextCombo_3ObserveWidget = WidgetProperties.text().observe(comboBookmark);
-		IObservableValue editedBookmarkNameVmObserveValue = BeanProperties.value("editedBookmarkName").observe(vm);
-		bindingContext.bindValue(observeTextCombo_3ObserveWidget, editedBookmarkNameVmObserveValue, null, null);
-		//
-		IObservableValue maskLockedDmdWidgetObserveValue = BeanProperties.value("maskLocked").observe(dmdWidget);
-		IObservableValue maskLockedVmObserveValue = BeanProperties.value("maskLocked").observe(vm);
-		bindingContext.bindValue(maskLockedDmdWidgetObserveValue, maskLockedVmObserveValue, null, null);
-		//
-		IObservableValue observeSelectionFrameSeqComboObserveWidget = WidgetProperties.selection().observe(frameSeqCombo);
-		IObservableValue selectedFrameSeqVmObserveValue = BeanProperties.value("selectedFrameSeq").observe(vm);
-		bindingContext.bindValue(observeSelectionFrameSeqComboObserveWidget, selectedFrameSeqVmObserveValue, null, null);
-		//
-		IObservableValue observeTextPaletteViewerComboObserveWidget = WidgetProperties.text().observe(paletteViewerCombo);
-		IObservableValue editedPaletteNameVmObserveValue = BeanProperties.value("editedPaletteName").observe(vm);
-		bindingContext.bindValue(observeTextPaletteViewerComboObserveWidget, editedPaletteNameVmObserveValue, null, null);
-		//
-		IObservableValue palettePaletteToolObserveValue = PojoProperties.value("palette").observe(paletteTool);
-		IObservableValue selectedPaletteVmObserveValue = BeanProperties.value("selectedPalette").observe(vm);
-		bindingContext.bindValue(palettePaletteToolObserveValue, selectedPaletteVmObserveValue, null, null);
-		//
-		IObservableValue observeSelectionBtnLivePreviewObserveWidget = WidgetProperties.selection().observe(btnLivePreview);
-		IObservableValue livePreviewVmObserveValue = BeanProperties.value("livePreview").observe(vm);
-		bindingContext.bindValue(observeSelectionBtnLivePreviewObserveWidget, livePreviewVmObserveValue, null, null);
-		//
-		ObservableSetContentProvider setContentProvider = new ObservableSetContentProvider();
-		IObservableMap observeMap = PojoObservables.observeMap(setContentProvider.getKnownElements(), Bookmark.class, "label");
-		bookmarkComboViewer.setLabelProvider(new ObservableMapLabelProvider(observeMap));
-		bookmarkComboViewer.setContentProvider(setContentProvider);
-		//
-		IObservableSet bookmarksVmObserveSet = BeanProperties.set("bookmarks").observe(vm);
-		bookmarkComboViewer.setInput(bookmarksVmObserveSet);
-		//
-		IObservableValue paletteDmdWidgetObserveValue = BeanProperties.value("palette").observe(dmdWidget);
-		bindingContext.bindValue(paletteDmdWidgetObserveValue, selectedPaletteVmObserveValue, null, null);
 		//
 		return bindingContext;
 	}

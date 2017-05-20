@@ -159,7 +159,7 @@ public class ExportHandler extends ViewHandler {
 				if (!frameSeqMap.isEmpty()) {
 					log.info("exporter instance {} wrinting FSQ", exporter);
 					DataOutputStream dos = new DataOutputStream(streamProvider.buildStream(replaceExtensionTo("fsq", filename)));
-					map = exporter.writeFrameSeqTo(dos, project, useOldExport?1:2);
+					map = exporter.writeFrameSeqTo(dos, frameSeqMap, useOldExport?1:2);
 					dos.close();					
 				}
 

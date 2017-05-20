@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
@@ -21,11 +22,13 @@ import com.rinke.solutions.pinball.DmdSize;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.io.FileHelper;
+import com.rinke.solutions.pinball.model.Bookmark;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.Project;
 import com.rinke.solutions.pinball.util.FileChooserUtil;
 import com.rinke.solutions.pinball.util.MessageUtil;
+import com.rinke.solutions.pinball.util.ObservableSet;
 import com.rinke.solutions.pinball.view.CmdDispatcher;
 import com.rinke.solutions.pinball.view.model.Model;
 import com.rinke.solutions.pinball.view.model.TypedLabel;
@@ -54,7 +57,7 @@ public class ProjectHandler extends ViewHandler {
 	public Project buildProjectFrom(Model m, int version) {
 		Project project = new Project();
 		project.setDimension(m.dmdSize.width, m.dmdSize.height);
-		project.bookmarksMap = model.bookmarksMap;
+		model.bookmarksMap.entrySet().forEach(i->project.bookmarksMap.put(i.getKey(), new HashSet<>(i.getValue())));
 		project.inputFiles = m.inputFiles;
 		project.masks = m.masks;
 		project.palettes = m.palettes;
@@ -167,7 +170,9 @@ public class ProjectHandler extends ViewHandler {
 			model.palettes.clear();
 			model.palettes.addAll(loadedProject.palettes);
 			model.bookmarksMap.clear();
-			model.bookmarksMap = loadedProject.bookmarksMap;
+			for( Entry<String, Set<Bookmark>> i : loadedProject.bookmarksMap.entrySet() ) {
+				model.bookmarksMap.put(i.getKey(), new ObservableSet<Bookmark>(i.getValue()));
+			}
 			model.palMappings.clear();
 			model.palMappings.addAll(loadedProject.palMappings);
 			model.masks.clear();

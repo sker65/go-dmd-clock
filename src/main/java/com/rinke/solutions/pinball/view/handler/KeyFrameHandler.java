@@ -36,13 +36,13 @@ public class KeyFrameHandler extends ViewHandler {
 		model.palMappings.addObserver((o,a)->populate());
 	}
 	
-	public void onSelectedKeyFrameChanged(TypedLabel ov, TypedLabel nv) {
-		Optional<PalMapping> p = model.getPalMapping(nv);
+	public void onSelectedKeyFrameChanged(PalMapping ov, PalMapping nv) {
+		Optional<PalMapping> p = Optional.ofNullable(nv);
 		if( p.isPresent() ) {
 			PalMapping m = p.get();
 			// TODO depends on switch mode
-			vm.setSelectedFrameSeq(m.frameSeqName);
 			CompiledAnimation cani = model.scenes.get(m.animationName);
+			vm.setSelectedFrameSeq(cani);
 			EditMode editMode = cani.getEditMode();
 			vm.setSelectedScene(cani);
 			if( !EditMode.FOLLOW.equals(editMode) ) {
@@ -71,7 +71,7 @@ public class KeyFrameHandler extends ViewHandler {
 
 	public void onFetchDuration() {
 		vm.setDuration( vm.timecode - saveTimeCode );
-		model.getPalMapping( vm.selectedKeyFrame).ifPresent(p->{
+		Optional.ofNullable( vm.selectedKeyFrame).ifPresent(p->{
 			p.durationInMillis = vm.duration;
 			p.durationInFrames = (int) p.durationInMillis / 30;
 		});
@@ -93,7 +93,7 @@ public class KeyFrameHandler extends ViewHandler {
 	 */
 	public void onAddFrameSeq(SwitchMode switchMode) {
 		// retrieve switch mode from selected scene edit mode!!
-		Optional<CompiledAnimation> optScene = model.getScene(new TypedLabel(null, vm.selectedFrameSeq));
+		Optional<CompiledAnimation> optScene = Optional.ofNullable(vm.selectedFrameSeq);
 		if (optScene.isPresent() ) {
 			if (vm.selectedHashIndex != -1) {
 				//  add index, add ref to framesSeq
