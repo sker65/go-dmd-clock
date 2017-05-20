@@ -847,13 +847,20 @@ public class PinDmdEditor implements EventHandler {
 
 		// rebuild frame seq map	
 		HashMap <String,FrameSeq> frameSeqMap = new HashMap<>();
-		for (PalMapping p : project.palMappings) {
-			if (p.frameSeqName != null && scenes.containsKey(p.frameSeqName)) {
-				FrameSeq frameSeq = new FrameSeq(p.frameSeqName);
-				if (p.switchMode.equals(SwitchMode.ADD) || p.switchMode.equals(SwitchMode.FOLLOW) ) {
-					frameSeq.mask = 0b11111100;
+		Iterator<PalMapping> it = project.palMappings.iterator();
+		while( it.hasNext()) {
+			PalMapping p = it.next();
+			if (p.frameSeqName != null ) {
+				if( scenes.containsKey(p.frameSeqName) ) {
+					FrameSeq frameSeq = new FrameSeq(p.frameSeqName);
+					if (p.switchMode.equals(SwitchMode.ADD) || p.switchMode.equals(SwitchMode.FOLLOW) ) {
+						frameSeq.mask = 0b11111100;
+					}
+					frameSeqMap.put(p.frameSeqName, frameSeq);
+				} else {
+					log.error("referenced scene not found, keyframe will be removed: {}", p);
+					it.remove();
 				}
-				frameSeqMap.put(p.frameSeqName, frameSeq);
 			}
 		}
 		
@@ -1156,6 +1163,7 @@ public class PinDmdEditor implements EventHandler {
 		TableViewerColumn viewerCol2 = new TableViewerColumn(sceneListViewer, SWT.LEFT);
 		viewerCol2.setEditingSupport(new GenericTextCellEditor<Animation>(sceneListViewer, ani -> ani.getDesc(), (ani, v) -> {
 			updateAnimationMapKey(ani.getDesc(), v, scenes);
+			updatePalMappings(ani.getDesc(), v);
 			ani.setDesc(v);
 			frameSeqViewer.refresh();
 		}));
@@ -1698,6 +1706,21 @@ public class PinDmdEditor implements EventHandler {
 
 	}
 	
+	/**
+	 * if a scene gets renamed, this update function is called.
+	 * if newKey is not equal to old, the refering pal mappings gets updated
+	 * @param oldKey old name of the scene
+	 * @param newKey new name of scene
+	 */
+	private void updatePalMappings(String oldKey, String newKey) {
+		if( StringUtils.equals(oldKey, newKey) ) return;
+		project.palMappings.forEach(p->{
+			if( p.frameSeqName != null && p.frameSeqName.equals(oldKey)) {
+				p.frameSeqName = newKey;
+			}
+		});
+	}
+
 	void onInvert() {
 		dmd.addUndoBuffer();
 		byte[] data = dmd.getFrame().mask.data;
