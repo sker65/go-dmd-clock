@@ -4,8 +4,10 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -20,6 +22,8 @@ import org.eclipse.jface.viewers.AbstractTableViewer;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.Widget;
 
 import com.rinke.solutions.pinball.util.ObservableCollection;
 
@@ -45,7 +49,7 @@ public class DataBinder {
 	
 	public void bind(Object view, Object viewModel) {		
 		Class<?> viewClz = view.getClass();
-		Map<String, WidgetBinding> viewWidgetBindingMap = new HashMap<>();
+		List<WidgetBinding> viewWidgetBindings = new ArrayList<>();
 		for( Field f : viewClz.getDeclaredFields() ) {
 			GuiBinding ano = f.getAnnotation(GuiBinding.class);
 			if( f.isAnnotationPresent(GuiBinding.class)) {
@@ -63,30 +67,45 @@ public class DataBinder {
 					// iterate over given propNames
 					WidgetBinding widgetBinding = new WidgetBinding(f, p, key);
 					log.error("add binding {}", widgetBinding);
-					viewWidgetBindingMap.put(key, widgetBinding);
+					viewWidgetBindings.add(widgetBinding);
 				}
 			}
 		}
+		Set<String> boundedFields = new HashSet<>();
 		Class<?> modelClz = viewModel.getClass();
-		//Map<String, WidgetBinding> viewBindingMap = new HashMap<>();
+		for( WidgetBinding wb: viewWidgetBindings ) {
+			Field f = getBindingTargetField( modelClz, wb.propName);
+			if( f !=null ) {
+				createBinding( wb, f, view, viewModel );
+				wb.bound = true;
+				boundedFields.add(f.getName());
+			}
+		}
+		
+		// check all targets are bound
 		for( Field f : modelClz.getDeclaredFields() ) {
 			if( f.isAnnotationPresent(BindingTarget.class)) {
-				if( viewWidgetBindingMap.containsKey(f.getName()) ) {
-					WidgetBinding widgetBinding = viewWidgetBindingMap.get(f.getName());
-					createBinding( widgetBinding, f, view, viewModel );
-					widgetBinding.bound = true;
-				} else {
+				if( !boundedFields.contains(f.getName()) ) {
 					log.error("could not find property source for {} in view", f.getName());
 					throw new RuntimeException("could not find property source for "+f.getName()+" in view");
 				}
 			}
 		}
 		// sanity check: everything bound
-		for( WidgetBinding wb : viewWidgetBindingMap.values()) {
+		for( WidgetBinding wb : viewWidgetBindings ) {
 			if( !wb.bound ) {
 				throw new RuntimeException("no binding target for "+wb+" in view model");
 			}
 		}
+	}
+
+	private Field getBindingTargetField(Class<?> clz, String fieldName) {
+		try {
+			Field f = clz.getDeclaredField(fieldName);
+			if( f.isAnnotationPresent(BindingTarget.class)) return f;
+		} catch (NoSuchFieldException | SecurityException e) {
+		}
+		return null;
 	}
 
 	DataBindingContext bindingContext = new DataBindingContext();
@@ -97,7 +116,16 @@ public class DataBinder {
 		try {
 			widgetBinding.f.setAccessible(true);
 			Object widget = widgetBinding.f.get(view);
-			if( widget instanceof Control) {
+			/*if( widget instanceof MenuItem) {
+				switch( widgetBinding.widgetProp) {
+				case ENABLED:
+					observer = WidgetProperties.enabled().observe(widget);
+					break;
+				default:
+						break;
+				}
+				
+			} else*/ if( widget instanceof Widget) {
 				switch( widgetBinding.widgetProp) {
 				case ENABLED:
 					observer = WidgetProperties.enabled().observe(widget);
@@ -176,7 +204,9 @@ public class DataBinder {
 			bindingContext.bindValue(observer, observedValue, null, null );
 			log.info("created binding for {} <-> {}.{}", widgetBinding, model.getClass().getSimpleName(), f.getName());
 		} else {
-			if( !observableCollection )
+			if( observableCollection )
+				log.info("created binding for {} <-> {}.{}", widgetBinding, model.getClass().getSimpleName(), f.getName());
+			else
 				throw new RuntimeException("couldn't create observer for " + widgetBinding.toString());
 		}
 			

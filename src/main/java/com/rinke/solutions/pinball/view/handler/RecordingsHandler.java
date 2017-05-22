@@ -9,12 +9,15 @@ import java.util.Set;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.databinding.observable.list.WritableList;
 import org.eclipse.jface.viewers.StructuredSelection;
 
 import com.rinke.solutions.beans.Bean;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.EditMode;
+import com.rinke.solutions.pinball.model.Bookmark;
+import com.rinke.solutions.pinball.util.ObservableSet;
 import com.rinke.solutions.pinball.view.CmdDispatcher;
 import com.rinke.solutions.pinball.view.model.Model;
 import com.rinke.solutions.pinball.view.model.TypedLabel;
@@ -37,6 +40,27 @@ public class RecordingsHandler extends ViewHandler {
 		for(Animation c: model.recordings.values()) {
 			vm.recordings.add( c );
 		}
+	}
+	
+	public void onRecordingRenamed(String oldName, String newName) {
+		if( StringUtils.equals(oldName, newName)) return;
+		// update recording itself
+		Animation animation = model.recordings.remove(oldName);
+		animation.setDesc(newName);
+		model.recordings.put(newName, animation);
+		// update bookmarks
+		ObservableSet<Bookmark> set = model.bookmarksMap.remove(oldName);
+		model.bookmarksMap.put(newName, set);
+		// update pos map
+		Integer pos = model.recordingsPosMap.remove(oldName);
+		if( pos != null ) model.recordingsPosMap.put(newName, pos);
+		// update palmappings
+		model.palMappings.forEach(p->{
+			if( p.animationName.equals(oldName) ) {
+				p.animationName = newName;
+			}
+		});
+		vm.setDirty(true);
 	}
 	
 	public void onSortRecordings() {
@@ -72,6 +96,8 @@ public class RecordingsHandler extends ViewHandler {
 			// else bookmarkComboViewer.setInput(Collections.EMPTY_SET);
 			// bookmarkComboViewer.setInput(Collections.EMPTY_SET);
 			vm.setPlayingAni(rec);
+		} else {
+			vm.setPlayingAni(null);
 		}
 		//goDmdGroup.updateAniModel(a);
 		//btnRemoveAni.setEnabled(a != null);
@@ -93,7 +119,7 @@ public class RecordingsHandler extends ViewHandler {
 			vm.setPlayingAni(null);
 		}
 		vm.setSelectedRecording(null);
-		model.setDirty(true);
+		vm.setDirty(true);
 	}
 
 }

@@ -22,7 +22,7 @@ import com.rinke.solutions.beans.Bean;
 import com.rinke.solutions.beans.Scope;
 import com.rinke.solutions.pinball.view.View;
 
-@Bean(scope=Scope.PROTOTYPE)
+@Bean(name="about", scope=Scope.PROTOTYPE)
 public class About extends Dialog implements View {
 
 	protected Shell shlAboutPindmdEditor;

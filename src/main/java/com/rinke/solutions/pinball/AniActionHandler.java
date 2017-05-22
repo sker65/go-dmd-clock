@@ -132,7 +132,6 @@ public class AniActionHandler {
 		}
 		// TODO not here
 		// model.recentAnimationsMenuManager.populateRecent(filename);
-		model.dirty = true;
 		return loadedList;
 	}
 

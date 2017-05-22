@@ -1,13 +1,15 @@
 package com.rinke.solutions.pinball.view.handler;
 
-import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.nullValue;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
+import java.util.TreeSet;
 
-import org.eclipse.core.databinding.observable.list.WritableList;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -16,10 +18,11 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.AnimationType;
+import com.rinke.solutions.pinball.model.Bookmark;
 import com.rinke.solutions.pinball.util.ObservableMap;
+import com.rinke.solutions.pinball.util.ObservableSet;
 import com.rinke.solutions.pinball.view.CmdDispatcher;
 import com.rinke.solutions.pinball.view.model.Model;
-import com.rinke.solutions.pinball.view.model.TypedLabel;
 import com.rinke.solutions.pinball.view.model.ViewModel;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -54,7 +57,7 @@ public class RecordingsHandlerTest {
 		recordings.put(ANINAME, ani);
 		
 		model.recordings = new ObservableMap<>(recordings);
-		model.bookmarksMap.put(ANINAME, new HashSet<>());
+		model.bookmarksMap.put(ANINAME, new ObservableSet<Bookmark>(new TreeSet<>()));
 		model.inputFiles.add(ANIFILENAME);
 		
 		vm = new ViewModel();

@@ -48,6 +48,8 @@ public class ProjectHandler extends ViewHandler {
 	@Autowired
 	RecentMenuManager recentProjectsMenuManager;
 	@Autowired
+	MenuHandler menuHandler;
+	@Autowired
 	AniActionHandler aniActionHandler;
 	
 	public ProjectHandler(ViewModel vm, Model model, CmdDispatcher d) {
@@ -96,6 +98,7 @@ public class ProjectHandler extends ViewHandler {
 		for (PalMapping palMapping : projectToImport.palMappings) {
 			model.palMappings.add(palMapping);
 		}
+		vm.setDirty(true);
 	}
 	
 	public void onSaveProject(boolean saveAs) {
@@ -139,7 +142,7 @@ public class ProjectHandler extends ViewHandler {
 		storeOrDeleteProjectAnimations(aniFilename);
 
 		fileHelper.storeObject(buildProjectFrom(model, 2), filename);
-		model.dirty = false;
+		vm.setDirty(false);
 
 	}
 	
@@ -196,9 +199,10 @@ public class ProjectHandler extends ViewHandler {
 			// maybe delegate to pal handler 
 			// ensureDefault();
 			recentProjectsMenuManager.populateRecent(filename);
+			vm.setDirty(false);
 		}
 	}
-
+	
 	public void onLoadProject() {
 		model.reset();
 		String filename = fileChooserUtil.choose(SWT.OPEN, null, new String[] { "*.xml;*.json;" }, new String[] { "Project XML", "Project JSON" });
@@ -208,16 +212,18 @@ public class ProjectHandler extends ViewHandler {
 	}
 	
 	public void onNewProject() {
-		vm.setSelectedBookmark(null);
-		vm.setSelectedRecording(null);
-		vm.setSelectedScene(null);
-		vm.setSelectedFrameSeq(null);
-		vm.setSelectedKeyFrame(null);
-		// delete / reset model
-		model.reset();
-		// populate to view model
-		Palette p = (Palette) vm.palettes.get(0);
-		//vm.setSelectedPalette((Palette) );
+		if( menuHandler.couldQuit() ) {
+			vm.setSelectedBookmark(null);
+			vm.setSelectedRecording(null);
+			vm.setSelectedScene(null);
+			vm.setSelectedFrameSeq(null);
+			vm.setSelectedKeyFrame(null);
+			// delete / reset model
+			model.reset();
+			// populate to view model
+//			Palette p = (Palette) vm.palettes.get(0);
+			//vm.setSelectedPalette((Palette) );		
+		}
 	}
 	
 	public void onUploadProject() {

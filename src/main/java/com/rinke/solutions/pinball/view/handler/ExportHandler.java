@@ -202,10 +202,14 @@ public class ExportHandler extends ViewHandler {
 	}
 	
 	public void onExportGif() {
-		GifExporter exporter = beanFactory.getBeanByType(GifExporter.class);
-		exporter.setAni(vm.playingAni);
-		exporter.setPalette((Palette) vm.palettes.get(vm.playingAni.getPalIndex()));
-		exporter.open();		
+		if( vm.playingAni == null) {
+			messageUtil.warn("no animation selected", "you have to select a recording or scene first");
+		} else {
+			GifExporter exporter = beanFactory.getBeanByType(GifExporter.class);
+			exporter.setAni(vm.playingAni);
+			exporter.setPalette((Palette) vm.palettes.get(vm.playingAni.getPalIndex()));
+			exporter.open();		
+		}
 	}
 
 	

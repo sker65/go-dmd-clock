@@ -1,5 +1,6 @@
 package com.rinke.solutions.pinball.view.handler;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Shell;
 
@@ -46,14 +47,13 @@ public class MenuHandler extends ViewHandler {
 	 *         global ignore flag is set via cmdline)
 	 */
 	public boolean couldQuit() {
-		if (model.dirty && !nodirty) {
+		if (vm.dirty && !nodirty) {
 			int res = messageUtil.warn(SWT.ICON_WARNING | SWT.OK | SWT.CANCEL, "Unsaved Changes", "There are unsaved changes in project. Proceed?");
 			return (res == SWT.OK);
 		} else {
 			return true;
 		}
 	}
-
 	
 	public void onAbout() {
 		log.info("onAbout");
@@ -82,6 +82,16 @@ public class MenuHandler extends ViewHandler {
 	
 	public void onLoadAniWithFC(boolean append) {
 		aniActionHandler.onLoadAniWithFC(append);
+	}
+	
+	public void onShellTitleChanged( String ov, String nv) {
+		if( !StringUtils.isEmpty(nv) ) shell.setText((vm.dirty?"* ":"")+nv);
+	}
+
+	public void onDirtyChanged( boolean ov, boolean nv) {
+		if( !StringUtils.isEmpty(vm.shellTitle) )  {
+			shell.setText((nv?"* ":"")+vm.shellTitle);
+		}
 	}
 
 }

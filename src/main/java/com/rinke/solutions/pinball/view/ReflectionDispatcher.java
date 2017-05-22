@@ -108,16 +108,10 @@ public class ReflectionDispatcher implements CmdDispatcher {
 			for( Method m : methods) {
 				if( m.getName().equals(methodName) ) {
 					try {
-						if( cmd.param != null && m.getParameterCount() > 0) {
-							m.invoke(handler, cmd.param);
-							addToCache(m,handler,cmd);
-							wasHandled = true;
-							break;
-						} else if( cmd.param == null && m.getParameterCount()==0) {
-							m.invoke(handler);
-							wasHandled = true;
-							break;
-						}
+						callHandler(cmd, m, handler);
+						addToCache(m,handler,cmd);
+						wasHandled = true;
+						break;
 					} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 						log.error("Error calling {}", m.getName(), unroll(e));
 						throw new RuntimeException("error calling "+m.getName(), unroll(e));
@@ -127,15 +121,26 @@ public class ReflectionDispatcher implements CmdDispatcher {
 		}
 		return wasHandled;
 	}
+	
+	private <T> Object callHandler(Command<T> cmd, Method m, ViewHandler handler) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+		if( cmd.param != null && m.getParameterCount() > 0) {
+			if( m.getParameterCount()==1 ) {
+				return m.invoke(handler, cmd.param);								
+			} else {
+				Object[] params = (Object[]) cmd.param;
+				if( m.getParameterCount()==2 ) return m.invoke(handler, params[0], params[1]);	
+				if( m.getParameterCount()==3 ) return m.invoke(handler, params[0], params[1], params[2]);	
+			}
+		} else if( cmd.param == null && m.getParameterCount()==0) {
+			return m.invoke(handler);
+		}
+		return null;
+	}
 
 	<T> void callCachedHandlers(Command<T> cmd, List<HandlerInvocation> invocationList) {
 		for( HandlerInvocation hi : invocationList ) {
 			try {
-				if( cmd.param != null ) {
-					hi.m.invoke(hi.handler, cmd.param);
-				} else {
-					hi.m.invoke(hi.handler);
-				}
+				callHandler(cmd, hi.m, hi.handler);
 			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 				log.error("Error calling {}", hi.m.getName(), unroll(e));
 				throw new RuntimeException("error calling "+hi.m.getName(), unroll(e));

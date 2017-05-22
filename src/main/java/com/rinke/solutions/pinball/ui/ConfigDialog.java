@@ -38,7 +38,7 @@ import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.TabFolder;
 
 @Slf4j
-@Bean(scope=Scope.PROTOTYPE)
+@Bean(name="configDialog", scope=Scope.PROTOTYPE)
 public class ConfigDialog extends Dialog implements View {
     
 	protected Object result;
@@ -262,6 +262,13 @@ public class ConfigDialog extends Dialog implements View {
         lblNumberOfPlanes.setLayoutData(fd_lblNumberOfPlanes);
         lblNumberOfPlanes.setText("Number of planes when cutting");
         
+        Button btnConfirmOnDeletes = new Button(grpFoo, SWT.CHECK);
+        FormData fd_btnConfirmOnDeletes = new FormData();
+        fd_btnConfirmOnDeletes.top = new FormAttachment(btnUseOldExport, 1);
+        fd_btnConfirmOnDeletes.left = new FormAttachment(btnCreateKeyFrame, 0, SWT.LEFT);
+        btnConfirmOnDeletes.setLayoutData(fd_btnConfirmOnDeletes);
+        btnConfirmOnDeletes.setText("confirm on deletes");
+        
         FormData fd_grpConfig = new FormData();
         fd_grpConfig.bottom = new FormAttachment(100, -292);
     }
@@ -284,6 +291,4 @@ public class ConfigDialog extends Dialog implements View {
 
 		shell.close();
 	}
-
-
 }

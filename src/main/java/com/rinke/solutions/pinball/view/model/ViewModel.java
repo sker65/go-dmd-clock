@@ -43,9 +43,10 @@ public class ViewModel {
 		change.removePropertyChangeListener(l);
 	}
 	
-	public void init() {
+	public void doInit() {
 		availableEditModes.replace(Arrays.asList(EditMode.values()));
-		availablePaletteTypes.addAll(Arrays.asList(PaletteType.values()));
+		availablePaletteTypes.replace(Arrays.asList(PaletteType.values()));
+		setSelectedPalette(palettes.get(0));
 		setSelectedEditMode(EditMode.FIXED);
 		setSelectedPaletteType(PaletteType.NORMAL);
 		for(int i = 0; i < numberOfHashButtons; i++ ) {
@@ -129,7 +130,7 @@ public class ViewModel {
 	@BindingTarget public CompiledAnimation selectedFrameSeq;
 	@BindingTarget public ObservableList<Animation> recordings = new ObservableList<>(new ArrayList<>());
 	@BindingTarget public ObservableList<CompiledAnimation> scenes = new ObservableList<>(new ArrayList<>());
-	@BindingTarget public ObservableList<TypedLabel> keyframes = new ObservableList<>(new ArrayList<>());
+	@BindingTarget public ObservableList<PalMapping> keyframes = new ObservableList<>(new ArrayList<>());
 	
 	// this is for playing anis
 	public Animation playingAni;
@@ -185,6 +186,9 @@ public class ViewModel {
 	@BindingTarget public boolean copyToPrevEnabled;
 	@BindingTarget public boolean deleteColMaskEnabled;
 	
+	@BindingTarget public boolean exportGifEnabled;
+	@BindingTarget public boolean saveAniEnabled;
+	
 	@BindingTarget public String startStopLabel = "Start";
 	
 	public boolean drawingEnabled;
@@ -197,6 +201,7 @@ public class ViewModel {
 	public boolean livePreview;
 	
 	public String shellTitle;
+	public boolean dirty;
 	
 	// --- generated getter / setter code --- do not edit
 	
@@ -702,14 +707,6 @@ public class ViewModel {
 		firePropertyChange("selectedFrame", this.selectedFrame, this.selectedFrame = selectedFrame);
 	}
 
-	public ObservableList<TypedLabel> getKeyframes() {
-		return keyframes;
-	}
-
-	public void setKeyframes(ObservableList<TypedLabel> keyframes) {
-		firePropertyChange("keyframes", this.keyframes, this.keyframes = keyframes);
-	}
-
 	public ObservableList<CompiledAnimation> getScenes() {
 		return scenes;
 	}
@@ -764,6 +761,38 @@ public class ViewModel {
 
 	public void setSelectedKeyFrame(PalMapping selectedKeyFrame) {
 		firePropertyChange("selectedKeyFrame", this.selectedKeyFrame, this.selectedKeyFrame = selectedKeyFrame);
+	}
+
+	public ObservableList<PalMapping> getKeyframes() {
+		return keyframes;
+	}
+
+	public void setKeyframes(ObservableList<PalMapping> keyframes) {
+		firePropertyChange("keyframes", this.keyframes, this.keyframes = keyframes);
+	}
+
+	public boolean isDirty() {
+		return dirty;
+	}
+
+	public void setDirty(boolean dirty) {
+		firePropertyChange("dirty", this.dirty, this.dirty = dirty);
+	}
+
+	public boolean isExportGifEnabled() {
+		return exportGifEnabled;
+	}
+
+	public void setExportGifEnabled(boolean exportGifEnabled) {
+		firePropertyChange("exportGifEnabled", this.exportGifEnabled, this.exportGifEnabled = exportGifEnabled);
+	}
+
+	public boolean isSaveAniEnabled() {
+		return saveAniEnabled;
+	}
+
+	public void setSaveAniEnabled(boolean saveAniEnabled) {
+		firePropertyChange("saveAniEnabled", this.saveAniEnabled, this.saveAniEnabled = saveAniEnabled);
 	}
 
 }

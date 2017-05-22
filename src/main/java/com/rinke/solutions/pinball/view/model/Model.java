@@ -60,7 +60,6 @@ public class Model {
 	
 	public ObservableList<Palette> palettes = new ObservableList<Palette>(new ArrayList<>());
 	
-	public boolean dirty;
 	public String name;
 	public String filename;
 	public DmdSize dmdSize;
@@ -74,7 +73,6 @@ public class Model {
 		palMappings.clear();
 		scenes.clear();
 		recordings.clear();
-		dirty = false;
 		name = null;
 		filename = null;
 		recordingsPosMap.clear();
@@ -96,14 +94,6 @@ public class Model {
 		return r;
 	}
 
-	public boolean isDirty() {
-		return dirty;
-	}
-
-	public void setDirty(boolean dirty) {
-		firePropertyChange("dirty", this.dirty, this.dirty = dirty);
-	}
-	
 	private Optional<PalMapping> search( String sel) {
 		for(PalMapping p : palMappings) {
 			if( p.name.equals(sel)) return Optional.of(p);

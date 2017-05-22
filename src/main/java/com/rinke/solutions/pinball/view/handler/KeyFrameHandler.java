@@ -6,6 +6,8 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Optional;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.Bean;
 import com.rinke.solutions.pinball.animation.Animation;
@@ -51,21 +53,34 @@ public class KeyFrameHandler extends ViewHandler {
 			// scene setzen reicht, palette switched automatisch
 			// Palette palette = paletteHandler.getPaletteByIndex(m.palIndex);
 			vm.setSelectedFrame(m.frameIndex);
+			vm.setDeleteKeyFrameEnabled(true);
+		} else {
+			vm.setDeleteKeyFrameEnabled(false);
 		}
 	}
 	
-	public void onDeleteKeyFrame( TypedLabel item ) {
-		model.getPalMapping(item).ifPresent( p-> {
-			model.palMappings.remove(p);
+	public void onKeyFrameRenamed(String oldName, String newName) {
+		if( StringUtils.equals(oldName, newName)) return;
+		model.getPalMapping(oldName).ifPresent(p->{
+			p.name = newName;
 			populate();
+			vm.setDirty(true);
 		});
+	}
+	
+	public void onDeleteKeyFrame( PalMapping item ) {
+		if( item != null ) {
+			model.palMappings.remove(item);
+			populate();
+		}
 		checkReleaseMask();
+		vm.setDirty(true);
 	}
 	
 	public void populate() {
 		vm.keyframes.clear();
 		for( PalMapping p : model.palMappings) {
-			vm.keyframes.add( new TypedLabel(p.switchMode.name(), p.name));
+			vm.keyframes.add( p );
 		}
 	}
 

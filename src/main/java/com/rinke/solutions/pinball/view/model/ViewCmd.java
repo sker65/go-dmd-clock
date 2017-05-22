@@ -32,6 +32,7 @@ public class ViewCmd {
 	// scene handler
 	public static final String SORT_SCENES = "sortScenes";
 	public static final String DELETE_SCENE = "deleteScene";
+	public static final String SCENE_RENAMED = "sceneRenamed";
 
 	// playing ani handler
 	public static final String FRAME_CHANGED = "frameChanged";
@@ -42,6 +43,7 @@ public class ViewCmd {
 	// recordings handler
 	public static final String SORT_RECORDING = "sortRecordings";
 	public static final String DELETE_RECORDING = "deleteRecording";
+	public static final String RECORDING_RENAMED = "recordingRenamed";
 	
 	// menu handler
 	public static final String ABOUT = "about";

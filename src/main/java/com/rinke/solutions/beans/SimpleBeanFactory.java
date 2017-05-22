@@ -185,9 +185,9 @@ public class SimpleBeanFactory extends DefaultHandler implements BeanFactory {
     	Set<Class<?>> beans = clz.getTypesAnnotatedWith(Bean.class);
     	for(Class<?> c : beans ) {
     		if( c.isAnnotationPresent(Bean.class) ) {
+    			Bean ba = c.getAnnotation(Bean.class);
         		String simpleName = getBeannameFromClass(c);
-        		Bean can = c.getAnnotation(Bean.class);
-        		if( can!= null && !StringUtils.isEmpty(can.name()) ) simpleName = can.name();
+        		if( !StringUtils.isEmpty(ba.name())) simpleName = ba.name();
         		if( simpleName.length()>0) {
         			log.debug("found bean {}", simpleName);
         			beanDefs.put(simpleName, buildDefs(c, true));
@@ -232,7 +232,9 @@ public class SimpleBeanFactory extends DefaultHandler implements BeanFactory {
 		try {
 			Bean ba = c.getAnnotation(Bean.class);
 			boolean isSingleton = ba!=null ? ba.scope().equals(Scope.SINGLETON) : singleton;
-			def = new BeanDefinition(getBeannameFromClass(c), isSingleton, c, init);
+			String beanName = getBeannameFromClass(c);
+			if( ba!=null && !StringUtils.isEmpty(ba.name())) beanName = ba.name();
+			def = new BeanDefinition(beanName, isSingleton, c, init);
 			for(Field f: c.getDeclaredFields() ) {
 				if(f.isAnnotationPresent(Autowired.class)) {
 					def.setter.add(new SetterCall(null, null, f.getName(), f.getType()));

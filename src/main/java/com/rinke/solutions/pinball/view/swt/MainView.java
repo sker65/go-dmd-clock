@@ -19,21 +19,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.eclipse.core.databinding.DataBindingContext;
-import org.eclipse.core.databinding.beans.BeanProperties;
-import org.eclipse.core.databinding.beans.BeansObservables;
-import org.eclipse.core.databinding.beans.PojoObservables;
-import org.eclipse.core.databinding.beans.PojoProperties;
 import org.eclipse.core.databinding.observable.Realm;
-import org.eclipse.core.databinding.observable.map.IObservableMap;
-import org.eclipse.core.databinding.observable.set.IObservableSet;
-import org.eclipse.core.databinding.observable.value.IObservableValue;
 import org.eclipse.jface.databinding.swt.SWTObservables;
-import org.eclipse.jface.databinding.swt.WidgetProperties;
-import org.eclipse.jface.databinding.viewers.ObservableListContentProvider;
-import org.eclipse.jface.databinding.viewers.ObservableMapLabelProvider;
-import org.eclipse.jface.databinding.viewers.ObservableSetContentProvider;
-import org.eclipse.jface.databinding.viewers.ViewerProperties;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.resource.LocalResourceManager;
@@ -44,11 +31,14 @@ import org.eclipse.jface.viewers.ComboViewer;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
-import org.eclipse.jface.viewers.TableTreeViewer;
 import org.eclipse.jface.viewers.TableViewer;
+import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.events.FocusAdapter;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.layout.GridData;
@@ -74,8 +64,8 @@ import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.SimpleBeanFactory;
 import com.rinke.solutions.databinding.DataBinder;
 import com.rinke.solutions.databinding.GuiBinding;
-import com.rinke.solutions.databinding.WidgetProp;
 import com.rinke.solutions.pinball.DMD;
+import com.rinke.solutions.pinball.GenericTextCellEditor;
 import com.rinke.solutions.pinball.GoDmdGroup;
 import com.rinke.solutions.pinball.PinDmdEditor;
 import com.rinke.solutions.pinball.PinDmdEditor.TabMode;
@@ -83,8 +73,7 @@ import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
 // maybe split in two types (for decoupling)
 import com.rinke.solutions.pinball.animation.EditMode;
-// 
-import com.rinke.solutions.pinball.model.Bookmark;
+import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.PalMapping.SwitchMode;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.PaletteType;
@@ -96,7 +85,6 @@ import com.rinke.solutions.pinball.view.CmdDispatcher.Command;
 import com.rinke.solutions.pinball.view.handler.RecordingsHandler;
 import com.rinke.solutions.pinball.view.handler.ViewHandler;
 import com.rinke.solutions.pinball.view.model.Model;
-import com.rinke.solutions.pinball.view.model.TypedLabel;
 import com.rinke.solutions.pinball.view.model.ViewModel;
 import com.rinke.solutions.pinball.widget.CircleTool;
 import com.rinke.solutions.pinball.widget.DMDWidget;
@@ -108,12 +96,11 @@ import com.rinke.solutions.pinball.widget.PasteTool;
 import com.rinke.solutions.pinball.widget.RectTool;
 import com.rinke.solutions.pinball.widget.SelectTool;
 import com.rinke.solutions.pinball.widget.SetPixelTool;
+// 
 // muss hier raus (nur demo daten laden )
 
 @Slf4j
 public class MainView {
-	
-	private DataBindingContext m_bindingContext;
 	
 	private static final String HELP_URL = "http://pin2dmd.com/editor/";
 	
@@ -209,8 +196,10 @@ public class MainView {
 		dispatcher.checkChangeHandlers(vm);
 		
 		vm.addPropertyChangeListener( e->viewModelChanged(e) );
+		
+		model.reset();
 
-		vm.init();
+		vm.doInit();
 		//ProjectHandler projectHandler = beanFactory.getBeanByType(ProjectHandler.class);
 		//projectHandler.loadProject("/Users/stefanri/Documents/privat/Pinball/drive-download-20170501T144233Z-001/SFII.xml");
 		
@@ -304,8 +293,12 @@ public class MainView {
 	private MenuItem mntmUploadProject;
 	private MenuItem mntmUploadPalettes;
 	MenuItem mntmSaveProject;
-	private MenuItem mntmUndo;
-	private MenuItem mntmRedo;
+	@GuiBinding( prop=ENABLED, propName="undoEnabled" ) private MenuItem mntmUndo;
+	@GuiBinding( prop=ENABLED, propName="redoEnabled" ) private MenuItem mntmRedo;
+	@GuiBinding( prop=ENABLED, propName="exportGifEnabled" ) private MenuItem mntmExportAnimationAsGif;
+	@GuiBinding( prop=ENABLED, propName="saveAniEnabled" ) private MenuItem mntmSaveAnimation;
+	@GuiBinding( prop=ENABLED, propName="saveAniEnabled" ) private MenuItem mntmSaveSingleAnimation;
+
 
 	@GuiBinding( props={INPUT,SELECTION}, propNames={"availableEditModes", "selectedEditMode"} )
 	private ComboViewer editModeViewer;
@@ -345,11 +338,8 @@ public class MainView {
 		gd_grpKeyframe.heightHint = 257;
 		gd_grpKeyframe.widthHint = 490;
 		grpKeyframe.setLayoutData(gd_grpKeyframe);
-//		grpKeyframe.setText("KeyFrames");
-//		grpKeyframe.setVisible(!ApplicationProperties.getBoolean(ApplicationProperties.GODMD_ENABLED_PROP_KEY, false));
 		
 		Composite composite_hash = new Composite(grpKeyframe, SWT.NONE);
-		//gd_composite_hash.widthHint = 105;
 		GridData gd_composite_hash = new GridData(SWT.LEFT, SWT.CENTER, false, false, 2, 1);
 		gd_composite_hash.widthHint = 148;
 		composite_hash.setLayoutData(gd_composite_hash);
@@ -393,6 +383,7 @@ public class MainView {
 		GridData gd_frameSeqCombo = new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1);
 		gd_frameSeqCombo.widthHint = 100;
 		frameSeqCombo.setLayoutData(gd_frameSeqCombo);
+		frameSeqViewer.setLabelProvider(new LabelProviderAdapter<Animation>(a->a.getDesc()));
 		
 		addColScene = new Button(grpKeyframe, SWT.NONE);
 		GridData gd_btnAddFrameSeq = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
@@ -414,12 +405,6 @@ public class MainView {
 		txtDuration.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
 		txtDuration.setText("0");
 		txtDuration.addListener(SWT.Verify, e -> e.doit = Pattern.matches("^[0-9]+$", e.text));
-		txtDuration.addListener(SWT.Modify, e -> {
-// VIEW			if (selectedPalMapping != null) {
-//				selectedPalMapping.durationInMillis = Integer.parseInt(txtDuration.getText());
-//				selectedPalMapping.durationInFrames = (int) selectedPalMapping.durationInMillis / 40;
-//			}
-		});
 		
 		fetchDuration = new Button(grpKeyframe, SWT.NONE);
 		GridData gd_btnFetchDuration = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
@@ -429,12 +414,6 @@ public class MainView {
 		fetchDuration.setText("Fetch Duration");
 		fetchDuration.setEnabled(false);
 		fetchDuration.addListener(SWT.Selection, e -> dispatchCmd(FETCH_DURATION));
-//	VIEW		if (selectedPalMapping != null) {
-//				selectedPalMapping.durationInMillis = lastTimeCode - saveTimeCode;
-//				selectedPalMapping.durationInFrames = (int) selectedPalMapping.durationInMillis / FRAME_RATE;
-//				txtDuration.setText(selectedPalMapping.durationInMillis + "");
-//			}
-//		});
 		new Label(grpKeyframe, SWT.NONE);
 		
 		Label lblNewLabel = new Label(grpKeyframe, SWT.NONE);
@@ -459,12 +438,10 @@ public class MainView {
 		eventHigh = new Spinner(composite_5, SWT.BORDER);
 		eventHigh.setMaximum(255);
 		eventHigh.setMinimum(0);
-//VIEW		spinnerDeviceId.addModifyListener(e->onEventSpinnerChanged(spinnerDeviceId, 8));
 		
 		eventLow = new Spinner(composite_5, SWT.BORDER);
 		eventLow.setMaximum(255);
 		eventLow.setMinimum(0);
-//VIEW		spinnerEventId.addModifyListener(e->onEventSpinnerChanged(spinnerEventId, 0));
 		
 		addEvent = new Button(grpKeyframe, SWT.NONE);
 		GridData gd_btnAddEvent = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
@@ -494,11 +471,6 @@ public class MainView {
 		mntmNewProject.setText("New Project\tCtrl-N");
 		mntmNewProject.setAccelerator(SWT.MOD1 + 'N');
 		mntmNewProject.addListener(SWT.Selection, e ->  dispatchCmd(NEW_PROJECT));
-//		{
-//			if (dirtyCheck()) {
-//				onNewProject();
-//			}
-//		});
 
 		MenuItem mntmLoadProject = new MenuItem(menu_1, SWT.NONE);
 		mntmLoadProject.setText("Load Project\tCtrl-O");
@@ -544,12 +516,6 @@ public class MainView {
 		MenuItem mntmExit = new MenuItem(menu_1, SWT.NONE);
 		mntmExit.setText("Exit\tCtrl-Q");
 		mntmExit.addListener(SWT.Selection, e -> dispatchCmd(QUIT) );
-//	VIEW	{
-//			if (dirtyCheck()) {
-//				shell.close();
-//				shell.dispose();
-//			}
-//		});
 
 		MenuItem mntmedit = new MenuItem(menu, SWT.CASCADE);
 		mntmedit.setText("&Edit");
@@ -613,11 +579,11 @@ public class MainView {
 		mntmLoadRecordings.setText("Load Recording(s)");
 		mntmLoadRecordings.addListener(SWT.Selection, e -> dispatchCmd(LOAD_ANI_WITH_FC,true));
 		
-		MenuItem mntmSaveAnimation = new MenuItem(menu_2, SWT.NONE);
+		mntmSaveAnimation = new MenuItem(menu_2, SWT.NONE);
 		mntmSaveAnimation.setText("Save Animation(s) ...");
 		mntmSaveAnimation.addListener(SWT.Selection, e -> dispatchCmd(SAVE_ANI_WITH_FC,1));
 		
-		MenuItem mntmSaveSingleAnimation = new MenuItem(menu_2, SWT.NONE);
+		mntmSaveSingleAnimation = new MenuItem(menu_2, SWT.NONE);
 		mntmSaveSingleAnimation.setText("Save single Animation");
 		mntmSaveSingleAnimation.addListener(SWT.Selection, e -> dispatchCmd(SAVE_SINGLE_ANI_WITH_FC,1));
 
@@ -629,16 +595,9 @@ public class MainView {
 
 		new MenuItem(menu_2, SWT.SEPARATOR);
 
-		MenuItem mntmExportAnimation = new MenuItem(menu_2, SWT.NONE);
-		mntmExportAnimation.setText("Export Animation as GIF");
-		
-		mntmExportAnimation.addListener(SWT.Selection, e -> dispatchCmd(EXPORT_GIF));
-//VIEW		{
-//			Animation ani = playingAnis.get(0);
-//			Palette pal = project.palettes.get(ani.getPalIndex());
-//			GifExporter exporter = new GifExporter(shell, pal, ani);
-//			exporter.open();
-//		});
+		mntmExportAnimationAsGif = new MenuItem(menu_2, SWT.NONE);
+		mntmExportAnimationAsGif.setText("Export Animation as GIF");
+		mntmExportAnimationAsGif.addListener(SWT.Selection, e -> dispatchCmd(EXPORT_GIF));
 
 		MenuItem mntmExportForGodmd = new MenuItem(menu_2, SWT.NONE);
 		mntmExportForGodmd.setText("Export for goDMD ...");
@@ -759,8 +718,8 @@ public class MainView {
 		Label lblAnimations = new Label(shell, SWT.NONE);
 		lblAnimations.setText("Recordings");
 		
-		Label lblScences = new Label(shell, SWT.NONE);
-		lblScences.setText("Scences");
+		Label lblScenes = new Label(shell, SWT.NONE);
+		lblScenes.setText("Scenes");
 
 		Label lblKeyframes = new Label(shell, SWT.NONE);
 		lblKeyframes.setText("KeyFrames");
@@ -782,17 +741,13 @@ public class MainView {
 		recordingsList.addKeyListener(new EscUnselect(recordingsListViewer));
 		recordingsListViewer.setLabelProvider(new IconLabelProvider<Animation>(shell,t -> Pair.of(t.getEditMode().name(),t.getDesc())));
 		
-		recordingsListViewer.addSelectionChangedListener(event -> vm.setSelectedRecording(getFirstSelected(event)));
-		registerProp("selectedRecording", "recordingsListViewer", recordingsListViewer);
-		
 		// created edit support for ani / recordings
-//VIEW		TableViewerColumn viewerCol1 = new TableViewerColumn(aniListViewer, SWT.LEFT);
-//		viewerCol1.setEditingSupport(new GenericTextCellEditor<Animation>(aniListViewer, ani -> ani.getDesc(), (ani, v) -> {
-//			updateAnimationMapKey(ani.getDesc(), v, recordings);
-//			ani.setDesc(v);
-//		}));
-//		viewerCol1.getColumn().setWidth(colWidth);
-//		viewerCol1.setLabelProvider(new IconLabelProvider<Animation>(shell, o -> o.getIconAndText() ));
+		TableViewerColumn viewerCol1 = new TableViewerColumn(recordingsListViewer, SWT.LEFT);
+		viewerCol1.setEditingSupport(new GenericTextCellEditor<Animation>(recordingsListViewer, ani -> ani.getDesc(), (ani, v) -> {
+			dispatchCmd(RECORDING_RENAMED, ani.getDesc(), v);
+		}));
+		viewerCol1.getColumn().setWidth(colWidth);
+		viewerCol1.setLabelProvider(new IconLabelProvider<Animation>(shell, o -> o.getIconAndText() ));
 		
 		sceneListViewer = new TableViewer(shell, SWT.SINGLE | SWT.BORDER | SWT.V_SCROLL);
 		Table sceneList = sceneListViewer.getTable();
@@ -803,18 +758,13 @@ public class MainView {
 		sceneList.setLinesVisible(true);
 		sceneList.addKeyListener(new EscUnselect(sceneListViewer));
 		sceneListViewer.setLabelProvider(new IconLabelProvider<CompiledAnimation>(shell,t -> Pair.of(t.getEditMode().name(),t.getDesc())));
-		
-		sceneListViewer.addSelectionChangedListener(event -> vm.setSelectedScene(getFirstSelected(event)));
-		registerProp("selectedScene", "sceneListViewer", sceneListViewer);
 
-//VIEW		TableViewerColumn viewerCol2 = new TableViewerColumn(sceneListViewer, SWT.LEFT);
-//		viewerCol2.setEditingSupport(new GenericTextCellEditor<Animation>(sceneListViewer, ani -> ani.getDesc(), (ani, v) -> {
-//			updateAnimationMapKey(ani.getDesc(), v, scenes);
-//			ani.setDesc(v);
-//			frameSeqViewer.refresh();
-//		}));
-//		viewerCol2.getColumn().setWidth(colWidth);
-//		viewerCol2.setLabelProvider(new IconLabelProvider<Animation>(shell, ani -> ani.getIconAndText() ));
+		TableViewerColumn viewerCol2 = new TableViewerColumn(sceneListViewer, SWT.LEFT);
+		viewerCol2.setEditingSupport(new GenericTextCellEditor<Animation>(sceneListViewer, ani -> ani.getDesc(), (ani, v) -> {
+			dispatchCmd(SCENE_RENAMED, ani.getDesc(), v);
+		}));
+		viewerCol2.getColumn().setWidth(colWidth);
+		viewerCol2.setLabelProvider(new IconLabelProvider<Animation>(shell, ani -> ani.getIconAndText() ));
 
 		keyframeTableViewer = new TableViewer(shell, SWT.SINGLE | SWT.BORDER | SWT.V_SCROLL);
 		Table keyframeList = keyframeTableViewer.getTable();
@@ -824,17 +774,15 @@ public class MainView {
 		keyframeList.setLinesVisible(true);
 		keyframeList.setLayoutData(gd_keyframeList);
 		keyframeList.addKeyListener(new EscUnselect(keyframeTableViewer));
-		keyframeTableViewer.setLabelProvider(new IconLabelProvider<TypedLabel>(shell,t -> Pair.of(t.type,t.label)));
 
-//VIEW		keyframeTableViewer.setContentProvider(ArrayContentProvider.getInstance());
-//		keyframeTableViewer.setInput(project.palMappings);
-//		keyframeTableViewer.addSelectionChangedListener(event -> onKeyframeChanged(event));
-//
-//		TableViewerColumn viewerColumn = new TableViewerColumn(keyframeTableViewer, SWT.LEFT);
-//		viewerColumn.setEditingSupport(new GenericTextCellEditor<PalMapping>(keyframeTableViewer, e -> e.name, (e, v) -> { e.name = v; }));
-//
-//		viewerColumn.getColumn().setWidth(colWidth);
-//		viewerColumn.setLabelProvider(new IconLabelProvider<PalMapping>(shell, o -> Pair.of(o.switchMode.name().toLowerCase(), o.name ) ));
+		keyframeTableViewer.setContentProvider(ArrayContentProvider.getInstance());
+
+		TableViewerColumn viewerColumn = new TableViewerColumn(keyframeTableViewer, SWT.LEFT);
+		viewerColumn.setEditingSupport(new GenericTextCellEditor<PalMapping>(keyframeTableViewer, e -> e.name, (e, v) -> {
+			dispatchCmd("keyFrameRenamed", e.name, v); 
+		}));
+		viewerColumn.getColumn().setWidth(colWidth);
+		viewerColumn.setLabelProvider(new IconLabelProvider<PalMapping>(shell, o -> Pair.of(o.switchMode.name().toLowerCase(), o.name ) ));
 
 		dmdWidget = new DMDWidget(shell, SWT.DOUBLE_BUFFERED, dmd, true);
 		// dmdWidget.setBounds(0, 0, 700, 240);
@@ -890,13 +838,6 @@ public class MainView {
 		deleteKeyFrame.setText("Remove");
 		deleteKeyFrame.setEnabled(false);
 		deleteKeyFrame.addListener(SWT.Selection, e -> dispatchCmd(DELETE_KEY_FRAME, vm.selectedKeyFrame) );
-//VIEW	{
-//			if (selectedPalMapping != null) {
-//				project.palMappings.remove(selectedPalMapping);
-//				keyframeTableViewer.refresh();
-//				checkReleaseMask();
-//			}
-//		});
 
 		Button btnSortKeyFrames = new Button(composite_2, SWT.NONE);
 		btnSortKeyFrames.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
@@ -908,7 +849,6 @@ public class MainView {
 		GridData gd_scale = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
 		gd_scale.widthHint = 826;
 		frame.setLayoutData(gd_scale);
-//VIEW		scale.addListener(SWT.Selection, e -> animationHandler.setPos(scale.getSelection()));
 		
 		CTabFolder tabFolder = new CTabFolder(shell, SWT.FLAT);
 		GridData gd_tabFolder = new GridData(SWT.LEFT, SWT.CENTER, false, false, 3, 4);
@@ -938,10 +878,6 @@ public class MainView {
 		tbtmPropertyText.setControl(textProperty);
 		
 		tabFolder.setSelection(tbtmKeyframe);
-//VIEW		tabFolder.addListener(SWT.Selection, e->{
-//			log.debug("tab changed: {}", tabFolder.getSelection().getText());
-//			//this.tabMode = TabMode.fromLabel(tabFolder.getSelection().getText());
-//		});
 
 		Group grpDetails = new Group(shell, SWT.NONE);
 		grpDetails.setLayout(new GridLayout(10, false));
@@ -982,20 +918,16 @@ public class MainView {
 		txtDelayVal.addKeyListener(new KeyAdapter() {
 			public void keyPressed(KeyEvent event) {
 				if( event.keyCode == SWT.CR ) {
-					String val = txtDelayVal.getText();
-					dispatchCmd(DELAY_TXT_CHANGED, val);
-//					int delay = StringUtils.isEmpty(val)?0:Integer.parseInt(val);
-//					if( selectedScene.isPresent() ) {
-//						CompiledAnimation ani = selectedScene.get();
-//						if( actFrameOfSelectedAni<ani.frames.size() ) {
-//							log.debug("Setting delay of frame {} to {}", actFrameOfSelectedAni, delay);
-//							ani.frames.get(actFrameOfSelectedAni).delay = delay;
-//						}
-//						project.dirty = true;
-//					}
+					dispatchCmd(DELAY_TXT_CHANGED, txtDelayVal.getText());
 				}
 			}
 		} );
+		txtDelayVal.addFocusListener(new FocusAdapter() {
+			@Override
+			public void focusLost(FocusEvent e) {
+				dispatchCmd(DELAY_TXT_CHANGED, txtDelayVal.getText());
+			}
+		});
 		
 		txtDelayVal.addListener(SWT.Verify, e -> e.doit = Pattern.matches("^[0-9]*$", e.text));
 
@@ -1009,8 +941,6 @@ public class MainView {
 		btnLivePreview = new Button(grpDetails, SWT.CHECK);
 		btnLivePreview.setToolTipText("controls live preview to real display device");
 		btnLivePreview.setText("Live Preview");
-// VIEW PropertyChange not Command		
-//		btnLivePreview.addListener(SWT.Selection, e -> dispatchCmd("livePreviewChanged", btnLivePreview.getSelection()));
 
 		Composite composite = new Composite(shell, SWT.NONE);
 		GridData gd_composite = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
@@ -1058,8 +988,6 @@ public class MainView {
 		GridData gd_combo_3 = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
 		gd_combo_3.widthHint = 106;
 		comboBookmark.setLayoutData(gd_combo_3);
-		bookmarkComboViewer.addSelectionChangedListener(e->dispatchCmd(SELECTED_BOOKMARK,getFirstSelected(e)));
-		registerProp(SELECTED_BOOKMARK, "bookmarkComboViewer",bookmarkComboViewer);
 			
 		Button btnNewBookMark = new Button(composite, SWT.NONE);
 		btnNewBookMark.setText("New");
@@ -1086,10 +1014,6 @@ public class MainView {
 		gd_paletteViewerCombo.widthHint = 166;
 		paletteViewerCombo.setLayoutData(gd_paletteViewerCombo);
 		paletteComboViewer.setLabelProvider(new LabelProviderAdapter<Palette>(o -> o.index + " - " + o.name));
-		//
-		paletteComboViewer.addSelectionChangedListener( e-> setProp(vm, "selectedPalette", getFirstSelected(e)));
-		registerProp("selectedPalette", "paletteComboViewer",paletteComboViewer);		
-		//
 
 		paletteTypeComboViewer = new ComboViewer(grpPalettes, SWT.READ_ONLY);
 		Combo combo_1 = paletteTypeComboViewer.getCombo();
@@ -1097,7 +1021,6 @@ public class MainView {
 		GridData gd_combo_1 = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
 		gd_combo_1.widthHint = 96;
 		combo_1.setLayoutData(gd_combo_1);
-		paletteTypeComboViewer.setContentProvider(ArrayContentProvider.getInstance());
 		paletteTypeComboViewer.setLabelProvider(new LabelProviderAdapter<PaletteType>(o -> o.label));
 						
 		Button btnApplyPalette = new Button(grpPalettes, SWT.NONE);
@@ -1113,19 +1036,7 @@ public class MainView {
 		btnRenamePalette.setToolTipText("Confirms the new palette name");
 		btnRenamePalette.setText("Rename");
 		btnRenamePalette.addListener(SWT.Selection, e -> dispatchCmd(RENAME_PALETTE, vm.selectedPalette));
-//VIEW		{
-//			String newName = paletteComboViewer.getCombo().getText();
-//			if (newName.contains(" - ")) {
-//				activePalette.name = newName.split(" - ")[1];
-//				setPaletteViewerByIndex(activePalette.index);
-//				paletteComboViewer.refresh();
-//			} else {
-//				msgUtil.warn("Illegal palette name", "Palette names must consist of palette index and name.\nName format therefore must be '<idx> - <name>'");
-//				paletteComboViewer.getCombo().setText(activePalette.index + " - " + activePalette.name);
-//			}
-//
-//		});
-		
+
 		Button btnDeletePalette = new Button(grpPalettes, SWT.NONE);
 		btnDeletePalette.setText("Delete");
 		btnDeletePalette.addListener(SWT.Selection, e->dispatchCmd(DELETE_PALETTE, vm.selectedPalette));
@@ -1225,10 +1136,7 @@ public class MainView {
 		gd_combo_2.widthHint = 141;
 		combo_2.setLayoutData(gd_combo_2);
 		editModeViewer.setLabelProvider(new LabelProviderAdapter<EditMode>(o -> o.label));
-		
-		editModeViewer.addSelectionChangedListener(e->setProp(vm, "selectedEditMode", getFirstSelected(e)));
-		registerProp("selectedEditMode", "editModeViewer", editModeViewer);
-		
+				
 		// TODO the list depends on animation type
 		// for immutable only fixed ist selectable
 		// else replace / mask / follow
@@ -1300,10 +1208,6 @@ public class MainView {
 		deleteColMask.setEnabled(false);
 		new Label(grpDrawing, SWT.NONE);
 		deleteColMask.addListener(SWT.Selection, e -> dispatchCmd(DELETE_MASK));
-		
-		// include binding created with SWT-Designer
-		m_bindingContext = initDataBindings();
-				
 	}
 
 	private void setViewerSelection(TableViewer viewer, Object sel) {
@@ -1495,9 +1399,4 @@ public class MainView {
 		 this.paletteTool = paletteTool;
 	}
 	
-	protected DataBindingContext initDataBindings() {
-		DataBindingContext bindingContext = new DataBindingContext();
-		//
-		return bindingContext;
-	}
 }

@@ -12,6 +12,7 @@ import java.util.function.UnaryOperator;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.databinding.observable.list.WritableList;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
@@ -52,7 +53,8 @@ public class SceneHandler extends ViewHandler {
 			vm.scenes.add(c);
 		}
 	}
-	private <T extends Animation> void onSortAnimations(ObservableMap<String, T> map) {
+	
+	/*private <T extends Animation> void onSortAnimations(ObservableMap<String, T> map) {
 		ArrayList<Entry<String, T>> list = new ArrayList<>(map.entrySet());
 		Collections.sort(list, new Comparator<Entry<String, T>>() {
 
@@ -65,6 +67,23 @@ public class SceneHandler extends ViewHandler {
 		for (Entry<String, T> entry : list) {
 			map.put(entry.getKey(), (T)entry.getValue());
 		}
+	}*/
+
+	public void onSceneRenamed(String oldName, String newName) {
+		if( StringUtils.equals(oldName, newName)) return;
+		CompiledAnimation cani = model.scenes.remove(oldName);
+		cani.setDesc(newName);
+		model.scenes.put(newName, cani);
+		// update pos map
+		Integer pos = model.scenesPosMap.remove(oldName);
+		if( pos != null ) model.scenesPosMap.put(newName, pos);
+		// update palmappings
+		model.palMappings.forEach(p->{
+			if( p.frameSeqName.equals(oldName) ) {
+				p.frameSeqName = newName;
+			}
+		});
+		vm.setDirty(true);
 	}
 
 	public void onSortScenes() {
@@ -92,7 +111,9 @@ public class SceneHandler extends ViewHandler {
 			vm.setSelectedEditMode(a.getEditMode());
 			vm.setSelectedPalette(paletteHandler.getPaletteByIndex(a.getPalIndex()));
 			vm.setPlayingAni(newScene.get());
-		}	
+		} else {
+			vm.setPlayingAni(null);
+		}
 		vm.setDeleteSceneEnabled(newScene.isPresent());
 		vm.setAddColSceneEnabled(false);
 		vm.setAddEventEnabled(false);
@@ -136,7 +157,7 @@ public class SceneHandler extends ViewHandler {
 				vm.setPlayingAni(null);
 			}
 			vm.setSelectedScene(null);
-			model.setDirty(true);
+			vm.setDirty(true);
 		}
 	}
 

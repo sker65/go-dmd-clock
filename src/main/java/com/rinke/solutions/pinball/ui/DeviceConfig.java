@@ -22,11 +22,14 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Scale;
 import org.eclipse.swt.widgets.Shell;
 
+import com.rinke.solutions.beans.Bean;
+import com.rinke.solutions.beans.Scope;
 import com.rinke.solutions.pinball.model.DefaultPalette;
 import com.rinke.solutions.pinball.model.DeviceMode;
 import com.rinke.solutions.pinball.view.View;
 
 @Slf4j
+@Bean(name="deviceConfig", scope=Scope.SINGLETON)
 public class DeviceConfig extends Dialog implements View {
     
     protected Shell shell;
