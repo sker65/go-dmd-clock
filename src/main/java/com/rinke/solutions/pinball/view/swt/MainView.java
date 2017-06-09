@@ -64,6 +64,7 @@ import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.SimpleBeanFactory;
 import com.rinke.solutions.databinding.DataBinder;
 import com.rinke.solutions.databinding.GuiBinding;
+import com.rinke.solutions.databinding.PojoBinding;
 import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.GenericTextCellEditor;
 import com.rinke.solutions.pinball.GoDmdGroup;
@@ -77,11 +78,16 @@ import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.PalMapping.SwitchMode;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.PaletteType;
+import com.rinke.solutions.pinball.swt.ActionAdapter;
+import com.rinke.solutions.pinball.swt.CocoaGuiEnhancer;
+import com.rinke.solutions.pinball.ui.About;
+import com.rinke.solutions.pinball.ui.ConfigDialog;
 import com.rinke.solutions.pinball.ui.RegisterLicense;
 import com.rinke.solutions.pinball.ui.UsbConfig;
 import com.rinke.solutions.pinball.util.Config;
 import com.rinke.solutions.pinball.view.CmdDispatcher;
 import com.rinke.solutions.pinball.view.CmdDispatcher.Command;
+import com.rinke.solutions.pinball.view.handler.MenuHandler;
 import com.rinke.solutions.pinball.view.handler.RecordingsHandler;
 import com.rinke.solutions.pinball.view.handler.ViewHandler;
 import com.rinke.solutions.pinball.view.model.Model;
@@ -104,11 +110,11 @@ public class MainView {
 	
 	private static final String HELP_URL = "http://pin2dmd.com/editor/";
 	
-	@SuppressWarnings("unchecked")
+	/* @SuppressWarnings("unchecked")
 	private <T> T getFirstSelected(SelectionChangedEvent e) {
 		IStructuredSelection selection = (IStructuredSelection) e.getSelection();
 		return selection.isEmpty() ? null : (T)selection.getFirstElement();
-	}
+	}*/
 
 	@Autowired
 	private CmdDispatcher dispatcher;
@@ -164,6 +170,7 @@ public class MainView {
 	@Autowired ViewModel vm;
 	@Autowired Model model;
 	@Autowired RecordingsHandler recordingsHandler;
+	@Autowired MenuHandler menuHandler;
 	@Autowired Config config;
 	
 	/**
@@ -174,7 +181,15 @@ public class MainView {
 		shell = new Shell();
 
 		init();
-		
+
+		if (SWT.getPlatform().equals("cocoa")) {
+			CocoaGuiEnhancer enhancer = new CocoaGuiEnhancer("Pin2dmd Editor");
+			enhancer.hookApplicationMenu(display, e -> e.doit = menuHandler.couldQuit(),
+					// skipped setting of plugin list / plugin path
+					new ActionAdapter(() -> new About(shell).open()),
+					new ActionAdapter(() -> new ConfigDialog(shell).open()) );
+		}
+
 		// load some recording
 //		String filename = "./src/test/resources/drwho-dump.txt.gz";
 //		Animation animation = Animation.buildAnimationFromFile(filename, AnimationType.MAME);
@@ -217,7 +232,7 @@ public class MainView {
 	RecentMenuManager recentProjectsMenuManager;
 	RecentMenuManager recentPalettesMenuManager;
 	RecentMenuManager recentAnimationsMenuManager;
-	PaletteTool paletteTool;
+	@PojoBinding( src="palette", target="selectedPalette" ) PaletteTool paletteTool;
 		
 	private int numberOfHashes = 4;
 	ResourceManager resManager;
@@ -252,7 +267,7 @@ public class MainView {
 	@GuiBinding( props={INPUT,SELECTION}, propNames={"availablePaletteTypes", "selectedPaletteType"} )
 	ComboViewer paletteTypeComboViewer;
 	
-	DMDWidget dmdWidget;
+	@PojoBinding( src="palette", target="selectedPalette" ) DMDWidget dmdWidget;
 	Button btnNewPalette;
 	Button btnRenamePalette;
 	ToolBar drawToolBar;
@@ -290,8 +305,8 @@ public class MainView {
 	@GuiBinding( prop=SELECTION ) private Spinner eventLow;
 	@GuiBinding( prop=ENABLED ) private Button addEvent;
 
-	private MenuItem mntmUploadProject;
-	private MenuItem mntmUploadPalettes;
+	@GuiBinding( prop=ENABLED, propName="livePreview" ) private MenuItem mntmUploadProject;
+	@GuiBinding( prop=ENABLED, propName="livePreview" ) private MenuItem mntmUploadPalettes;
 	MenuItem mntmSaveProject;
 	@GuiBinding( prop=ENABLED, propName="undoEnabled" ) private MenuItem mntmUndo;
 	@GuiBinding( prop=ENABLED, propName="redoEnabled" ) private MenuItem mntmRedo;
@@ -1210,17 +1225,17 @@ public class MainView {
 		deleteColMask.addListener(SWT.Selection, e -> dispatchCmd(DELETE_MASK));
 	}
 
-	private void setViewerSelection(TableViewer viewer, Object sel) {
+	/*private void setViewerSelection(TableViewer viewer, Object sel) {
 		if( sel != null ) viewer.setSelection(new StructuredSelection(sel));
 		else viewer.setSelection(StructuredSelection.EMPTY);
-	}
+	}*/
 
 	void setViewerSelection(AbstractListViewer viewer, Object sel) {
 		if( sel != null ) viewer.setSelection(new StructuredSelection(sel));
 		else viewer.setSelection(StructuredSelection.EMPTY);
 	}
 	
-	private void registerProp(String propName, String name, TableViewer viewer) {
+	/*private void registerProp(String propName, String name, TableViewer viewer) {
 		log.debug("registering property {} for viewer {}", propName, name);
 		tableViewerBindingMap.put(propName, Pair.of(name,viewer));
 	}
@@ -1228,20 +1243,20 @@ public class MainView {
 	private void registerProp( String propName, String name, AbstractListViewer viewer) {
 		log.debug("registering property {} for viewer {}", propName, name);
 		viewerBindingMap.put(propName, Pair.of(name,viewer));
-	}
+	}*/
 	
-	Map<String,Pair<String,AbstractListViewer>> viewerBindingMap = new HashMap<>();
-	Map<String,Pair<String,TableViewer>> tableViewerBindingMap = new HashMap<>();
+	//Map<String,Pair<String,AbstractListViewer>> viewerBindingMap = new HashMap<>();
+	//Map<String,Pair<String,TableViewer>> tableViewerBindingMap = new HashMap<>();
 
 	private Display display;
 
-	private void setProp(Object bean, String propName, Object val) {
+	/*private void setProp(Object bean, String propName, Object val) {
 		try {
 			BeanUtils.setProperty(bean, propName, val);
 		} catch (IllegalAccessException | InvocationTargetException e) {
 			log.error("could not set {} on {}", propName, bean);
 		}
-	}
+	}*/
 
 	private void viewModelChanged(PropertyChangeEvent e) {
 		String propName = e.getPropertyName();
@@ -1256,16 +1271,17 @@ public class MainView {
 		// scan special arrays
 		if( propName.equals("hashButtonSelected") ) {
 			btns.forEach(b->b.setSelection(vm.hashButtonSelected[(int) b.getData()]));
-		} else if( propName.equals("frameRedraw") ) {
+		} else 
+		if( propName.equals("frameRedraw") ) {
 			dmdWidget.redraw();
 			previewDmd.redraw();
 		} else if( propName.equals("hashLbl")) {
 			btns.forEach(b->b.setText(vm.hashLbl[(int) b.getData()]));
 		} else if( propName.equals("hashButtonEnabled") || propName.equals("hashButtonsEnabled")) { // beware of the 's'
-			btns.forEach(b->b.setEnabled(vm.hashButtonEnabled[(int) b.getData()] && vm.hashButtonsEnabled ));
-		} else if( propName.equals("livePreview") ) { 
-			mntmUploadPalettes.setEnabled(((Boolean) nv).booleanValue());
-			mntmUploadProject.setEnabled(((Boolean) nv).booleanValue());
+			btns.forEach(b->{
+				//System.out.println((int) b.getData()+" : "+vm.hashButtonEnabled[(int) b.getData()]+" : "+vm.hashButtonsEnabled );
+				b.setEnabled(vm.hashButtonEnabled[(int) b.getData()] && vm.hashButtonsEnabled );
+			});
 		} else if( propName.equals("drawTool") ) { 
 			DrawTool drawTool = drawTools.get(nv);
 			dmdWidget.setDrawTool(drawTool);
@@ -1275,9 +1291,9 @@ public class MainView {
 			dmdWidget.setShowMask(((Boolean) nv).booleanValue());
 		} else if( propName.equals("maskLocked") ) {
 			dmdWidget.setMaskLocked(((Boolean) nv).booleanValue());
-		}
+		} 
 		
-		if( viewerBindingMap.containsKey(propName)) {
+		/*if( viewerBindingMap.containsKey(propName)) {
 			Pair<String, AbstractListViewer> p = viewerBindingMap.get(propName);
 			log.debug("propagating to viewer {} {}", p.getLeft(), nv);
 			setViewerSelection(p.getRight(), nv);
@@ -1286,7 +1302,7 @@ public class MainView {
 			Pair<String, TableViewer> p = tableViewerBindingMap.get(propName);
 			log.debug("propagating to viewer {} {}", p.getLeft(), nv);
 			setViewerSelection(p.getRight(), nv);
-		}
+		}*/
 		callOnChangedHandlers(propName, nv, ov);
 	}
 	
@@ -1310,6 +1326,8 @@ public class MainView {
 		if( invocationCache.containsKey(propName)) {
 			for( HandlerInvocation hi : invocationCache.get(propName)) {
 				try {
+					log.debug("{}.{}({},{})", 
+							hi.handler.getClass().getSimpleName(), hi.method.getName(), ov, nv);
 					hi.method.invoke(hi.handler, new Object[]{ov,nv});
 				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 					log.error("error calling {}", hi, e);
@@ -1329,6 +1347,8 @@ public class MainView {
 			for(ViewHandler h : dispatcher.getViewHandlers()) {
 				try {
 					Method m = findMethod(methodName, h.getClass(), clz );
+					log.debug("{}.{}({},{})", 
+							h.getClass().getSimpleName(), m.getName(), ov, nv);
 					m.invoke(h, new Object[]{ov,nv});
 					addToCache(propName,m,h);
 				} catch ( SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e1) {

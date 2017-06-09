@@ -8,9 +8,12 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Button;
 
+import com.rinke.solutions.beans.Bean;
+import com.rinke.solutions.beans.Scope;
 import com.rinke.solutions.pinball.Worker;
 import com.rinke.solutions.pinball.animation.ProgressEventListener;
 
+@Bean(name="progress", scope=Scope.SINGLETON)
 public class Progress extends Dialog implements ProgressEventListener {
 
 	protected Object result;

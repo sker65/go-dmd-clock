@@ -198,7 +198,7 @@ public class ViewModel {
 
 	public Rect dmdSelection;
 	
-	public boolean livePreview;
+	@BindingTarget public boolean livePreview;
 	
 	public String shellTitle;
 	public boolean dirty;
@@ -638,6 +638,12 @@ public class ViewModel {
 	public void setFrameRedraw(long frameRedraw) {
 		firePropertyChange("frameRedraw", this.frameRedraw, this.frameRedraw = frameRedraw);
 	}
+
+	public void forceRedraw() {
+		firePropertyChange("frameRedraw", this.frameRedraw, this.frameRedraw = this.frameRedraw+1);
+	}
+
+
 
 	public int getSkip() {
 		return skip;

@@ -108,10 +108,11 @@ public class ReflectionDispatcher implements CmdDispatcher {
 			for( Method m : methods) {
 				if( m.getName().equals(methodName) ) {
 					try {
-						callHandler(cmd, m, handler);
-						addToCache(m,handler,cmd);
-						wasHandled = true;
-						break;
+						if( callHandler(cmd, m, handler) ) {
+							addToCache(m,handler,cmd);
+							wasHandled = true;
+							break;
+						}
 					} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 						log.error("Error calling {}", m.getName(), unroll(e));
 						throw new RuntimeException("error calling "+m.getName(), unroll(e));
@@ -122,19 +123,27 @@ public class ReflectionDispatcher implements CmdDispatcher {
 		return wasHandled;
 	}
 	
-	private <T> Object callHandler(Command<T> cmd, Method m, ViewHandler handler) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	private <T> boolean callHandler(Command<T> cmd, Method m, ViewHandler handler) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		if( cmd.param != null && m.getParameterCount() > 0) {
 			if( m.getParameterCount()==1 ) {
-				return m.invoke(handler, cmd.param);								
+				m.invoke(handler, cmd.param);	
+				return true;
 			} else {
 				Object[] params = (Object[]) cmd.param;
-				if( m.getParameterCount()==2 ) return m.invoke(handler, params[0], params[1]);	
-				if( m.getParameterCount()==3 ) return m.invoke(handler, params[0], params[1], params[2]);	
+				if( m.getParameterCount()==2 ) { 
+					m.invoke(handler, params[0], params[1]);	
+					return true;
+				}
+				if( m.getParameterCount()==3 ) {
+					m.invoke(handler, params[0], params[1], params[2]);	
+					return true;
+				}
 			}
 		} else if( cmd.param == null && m.getParameterCount()==0) {
-			return m.invoke(handler);
+			m.invoke(handler);
+			return true;
 		}
-		return null;
+		return false;
 	}
 
 	<T> void callCachedHandlers(Command<T> cmd, List<HandlerInvocation> invocationList) {

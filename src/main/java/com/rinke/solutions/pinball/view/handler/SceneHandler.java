@@ -94,7 +94,6 @@ public class SceneHandler extends ViewHandler {
 	}
 	
 	public void onSelectedSceneChanged(CompiledAnimation oldVal, CompiledAnimation newVal) {
-		log.info("onSelectedSceneChanged: {}", newVal);
 		Optional<CompiledAnimation> oldScene = Optional.ofNullable(oldVal);
 		Optional<CompiledAnimation> newScene = Optional.ofNullable(newVal);
 		
@@ -105,7 +104,6 @@ public class SceneHandler extends ViewHandler {
 			vm.setSelectedRecording(null);
 			vm.setMaskOnEnabled(a.getEditMode().equals(EditMode.FOLLOW));
 			vm.setMaskVisible(false);
-			vm.setMaskNumberEnabled(true);
 			vm.availableEditModes.replace(Arrays.asList( EditMode.REPLACE, EditMode.COLMASK, EditMode.FOLLOW ));
 			vm.setSelectedFrame(model.scenesPosMap.getOrDefault(a.getDesc(), 0));
 			vm.setSelectedEditMode(a.getEditMode());

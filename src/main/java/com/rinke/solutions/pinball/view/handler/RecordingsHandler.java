@@ -95,6 +95,7 @@ public class RecordingsHandler extends ViewHandler {
 			// if( set != null ) bookmarkComboViewer.setInput(set);
 			// else bookmarkComboViewer.setInput(Collections.EMPTY_SET);
 			// bookmarkComboViewer.setInput(Collections.EMPTY_SET);
+			//vm.setHashButtonsEnabled(true);
 			vm.setPlayingAni(rec);
 		} else {
 			vm.setPlayingAni(null);

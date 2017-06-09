@@ -79,6 +79,7 @@ public class PlayingAniHandler extends ViewHandler {
 			vm.dmd.clear();
 		} else {
 			this.ani = nv;
+			this.ani.setActFrame(vm.selectedFrame);
 			vm.setMinFrame(ani.start);
 			vm.setMaxFrame(ani.end);
 			vm.setSkip(ani.skip);
@@ -246,7 +247,7 @@ public class PlayingAniHandler extends ViewHandler {
 				ani.restart();
 				//if(showClock) setClockActive(true);
 			}
-
+			//vm.forceRedraw();
 		}
 		return res;
 	}

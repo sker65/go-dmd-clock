@@ -45,7 +45,7 @@ public class HashButtonHandler extends ViewHandler {
 		}
 		// copy is essential to propagate change
 		vm.setHashLbl(Arrays.copyOf(vm.hashLbl, vm.numberOfHashButtons));
-		vm.setHashButtonSelected(Arrays.copyOf(vm.hashButtonEnabled, vm.numberOfHashButtons));
+		vm.setHashButtonEnabled(Arrays.copyOf(vm.hashButtonEnabled, vm.numberOfHashButtons));
 	}
 	
 	public String getPrintableHashes(byte[] p) {

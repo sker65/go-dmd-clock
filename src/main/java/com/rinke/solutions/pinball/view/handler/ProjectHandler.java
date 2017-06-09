@@ -1,6 +1,7 @@
 package com.rinke.solutions.pinball.view.handler;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -62,8 +63,8 @@ public class ProjectHandler extends ViewHandler {
 		model.bookmarksMap.entrySet().forEach(i->project.bookmarksMap.put(i.getKey(), new HashSet<>(i.getValue())));
 		project.inputFiles = m.inputFiles;
 		project.masks = m.masks;
-		project.palettes = m.palettes;
-		project.palMappings = m.palMappings;
+		project.palettes = new ArrayList<>(m.palettes.getDelegate());
+		project.palMappings = new ArrayList<>(m.palMappings.getDelegate());
 		project.version = (byte) version;
 		return project;
 	}
@@ -193,9 +194,10 @@ public class ProjectHandler extends ViewHandler {
 				aniActionHandler.loadAni(FileChooserUtil.buildRelFilename(filename, file), true, false);
 			}
 			
-			List<Animation> loadedWithProject = aniActionHandler.loadAni(aniFilename, true, false);
-			loadedWithProject.stream().forEach(a->{a.setProjectAnimation(true);});
-			
+			if( new File(aniFilename).exists() ) { // only if there is one
+				List<Animation> loadedWithProject = aniActionHandler.loadAni(aniFilename, true, false);
+				loadedWithProject.stream().forEach(a->{a.setProjectAnimation(true);});
+			}
 			// maybe delegate to pal handler 
 			// ensureDefault();
 			recentProjectsMenuManager.populateRecent(filename);
@@ -204,11 +206,13 @@ public class ProjectHandler extends ViewHandler {
 	}
 	
 	public void onLoadProject() {
-		model.reset();
-		String filename = fileChooserUtil.choose(SWT.OPEN, null, new String[] { "*.xml;*.json;" }, new String[] { "Project XML", "Project JSON" });
-		if (filename != null) {
-			onLoadProject(filename);
-		}		
+		if( menuHandler.couldQuit() ) {
+			model.reset();
+			String filename = fileChooserUtil.choose(SWT.OPEN, null, new String[] { "*.xml;*.json;" }, new String[] { "Project XML", "Project JSON" });
+			if (filename != null) {
+				onLoadProject(filename);
+			}		
+		}
 	}
 	
 	public void onNewProject() {
