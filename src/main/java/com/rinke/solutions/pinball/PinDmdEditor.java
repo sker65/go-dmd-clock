@@ -2863,7 +2863,7 @@ public class PinDmdEditor implements EventHandler {
 		for (byte[] p : hashes) {
 			String hash = getPrintableHashes(p);
 			// disable for empty frame: crc32 for empty frame is B2AA7578
-			if (hash.startsWith("B2AA7578" /* "BF619EAC0CDF3F68D496EA9344137E8B" */)) {
+			if (hash.startsWith(getEmptyHash())) {/* "BF619EAC0CDF3F68D496EA9344137E8B" */
 				btnHash[i].setText("");
 				btnHash[i].setEnabled(false);
 			} else {
@@ -2879,6 +2879,10 @@ public class PinDmdEditor implements EventHandler {
 			btnHash[i].setEnabled(false);
 			i++;
 		}
+	}
+
+	private String getEmptyHash() {
+		return dmdSize.equals(DmdSize.Size128x32) ? "B2AA7578" : "6C1CE17E";
 	}
 
 	public String getProjectFilename() {
