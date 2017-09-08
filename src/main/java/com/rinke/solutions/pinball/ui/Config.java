@@ -51,6 +51,7 @@ public class Config extends Dialog {
 	private Button btnCreateKeyFrame;
 	private Spinner spinnerNoPlanes;
 	private Button btnUseOldExport;
+	private Button btnCreatePaletteAfter;
     
     /**
      * Create the dialog.
@@ -92,6 +93,7 @@ public class Config extends Dialog {
         btnCreateKeyFrame.setSelection(ApplicationProperties.getBoolean(ApplicationProperties.AUTOKEYFRAME, false));
         spinnerNoPlanes.setSelection(ApplicationProperties.getInteger(ApplicationProperties.NOOFPLANES, 4));
         btnUseOldExport.setSelection(ApplicationProperties.getBoolean(ApplicationProperties.OLDEXPORT, false));
+        btnCreatePaletteAfter.setSelection(ApplicationProperties.getBoolean(ApplicationProperties.ADDPALWHENCUT, false));
         
         shell.open();
         shell.layout();
@@ -251,6 +253,13 @@ public class Config extends Dialog {
         lblNumberOfPlanes.setLayoutData(fd_lblNumberOfPlanes);
         lblNumberOfPlanes.setText("Number of planes when cutting");
         
+        btnCreatePaletteAfter = new Button(grpFoo, SWT.CHECK);
+        FormData fd_btnCreatePaletteAfter = new FormData();
+        fd_btnCreatePaletteAfter.top = new FormAttachment(btnUseOldExport, 5);
+        fd_btnCreatePaletteAfter.left = new FormAttachment(0, 10);
+        btnCreatePaletteAfter.setLayoutData(fd_btnCreatePaletteAfter);
+        btnCreatePaletteAfter.setText("create palette after cutting");
+        
         FormData fd_grpConfig = new FormData();
         fd_grpConfig.bottom = new FormAttachment(100, -292);
     }
@@ -270,7 +279,7 @@ public class Config extends Dialog {
         ApplicationProperties.put(ApplicationProperties.AUTOKEYFRAME, btnCreateKeyFrame.getSelection()); 
         ApplicationProperties.put(ApplicationProperties.NOOFPLANES, spinnerNoPlanes.getSelection());
         ApplicationProperties.put(ApplicationProperties.OLDEXPORT, btnUseOldExport.getSelection());
-
+        ApplicationProperties.put(ApplicationProperties.ADDPALWHENCUT, btnCreatePaletteAfter.getSelection());
 		shell.close();
 	}
 }

@@ -21,6 +21,7 @@ public class ApplicationProperties {
 	public static final String AUTOKEYFRAME = "autoKeyframeWhenCut";
 	public static final String NOOFPLANES = "noOfPlanesWhenCutting";
 	public static final String OLDEXPORT = "oldexport";
+	public static final String ADDPALWHENCUT = "addPalWhenCut";
 
 	private static ApplicationProperties theInstance;
 
