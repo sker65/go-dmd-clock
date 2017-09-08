@@ -236,17 +236,17 @@ public class PinDmdEditorSWTTest {
 		
 		trigger(SWT.Selection).on(uut.btnNewPalette);
 		assertThat(uut.activePalette, notNullValue());
-		assertThat(uut.project.palettes.size(), equalTo(10));
+		assertThat(uut.project.paletteMap.size(), equalTo(10));
 		
 		// test that new palette is selected
-		Palette palette = uut.project.palettes.get(9);
+		Palette palette = uut.project.paletteMap.get(9);
 		Object element = ((StructuredSelection)uut.paletteComboViewer.getSelection()).getFirstElement();
 		assertThat(palette,equalTo(element));
 	}
 	@Test
 	public void testOnlyDefaultPalette() {
 		assertThat(uut.activePalette, notNullValue());
-		assertThat(uut.project.palettes.size(), equalTo(9));
+		assertThat(uut.project.paletteMap.size(), equalTo(9));
 	}
 	
 	@Test

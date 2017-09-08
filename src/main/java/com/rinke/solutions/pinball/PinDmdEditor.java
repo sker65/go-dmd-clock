@@ -333,7 +333,7 @@ public class PinDmdEditor implements EventHandler {
 		maskDmdObserver = new MaskDmdObserver();
 		maskDmdObserver.setDmd(dmd);
 		
-		activePalette = project.palettes.get(0);
+		activePalette = project.paletteMap.get(0);
 		previewPalettes = Palette.previewPalettes();
 		licManager = LicenseManagerFactory.getInstance();
 		checkForPlugins();
@@ -655,7 +655,7 @@ public class PinDmdEditor implements EventHandler {
 	void onNewProject() {
 		project.clear();
 		project.setDimension(dmdSize.width, dmdSize.height);
-		activePalette = project.palettes.get(0);
+		activePalette = project.paletteMap.get(0);
 		setViewerSelection(paletteComboViewer,activePalette);
 		paletteComboViewer.refresh();
 		keyframeTableViewer.refresh();
@@ -687,6 +687,7 @@ public class PinDmdEditor implements EventHandler {
 	void importProject(String filename) {
 		log.info("importing project from {}", filename);
 		Project projectToImport = (Project) fileHelper.loadObject(filename);
+		project.populatePaletteToMap();
 		// merge into existing Project
 		HashSet<String> collisions = new HashSet<>();
 		/*for (String key : projectToImport.frameSeqMap.keySet()) {
@@ -713,13 +714,13 @@ public class PinDmdEditor implements EventHandler {
 	}
 	
 	protected void setPaletteViewerByIndex(int palIndex) {
-		Optional<Palette> optPal = project.palettes.stream().filter(p -> p.index==palIndex).findFirst();
+		Optional<Palette> optPal = project.paletteMap.values().stream().filter(p -> p.index==palIndex).findFirst();
 		setViewerSelection(paletteComboViewer, optPal.orElse(activePalette));
 		log.info("setting pal.index to {}",palIndex);
 	}
 	
 	protected void setupUIonProjectLoad() {
-		paletteComboViewer.setInput(project.palettes);
+		paletteComboViewer.setInput(project.paletteMap.values());
 		setPaletteViewerByIndex(0);
 		keyframeTableViewer.setInput(project.palMappings);
 		for (Animation ani : recordings.values()) {
@@ -731,8 +732,8 @@ public class PinDmdEditor implements EventHandler {
 	void loadProject(String filename) {
 		log.info("load project from {}", filename);
 		Project projectToLoad = (Project) fileHelper.loadObject(filename);
-
 		if (projectToLoad != null) {
+			projectToLoad.populatePaletteToMap();
 			shell.setText(frameTextPrefix + " - " + new File(filename).getName());
 			if( projectToLoad.width == 0) {
 				projectToLoad.width = 128;
@@ -766,14 +767,14 @@ public class PinDmdEditor implements EventHandler {
 
 	private void ensureDefault() {
 		boolean foundDefault = false;
-		for (Palette p : project.palettes) {
+		for (Palette p : project.paletteMap.values()) {
 			if (PaletteType.DEFAULT.equals(p.type)) {
 				foundDefault = true;
 				break;
 			}
 		}
 		if (!foundDefault) {
-			project.palettes.get(0).type = PaletteType.DEFAULT;
+			project.paletteMap.get(0).type = PaletteType.DEFAULT;
 		}
 	}
 
@@ -887,7 +888,7 @@ public class PinDmdEditor implements EventHandler {
 			}
 			if( !anis.isEmpty() ) {
 				String aniFilename = replaceExtensionTo("vni", filename);
-				AniWriter aniWriter = new AniWriter(anis, aniFilename, 4, project.palettes, null);
+				AniWriter aniWriter = new AniWriter(anis, aniFilename, 4, project.paletteMap, null);
 				aniWriter.setHeader("VPIN");
 				aniWriter.run();
 				try {
@@ -983,7 +984,8 @@ public class PinDmdEditor implements EventHandler {
 		}
 		
 		storeOrDeleteProjectAnimations(aniFilename);
-		fileHelper.storeObject(project, filename);		
+		fileHelper.storeObject(project, filename);
+		
 		project.dirty = false;
 	}
 
@@ -1479,7 +1481,7 @@ public class PinDmdEditor implements EventHandler {
 		combo.setLayoutData(gd_combo);
 		paletteComboViewer.setContentProvider(ArrayContentProvider.getInstance());
 		paletteComboViewer.setLabelProvider(new LabelProviderAdapter<Palette>(o -> o.index + " - " + o.name));
-		paletteComboViewer.setInput(project.palettes);
+		paletteComboViewer.setInput(project.paletteMap.values());
 		paletteComboViewer.addSelectionChangedListener(event -> onPaletteChanged(getFirstSelected(event)));
 
 		paletteTypeComboViewer = new ComboViewer(grpPalettes, SWT.READ_ONLY);
@@ -2228,7 +2230,7 @@ public class PinDmdEditor implements EventHandler {
 				connector.switchToMode(DeviceMode.PinMame_RGB.ordinal(), null);
 				handle = connector.connect(pin2dmdAdress);
 				livePreviewActive = livePreviewIsOn;
-				for( Palette pal : project.palettes ) {
+				for( Palette pal : project.paletteMap.values() ) {
 					connector.upload(pal,handle);
 				}
 				// upload actual palette
@@ -2455,11 +2457,11 @@ public class PinDmdEditor implements EventHandler {
 		PaletteType palType = getFirstSelected(e);
 		activePalette.type = palType;
 		if (PaletteType.DEFAULT.equals(palType)) {
-			for (int i = 0; i < project.palettes.size(); i++) {
+			for (int i = 0; i < project.paletteMap.size(); i++) {
 				if (i != activePalette.index) { // set previous default to
 												// normal
-					if (project.palettes.get(i).type.equals(PaletteType.DEFAULT)) {
-						project.palettes.get(i).type = PaletteType.NORMAL;
+					if (project.paletteMap.get(i).type.equals(PaletteType.DEFAULT)) {
+						project.paletteMap.get(i).type = PaletteType.NORMAL;
 					}
 				}
 			}
@@ -2645,7 +2647,7 @@ public class PinDmdEditor implements EventHandler {
 		
 		mntmExportAnimation.addListener(SWT.Selection, e -> {
 			Animation ani = playingAnis.get(0);
-			Palette pal = project.palettes.get(ani.getPalIndex());
+			Palette pal = project.paletteMap.get(ani.getPalIndex());
 			GifExporter exporter = new GifExporter(shell, pal, ani);
 			exporter.open();
 		});

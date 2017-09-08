@@ -22,7 +22,7 @@ public class AniReaderTest {
 	public void testWriteToCompiledFile() throws Exception {
 		List<Animation> list = AniReader.readFromFile("./src/test/resources/test.ani");
 		String filename = testFolder.newFile().getAbsolutePath();
-		AniWriter.writeToFile(list, filename, 1, Collections.emptyList());
+		AniWriter.writeToFile(list, filename, 1, Collections.emptyMap());
 	}
 
 }

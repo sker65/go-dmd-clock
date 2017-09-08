@@ -1,6 +1,7 @@
 package com.rinke.solutions.pinball.animation;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.bouncycastle.util.Arrays;
@@ -94,7 +95,7 @@ public class CompiledAnimation extends Animation {
 		return AniReader.readFromFile(file);
 	}
 
-	public static void write(List<Animation> anis, String filename, int version, List<Palette> palettes) {
+	public static void write(List<Animation> anis, String filename, int version, Map<Integer,Palette> palettes) {
 		AniWriter.writeToFile(anis, filename, version, palettes);
 	}
 

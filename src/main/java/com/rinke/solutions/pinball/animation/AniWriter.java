@@ -28,14 +28,14 @@ import lombok.extern.slf4j.Slf4j;
 public class AniWriter extends Worker {
 	
 	public static final String ANIM = "ANIM";
-	private List<Palette> palettes;
+	private Map<Integer,Palette> palettes;
 	private int version;
 	private String filename;
 	private List<Animation> anis;
 	private Map<String,Integer> offsetMap;
 	private String header = ANIM;
 	
-	public AniWriter(List<Animation> anis, String filename, int version, List<Palette> palettes, ProgressEventListener progressEvt) {
+	public AniWriter(List<Animation> anis, String filename, int version, Map<Integer,Palette> palettes, ProgressEventListener progressEvt) {
 		this.anis = anis;
 		this.filename = filename;
 		this.version = version;
@@ -43,7 +43,7 @@ public class AniWriter extends Worker {
 		setProgressEvt(progressEvt);
 	}
 
-	public static void writeToFile(List<Animation> anis, String filename, int version, List<Palette> palettes) {
+	public static void writeToFile(List<Animation> anis, String filename, int version, Map<Integer,Palette> palettes) {
 		new AniWriter(anis,filename,version,palettes, null).run();
 	}
 

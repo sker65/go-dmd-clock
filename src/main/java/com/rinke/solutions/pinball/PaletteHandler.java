@@ -39,7 +39,7 @@ public class PaletteHandler {
 	}
 	
 	private boolean isNewPaletteName(String text) {
-		for (Palette pal : editor.project.palettes) {
+		for (Palette pal : editor.project.paletteMap.values()) {
 			if (pal.name.equals(text))
 				return false;
 		}
@@ -60,8 +60,8 @@ public class PaletteHandler {
 		cols[2] = RGB.of(actCols[4]);
 		cols[3] = RGB.of(actCols[15]);
 		
-		Palette newPalette = new Palette(cols, editor.project.palettes.size(), name);
-		for( Palette pal : editor.project.palettes ) {
+		Palette newPalette = new Palette(cols, editor.project.paletteMap.size(), name);
+		for( Palette pal : editor.project.paletteMap.values() ) {
 			if( pal.sameColors(cols)) {
 				editor.activePalette = pal;
 				editor.paletteTool.setPalette(editor.activePalette);	
@@ -71,7 +71,7 @@ public class PaletteHandler {
 		}
 		
 		editor.activePalette = newPalette;
-		editor.project.palettes.add(editor.activePalette);
+		editor.project.paletteMap.put(newPalette.index, newPalette);
 		editor.paletteTool.setPalette(editor.activePalette);
 		editor.paletteComboViewer.refresh();
 		editor.paletteComboViewer.setSelection(new StructuredSelection(editor.activePalette), true);
@@ -82,8 +82,8 @@ public class PaletteHandler {
 		if (!isNewPaletteName(name)) {
 			name = "new" + UUID.randomUUID().toString().substring(0, 4);
 		}
-		editor.activePalette = new Palette(editor.activePalette.colors, editor.project.palettes.size(), name);
-		editor.project.palettes.add(editor.activePalette);
+		editor.activePalette = new Palette(editor.activePalette.colors, editor.project.paletteMap.size(), name);
+		editor.project.paletteMap.put(editor.activePalette.index,editor.activePalette);
 		editor.paletteTool.setPalette(editor.activePalette);
 		editor.paletteComboViewer.refresh();
 		editor.paletteComboViewer.setSelection(new StructuredSelection(editor.activePalette), true);
@@ -114,7 +114,7 @@ public class PaletteHandler {
 			palettesImported = Arrays.asList(pal);
 		}
 		if( palettesImported != null ) {
-			String override = checkOverride(editor.project.palettes, palettesImported);
+			String override = checkOverride(editor.project.paletteMap, palettesImported);
 			if (!override.isEmpty()) {
 				MessageBox messageBox = new MessageBox(editor.shell, SWT.ICON_WARNING | SWT.OK | SWT.IGNORE | SWT.ABORT);
 				messageBox.setText("Override warning");
@@ -143,36 +143,24 @@ public class PaletteHandler {
 	}
 	
 	void importPalettes(java.util.List<Palette> palettesImported, boolean override) {
-		Map<Integer, Palette> map = getMap(editor.project.palettes);
 		for (Palette p : palettesImported) {
-			if (map.containsKey(p.index)) {
+			if (editor.project.paletteMap.containsKey(p.index)) {
 				if (override)
-					map.put(p.index, p);
+					editor.project.paletteMap.put(p.index, p);
 			} else {
-				map.put(p.index, p);
+				editor.project.paletteMap.put(p.index, p);
 			}
 		}
-		editor.project.palettes.clear();
-		editor.project.palettes.addAll(map.values());
 	}
 
-	String checkOverride(java.util.List<Palette> palettes2, java.util.List<Palette> palettesImported) {
+	String checkOverride(java.util.Map<Integer,Palette> pm, java.util.List<Palette> palettesImported) {
 		StringBuilder sb = new StringBuilder();
-		Map<Integer, Palette> map = getMap(palettes2);
 		for (Palette pi : palettesImported) {
-			if (pi.index != 0 && map.containsKey(pi.index)) {
+			if (pi.index != 0 && pm.containsKey(pi.index)) {
 				sb.append(pi.index + ", ");
 			}
 		}
 		return sb.toString();
-	}
-
-	private Map<Integer, Palette> getMap(java.util.List<Palette> palettes) {
-		Map<Integer, Palette> res = new HashMap<>();
-		for (Palette p : palettes) {
-			res.put(p.index, p);
-		}
-		return res;
 	}
 	
 	private void warn(String header, String msg) {
@@ -183,7 +171,7 @@ public class PaletteHandler {
 	}
 	
 	public void onDeletePalette() {
-		if( editor.activePalette != null && editor.project.palettes.size()>1 ) {
+		if( editor.activePalette != null && editor.project.paletteMap.size()>1 ) {
 			// check if any scene is using this
 			List<String> res = new ArrayList<>();
 			for( Animation a: editor.scenes.values()) {
@@ -197,14 +185,14 @@ public class PaletteHandler {
 				}
 			}
 			if( res.isEmpty() ) {
-				editor.project.palettes.remove(editor.activePalette);
+				editor.project.paletteMap.remove(editor.activePalette.index);
 				// ensure there is a default palette
 				int c = 0;
-				for( Palette p : editor.project.palettes) {
+				for( Palette p : editor.project.paletteMap.values()) {
 					if( p.type == PaletteType.DEFAULT ) c++;
 				}
-				if( c == 0 ) editor.project.palettes.get(0).type = PaletteType.DEFAULT;
-				editor.paletteComboViewer.setSelection(new StructuredSelection(editor.project.palettes.get(0)));
+				if( c == 0 ) editor.project.paletteMap.get(0).type = PaletteType.DEFAULT;
+				editor.paletteComboViewer.setSelection(new StructuredSelection(editor.project.paletteMap.get(0)));
 				editor.paletteComboViewer.refresh();
 			} else {
 				warn("Palette cannot deleted", "Palette cannot deleted because it is used by: "+res);

@@ -5,7 +5,9 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.jface.viewers.ComboViewer;
 import org.junit.Before;
@@ -33,17 +35,17 @@ public class PaletteHandlerTest {
 
 	@Test
 	public void testCheckOverride() throws Exception {
-		List<Palette> palettes = new ArrayList<>();
+		Map<Integer,Palette> palettes = new HashMap<>();
 		List<Palette> palettesImported = new ArrayList<>();
 		String override = uut.checkOverride(palettes, palettesImported);
 		assertThat(override, equalTo(""));
 
-		palettes.add(new Palette(Palette.defaultColors(), 0, "foo"));
+		palettes.put(0,new Palette(Palette.defaultColors(), 0, "foo"));
 		palettesImported.add(new Palette(Palette.defaultColors(), 1, "foo"));
 		override = uut.checkOverride(palettes, palettesImported);
 		assertThat(override, equalTo(""));
 
-		palettes.add(new Palette(Palette.defaultColors(), 2, "foo2"));
+		palettes.put(2,new Palette(Palette.defaultColors(), 2, "foo2"));
 		palettesImported.add(new Palette(Palette.defaultColors(), 2, "foo2"));
 		override = uut.checkOverride(palettes, palettesImported);
 		assertThat(override, equalTo("2, "));
@@ -59,7 +61,7 @@ public class PaletteHandlerTest {
 
 	@Test
 	public void testLoadPaletteString() throws Exception {
-		editor.project.palettes.clear();
+		editor.project.paletteMap.clear();
 		uut.loadPalette("./src/test/resources/smartdmd.txt");
 	}
 

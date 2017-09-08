@@ -55,7 +55,7 @@ public class AnimationActionHandler {
 		java.util.List<Animation> anisToSave = anis.stream().filter(a -> saveAll || a.isDirty()).collect(Collectors.toList());
 		if( anisToSave.isEmpty() ) return;// Pair.of(0, Collections.emptyMap());
 		Progress progress = getProgress();
-		AniWriter aniWriter = new AniWriter(anisToSave, filename, version, editor.project.palettes, progress);
+		AniWriter aniWriter = new AniWriter(anisToSave, filename, version, editor.project.paletteMap, progress);
 		if( progress != null ) 
 			progress.open(aniWriter);
 		else
@@ -126,7 +126,7 @@ public class AnimationActionHandler {
 			}	
 			
 			ani.init(dmd);
-			populatePalette(ani, editor.project.palettes);
+			populatePalette(ani, editor.project.paletteMap);
 		}
 		editor.recentAnimationsMenuManager.populateRecent(filename);
 		editor.project.dirty = true;
@@ -149,11 +149,11 @@ public class AnimationActionHandler {
 		anis.put(ani.getDesc(), ani);
 	}
 
-	private void populatePalette(Animation ani, List<Palette> palettes) {
+	private void populatePalette(Animation ani, Map<Integer,Palette> palettes) {
 		if (ani.getAniColors() != null) {
 			// if loaded colors with animations propagate as palette
 			boolean colorsMatch = false;
-			for (Palette p : palettes) {
+			for (Palette p : palettes.values()) {
 				if (p.sameColors(ani.getAniColors())) {
 					colorsMatch = true;
 					ani.setPalIndex(p.index);
@@ -162,7 +162,7 @@ public class AnimationActionHandler {
 			}
 			if (!colorsMatch) {
 				Palette aniPalette = new Palette(ani.getAniColors(), palettes.size(), ani.getDesc());
-				palettes.add(aniPalette);
+				palettes.put(aniPalette.index,aniPalette);
 				ani.setPalIndex(aniPalette.index);
 				editor.paletteComboViewer.refresh();
 			}
