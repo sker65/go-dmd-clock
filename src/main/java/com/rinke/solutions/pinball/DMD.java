@@ -101,6 +101,9 @@ public class DMD extends Observable {
         planeSizeInByte = bytesPerRow * height;
         frame = new Frame();
         setNumberOfSubframes(2);
+        actualBuffer=0;
+        buffers.clear();
+        buffers.put(actualBuffer, frame);
     }
 
     public DMD(int w, int h) {
