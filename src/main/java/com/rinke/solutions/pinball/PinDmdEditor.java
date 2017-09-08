@@ -734,7 +734,6 @@ public class PinDmdEditor implements EventHandler {
 		Project projectToLoad = (Project) fileHelper.loadObject(filename);
 		if (projectToLoad != null) {
 			projectToLoad.populatePaletteToMap();
-			shell.setText(frameTextPrefix + " - " + new File(filename).getName());
 			if( projectToLoad.width == 0) {
 				projectToLoad.width = 128;
 				projectToLoad.height = 32; // default for older projects
@@ -2888,6 +2887,8 @@ public class PinDmdEditor implements EventHandler {
 
 	public void setProjectFilename(String projectFilename) {
 		//mntmSaveProject.setEnabled(projectFilename!=null);
+		if( projectFilename != null ) shell.setText(frameTextPrefix + " - " + new File(projectFilename).getName());
+		else shell.setText(frameTextPrefix + " - ");
 		this.projectFilename = projectFilename;
 	}
 }
