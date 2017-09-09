@@ -2463,11 +2463,10 @@ public class PinDmdEditor implements EventHandler {
 		PaletteType palType = getFirstSelected(e);
 		activePalette.type = palType;
 		if (PaletteType.DEFAULT.equals(palType)) {
-			for (int i = 0; i < project.paletteMap.size(); i++) {
-				if (i != activePalette.index) { // set previous default to
-												// normal
-					if (project.paletteMap.get(i).type.equals(PaletteType.DEFAULT)) {
-						project.paletteMap.get(i).type = PaletteType.NORMAL;
+			for (Palette p : project.paletteMap.values()) {
+				if (p.index != activePalette.index) { // set previous default to
+					if (p.type.equals(PaletteType.DEFAULT)) {
+						p.type = PaletteType.NORMAL;
 					}
 				}
 			}

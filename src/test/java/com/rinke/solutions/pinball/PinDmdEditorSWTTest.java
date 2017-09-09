@@ -72,6 +72,7 @@ public class PinDmdEditorSWTTest {
 	@Before
 	public void setup() {
 		shell = displayHelper.createShell();
+		uut.shell = shell;
 		Realm.runWithDefault(SWTObservables.getRealm(shell.getDisplay()), new Runnable() {
 
 			@Override
