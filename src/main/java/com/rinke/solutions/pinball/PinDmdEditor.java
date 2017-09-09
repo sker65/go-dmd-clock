@@ -749,9 +749,13 @@ public class PinDmdEditor implements EventHandler {
 			String aniFilename = replaceExtensionTo("ani", filename);
 			project.inputFiles.remove(aniFilename); // full name
 			project.inputFiles.remove(new File(aniFilename).getName()); // simple name
-			
+			String msg = "";
 			for (String file : project.inputFiles) {
-				aniAction.loadAni(buildRelFilename(filename, file), true, false);
+				try {
+					aniAction.loadAni(buildRelFilename(filename, file), true, false);
+				} catch( RuntimeException e) {
+					msg +="\nProblem loading "+file+": "+e.getMessage();
+				}
 			}
 			
 			List<Animation> loadedWithProject = aniAction.loadAni(aniFilename, true, false);
@@ -760,6 +764,9 @@ public class PinDmdEditor implements EventHandler {
 			setupUIonProjectLoad();
 			ensureDefault();
 			recentProjectsMenuManager.populateRecent(filename);
+			if( !StringUtils.isEmpty(msg)) {
+				warn("Not all files loaded", msg);
+			}
 		}
 
 	}

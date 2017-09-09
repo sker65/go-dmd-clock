@@ -11,7 +11,7 @@ public class VersionUtil {
 		String classPath = VersionUtil.class.getResource(className).toString();
 		if (!classPath.startsWith("jar")) {
 		  // Class not from JAR
-		  return "";
+		  return "9.9.9.9";
 		}
 		String version = "";
 		
