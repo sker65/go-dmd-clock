@@ -86,7 +86,7 @@ public class GifExporter extends Dialog {
 		int height = dmd.getHeight() * pitch +20;;
 		dmdWidget.setBounds(0, 0, width, height);
 		dmdWidget.setPitch(pitch);
-		
+		ani.actFrame = 0;
 		progressBar.setMinimum(0);
 		progressBar.setMaximum(ani.getFrameCount(dmd));
 	
