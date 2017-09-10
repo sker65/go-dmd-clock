@@ -1214,8 +1214,8 @@ public class PinDmdEditor implements EventHandler {
 		composite_1.setLayoutData(gd_composite_1);
 
 		btnRemoveAni = new Button(composite_1, SWT.NONE);
-		btnRemoveAni.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
-		btnRemoveAni.setText("Remove");
+		btnRemoveAni.setToolTipText("Deletes selected recording");
+		btnRemoveAni.setText("Del");
 		btnRemoveAni.setEnabled(false);
 		btnRemoveAni.addListener(SWT.Selection, e -> {
 			project.bookmarksMap.remove(selectedRecording.get().getDesc());
@@ -1223,36 +1223,44 @@ public class PinDmdEditor implements EventHandler {
 		} );
 
 		btnSortAni = new Button(composite_1, SWT.NONE);
-		btnSortAni.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
+		btnSortAni.setToolTipText("Sorts recordings by name");
 		btnSortAni.setText("Sort");
 		btnSortAni.addListener(SWT.Selection, e -> onSortAnimations(recordings));
 		
 		Composite composite_4 = new Composite(shell, SWT.NONE);
 		composite_4.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
-		composite_4.setLayout(new GridLayout(2, false));
+		GridLayout gl_composite_4 = new GridLayout(3, false);
+		gl_composite_4.horizontalSpacing = 1;
+		gl_composite_4.marginWidth = 1;
+		gl_composite_4.verticalSpacing = 1;
+		composite_4.setLayout(gl_composite_4);
 		
 		btnRemoveScene = new Button(composite_4, SWT.NONE);
-		btnRemoveScene.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
+		btnRemoveScene.setToolTipText("Deletes selected scene");
 		btnRemoveScene.setEnabled(false);
-		btnRemoveScene.setText("Remove");
+		btnRemoveScene.setText("Del");
 		btnRemoveScene.addListener(SWT.Selection, e -> onRemove(selectedScene, scenes) );
 		
 		Button btnSortScene = new Button(composite_4, SWT.NONE);
-		btnSortScene.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
+		btnSortScene.setToolTipText("Sorts scenes by name");
 		btnSortScene.setText("Sort");
 		btnSortScene.addListener(SWT.Selection, e -> onSortAnimations(scenes));
+		
+		btnSetScenePal = new Button(composite_4, SWT.NONE);
+		btnSetScenePal.setToolTipText("Applies palette to scene");
+		btnSetScenePal.setText("Pal");
+		btnSetScenePal.setEnabled(false);
+		btnSetScenePal.addListener(SWT.Selection, e -> onSetScenePalette());
 
 		Composite composite_2 = new Composite(shell, SWT.NONE);
-		composite_2.setLayout(new GridLayout(3, false));
-		GridData gd_composite_2 = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
-		gd_composite_2.widthHint = listWidth;
-		composite_2.setLayoutData(gd_composite_2);
+		GridLayout gl_composite_2 = new GridLayout(3, false);
+		gl_composite_2.marginWidth = 1;
+		gl_composite_2.horizontalSpacing = 1;
+		composite_2.setLayout(gl_composite_2);
 
 		btnDeleteKeyframe = new Button(composite_2, SWT.NONE);
-		GridData gd_btnDeleteKeyframe = new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1);
-		gd_btnDeleteKeyframe.widthHint = 88;
-		btnDeleteKeyframe.setLayoutData(gd_btnDeleteKeyframe);
-		btnDeleteKeyframe.setText("Remove");
+		btnDeleteKeyframe.setToolTipText("Deletes selected keyframe");
+		btnDeleteKeyframe.setText("Del");
 		btnDeleteKeyframe.setEnabled(false);
 		btnDeleteKeyframe.addListener(SWT.Selection, e -> {
 			if (selectedPalMapping != null) {
@@ -1263,10 +1271,15 @@ public class PinDmdEditor implements EventHandler {
 		});
 
 		Button btnSortKeyFrames = new Button(composite_2, SWT.NONE);
-		btnSortKeyFrames.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
+		btnSortKeyFrames.setToolTipText("Sorts keyframes by name");
 		btnSortKeyFrames.setText("Sort");
 		btnSortKeyFrames.addListener(SWT.Selection, e -> onSortKeyFrames());
-		new Label(composite_2, SWT.NONE);
+		
+		btnSetKeyFramePal = new Button(composite_2, SWT.NONE);
+		btnSetKeyFramePal.setToolTipText("Applies palette to keyframe");
+		btnSetKeyFramePal.setText("Pal");
+		btnSetKeyFramePal.setEnabled(false);
+		btnSetKeyFramePal.addListener(SWT.Selection, e -> onSetKeyframePalette());
 
 		scale = new Scale(shell, SWT.NONE);
 		GridData gd_scale = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
@@ -1381,14 +1394,17 @@ public class PinDmdEditor implements EventHandler {
 		composite.setLayout(new GridLayout(11, false));
 
 		btnStartStop = new Button(composite, SWT.NONE);
+		btnStartStop.setToolTipText("Starts automatic playback");
 		btnStartStop.setText("Start");
 		btnStartStop.addListener(SWT.Selection, e -> onStartStopClicked(animationHandler.isStopped()));
 
 		btnPrev = new Button(composite, SWT.NONE);
+		btnPrev.setToolTipText("Go back one frame");
 		btnPrev.setText("<");
 		btnPrev.addListener(SWT.Selection, e -> onPrevFrameClicked());
 
 		btnNext = new Button(composite, SWT.NONE);
+		btnNext.setToolTipText("Move forward one frame");
 		btnNext.setText(">");
 		btnNext.addListener(SWT.Selection, e -> onNextFrameClicked());
 
@@ -1457,7 +1473,7 @@ public class PinDmdEditor implements EventHandler {
 		});
 		
 		Button btnDelBookmark = new Button(composite, SWT.NONE);
-		btnDelBookmark.setText("Del.");
+		btnDelBookmark.setText("Delete");
 		btnDelBookmark.addListener(SWT.Selection, e->{
 			if( selectedRecording.isPresent() ) {
 				Animation r = selectedRecording.get();
@@ -1500,10 +1516,8 @@ public class PinDmdEditor implements EventHandler {
 		paletteTypeComboViewer.setInput(PaletteType.values());
 		setViewerSelection(paletteTypeComboViewer, activePalette.type);
 		paletteTypeComboViewer.addSelectionChangedListener(e -> onPaletteTypeChanged(e));
-						
-		Button btnApplyPalette = new Button(grpPalettes, SWT.NONE);
-		btnApplyPalette.setText("Apply");
-		btnApplyPalette.addListener(SWT.Selection, e -> onApplyPalette(activePalette));
+		
+		new Label(grpPalettes, SWT.NONE);
 		
 		btnNewPalette = new Button(grpPalettes, SWT.NONE);
 		btnNewPalette.setToolTipText("Creates a new palette by copying the actual colors");
@@ -1551,12 +1565,6 @@ public class PinDmdEditor implements EventHandler {
 		gd_lblCtrlclickToEdit.widthHint = 131;
 		lblCtrlclickToEdit.setLayoutData(gd_lblCtrlclickToEdit);
 		lblCtrlclickToEdit.setText("Ctrl-Click to edit color");
-		new Label(grpPalettes, SWT.NONE);
-		new Label(grpPalettes, SWT.NONE);
-		new Label(grpPalettes, SWT.NONE);
-		new Label(grpPalettes, SWT.NONE);
-		new Label(grpPalettes, SWT.NONE);
-		new Label(grpPalettes, SWT.NONE);
 		new Label(grpPalettes, SWT.NONE);
 		
 
@@ -2140,6 +2148,7 @@ public class PinDmdEditor implements EventHandler {
 		}
 		goDmdGroup.updateAniModel(a);
 		btnRemoveScene.setEnabled(a!=null);
+		btnSetScenePal.setEnabled(a!=null);
 	}
 	
 	private void onRecordingSelectionChanged(Animation a) {
@@ -2191,16 +2200,18 @@ public class PinDmdEditor implements EventHandler {
 		btnAddEvent.setEnabled(a != null);
 	}
 	
-	private void onApplyPalette(Palette selectedPalette) {
-		if (selectedPalMapping != null) {
+	private void onSetKeyframePalette() {
+		if (selectedPalMapping != null && activePalette != null) {
 			selectedPalMapping.palIndex = activePalette.index;
-			log.info("change index in Keyframe {} to {}", selectedPalMapping.name, activePalette.index);
+			log.info("change pal index in Keyframe {} to {}", selectedPalMapping.name, activePalette.index);
 		}
-		// change palette in ANI file
-		if (selectedScene.isPresent()) {
+	}
+
+	private void onSetScenePalette() {
+		if (selectedScene.isPresent() && activePalette != null) {
 			selectedScene.get().setPalIndex(activePalette.index);
+			log.info("change pal index in scene {} to {}", selectedScene.get().getDesc(), activePalette.index);
 		}
-		
 	}
 
 	private void onPaletteChanged(Palette newPalette) {
@@ -2452,11 +2463,13 @@ public class PinDmdEditor implements EventHandler {
 				String txt = btnHash[selectedHashIndex].getText();
 				btnHash[selectedHashIndex].setText("M" + selectedPalMapping.maskNumber + " " + txt);
 			}
-			saveTimeCode = (int) selectedRecording.get().getTimeCode(selectedPalMapping.frameIndex);
+			if( selectedRecording.isPresent() )
+				saveTimeCode = (int) selectedRecording.get().getTimeCode(selectedPalMapping.frameIndex);
 		} else {
 			selectedPalMapping = null;
 		}
 		btnDeleteKeyframe.setEnabled(palMapping != null);
+		btnSetKeyFramePal.setEnabled(palMapping != null && SwitchMode.PALETTE.equals(palMapping.switchMode));
 		btnFetchDuration.setEnabled(palMapping != null);
 	}
 
@@ -2808,6 +2821,8 @@ public class PinDmdEditor implements EventHandler {
 	private Text textProperty;
 	private ComboViewer bookmarkComboViewer;
 	private Button btnInvert;
+	private Button btnSetScenePal;
+	private Button btnSetKeyFramePal;
 	
 	private void updateHashes(Frame frame) {
 		if( frame == null ) return;
