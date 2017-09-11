@@ -184,6 +184,7 @@ public class AnimationHandler extends Observable implements Runnable{
 	public void setPos(int pos) {
 		if( index <0 || index >= anis.size() ) return;
 	    anis.get(index).setPos(pos);
+	    forceRerender = true;
         run();
 	}
 	

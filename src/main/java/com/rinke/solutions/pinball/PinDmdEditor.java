@@ -2238,11 +2238,9 @@ public class PinDmdEditor implements EventHandler {
 	}
 
 	<T extends Animation> void updateAnimationMapKey(String oldKey, String newKey, ObservableMap<String, T> anis) {
-		ArrayList<T> tmp = new ArrayList<>();
 		if (!oldKey.equals(newKey)) {
-			anis.values().forEach(ani -> tmp.add(ani));
-			anis.clear();
-			tmp.forEach(ani -> anis.put(ani.getDesc(), ani));
+			T ani = anis.remove(oldKey);
+			if( ani != null ) anis.put(newKey, ani);
 		}
 	}
 
@@ -2488,6 +2486,7 @@ public class PinDmdEditor implements EventHandler {
 		btnDeleteKeyframe.setEnabled(palMapping != null);
 		btnSetKeyFramePal.setEnabled(palMapping != null && SwitchMode.PALETTE.equals(palMapping.switchMode));
 		btnFetchDuration.setEnabled(palMapping != null);
+		dmdRedraw();
 	}
 
 	void onPaletteTypeChanged(SelectionChangedEvent e) {
