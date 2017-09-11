@@ -1057,7 +1057,7 @@ public class PinDmdEditor implements EventHandler {
 		}
 		palMapping.switchMode = switchMode;
 		if (useGlobalMask) {
-			palMapping.withMask = useGlobalMask;
+			palMapping.withMask = true;
 			palMapping.maskNumber = actMaskNumber;
 			project.masks.get(actMaskNumber).locked = true;
 			onMaskChecked(true);
@@ -1671,14 +1671,9 @@ public class PinDmdEditor implements EventHandler {
 		maskSpinner.setMinimum(0);
 		maskSpinner.setMaximum(9);
 		maskSpinner.setEnabled(false);
-		maskSpinner.addListener(SWT.Selection, e -> onMaskNumberChanged(e));
+		maskSpinner.addListener(SWT.Selection, e -> onMaskNumberChanged(maskSpinner.getSelection()));
 		
 		btnMask = new Button(grpDrawing, SWT.CHECK);
-		btnMask.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-			}
-		});
 		GridData gd_btnMask = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
 		gd_btnMask.widthHint = 62;
 		btnMask.setLayoutData(gd_btnMask);
@@ -2326,7 +2321,7 @@ public class PinDmdEditor implements EventHandler {
 				palMapping.switchMode = switchMode;
 				palMapping.frameIndex = selectedRecording.get().actFrame;
 				if (useGlobalMask) {
-					palMapping.withMask = useGlobalMask;
+					palMapping.withMask = true;
 					palMapping.maskNumber = actMaskNumber;
 					project.masks.get(actMaskNumber).locked = true;
 					onMaskChecked(true);
@@ -2384,7 +2379,7 @@ public class PinDmdEditor implements EventHandler {
 			dmdWidget.setShowMask(false);
 			if( useGlobalMask ) { // commit edited global mask
 				Mask mask = project.masks.get(maskSpinner.getSelection());
-				mask.commit(dmd.getFrame().mask);
+				if(dmd.getFrame().mask!=null)mask.commit(dmd.getFrame().mask);
 			}
 			dmd.removeMask();
 			useGlobalMask = false;
@@ -2392,12 +2387,12 @@ public class PinDmdEditor implements EventHandler {
 		btnInvert.setEnabled(useMask);
 		updateHashes(dmd.getFrame());
 		previewDmd.redraw();
+		dmdWidget.redraw();
 		setDrawMaskByEditMode(editMode);
 		editAniObserver.update(animationHandler, null);
 	}
 
-	void onMaskNumberChanged(Event e) {
-		int newMaskNumber = maskSpinner.getSelection();
+	void onMaskNumberChanged(int newMaskNumber) {
 		boolean hasChanged = false;
 		if(newMaskNumber != actMaskNumber ) {
 			log.info("mask number changed {} -> {}", actMaskNumber, newMaskNumber);
@@ -2474,10 +2469,17 @@ public class PinDmdEditor implements EventHandler {
 
 			animationHandler.setPos(selectedPalMapping.frameIndex);
 
+			if(selectedPalMapping.withMask) maskSpinner.setSelection(selectedPalMapping.maskNumber);
+			onMaskChecked(selectedPalMapping.withMask);
+			if(selectedPalMapping.withMask) onMaskNumberChanged(selectedPalMapping.maskNumber);
+			btnMask.setSelection(selectedPalMapping.withMask);
+
 			if (selectedPalMapping.withMask) {
 				String txt = btnHash[selectedHashIndex].getText();
 				btnHash[selectedHashIndex].setText("M" + selectedPalMapping.maskNumber + " " + txt);
+				maskSpinner.setSelection(selectedPalMapping.maskNumber);
 			}
+			
 			if( selectedRecording.isPresent() )
 				saveTimeCode = (int) selectedRecording.get().getTimeCode(selectedPalMapping.frameIndex);
 		} else {
