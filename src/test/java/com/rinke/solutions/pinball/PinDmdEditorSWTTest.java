@@ -320,7 +320,7 @@ public class PinDmdEditorSWTTest {
 	public void testMaskNumberChanged() throws Exception {
 		Event e = new Event();
 		e.widget = Mockito.mock(Spinner.class);
-		uut.onMaskNumberChanged(e);
+		uut.onMaskNumberChanged(0);
 	}
 
 	@Test
@@ -330,7 +330,7 @@ public class PinDmdEditorSWTTest {
 		e.widget = s;
 		uut.useGlobalMask = true;
 		when(s.getSelection()).thenReturn(Integer.valueOf(1));
-		uut.onMaskNumberChanged(e);
+		uut.onMaskNumberChanged(1);
 	}
 
 }
