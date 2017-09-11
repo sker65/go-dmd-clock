@@ -1218,8 +1218,21 @@ public class PinDmdEditor implements EventHandler {
 		btnRemoveAni.setText("Del");
 		btnRemoveAni.setEnabled(false);
 		btnRemoveAni.addListener(SWT.Selection, e -> {
-			project.bookmarksMap.remove(selectedRecording.get().getDesc());
-			onRemove(selectedRecording, recordings);
+			Animation a = selectedRecording.get();
+			ArrayList<String> res = new ArrayList<>();
+			if( a!=null) {
+				for( PalMapping pm : project.palMappings) {
+					if( a.getDesc().equals(pm.animationName) ) {
+						res.add( pm.name );
+					}
+				}
+			}
+			if( res.isEmpty() ) {
+				project.bookmarksMap.remove(selectedRecording.get().getDesc());
+				onRemove(selectedRecording, recordings);
+			} else {
+				warn("Recording cannot be deleted", "It is used by "+res);
+			}
 		} );
 
 		btnSortAni = new Button(composite_1, SWT.NONE);
@@ -1239,7 +1252,22 @@ public class PinDmdEditor implements EventHandler {
 		btnRemoveScene.setToolTipText("Deletes selected scene");
 		btnRemoveScene.setEnabled(false);
 		btnRemoveScene.setText("Del");
-		btnRemoveScene.addListener(SWT.Selection, e -> onRemove(selectedScene, scenes) );
+		btnRemoveScene.addListener(SWT.Selection, e -> {
+			CompiledAnimation a = selectedScene.get();
+			ArrayList<String> res = new ArrayList<>();
+			if( a!=null) {
+				for( PalMapping pm : project.palMappings) {
+					if( a.getDesc().equals(pm.frameSeqName) ) {
+						res.add( a.getDesc() );
+					}
+				}
+			}
+			if( res.isEmpty() ) {
+				onRemove(selectedScene, scenes); 
+			} else {
+				warn("Scene cannot be deleted", "It is used by "+res);
+			}
+		});
 		
 		Button btnSortScene = new Button(composite_4, SWT.NONE);
 		btnSortScene.setToolTipText("Sorts scenes by name");

@@ -20,6 +20,7 @@ import com.rinke.solutions.pinball.io.DMCImporter;
 import com.rinke.solutions.pinball.io.FileHelper;
 import com.rinke.solutions.pinball.io.PaletteImporter;
 import com.rinke.solutions.pinball.io.SmartDMDImporter;
+import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.PaletteType;
 import com.rinke.solutions.pinball.model.RGB;
@@ -176,12 +177,18 @@ public class PaletteHandler {
 			List<String> res = new ArrayList<>();
 			for( Animation a: editor.scenes.values()) {
 				if( a.getPalIndex() == editor.activePalette.index ) {
-					res.add(a.getDesc());
+					res.add("Scene "+a.getDesc());
 				}
 			}
 			for( Animation a: editor.recordings.values()) {
 				if( a.getPalIndex() == editor.activePalette.index ) {
 					res.add(a.getDesc());
+				}
+			}
+			// also check keyframes
+			for( PalMapping pm : editor.project.palMappings) {
+				if( pm.palIndex == editor.activePalette.index ) {
+					res.add("KeyFrame "+pm.name);
 				}
 			}
 			if( res.isEmpty() ) {
@@ -195,7 +202,7 @@ public class PaletteHandler {
 				editor.paletteComboViewer.setSelection(new StructuredSelection(editor.project.paletteMap.get(0)));
 				editor.paletteComboViewer.refresh();
 			} else {
-				warn("Palette cannot deleted", "Palette cannot deleted because it is used by: "+res);
+				warn("Palette cannot be deleted", "It is used by: "+res);
 			}
 		}
 	}
