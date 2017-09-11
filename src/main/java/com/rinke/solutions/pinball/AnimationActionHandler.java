@@ -1,18 +1,14 @@
 package com.rinke.solutions.pinball;
 
-import static org.hamcrest.Matchers.either;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
@@ -27,7 +23,6 @@ import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.ui.Progress;
 import com.rinke.solutions.pinball.util.FileChooserUtil;
-import com.rinke.solutions.pinball.util.ObservableMap;
 
 @Slf4j
 public class AnimationActionHandler {
