@@ -1,5 +1,7 @@
 package com.rinke.solutions.pinball;
 
+import static org.hamcrest.Matchers.either;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -12,11 +14,13 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 
 import com.google.common.collect.Lists;
 import com.rinke.solutions.pinball.animation.AniWriter;
 import com.rinke.solutions.pinball.animation.Animation;
+import com.rinke.solutions.pinball.animation.Animation.EditMode;
 import com.rinke.solutions.pinball.animation.AnimationFactory;
 import com.rinke.solutions.pinball.animation.AnimationType;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
@@ -118,9 +122,28 @@ public class AnimationActionHandler {
 		DMD dmd = new DMD(editor.dmdSize.width,editor.dmdSize.height);
 		for (Animation ani : loadedList) {
 			if( ani instanceof CompiledAnimation ) {
+				CompiledAnimation cani = (CompiledAnimation)ani;
 				editor.project.inputFiles.remove(filename);
 				ani.setProjectAnimation(true);
-				populateAni((CompiledAnimation)ani, editor.scenes);
+				if( EditMode.FIXED.equals(ani.getEditMode())) {
+					ani.setEditMode(EditMode.REPLACE);
+					ani.setMutable(true);
+				}
+				int planeSize = cani.frames.get(0).getPlane(0).length;
+				if( planeSize != 512 && ani.width == 128 ) {
+					// adjust with / height for version 1
+					if( planeSize == 1536 ) {
+						ani.width = 192; ani.height = 64;
+					} else if( planeSize == 256 ) {
+						ani.width = 128; ani.height = 16;
+					}
+					log.info("ani size was adjusted: {}", ani);
+				}
+				if( ani.width != editor.project.width || ani.height != editor.project.height) {
+					warn("Size mismatch", "size of animation does not match to project dmd size");
+				} else {
+					populateAni(cani, editor.scenes);
+				}
 			} else {
 				populateAni(ani, editor.recordings);
 			}	
@@ -132,7 +155,13 @@ public class AnimationActionHandler {
 		editor.project.dirty = true;
 		return loadedList;
 	}
-
+	
+	private void warn(String header, String msg) {
+		MessageBox messageBox = new MessageBox(shell, SWT.ICON_WARNING | SWT.OK);
+		messageBox.setText(header);
+		messageBox.setMessage(msg);
+		messageBox.open();
+	}
 	private <T extends Animation> void populateAni( T ani, Map<String, T> anis) {
 		if (anis.containsKey(ani.getDesc())) {
 			int i = 0;
