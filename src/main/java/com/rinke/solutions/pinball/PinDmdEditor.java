@@ -338,6 +338,7 @@ public class PinDmdEditor implements EventHandler {
 		licManager = LicenseManagerFactory.getInstance();
 		checkForPlugins();
 		connector = ConnectorFactory.create(pin2dmdAdress);
+		connector.setDmdSize(dmdSize);
 	}
 	
 	private void updateHashes(Observable o) {
@@ -2828,6 +2829,7 @@ public class PinDmdEditor implements EventHandler {
 		dmd.setSize(dmdSize.width, dmdSize.height);
 		dmdWidget.setResolution(dmd);
 		previewDmd.setResolution(dmd);
+		if( connector != null ) connector.setDmdSize(newSize);
 		dmdRedraw();
 		onNewProject();
 		// bindings

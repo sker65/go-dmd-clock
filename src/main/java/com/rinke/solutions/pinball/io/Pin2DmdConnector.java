@@ -12,6 +12,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.usb4java.Context;
 import org.usb4java.DeviceHandle;
 
+import com.rinke.solutions.pinball.DmdSize;
 import com.rinke.solutions.pinball.PinDmdEditor;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.PalMapping;
@@ -37,6 +38,7 @@ public abstract class Pin2DmdConnector {
 	}
 	
 	protected String address;
+	protected DmdSize dmdSize = DmdSize.Size128x32;
 	
     public Pin2DmdConnector(String address) {
 		super();
@@ -201,24 +203,32 @@ public abstract class Pin2DmdConnector {
     	//LOG.info("sending frame to device: {}", frame);
     	byte[] buffer = buildFrameBuffer();
     	int i = 0;
-    	if( frame.planes.size() == 2 ) {
-//    		byte[] planeOr = new byte[PinDmdEditor.PLANE_SIZE];
-    		byte[] planeAnd = new byte[PinDmdEditor.PLANE_SIZE];
+    	int planeSize = dmdSize.planeSize;
+    	if( dmdSize.equals(DmdSize.Size192x64) ) {
+    		// XL dmd is handled different
+    		buffer[3] = (byte)0x06;
     		byte[] plane0 = frame.planes.get(0).data;
     		byte[] plane1 = frame.planes.get(1).data;
-    		
-    		for (int j = 0; j < plane0.length; j++) {
-//				planeOr[j] =  (byte) (plane0[j] | plane1[j]);
-				planeAnd[j] =  (byte) (plane0[j] & plane1[j]);
-			}
-    		System.arraycopy(Frame.transform(plane0), 0, buffer, 4+0*PinDmdEditor.PLANE_SIZE, PinDmdEditor.PLANE_SIZE);
-    		System.arraycopy(Frame.transform(plane1), 0, buffer, 4+2*PinDmdEditor.PLANE_SIZE, PinDmdEditor.PLANE_SIZE);
-    		System.arraycopy(Frame.transform(planeAnd), 0, buffer, 4+1*PinDmdEditor.PLANE_SIZE, PinDmdEditor.PLANE_SIZE);
-    		System.arraycopy(Frame.transform(planeAnd), 0, buffer, 4+3*PinDmdEditor.PLANE_SIZE, PinDmdEditor.PLANE_SIZE);
+    		System.arraycopy(Frame.transform(plane0), 0, buffer, 4+0*planeSize, planeSize);
+    		System.arraycopy(Frame.transform(plane1), 0, buffer, 4+1*planeSize, planeSize);
     	} else {
-        	for( Plane p : frame.planes) {
-        		System.arraycopy(Frame.transform(p.data), 0, buffer, 4+i*PinDmdEditor.PLANE_SIZE, PinDmdEditor.PLANE_SIZE);
-        		if( i++ > 3 ) break;
+        	if( frame.planes.size() == 2 ) {
+        		byte[] planeAnd = new byte[planeSize];
+        		byte[] plane0 = frame.planes.get(0).data;
+        		byte[] plane1 = frame.planes.get(1).data;
+        		
+        		for (int j = 0; j < plane0.length; j++) {
+    				planeAnd[j] =  (byte) (plane0[j] & plane1[j]);
+    			}
+        		System.arraycopy(Frame.transform(plane0), 0, buffer, 4+0*planeSize, planeSize);
+        		System.arraycopy(Frame.transform(plane1), 0, buffer, 4+2*planeSize, planeSize);
+        		System.arraycopy(Frame.transform(planeAnd), 0, buffer, 4+1*planeSize, planeSize);
+        		System.arraycopy(Frame.transform(planeAnd), 0, buffer, 4+3*planeSize, planeSize);
+        	} else {
+            	for( Plane p : frame.planes) {
+            		System.arraycopy(Frame.transform(p.data), 0, buffer, 4+i*planeSize, planeSize);
+            		if( i++ > 3 ) break;
+            	}
         	}
     	}
     	send(buffer, usb);
@@ -249,8 +259,6 @@ public abstract class Pin2DmdConnector {
 	    	send(res, handle);
 	    }
     }
-    
-
 
 	public abstract ConnectionHandle connect(String address);
 	
@@ -281,6 +289,10 @@ public abstract class Pin2DmdConnector {
 	    	send(bytes, handle);
 	    }
 		
+	}
+
+	public void setDmdSize(DmdSize dmdSize) {
+		this.dmdSize = dmdSize;
 	}
 
 }
