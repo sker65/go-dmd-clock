@@ -2341,7 +2341,7 @@ public class PinDmdEditor implements EventHandler {
 				}
 				PalMapping palMapping = new PalMapping(0, "KeyFrame " + ani.getDesc());
 				palMapping.setDigest(hashes.get(selectedHashIndex));
-				palMapping.palIndex = activePalette.index;
+				palMapping.palIndex = ani.getPalIndex();
 				palMapping.frameSeqName = ani.getDesc();
 				palMapping.animationName = selectedRecording.get().getDesc();
 				palMapping.switchMode = switchMode;
