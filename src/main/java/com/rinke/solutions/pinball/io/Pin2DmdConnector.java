@@ -55,8 +55,8 @@ public abstract class Pin2DmdConnector {
         return res;
     }
 
-    protected byte[] buildFrameBuffer() {
-        byte[] res = new byte[2052];
+    protected byte[] buildFrameBuffer(int size) {
+        byte[] res = new byte[size];
         res[0] = (byte)0x81;
         res[1] = (byte)0xc3;
         res[2] = (byte)0xe7;
@@ -201,16 +201,16 @@ public abstract class Pin2DmdConnector {
 	 */
     public void sendFrame( Frame frame, ConnectionHandle usb ) {
     	//LOG.info("sending frame to device: {}", frame);
-    	byte[] buffer = buildFrameBuffer();
+    	byte[] buffer = buildFrameBuffer(4*dmdSize.planeSize + 4); // header size
     	int i = 0;
     	int planeSize = dmdSize.planeSize;
     	if( dmdSize.equals(DmdSize.Size192x64) ) {
     		// XL dmd is handled different
-    		buffer[3] = (byte)0x06;
-    		byte[] plane0 = frame.planes.get(0).data;
-    		byte[] plane1 = frame.planes.get(1).data;
-    		System.arraycopy(Frame.transform(plane0), 0, buffer, 4+0*planeSize, planeSize);
-    		System.arraycopy(Frame.transform(plane1), 0, buffer, 4+1*planeSize, planeSize);
+    		for( Plane p : frame.planes) {
+        		System.arraycopy(Frame.transform(p.data), 0, buffer, 4+i*planeSize, planeSize);
+        		if( i++ > 3 ) break; // max 4 planes
+        	}
+    		buffer[3] = (byte)(i*planeSize/512);
     	} else {
         	if( frame.planes.size() == 2 ) {
         		byte[] planeAnd = new byte[planeSize];
