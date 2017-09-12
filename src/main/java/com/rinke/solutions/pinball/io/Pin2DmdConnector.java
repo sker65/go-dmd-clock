@@ -201,13 +201,14 @@ public abstract class Pin2DmdConnector {
 	 */
     public void sendFrame( Frame frame, ConnectionHandle usb ) {
     	//LOG.info("sending frame to device: {}", frame);
-    	byte[] buffer = buildFrameBuffer(4*dmdSize.planeSize + 4); // header size
+    	int headerSize = 4;
+    	byte[] buffer = buildFrameBuffer(4*dmdSize.planeSize + headerSize); // max 4 planes
     	int i = 0;
     	int planeSize = dmdSize.planeSize;
     	if( dmdSize.equals(DmdSize.Size192x64) ) {
     		// XL dmd is handled different
     		for( Plane p : frame.planes) {
-        		System.arraycopy(Frame.transform(p.data), 0, buffer, 4+i*planeSize, planeSize);
+        		System.arraycopy(Frame.transform(p.data), 0, buffer, headerSize+i*planeSize, planeSize);
         		if( i++ > 3 ) break; // max 4 planes
         	}
     		buffer[3] = (byte)(i*planeSize/512);
@@ -220,15 +221,17 @@ public abstract class Pin2DmdConnector {
         		for (int j = 0; j < plane0.length; j++) {
     				planeAnd[j] =  (byte) (plane0[j] & plane1[j]);
     			}
-        		System.arraycopy(Frame.transform(plane0), 0, buffer, 4+0*planeSize, planeSize);
-        		System.arraycopy(Frame.transform(plane1), 0, buffer, 4+2*planeSize, planeSize);
-        		System.arraycopy(Frame.transform(planeAnd), 0, buffer, 4+1*planeSize, planeSize);
-        		System.arraycopy(Frame.transform(planeAnd), 0, buffer, 4+3*planeSize, planeSize);
+        		System.arraycopy(Frame.transform(plane0), 0, buffer, headerSize+0*planeSize, planeSize);
+        		System.arraycopy(Frame.transform(plane1), 0, buffer, headerSize+2*planeSize, planeSize);
+        		System.arraycopy(Frame.transform(planeAnd), 0, buffer, headerSize+1*planeSize, planeSize);
+        		System.arraycopy(Frame.transform(planeAnd), 0, buffer, headerSize+3*planeSize, planeSize);
+        		buffer[3] = (byte)0x04;
         	} else {
             	for( Plane p : frame.planes) {
-            		System.arraycopy(Frame.transform(p.data), 0, buffer, 4+i*planeSize, planeSize);
+            		System.arraycopy(Frame.transform(p.data), 0, buffer, headerSize+i*planeSize, planeSize);
             		if( i++ > 3 ) break;
             	}
+            	buffer[3] = (byte)(i*planeSize/512);
         	}
     	}
     	send(buffer, usb);
