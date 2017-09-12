@@ -52,6 +52,7 @@ public class Config extends Dialog {
 	private Spinner spinnerNoPlanes;
 	private Button btnUseOldExport;
 	private Button btnCreatePaletteAfter;
+	private Button btnCreateBookmarkAfter;
     
     /**
      * Create the dialog.
@@ -94,6 +95,7 @@ public class Config extends Dialog {
         spinnerNoPlanes.setSelection(ApplicationProperties.getInteger(ApplicationProperties.NOOFPLANES, 4));
         btnUseOldExport.setSelection(ApplicationProperties.getBoolean(ApplicationProperties.OLDEXPORT, false));
         btnCreatePaletteAfter.setSelection(ApplicationProperties.getBoolean(ApplicationProperties.ADDPALWHENCUT, false));
+        btnCreateBookmarkAfter.setSelection(ApplicationProperties.getBoolean(ApplicationProperties.CREATEBOOKCUT, false));
         
         shell.open();
         shell.layout();
@@ -224,41 +226,48 @@ public class Config extends Dialog {
         tbtmSettings.setControl(grpFoo);
         grpFoo.setLayout(new FormLayout());
         
-        btnCreateKeyFrame = new Button(grpFoo, SWT.CHECK);
-        FormData fd_btnCreateKeyFrame = new FormData();
-        fd_btnCreateKeyFrame.top = new FormAttachment(0, 10);
-        fd_btnCreateKeyFrame.left = new FormAttachment(0, 10);
-        btnCreateKeyFrame.setLayoutData(fd_btnCreateKeyFrame);
-        btnCreateKeyFrame.setText("create key frame after cut");
+        Group grpCutting = new Group(grpFoo, SWT.NONE);
+        grpCutting.setText("Cutting");
+        FormData fd_grpCutting = new FormData();
+        fd_grpCutting.top = new FormAttachment(0);
+        fd_grpCutting.left = new FormAttachment(0);
+        fd_grpCutting.bottom = new FormAttachment(100, -42);
+        fd_grpCutting.right = new FormAttachment(100, -228);
+        grpCutting.setLayoutData(fd_grpCutting);
         
-        spinnerNoPlanes = new Spinner(grpFoo, SWT.BORDER);
-        spinnerNoPlanes.setMinimum(2);
-        spinnerNoPlanes.setMaximum(15);
-        FormData fd_spinner = new FormData();
-        fd_spinner.top = new FormAttachment(btnCreateKeyFrame, 6);
-        fd_spinner.left = new FormAttachment(btnCreateKeyFrame, 0, SWT.LEFT);
-        spinnerNoPlanes.setLayoutData(fd_spinner);
+        btnCreateKeyFrame = new Button(grpCutting, SWT.CHECK);
+        btnCreateKeyFrame.setBounds(10, 10, 228, 18);
+        btnCreateKeyFrame.setText("create key frame after cutting");
         
-        btnUseOldExport = new Button(grpFoo, SWT.CHECK);
-        FormData fd_btnUseOldExport = new FormData();
-        fd_btnUseOldExport.top = new FormAttachment(spinnerNoPlanes, 6);
-        fd_btnUseOldExport.left = new FormAttachment(btnCreateKeyFrame, 0, SWT.LEFT);
-        btnUseOldExport.setLayoutData(fd_btnUseOldExport);
-        btnUseOldExport.setText("use old export format");
+        btnCreatePaletteAfter = new Button(grpCutting, SWT.CHECK);
+        btnCreatePaletteAfter.setBounds(10, 34, 241, 18);
+        btnCreatePaletteAfter.setText("create palette after cutting");
         
-        Label lblNumberOfPlanes = new Label(grpFoo, SWT.NONE);
-        FormData fd_lblNumberOfPlanes = new FormData();
-        fd_lblNumberOfPlanes.top = new FormAttachment(btnCreateKeyFrame, 10);
-        fd_lblNumberOfPlanes.left = new FormAttachment(0, 65);
-        lblNumberOfPlanes.setLayoutData(fd_lblNumberOfPlanes);
+        btnCreateBookmarkAfter = new Button(grpCutting, SWT.CHECK);
+        btnCreateBookmarkAfter.setBounds(10, 58, 241, 18);
+        btnCreateBookmarkAfter.setText("create bookmark after cutting");
+        
+        Label lblNumberOfPlanes = new Label(grpCutting, SWT.NONE);
+        lblNumberOfPlanes.setBounds(60, 87, 192, 14);
         lblNumberOfPlanes.setText("Number of planes when cutting");
         
-        btnCreatePaletteAfter = new Button(grpFoo, SWT.CHECK);
-        FormData fd_btnCreatePaletteAfter = new FormData();
-        fd_btnCreatePaletteAfter.top = new FormAttachment(btnUseOldExport, 5);
-        fd_btnCreatePaletteAfter.left = new FormAttachment(0, 10);
-        btnCreatePaletteAfter.setLayoutData(fd_btnCreatePaletteAfter);
-        btnCreatePaletteAfter.setText("create palette after cutting");
+        spinnerNoPlanes = new Spinner(grpCutting, SWT.BORDER);
+        spinnerNoPlanes.setBounds(10, 82, 44, 22);
+        spinnerNoPlanes.setMinimum(2);
+        spinnerNoPlanes.setMaximum(15);
+        
+        Group grpExport = new Group(grpFoo, SWT.NONE);
+        grpExport.setText("Export");
+        FormData fd_grpExport = new FormData();
+        fd_grpExport.bottom = new FormAttachment(grpCutting, 0, SWT.BOTTOM);
+        fd_grpExport.top = new FormAttachment(0);
+        fd_grpExport.right = new FormAttachment(100, -10);
+        fd_grpExport.left = new FormAttachment(grpCutting, 6);
+        grpExport.setLayoutData(fd_grpExport);
+        
+        btnUseOldExport = new Button(grpExport, SWT.CHECK);
+        btnUseOldExport.setBounds(10, 10, 188, 18);
+        btnUseOldExport.setText("use old export format");
         
         FormData fd_grpConfig = new FormData();
         fd_grpConfig.bottom = new FormAttachment(100, -292);
@@ -280,6 +289,7 @@ public class Config extends Dialog {
         ApplicationProperties.put(ApplicationProperties.NOOFPLANES, spinnerNoPlanes.getSelection());
         ApplicationProperties.put(ApplicationProperties.OLDEXPORT, btnUseOldExport.getSelection());
         ApplicationProperties.put(ApplicationProperties.ADDPALWHENCUT, btnCreatePaletteAfter.getSelection());
+        ApplicationProperties.put(ApplicationProperties.CREATEBOOKCUT, btnCreateBookmarkAfter.getSelection());
 		shell.close();
 	}
 }

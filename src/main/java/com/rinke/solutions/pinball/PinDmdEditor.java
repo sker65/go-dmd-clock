@@ -654,7 +654,9 @@ public class PinDmdEditor implements EventHandler {
 				
 		scenes.put(name, cutScene);
 		
-		addBookmark(animation, name, start);
+		if( ApplicationProperties.getBoolean(ApplicationProperties.CREATEBOOKCUT, true))
+			addBookmark(animation, name, start);
+		
 		setViewerSelection(frameSeqViewer, cutScene);
 
 		if( ApplicationProperties.getBoolean(ApplicationProperties.AUTOKEYFRAME)) {

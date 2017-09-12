@@ -22,6 +22,7 @@ public class ApplicationProperties {
 	public static final String NOOFPLANES = "noOfPlanesWhenCutting";
 	public static final String OLDEXPORT = "oldexport";
 	public static final String ADDPALWHENCUT = "addPalWhenCut";
+	public static final String CREATEBOOKCUT= "createBookmarkAfterCut";
 
 	private static ApplicationProperties theInstance;
 
@@ -83,7 +84,7 @@ public class ApplicationProperties {
 
 	public static String get(String key) {
 		String val = getInstance().props.getProperty(key);
-		log.debug("get prop {} = '{}' ", key, val);
+		log.trace("get prop {} = '{}' ", key, val);
 		return val;
 	}
 
