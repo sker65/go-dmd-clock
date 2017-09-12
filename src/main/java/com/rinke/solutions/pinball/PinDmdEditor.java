@@ -628,6 +628,18 @@ public class PinDmdEditor implements EventHandler {
 			saveProject(saveFile);
 		}
 	}
+	
+	void addBookmark(Animation animation, String bookmarkName, int pos) {
+		Set<Bookmark> set = project.bookmarksMap.get(animation.getDesc());
+		if( set == null ) {
+			set = new TreeSet<Bookmark>();
+			project.bookmarksMap.put(animation.getDesc(),set);
+			
+		}
+		set.add(new Bookmark(bookmarkName, pos));
+		bookmarkComboViewer.setInput(set);
+		bookmarkComboViewer.refresh();
+	}
 
 	private Animation cutScene(Animation animation, int start, int end, String name) {
 		CompiledAnimation cutScene = animation.cutScene(start, end, ApplicationProperties.getInteger(ApplicationProperties.NOOFPLANES,4));
@@ -642,6 +654,7 @@ public class PinDmdEditor implements EventHandler {
 				
 		scenes.put(name, cutScene);
 		
+		addBookmark(animation, name, start);
 		setViewerSelection(frameSeqViewer, cutScene);
 
 		if( ApplicationProperties.getBoolean(ApplicationProperties.AUTOKEYFRAME)) {
@@ -1172,6 +1185,7 @@ public class PinDmdEditor implements EventHandler {
 		TableViewerColumn viewerCol2 = new TableViewerColumn(sceneListViewer, SWT.LEFT);
 		viewerCol2.setEditingSupport(new GenericTextCellEditor<Animation>(sceneListViewer, ani -> ani.getDesc(), (ani, v) -> {
 			updateAnimationMapKey(ani.getDesc(), v, scenes);
+			updateBookmarkNames( ani.getDesc(), v );
 			updatePalMappings(ani.getDesc(), v);
 			ani.setDesc(v);
 			frameSeqViewer.refresh();
@@ -1487,17 +1501,9 @@ public class PinDmdEditor implements EventHandler {
 		btnNewBookMark.setText("New");
 		btnNewBookMark.addListener(SWT.Selection, e->{
 			if( selectedRecording.isPresent() ) {
-				Animation r = selectedRecording.get();
-				Set<Bookmark> set = project.bookmarksMap.get(r.getDesc());
-				if( set == null ) {
-					set = new TreeSet<Bookmark>();
-					project.bookmarksMap.put(r.getDesc(),set);
-					
-				}
+				Animation recording = selectedRecording.get();
 				String bookmarkName = bookmarkComboViewer.getCombo().getText();
-				set.add(new Bookmark(bookmarkName, r.actFrame));
-				bookmarkComboViewer.setInput(set);
-				bookmarkComboViewer.refresh();
+				addBookmark(recording, bookmarkName, recording.actFrame);
 			}
 		});
 		
@@ -1746,6 +1752,22 @@ public class PinDmdEditor implements EventHandler {
 
 	}
 	
+	// called when scene gets renamed
+	private void updateBookmarkNames(String old, String newName) {
+		for( Set<Bookmark> bookmarks : project.bookmarksMap.values()) {
+			Iterator<Bookmark> i = bookmarks.iterator();
+			while(i.hasNext() ) {
+				Bookmark bm = i.next();
+				if( bm.name.equals(old) ) {
+					i.remove();
+					bookmarks.add( new Bookmark(newName, bm.pos));
+					break;
+				}
+			}
+		}
+		
+	}
+
 	/**
 	 * if a scene gets renamed, this update function is called.
 	 * if newKey is not equal to old, the refering pal mappings gets updated
