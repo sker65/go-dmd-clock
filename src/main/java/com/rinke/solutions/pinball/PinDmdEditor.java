@@ -2148,9 +2148,10 @@ public class PinDmdEditor implements EventHandler {
 		if( current == null && a == null ) return;
 		if(a!= null && current != null && a.getDesc().equals(current.getDesc())) return;
 		if( current != null ) scenesPosMap.put(current.getDesc(), current.actFrame);
+		
+		selectedScene.ifPresent(b->b.commitDMDchanges(dmd,hashes.get(selectedHashIndex)));
 		if( a != null ) {
 			// deselect recording
-			selectedScene.ifPresent(b->b.commitDMDchanges(dmd,hashes.get(selectedHashIndex)));
 			cutInfo.reset();
 			dmdWidget.resetSelection();
 			aniListViewer.setSelection(StructuredSelection.EMPTY);
