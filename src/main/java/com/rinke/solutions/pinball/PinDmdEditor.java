@@ -11,6 +11,7 @@ import java.io.OutputStream;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -987,6 +988,11 @@ public class PinDmdEditor implements EventHandler {
 	void saveProject(String filename) {
 		log.info("write project to {}", filename);
 		String aniFilename = replaceExtensionTo("ani", filename);
+		
+		if( ApplicationProperties.getBoolean(ApplicationProperties.BACKUP)) {
+			backupFiles(filename, aniFilename);
+		}
+		
 		String baseName = new File(aniFilename).getName();
 		String baseNameWithoutExtension = baseName.substring(0, baseName.indexOf('.'));
 		if (project.name == null) {
@@ -1017,6 +1023,17 @@ public class PinDmdEditor implements EventHandler {
 		fileHelper.storeObject(project, filename);
 		
 		project.dirty = false;
+	}
+
+	private void backupFiles(String... filenames) {
+		for(String file: filenames) {
+			log.info("creating backup of file '{}'", file);
+			try {
+				Files.copy( Paths.get(file), Paths.get(file+".bak"));
+			} catch (IOException e) {
+				log.warn("backup of {} failed", file, e);
+			}
+		}
 	}
 
 	private void storeOrDeleteProjectAnimations(String aniFilename) {

@@ -31,6 +31,8 @@ import com.rinke.solutions.pinball.util.ApplicationProperties;
 
 import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.TabFolder;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 
 @Slf4j
 public class Config extends Dialog {
@@ -53,6 +55,7 @@ public class Config extends Dialog {
 	private Button btnUseOldExport;
 	private Button btnCreatePaletteAfter;
 	private Button btnCreateBookmarkAfter;
+	private Button btnBackupOnSave;
     
     /**
      * Create the dialog.
@@ -96,6 +99,7 @@ public class Config extends Dialog {
         btnUseOldExport.setSelection(ApplicationProperties.getBoolean(ApplicationProperties.OLDEXPORT, false));
         btnCreatePaletteAfter.setSelection(ApplicationProperties.getBoolean(ApplicationProperties.ADDPALWHENCUT, false));
         btnCreateBookmarkAfter.setSelection(ApplicationProperties.getBoolean(ApplicationProperties.CREATEBOOKCUT, false));
+        btnBackupOnSave.setSelection(ApplicationProperties.getBoolean(ApplicationProperties.BACKUP, false));
         
         shell.open();
         shell.layout();
@@ -150,6 +154,8 @@ public class Config extends Dialog {
         
         group = new Group(grpTest, SWT.NONE);
         FormData fd_group = new FormData();
+        fd_group.left = new FormAttachment(0, 10);
+        fd_group.bottom = new FormAttachment(100);
         group.setLayoutData(fd_group);
         group.setText("WiFi");
         group.setLayout(new GridLayout(3, false));
@@ -177,9 +183,8 @@ public class Config extends Dialog {
 		label_1.setText("Enter IP address or hostname for WiFi (default port is 9191)");
         
         grpDmd = new Group(grpTest, SWT.NONE);
-        fd_group.top = new FormAttachment(grpDmd, 6);
-        fd_group.left = new FormAttachment(grpDmd, 0, SWT.LEFT);
         FormData fd_grpDmd = new FormData();
+        fd_grpDmd.bottom = new FormAttachment(group, -6);
         fd_grpDmd.top = new FormAttachment(0, 10);
         fd_grpDmd.left = new FormAttachment(0, 10);
         grpDmd.setLayoutData(fd_grpDmd);
@@ -199,25 +204,30 @@ public class Config extends Dialog {
 		
         Group grpAutosave = new Group(grpTest, SWT.NONE);
         FormData fd_grpAutosave = new FormData();
-        fd_grpAutosave.top = new FormAttachment(grpDmd, 0, SWT.TOP);
-        fd_grpAutosave.right = new FormAttachment(group, 0, SWT.RIGHT);
+        fd_grpAutosave.bottom = new FormAttachment(group, -6);
+        fd_grpAutosave.right = new FormAttachment(100, -28);
         fd_grpAutosave.left = new FormAttachment(grpDmd, 22);
+        fd_grpAutosave.top = new FormAttachment(0, 10);
         grpAutosave.setLayoutData(fd_grpAutosave);
-        grpAutosave.setText("Autosave");
+        grpAutosave.setText("Save");
         
         btnAutosaveActive = new Button(grpAutosave, SWT.CHECK);
-        btnAutosaveActive.setBounds(10, 10, 70, 18);
-        btnAutosaveActive.setText("active");
+        btnAutosaveActive.setBounds(10, 10, 106, 18);
+        btnAutosaveActive.setText("autosave active");
         
         autosaveInterval = new Spinner(grpAutosave, SWT.BORDER);
-        autosaveInterval.setBounds(69, 8, 52, 22);
+        autosaveInterval.setBounds(122, 8, 52, 22);
         autosaveInterval.setIncrement(5);
         autosaveInterval.setMinimum(5);
         autosaveInterval.setMaximum(30);
         
         Label lblSec = new Label(grpAutosave, SWT.NONE);
-        lblSec.setBounds(127, 13, 59, 14);
+        lblSec.setBounds(180, 13, 40, 14);
         lblSec.setText("min.");
+        
+        btnBackupOnSave = new Button(grpAutosave, SWT.CHECK);
+        btnBackupOnSave.setBounds(10, 33, 140, 18);
+        btnBackupOnSave.setText("backup on save");
         
         TabItem tbtmSettings = new TabItem(tabFolder, SWT.NONE);
         tbtmSettings.setText("Settings");
@@ -290,6 +300,7 @@ public class Config extends Dialog {
         ApplicationProperties.put(ApplicationProperties.OLDEXPORT, btnUseOldExport.getSelection());
         ApplicationProperties.put(ApplicationProperties.ADDPALWHENCUT, btnCreatePaletteAfter.getSelection());
         ApplicationProperties.put(ApplicationProperties.CREATEBOOKCUT, btnCreateBookmarkAfter.getSelection());
+        ApplicationProperties.put(ApplicationProperties.BACKUP, btnBackupOnSave.getSelection());
 		shell.close();
 	}
 }

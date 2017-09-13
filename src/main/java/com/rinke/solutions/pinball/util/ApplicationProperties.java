@@ -23,6 +23,7 @@ public class ApplicationProperties {
 	public static final String OLDEXPORT = "oldexport";
 	public static final String ADDPALWHENCUT = "addPalWhenCut";
 	public static final String CREATEBOOKCUT= "createBookmarkAfterCut";
+	public static final String BACKUP = "backup";
 
 	private static ApplicationProperties theInstance;
 
