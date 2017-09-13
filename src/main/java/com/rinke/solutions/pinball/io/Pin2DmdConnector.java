@@ -211,6 +211,7 @@ public abstract class Pin2DmdConnector {
         		System.arraycopy(Frame.transform(p.data), 0, buffer, headerSize+i*planeSize, planeSize);
         		if( i++ > 3 ) break; // max 4 planes
         	}
+    		buffer[2] = (byte)0xe8;
     		buffer[3] = (byte)(i*planeSize/512);
     	} else {
         	if( frame.planes.size() == 2 ) {
@@ -225,13 +226,11 @@ public abstract class Pin2DmdConnector {
         		System.arraycopy(Frame.transform(plane1), 0, buffer, headerSize+2*planeSize, planeSize);
         		System.arraycopy(Frame.transform(planeAnd), 0, buffer, headerSize+1*planeSize, planeSize);
         		System.arraycopy(Frame.transform(planeAnd), 0, buffer, headerSize+3*planeSize, planeSize);
-        		buffer[3] = (byte)0x04;
         	} else {
             	for( Plane p : frame.planes) {
             		System.arraycopy(Frame.transform(p.data), 0, buffer, headerSize+i*planeSize, planeSize);
             		if( i++ > 3 ) break;
             	}
-            	buffer[3] = (byte)(i*planeSize/512);
         	}
     	}
     	send(buffer, usb);
