@@ -75,6 +75,8 @@ public class CompiledAnimation extends Animation {
 		return maskToUse;
     }
 
+    // looks like there is a chance that commit gets called on an new (already switched) animation, while dmd
+    // content still has the content of the old (that was displayed before)
 	@Override
 	public void commitDMDchanges(DMD dmd, byte[] hash) {
 		if( clockWasAdded ) {		// never commit a frame were clock was rendered, this is savety check only

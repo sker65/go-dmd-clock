@@ -768,7 +768,13 @@ public class PinDmdEditor implements EventHandler {
 			String msg = "";
 			for (String file : project.inputFiles) {
 				try {
-					aniAction.loadAni(buildRelFilename(filename, file), true, false);
+					List<Animation> anis = aniAction.loadAni(buildRelFilename(filename, file), true, false);
+					if( !anis.isEmpty() ) {
+						Animation firstAni = anis.get(0);
+						if( project.recordingNameMap.containsKey(file)) {
+							firstAni.setDesc(project.recordingNameMap.get(file));
+						}
+					}
 				} catch( RuntimeException e) {
 					msg +="\nProblem loading "+file+": "+e.getMessage();
 				}
@@ -1163,11 +1169,12 @@ public class PinDmdEditor implements EventHandler {
 		
 		// created edit support for ani / recordings
 		TableViewerColumn viewerCol1 = new TableViewerColumn(aniListViewer, SWT.LEFT);
-		viewerCol1.setEditingSupport(new GenericTextCellEditor<Animation>(aniListViewer, ani -> ani.getDesc(), (ani, v) -> {
-			updateAnimationMapKey(ani.getDesc(), v, recordings);
-			ani.setDesc(v);
-			frameSeqViewer.refresh();
-		}));
+		viewerCol1.setEditingSupport(
+				new GenericTextCellEditor<Animation>(aniListViewer, ani -> ani.getDesc(), (ani, newName) -> {
+					renameRecording(ani.getDesc(), newName);
+					ani.setDesc(newName);
+				}
+			));
 		viewerCol1.getColumn().setWidth(colWidth);
 		viewerCol1.setLabelProvider(new IconLabelProvider<Animation>(shell, o -> o.getIconAndText() ));
 		
@@ -1185,13 +1192,13 @@ public class PinDmdEditor implements EventHandler {
 		sceneListViewer.addSelectionChangedListener(event -> onSceneSelectionChanged(getFirstSelected(event)));
 
 		TableViewerColumn viewerCol2 = new TableViewerColumn(sceneListViewer, SWT.LEFT);
-		viewerCol2.setEditingSupport(new GenericTextCellEditor<Animation>(sceneListViewer, ani -> ani.getDesc(), (ani, v) -> {
-			updateAnimationMapKey(ani.getDesc(), v, scenes);
-			updateBookmarkNames( ani.getDesc(), v );
-			updatePalMappings(ani.getDesc(), v);
-			ani.setDesc(v);
-			frameSeqViewer.refresh();
-		}));
+		viewerCol2.setEditingSupport(
+				new GenericTextCellEditor<Animation>(sceneListViewer, ani -> ani.getDesc(), (ani, newName) -> {
+					renameScene(ani.getDesc(), newName);
+					frameSeqViewer.refresh();
+					ani.setDesc(newName);
+				}
+			));
 		viewerCol2.getColumn().setWidth(colWidth);
 		viewerCol2.setLabelProvider(new IconLabelProvider<Animation>(shell, ani -> ani.getIconAndText() ));
 
@@ -1754,6 +1761,18 @@ public class PinDmdEditor implements EventHandler {
 
 	}
 	
+	void renameScene(String oldName, String newName) {
+		updateAnimationMapKey(oldName, newName, scenes);
+		updateBookmarkNames( oldName, newName );
+		updatePalMappingsSceneNames(oldName, newName);
+	}
+	
+	void renameRecording(String oldName, String newName){
+		updateAnimationMapKey(oldName, newName, recordings);
+		updatePalMappingsRecordingNames(oldName, newName);
+		project.recordingNameMap.put(oldName, newName);
+	}
+	
 	// called when scene gets renamed
 	private void updateBookmarkNames(String old, String newName) {
 		for( Set<Bookmark> bookmarks : project.bookmarksMap.values()) {
@@ -1776,11 +1795,20 @@ public class PinDmdEditor implements EventHandler {
 	 * @param oldKey old name of the scene
 	 * @param newKey new name of scene
 	 */
-	private void updatePalMappings(String oldKey, String newKey) {
+	private void updatePalMappingsSceneNames(String oldKey, String newKey) {
 		if( StringUtils.equals(oldKey, newKey) ) return;
 		project.palMappings.forEach(p->{
 			if( p.frameSeqName != null && p.frameSeqName.equals(oldKey)) {
 				p.frameSeqName = newKey;
+			}
+		});
+	}
+
+	private void updatePalMappingsRecordingNames(String oldKey, String newKey) {
+		if( StringUtils.equals(oldKey, newKey) ) return;
+		project.palMappings.forEach(p->{
+			if( p.animationName != null && p.animationName.equals(oldKey)) {
+				p.animationName = newKey;
 			}
 		});
 	}
@@ -2028,12 +2056,14 @@ public class PinDmdEditor implements EventHandler {
 	private void onStartStopClicked(boolean stopped) {
 		if( stopped )
 		{
+			log.info("Starting animation playback");
 			selectedScene.ifPresent(a->a.commitDMDchanges(dmd, hashes.get(selectedHashIndex)));
 			animationHandler.start();
 			display.timerExec(animationHandler.getRefreshDelay(), cyclicRedraw);
 			btnStartStop.setText("Stop");
 			dmdWidget.resetSelection();
 		} else {
+			log.info("Stopping animation playback");
 			animationHandler.stop();
 			btnStartStop.setText("Start");
 		}
@@ -2058,8 +2088,12 @@ public class PinDmdEditor implements EventHandler {
 				selectedHashIndex = i;
 			}
 		}
+		updateHashBtnSelection();
+	}
+	
+	void updateHashBtnSelection() {
 		for (int j = 0; j < numberOfHashes; j++) {
-			btnHash[j].setSelection(j == selectedHashIndex);
+			btnHash[j].setSelection(j == selectedHashIndex && btnHash[j].getEnabled());
 		}
 	}
 
@@ -2143,35 +2177,37 @@ public class PinDmdEditor implements EventHandler {
 	// TODO !!! make selected animation observable to bind change handler to it (maybe remove) Optional
 	// make this the general change handler, and let the click handler only set selected animation
 
-	private void onSceneSelectionChanged(CompiledAnimation a) {
-		log.info("onSceneSelectionChanged: {}", a);
+	private void onSceneSelectionChanged(CompiledAnimation nextScene) {
+		log.info("onSceneSelectionChanged: {}", nextScene);
 		Animation current = selectedScene.get();
 		// detect changes
-		if( current == null && a == null ) return;
-		if(a!= null && current != null && a.getDesc().equals(current.getDesc())) return;
-		if( current != null ) scenesPosMap.put(current.getDesc(), current.actFrame);
+		if( current == null && nextScene == null ) return;
+		if( nextScene != null && current != null && nextScene.getDesc().equals(current.getDesc())) return;
 		
-		selectedScene.ifPresent(b->b.commitDMDchanges(dmd,hashes.get(selectedHashIndex)));
-		if( a != null ) {
+		if( current != null ) {
+			scenesPosMap.put(current.getDesc(), current.actFrame);
+			current.commitDMDchanges(dmd,hashes.get(selectedHashIndex));
+		}
+		if( nextScene != null ) {
 			// deselect recording
 			cutInfo.reset();
 			dmdWidget.resetSelection();
 			aniListViewer.setSelection(StructuredSelection.EMPTY);
-			goDmdGroup.updateAnimation(a);
-			btnMask.setEnabled(a.getEditMode().equals(EditMode.FOLLOW));
+			goDmdGroup.updateAnimation(nextScene);
+			btnMask.setEnabled(nextScene.getEditMode().equals(EditMode.FOLLOW));
 			maskSpinner.setEnabled(false);
-			if( a.getEditMode() == null || a.getEditMode().equals(EditMode.FIXED) ) {
+			if( nextScene.getEditMode() == null || nextScene.getEditMode().equals(EditMode.FIXED) ) {
 				// old animation may be saved with wrong edit mode
-				a.setEditMode(EditMode.REPLACE);
+				nextScene.setEditMode(EditMode.REPLACE);
 			}
 			editModeViewer.setInput(mutable);
 			editModeViewer.refresh();
 			
-			setEnableHashButtons(a.getEditMode().equals(EditMode.FOLLOW));
+			setEnableHashButtons(nextScene.getEditMode().equals(EditMode.FOLLOW));
 			
-			selectedScene.set(a);
+			selectedScene.set(nextScene);
 
-			int numberOfPlanes = a.getRenderer().getNumberOfPlanes();
+			int numberOfPlanes = nextScene.getRenderer().getNumberOfPlanes();
 			if( numberOfPlanes == 5) {
 				numberOfPlanes = 4;
 			}
@@ -2182,22 +2218,22 @@ public class PinDmdEditor implements EventHandler {
 				goDmdGroup.transitionCombo.select(0);
 			}
 
-			setPaletteViewerByIndex(a.getPalIndex());
+			setPaletteViewerByIndex(nextScene.getPalIndex());
 
-			setViewerSelection(editModeViewer, a.getEditMode());
-			setDrawMaskByEditMode(a.getEditMode());// doesnt fire event?????
+			setViewerSelection(editModeViewer, nextScene.getEditMode());
+			setDrawMaskByEditMode(nextScene.getEditMode());// doesnt fire event?????
 			dmd.setNumberOfSubframes(numberOfPlanes);
 			paletteTool.setNumberOfPlanes(useGlobalMask?1:numberOfPlanes);
 
-			setPlayingAni(a, scenesPosMap.getOrDefault(a.getDesc(), 0));
+			setPlayingAni(nextScene, scenesPosMap.getOrDefault(nextScene.getDesc(), 0));
 			
 		} else {
 			selectedScene.set(null);
 			sceneListViewer.setSelection(StructuredSelection.EMPTY);
 		}
-		goDmdGroup.updateAniModel(a);
-		btnRemoveScene.setEnabled(a!=null);
-		btnSetScenePal.setEnabled(a!=null);
+		goDmdGroup.updateAniModel(nextScene);
+		btnRemoveScene.setEnabled(nextScene!=null);
+		btnSetScenePal.setEnabled(nextScene!=null);
 	}
 	
 	private void onRecordingSelectionChanged(Animation a) {
@@ -2509,12 +2545,18 @@ public class PinDmdEditor implements EventHandler {
 				spinnerEventId.setSelection(palMapping.durationInMillis & 0xFF);
 			}
 			
-			for (int j = 0; j < numberOfHashes; j++) {
-				btnHash[j].setSelection(j == selectedHashIndex);
-			}
-			
 			setViewerSelection(sceneListViewer, null);
-			setViewerSelection(aniListViewer, recordings.get(selectedPalMapping.animationName));
+			Animation rec = recordings.isEmpty() ? null : recordings.values().iterator().next(); // get the first one
+			if( !StringUtils.isEmpty(selectedPalMapping.animationName )) {
+				if( recordings.containsKey(selectedPalMapping.animationName) ) {
+					rec = recordings.get(selectedPalMapping.animationName);
+				} else {
+					log.warn("keyframe has invalid reference to recording '{}'", selectedPalMapping.animationName);
+				}
+			} else {
+				log.warn("keyframe has invalid empty reference: '{}'", selectedPalMapping.animationName);
+			}
+			setViewerSelection(aniListViewer, rec);
 			
 			if (selectedPalMapping.frameSeqName != null)
 				setViewerSelection(frameSeqViewer, scenes.get(selectedPalMapping.frameSeqName));
@@ -2972,6 +3014,7 @@ public class PinDmdEditor implements EventHandler {
 			btnHash[i].setEnabled(false);
 			i++;
 		}
+		updateHashBtnSelection();
 	}
 
 	private String getEmptyHash() {

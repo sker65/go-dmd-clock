@@ -17,6 +17,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Observer;
 import java.util.Random;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -32,6 +34,7 @@ import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.AnimationType;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.io.Pin2DmdConnector;
+import com.rinke.solutions.pinball.model.Bookmark;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.FrameSeq;
 import com.rinke.solutions.pinball.model.PalMapping;
@@ -56,7 +59,7 @@ public class PinDmdEditorTest {
 
 	@Mock
 	AnimationHandler animationHandler;
-	
+
 	@Mock
 	Observer editAniObserver;
 
@@ -84,10 +87,10 @@ public class PinDmdEditorTest {
 		p.crc32 = new byte[] { 1, 2, 3, 4 };
 		p.switchMode = SwitchMode.PALETTE;
 		p.frameSeqName = "foo";
-		
-//		List<Frame> frames = new ArrayList<Frame>();
-//		FrameSeq fs = new FrameSeq(frames, "foo");
-//		uut.project.frameSeqMap.put("foo", fs);
+
+		// List<Frame> frames = new ArrayList<Frame>();
+		// FrameSeq fs = new FrameSeq(frames, "foo");
+		// uut.project.frameSeqMap.put("foo", fs);
 
 		uut.project.palMappings.add(p);
 
@@ -104,7 +107,7 @@ public class PinDmdEditorTest {
 			plane1[i + 1] = (byte) i;
 			plane2[i] = (byte) 0xFF;
 		}
-		
+
 		Frame frame = new Frame(plane1, plane2);
 		frame.delay = 0x77ee77ee;
 		aniFrames.add(frame);
@@ -205,22 +208,77 @@ public class PinDmdEditorTest {
 		byte[] data = new byte[512];
 		uut.dmd.setMask(data);
 		uut.onInvert();
-		assertEquals((byte)0xFF, (byte)uut.dmd.getFrame().mask.data[0]);
+		assertEquals((byte) 0xFF, (byte) uut.dmd.getFrame().mask.data[0]);
 	}
 
 	@Test
 	public void testFromLabel() throws Exception {
-		assertEquals(TabMode.KEYFRAME,TabMode.fromLabel("KeyFrame"));
+		assertEquals(TabMode.KEYFRAME, TabMode.fromLabel("KeyFrame"));
 	}
 
 	@Test
 	public void testRefreshPin2DmdHost() throws Exception {
 		String filename = "foo.properties";
-		System.out.println("propfile: "+filename);
+		System.out.println("propfile: " + filename);
 		new FileOutputStream(filename).close(); // touch file
 		ApplicationProperties.setPropFile(filename);
 		uut.refreshPin2DmdHost("foo");
 		new File(filename).delete();
+	}
+
+	@Test
+	public void testRenameSceneShouldAdjustKey() throws Exception {
+		uut.renameScene("old", "new"); // test free run
+		CompiledAnimation cani = new CompiledAnimation(AnimationType.COMPILED, "old.txt", 0, 0, 0, 0, 0);
+		uut.scenes.put("old", cani);
+		uut.renameScene("old", "new");
+		assertTrue(uut.scenes.containsKey("new"));
+	}
+
+	@Test
+	public void testRenameSceneShouldAdjustKeyframe() throws Exception {
+		PalMapping p = new PalMapping(0, "foo");
+		p.frameSeqName = "old";
+		uut.project.palMappings.add(p);
+		uut.renameScene("old", "new");
+		assertEquals("new", p.frameSeqName);
+	}
+
+	@Test
+	public void testRenameSceneShouldAdjustBookmark() throws Exception {
+		Set<Bookmark> set = new TreeSet<>();
+		uut.project.bookmarksMap.put("foo", set);
+		Bookmark bookmark = new Bookmark("old", 0);
+		set.add(bookmark);
+		uut.renameScene("old", "new");
+		assertEquals("new", set.iterator().next().name); // new bookmark
+	}
+
+	@Test
+	public void testRenameRecordingShouldAdjustKey() throws Exception {
+		uut.renameRecording("old", "new");
+		Animation cani = new Animation(AnimationType.COMPILED, "old.txt", 0, 0, 0, 0, 0);
+		uut.recordings.put("old", cani);
+		uut.renameRecording("old", "new");
+		assertTrue(uut.recordings.containsKey("new"));
+	}
+
+	@Test
+	public void testRenameRecordingShouldAdjustKeyFrame() throws Exception {
+		PalMapping p = new PalMapping(0, "foo");
+		p.animationName = "old";
+		uut.project.palMappings.add(p);
+		uut.renameRecording("old", "new");
+		assertEquals("new", p.animationName);
+	}
+
+	@Test
+	public void testRenameRecordingShouldPoplateNameMap() throws Exception {
+		Animation cani = new Animation(AnimationType.COMPILED, "old.txt", 0, 0, 0, 0, 0);
+		uut.recordings.put("old", cani);
+		uut.renameRecording("old", "new");
+		assertTrue( uut.project.recordingNameMap.containsKey("old"));
+		assertEquals("new", uut.project.recordingNameMap.get("old"));
 	}
 
 }
