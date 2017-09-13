@@ -835,8 +835,10 @@ public class PinDmdEditor implements EventHandler {
 	void onSaveProjectSelected(boolean saveAs) {
 		if( saveAs || getProjectFilename()==null ) {
 			String filename = fileChooserUtil.choose(SWT.SAVE, project.name, new String[] { "*.xml" }, new String[] { "Project XML" });
-			if (filename != null)
+			if (filename != null) {
 				saveProject(filename);
+				setProjectFilename(filename);
+			}
 		} else {
 			saveProject(getProjectFilename());
 		}
