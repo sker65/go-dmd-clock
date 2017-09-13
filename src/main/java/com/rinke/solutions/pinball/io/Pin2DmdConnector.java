@@ -18,6 +18,7 @@ import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.Plane;
+import static java.lang.Math.max;
 
 @Slf4j
 public abstract class Pin2DmdConnector {
@@ -55,12 +56,12 @@ public abstract class Pin2DmdConnector {
         return res;
     }
 
-    protected byte[] buildFrameBuffer(int size) {
-        byte[] res = new byte[size];
+    protected byte[] buildFrameBuffer(int size, int headerByte, int sizeByte) {
+        byte[] res = new byte[size+4]; // add header size
         res[0] = (byte)0x81;
         res[1] = (byte)0xc3;
-        res[2] = (byte)0xe7;
-        res[3] = (byte)0x00;
+        res[2] = (byte)headerByte;
+        res[3] = (byte)sizeByte;
         return res;
     }
 
@@ -201,19 +202,21 @@ public abstract class Pin2DmdConnector {
 	 */
     public void sendFrame( Frame frame, ConnectionHandle usb ) {
     	//LOG.info("sending frame to device: {}", frame);
-    	int headerSize = 4;
-    	byte[] buffer = buildFrameBuffer(4*dmdSize.planeSize + headerSize); // max 4 planes
     	int i = 0;
+    	int headerSize = 4;
     	int planeSize = dmdSize.planeSize;
+    	int bufferSize = max(4,frame.planes.size()) * planeSize;
+
+    	// XL dmd is handled different: use E8 framing with size byte
     	if( dmdSize.equals(DmdSize.Size192x64) ) {
-    		// XL dmd is handled different
+        	byte[] buffer = buildFrameBuffer( bufferSize, 0xE8, bufferSize/512 );
     		for( Plane p : frame.planes) {
         		System.arraycopy(Frame.transform(p.data), 0, buffer, headerSize+i*planeSize, planeSize);
         		if( i++ > 3 ) break; // max 4 planes
         	}
-    		buffer[2] = (byte)0xe8;
-    		buffer[3] = (byte)(i*planeSize/512);
+           	send(buffer, usb);
     	} else {
+        	byte[] buffer = buildFrameBuffer(bufferSize, 0xE7, 0);
         	if( frame.planes.size() == 2 ) {
         		byte[] planeAnd = new byte[planeSize];
         		byte[] plane0 = frame.planes.get(0).data;
@@ -232,8 +235,8 @@ public abstract class Pin2DmdConnector {
             		if( i++ > 3 ) break;
             	}
         	}
+           	send(buffer, usb);
     	}
-    	send(buffer, usb);
     }
     
     /* (non-Javadoc)
