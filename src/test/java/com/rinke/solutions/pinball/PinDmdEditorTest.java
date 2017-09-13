@@ -39,6 +39,8 @@ import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.FrameSeq;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.PalMapping.SwitchMode;
+import com.rinke.solutions.pinball.model.Palette;
+import com.rinke.solutions.pinball.model.RGB;
 import com.rinke.solutions.pinball.test.Util;
 import com.rinke.solutions.pinball.util.ApplicationProperties;
 import com.rinke.solutions.pinball.util.RecentMenuManager;
@@ -279,6 +281,33 @@ public class PinDmdEditorTest {
 		uut.renameRecording("old", "new");
 		assertTrue( uut.project.recordingNameMap.containsKey("old"));
 		assertEquals("new", uut.project.recordingNameMap.get("old"));
+	}
+
+	@Test
+	public void testOnSetScenePalette() throws Exception {
+		CompiledAnimation cani = new CompiledAnimation(AnimationType.COMPILED, "old.txt", 0, 0, 0, 0, 0);
+		cani.setDesc("scene1");
+		uut.selectedScene.set(cani);
+		RGB[] rgb = {};
+		uut.activePalette = new Palette(rgb , 15, "foo");
+		
+		PalMapping p = new PalMapping(0, "foo");
+		p.frameSeqName = "scene1";
+		p.palIndex = 1;
+		uut.project.palMappings.add(p);
+		
+		uut.onSetScenePalette();
+		assertEquals(15,cani.getPalIndex());
+		// also check keyframe
+		assertEquals(1,p.palIndex);
+		
+		p.switchMode = SwitchMode.PALETTE;
+		uut.onSetScenePalette();
+		assertEquals(1,p.palIndex);
+		
+		p.switchMode = SwitchMode.REPLACE;
+		uut.onSetScenePalette();
+		assertEquals(15,p.palIndex);
 	}
 
 }

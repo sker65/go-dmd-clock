@@ -2292,13 +2292,13 @@ public class PinDmdEditor implements EventHandler {
 		}
 	}
 
-	private void onSetScenePalette() {
+	void onSetScenePalette() {
 		if (selectedScene.isPresent() && activePalette != null) {
 			CompiledAnimation scene = selectedScene.get();
 			scene.setPalIndex(activePalette.index);
 			log.info("change pal index in scene {} to {}", scene.getDesc(), activePalette.index);
 			for(PalMapping p : project.palMappings) {
-				switch (p.switchMode) {
+				if( p.switchMode!=null) switch (p.switchMode) {
 				case ADD:
 				case FOLLOW:
 				case REPLACE:
