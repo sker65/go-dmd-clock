@@ -337,6 +337,7 @@ public class Animation {
 			}
 			actCycle = 0;
 		}
+		if( actFrame == end ) ended = true;
 		frame = last;
 		if( transitionFrom != 0 // it has a transition
 		    && actFrame > transitionFrom  // it has started
