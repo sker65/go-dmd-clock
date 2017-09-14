@@ -1527,7 +1527,7 @@ public class PinDmdEditor implements EventHandler {
 			}
 		});
 			
-		Button btnNewBookMark = new Button(composite, SWT.NONE);
+		btnNewBookMark = new Button(composite, SWT.NONE);
 		btnNewBookMark.setText("New");
 		btnNewBookMark.addListener(SWT.Selection, e->{
 			if( selectedRecording.isPresent() ) {
@@ -1537,7 +1537,7 @@ public class PinDmdEditor implements EventHandler {
 			}
 		});
 		
-		Button btnDelBookmark = new Button(composite, SWT.NONE);
+		btnDelBookmark = new Button(composite, SWT.NONE);
 		btnDelBookmark.setText("Delete");
 		btnDelBookmark.addListener(SWT.Selection, e->{
 			if( selectedRecording.isPresent() ) {
@@ -2298,12 +2298,16 @@ public class PinDmdEditor implements EventHandler {
 			Set<Bookmark> set = project.bookmarksMap.get(a.getDesc());
 			if( set != null ) bookmarkComboViewer.setInput(set);
 			else bookmarkComboViewer.setInput(Collections.EMPTY_SET);
+			bookmarkComboViewer.getCombo().setEnabled(true);
 		} else {
 			selectedRecording.set(null);
 			aniListViewer.setSelection(StructuredSelection.EMPTY);
 			bookmarkComboViewer.setInput(Collections.EMPTY_SET);
+			bookmarkComboViewer.getCombo().setEnabled(false);
 		}
 		goDmdGroup.updateAniModel(a);
+		btnDelBookmark.setEnabled(a!=null);
+		btnNewBookMark.setEnabled(a!=null);
 		btnRemoveAni.setEnabled(a != null);
 		btnAddKeyframe.setEnabled(a != null);
 		btnAddFrameSeq.setEnabled(a!=null && frameSeqViewer.getSelection() != null);
@@ -2961,6 +2965,8 @@ public class PinDmdEditor implements EventHandler {
 	private Button btnInvert;
 	private Button btnSetScenePal;
 	private Button btnSetKeyFramePal;
+	private Button btnNewBookMark;
+	private Button btnDelBookmark;
 	
 	private void updateHashes(Frame frame) {
 		if( frame == null ) return;
