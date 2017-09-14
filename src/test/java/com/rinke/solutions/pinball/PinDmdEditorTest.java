@@ -242,7 +242,7 @@ public class PinDmdEditorTest {
 		PalMapping p = new PalMapping(0, "foo");
 		p.frameSeqName = "old";
 		uut.project.palMappings.add(p);
-		uut.renameScene("old", "new");
+		assertTrue(uut.renameScene("old", "new"));
 		assertEquals("new", p.frameSeqName);
 	}
 
@@ -252,8 +252,9 @@ public class PinDmdEditorTest {
 		uut.project.bookmarksMap.put("foo", set);
 		Bookmark bookmark = new Bookmark("old", 0);
 		set.add(bookmark);
-		uut.renameScene("old", "new");
+		boolean b = uut.renameScene("old", "new");
 		assertEquals("new", set.iterator().next().name); // new bookmark
+		assertTrue(b);
 	}
 
 	@Test
