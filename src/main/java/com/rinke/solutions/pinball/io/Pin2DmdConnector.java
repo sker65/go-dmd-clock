@@ -8,17 +8,13 @@ import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.apache.commons.lang3.tuple.Pair;
-import org.usb4java.Context;
-import org.usb4java.DeviceHandle;
-
 import com.rinke.solutions.pinball.DmdSize;
 import com.rinke.solutions.pinball.PinDmdEditor;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.Plane;
-import static java.lang.Math.max;
+import static java.lang.Math.*;
 
 @Slf4j
 public abstract class Pin2DmdConnector {
@@ -205,7 +201,7 @@ public abstract class Pin2DmdConnector {
     	int i = 0;
     	int headerSize = 4;
     	int planeSize = dmdSize.planeSize;
-    	int bufferSize = max(4,frame.planes.size()) * planeSize;
+    	int bufferSize = min(4,frame.planes.size()) * planeSize;
 
     	// XL dmd is handled different: use E8 framing with size byte
     	if( dmdSize.equals(DmdSize.Size192x64) ) {
