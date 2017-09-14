@@ -1190,8 +1190,9 @@ public class PinDmdEditor implements EventHandler {
 		TableViewerColumn viewerCol1 = new TableViewerColumn(aniListViewer, SWT.LEFT);
 		viewerCol1.setEditingSupport(
 				new GenericTextCellEditor<Animation>(aniListViewer, ani -> ani.getDesc(), (ani, newName) -> {
-					renameRecording(ani.getDesc(), newName);
-					ani.setDesc(newName);
+					if( renameRecording(ani.getDesc(), newName) ) {
+						ani.setDesc(newName);
+					}
 				}
 			));
 		viewerCol1.getColumn().setWidth(colWidth);
@@ -1213,9 +1214,10 @@ public class PinDmdEditor implements EventHandler {
 		TableViewerColumn viewerCol2 = new TableViewerColumn(sceneListViewer, SWT.LEFT);
 		viewerCol2.setEditingSupport(
 				new GenericTextCellEditor<Animation>(sceneListViewer, ani -> ani.getDesc(), (ani, newName) -> {
-					renameScene(ani.getDesc(), newName);
-					frameSeqViewer.refresh();
-					ani.setDesc(newName);
+					if( renameScene(ani.getDesc(), newName) ) {
+						frameSeqViewer.refresh();
+						ani.setDesc(newName);
+					}
 				}
 			));
 		viewerCol2.getColumn().setWidth(colWidth);
@@ -1780,16 +1782,20 @@ public class PinDmdEditor implements EventHandler {
 
 	}
 	
-	void renameScene(String oldName, String newName) {
+	boolean renameScene(String oldName, String newName) {
+		if( scenes.containsKey(newName)) return false;
 		updateAnimationMapKey(oldName, newName, scenes);
 		updateBookmarkNames( oldName, newName );
 		updatePalMappingsSceneNames(oldName, newName);
+		return true;
 	}
 	
-	void renameRecording(String oldName, String newName){
+	boolean renameRecording(String oldName, String newName){
+		if( recordings.containsKey(newName)) return false;
 		updateAnimationMapKey(oldName, newName, recordings);
 		updatePalMappingsRecordingNames(oldName, newName);
 		project.recordingNameMap.put(oldName, newName);
+		return true;
 	}
 	
 	// called when scene gets renamed
