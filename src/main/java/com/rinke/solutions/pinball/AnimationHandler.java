@@ -98,8 +98,7 @@ public class AnimationHandler extends Observable implements Runnable{
 				}
 				Frame res = ani.render(dmd,stop);
                 scale.setSelection(ani.actFrame);
-                eventHandler.notifyAni(
-                        new AniEvent(Type.ANI, ani, res ));
+                eventHandler.notifyAni(new AniEvent(Type.ANI, ani, res ));
                 
                 lastRenderedFrame = ani.actFrame;
                 
@@ -124,11 +123,13 @@ public class AnimationHandler extends Observable implements Runnable{
                 }
 		
 				if( ani.hasEnded() ) {
-					ani.restart();
-					if( showClock) setClockActive(true);
-					index++;
-					if( index >= anis.size()) {
-						index = 0;
+					if( !ani.isMutable() ){
+						ani.restart();
+						if( showClock) setClockActive(true);
+						index++;
+						if( index >= anis.size()) {
+							index = 0;
+						}
 					}
 				}
 			}

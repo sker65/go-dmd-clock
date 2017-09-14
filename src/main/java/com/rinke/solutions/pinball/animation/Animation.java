@@ -328,7 +328,7 @@ public class Animation {
 		if (actFrame <= end) {
 			ended = false;
 			last = renderFrame(basePath+name, dmd, actFrame);
-			if( !stop) actFrame += skip;
+			if( !stop && actFrame < end ) actFrame += skip;
 		} else if (++actCycle < cycles) {
 			actFrame = start;
 		} else {
