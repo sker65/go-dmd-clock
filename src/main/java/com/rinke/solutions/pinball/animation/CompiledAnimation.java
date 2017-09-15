@@ -40,9 +40,19 @@ public class CompiledAnimation extends Animation {
 
 	public void addFrame(Frame f) {
 		frames.add(f);
-		this.end = frames.size()-1;
+		end = frames.size()-1;
 	}
 
+	public void addFrame(int pos, Frame f) {
+		frames.add(pos,f);
+		end = frames.size()-1;
+	}
+
+	public void removeFrame(int pos) {
+		frames.remove(pos);
+		end = frames.size()-1;
+	}
+	
 	@Override
 	public int getRefreshDelay() {
 	    int frameNo = actFrame -1;
@@ -83,7 +93,7 @@ public class CompiledAnimation extends Animation {
 			clockWasAdded = false;
 			return;
 		}
-	    if( actFrame >= 0 && actFrame < frames.size()) {
+	    if( actFrame >= 0 && actFrame < frames.size() && dmd.canUndo() ) {
 	    	Frame aniFrame = frames.get(actFrame);
 	        Frame dmdFrame = dmd.getFrame();
 	        // if target has no mask, don't create one
@@ -124,6 +134,7 @@ public class CompiledAnimation extends Animation {
 	public int getNumberOfPlanes() {
 		return frames != null ? frames.stream().mapToInt(f->f.planes.size()).max().orElse(0) : 0;
 	}
+
 
 
 

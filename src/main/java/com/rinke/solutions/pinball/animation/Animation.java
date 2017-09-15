@@ -71,7 +71,7 @@ public class Animation {
 	public int height;
 
 	public enum EditMode {
-		REPLACE("Replace"), COLMASK("Color Mask"), FIXED("Fixed"), FOLLOW("Color Mask Seq.");
+		REPLACE("Replace"), COLMASK("Color Mask"), FIXED("Fixed"), FOLLOW("Color Mask Seq."), LAYEREDCOL("Layered ColMask");
 
 		public final String label;
 		

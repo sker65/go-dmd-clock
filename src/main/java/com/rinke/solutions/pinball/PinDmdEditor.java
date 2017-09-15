@@ -493,6 +493,8 @@ public class PinDmdEditor implements EventHandler {
 		btnCopyToNext.setEnabled(e);
 		btnCopyToPrev.setEnabled(e);
 		btnDeleteColMask.setEnabled(e);
+		btnAddFrame.setEnabled(e);
+		btnDelFrame.setEnabled(e);
 	}
 
 	private boolean animationIsEditable() {
@@ -1220,13 +1222,15 @@ public class PinDmdEditor implements EventHandler {
 		TableViewerColumn viewerCol2 = new TableViewerColumn(sceneListViewer, SWT.LEFT);
 		viewerCol2.setEditingSupport(
 				new GenericTextCellEditor<Animation>(sceneListViewer, ani -> ani.getDesc(), (ani, newName) -> {
-					if( !scenes.containsKey(newName)) {
-						String oldName = ani.getDesc();
-						ani.setDesc(newName);
-						renameScene(oldName, newName);
-						//frameSeqViewer.refresh();
-					} else {
-						warn("Scene name not unique","Scene names must be unique. Please choose a different name");
+					if( !ani.getDesc().equals(newName) ) {
+						if( !scenes.containsKey(newName)) {
+							String oldName = ani.getDesc();
+							ani.setDesc(newName);
+							renameScene(oldName, newName);
+							//frameSeqViewer.refresh();
+						} else {
+							warn("Scene name not unique","Scene names must be unique. Please choose a different name");
+						}
 					}
 				}
 			));
@@ -1404,7 +1408,7 @@ public class PinDmdEditor implements EventHandler {
 		});
 
 		Group grpDetails = new Group(shell, SWT.NONE);
-		grpDetails.setLayout(new GridLayout(10, false));
+		grpDetails.setLayout(new GridLayout(12, false));
 		GridData gd_grpDetails = new GridData(SWT.LEFT, SWT.CENTER, false, true, 1, 1);
 		gd_grpDetails.heightHint = 27;
 		gd_grpDetails.widthHint = 815;
@@ -1468,6 +1472,14 @@ public class PinDmdEditor implements EventHandler {
 		btnLivePreview = new Button(grpDetails, SWT.CHECK);
 		btnLivePreview.setToolTipText("controls live preview to real display device");
 		btnLivePreview.setText("Live Preview");
+				
+						Button btnIncPitch = new Button(grpDetails, SWT.NONE);
+						btnIncPitch.setText("+");
+								
+										Button btnDecPitch = new Button(grpDetails, SWT.NONE);
+										btnDecPitch.setText("-");
+										btnDecPitch.addListener(SWT.Selection, e -> dmdWidget.decPitch());
+						btnIncPitch.addListener(SWT.Selection, e -> dmdWidget.incPitch());
 		btnLivePreview.addListener(SWT.Selection, e -> onLivePreviewSwitched(btnLivePreview.getSelection()));
 
 		Composite composite = new Composite(shell, SWT.NONE);
@@ -1514,14 +1526,14 @@ public class PinDmdEditor implements EventHandler {
 				log.info("cutting out scene from {}", cutInfo);
 				cutInfo.reset();
 			});
-
-		Button btnIncPitch = new Button(composite, SWT.NONE);
-		btnIncPitch.setText("+");
-		btnIncPitch.addListener(SWT.Selection, e -> dmdWidget.incPitch());
-
-		Button btnDecPitch = new Button(composite, SWT.NONE);
-		btnDecPitch.setText("-");
-		btnDecPitch.addListener(SWT.Selection, e -> dmdWidget.decPitch());
+		
+		btnAddFrame = new Button(composite, SWT.NONE);
+		btnAddFrame.setText("Frame+");
+		btnAddFrame.addListener(SWT.Selection, e->addFrame(selectedScene.get()));
+		
+		btnDelFrame = new Button(composite, SWT.NONE);
+		btnDelFrame.setText("Frame-");
+		btnDelFrame.addListener(SWT.Selection, e->removeFrame(selectedScene.get()));
 		
 		bookmarkComboViewer = new ComboViewer(composite, SWT.NONE);
 		Combo combo_3 = bookmarkComboViewer.getCombo();
@@ -1792,6 +1804,22 @@ public class PinDmdEditor implements EventHandler {
 
 	}
 	
+	void addFrame(CompiledAnimation ani) {
+		log.info("adding frame at {}", ani.actFrame);
+		ani.addFrame(ani.actFrame, new Frame(ani.frames.get(ani.actFrame)));
+		animationHandler.updateScale(ani);
+	}
+
+	void removeFrame(CompiledAnimation ani) {
+		if( ani.frames.size()>1 ) {
+			ani.removeFrame(ani.actFrame);
+			if( ani.actFrame >= ani.end ) {
+				animationHandler.setPos(ani.end);
+			}
+			animationHandler.updateScale(ani);
+		}
+	}
+
 	void renameScene(String oldName, String newName) {
 		updateAnimationMapKey(oldName, newName, scenes);
 		updateBookmarkNames( oldName, newName );
@@ -2958,7 +2986,7 @@ public class PinDmdEditor implements EventHandler {
 	int actFrameOfSelectedAni = 0;
 	private ComboViewer editModeViewer;
 	private EditMode immutable[] = { EditMode.FIXED };
-	private EditMode mutable[] = { EditMode.REPLACE, EditMode.COLMASK, EditMode.FOLLOW };
+	private EditMode mutable[] = { EditMode.REPLACE, EditMode.COLMASK, EditMode.FOLLOW, EditMode.LAYEREDCOL };
 	private TableViewer sceneListViewer;
 	private Button btnRemoveScene;
 	private Spinner spinnerDeviceId;
@@ -2972,6 +3000,8 @@ public class PinDmdEditor implements EventHandler {
 	private Button btnSetKeyFramePal;
 	private Button btnNewBookMark;
 	private Button btnDelBookmark;
+	private Button btnAddFrame;
+	private Button btnDelFrame;
 	
 	private void updateHashes(Frame frame) {
 		if( frame == null ) return;

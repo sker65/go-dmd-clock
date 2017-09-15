@@ -81,9 +81,7 @@ public class AnimationHandler extends Observable implements Runnable{
 				if( scale.isDisposed() ) return;
 
 				Animation ani = anis.get(index); 
-				scale.setMinimum(ani.start);
-				scale.setMaximum(ani.end);
-				scale.setIncrement(ani.skip);
+				updateScale(ani);
 				
 				if( !forceRerender  && stop && ani.actFrame == lastRenderedFrame ) return;
 				
@@ -135,6 +133,12 @@ public class AnimationHandler extends Observable implements Runnable{
 			}
 		}
 
+	}
+
+	public void updateScale(Animation ani) {
+		scale.setMinimum(ani.start);
+		scale.setMaximum(ani.end);
+		scale.setIncrement(ani.skip);
 	}
 
 	public int getRefreshDelay() {
