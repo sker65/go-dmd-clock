@@ -477,7 +477,7 @@ public class PinDmdEditor implements EventHandler {
 		ObserverManager.bind(recordings, e -> aniListViewer.refresh(), () -> true);
 		
 		ObserverManager.bind(scenes, e -> sceneListViewer.refresh(), () -> true);
-		ObserverManager.bind(scenes, e -> buildFrameSeqList(), () -> true);
+		ObserverManager.bind(scenes, e -> populateFrameSeqList(), () -> true);
 
 		// ObserverManager.bind(animations, e->btnAddFrameSeq.setEnabled(e),
 		// ()->!frameSeqList.isEmpty());
@@ -506,10 +506,13 @@ public class PinDmdEditor implements EventHandler {
 		return false;
 	}
 
-	protected void buildFrameSeqList() {
-		//Animation old = (Animation) frameSeqViewer.getSelection();
+	/** 
+	 * populate internal list to viewer component
+	 */
+	protected void populateFrameSeqList() {
 		frameSeqList.clear();
-		frameSeqList.addAll(scenes.values().stream().filter(a -> a.isMutable()).collect(Collectors.toList()));
+		List<CompiledAnimation> newList = scenes.values().stream().filter(a -> a.isMutable()).collect(Collectors.toList());
+		frameSeqList.addAll(newList);
 		frameSeqViewer.refresh();
 		if( !frameSeqList.isEmpty() ) setViewerSelection(frameSeqViewer, frameSeqList.get(0));
 	}
@@ -1214,9 +1217,13 @@ public class PinDmdEditor implements EventHandler {
 		TableViewerColumn viewerCol2 = new TableViewerColumn(sceneListViewer, SWT.LEFT);
 		viewerCol2.setEditingSupport(
 				new GenericTextCellEditor<Animation>(sceneListViewer, ani -> ani.getDesc(), (ani, newName) -> {
-					if( renameScene(ani.getDesc(), newName) ) {
-						frameSeqViewer.refresh();
+					if( !scenes.containsKey(newName)) {
+						String oldName = ani.getDesc();
 						ani.setDesc(newName);
+						renameScene(oldName, newName);
+						//frameSeqViewer.refresh();
+					} else {
+						warn("Scene name not unique","Scene names must be unique. Please choose a different name");
 					}
 				}
 			));
@@ -1782,12 +1789,10 @@ public class PinDmdEditor implements EventHandler {
 
 	}
 	
-	boolean renameScene(String oldName, String newName) {
-		if( scenes.containsKey(newName)) return false;
+	void renameScene(String oldName, String newName) {
 		updateAnimationMapKey(oldName, newName, scenes);
 		updateBookmarkNames( oldName, newName );
 		updatePalMappingsSceneNames(oldName, newName);
-		return true;
 	}
 	
 	boolean renameRecording(String oldName, String newName){

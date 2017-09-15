@@ -305,7 +305,7 @@ public class PinDmdEditorSWTTest {
 		uut.selectedRecording.set(recording);
 
 		// frameSeqView must have a selection
-		uut.buildFrameSeqList();
+		uut.populateFrameSeqList();
 		uut.frameSeqViewer.setSelection(new StructuredSelection(uut.frameSeqList.get(0)), true);
 		byte[] digest = {1,0,0,0};
 		trigger(SWT.Selection).on(uut.btnAddFrameSeq);
