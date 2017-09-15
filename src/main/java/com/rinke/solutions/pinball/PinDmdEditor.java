@@ -1193,8 +1193,11 @@ public class PinDmdEditor implements EventHandler {
 		TableViewerColumn viewerCol1 = new TableViewerColumn(aniListViewer, SWT.LEFT);
 		viewerCol1.setEditingSupport(
 				new GenericTextCellEditor<Animation>(aniListViewer, ani -> ani.getDesc(), (ani, newName) -> {
-					if( renameRecording(ani.getDesc(), newName) ) {
+					if( !recordings.containsKey(newName)) {
+						renameRecording(ani.getDesc(), newName);
 						ani.setDesc(newName);
+					} else {
+						warn("Recording name not unique","Recording names must be unique. Please choose a different name");
 					}
 				}
 			));
@@ -1795,12 +1798,10 @@ public class PinDmdEditor implements EventHandler {
 		updatePalMappingsSceneNames(oldName, newName);
 	}
 	
-	boolean renameRecording(String oldName, String newName){
-		if( recordings.containsKey(newName)) return false;
+	void renameRecording(String oldName, String newName){
 		updateAnimationMapKey(oldName, newName, recordings);
 		updatePalMappingsRecordingNames(oldName, newName);
 		project.recordingNameMap.put(oldName, newName);
-		return true;
 	}
 	
 	// called when scene gets renamed
