@@ -890,7 +890,7 @@ public class PinDmdEditor implements EventHandler {
 			if (p.frameSeqName != null ) {
 				if( scenes.containsKey(p.frameSeqName) ) {
 					FrameSeq frameSeq = new FrameSeq(p.frameSeqName);
-					if (p.switchMode.equals(SwitchMode.ADD) || p.switchMode.equals(SwitchMode.FOLLOW) ) {
+					if (p.switchMode.masking ) {
 						frameSeq.mask = 0b11111100;
 					}
 					frameSeqMap.put(p.frameSeqName, frameSeq);
@@ -2063,14 +2063,14 @@ public class PinDmdEditor implements EventHandler {
 					setViewerSelection(editModeViewer,editMode);
 				}
 			}
-			if(editMode.equals(EditMode.FOLLOW)) {
+			if(editMode.useMask) {
 				animation.ensureMask();
 			} else {
 				btnMask.setSelection(false); // switch off mask if selected
 				onMaskChecked(false);			
 			}
-			btnMask.setEnabled(editMode.equals(EditMode.FOLLOW));
-			setEnableHashButtons(editMode.equals(EditMode.FOLLOW));
+			btnMask.setEnabled(editMode.useMask);
+			setEnableHashButtons(editMode.useMask);
 			animation.setEditMode(editMode);
 		}
 		setDrawMaskByEditMode(editMode);
@@ -2134,7 +2134,7 @@ public class PinDmdEditor implements EventHandler {
 		if( dmdWidget.isShowMask() ) {
 			onMaskChecked(true);
 		}
-		if( editMode.equals(EditMode.FOLLOW) && selectedScene.isPresent()) {
+		if( editMode.useMask && selectedScene.isPresent()) {
 			selectHash(selectedScene.get());
 		}
 		dmdWidget.resetSelection();
@@ -2162,7 +2162,7 @@ public class PinDmdEditor implements EventHandler {
 		if( dmdWidget.isShowMask() ) {
 			onMaskChecked(true);
 		}
-		if( editMode.equals(EditMode.FOLLOW) && selectedScene.isPresent()) {
+		if( editMode.useMask && selectedScene.isPresent()) {
 			selectHash(selectedScene.get());
 		}
 		dmdWidget.resetSelection();
@@ -2202,9 +2202,8 @@ public class PinDmdEditor implements EventHandler {
 			// TODO mask drawing and plane drawing with mask should be controlled seperately
 			dmd.setDrawMask( 0b00000001);
 		} else {
-			boolean drawWithMask = mode.equals(EditMode.COLMASK) || mode.equals(EditMode.FOLLOW);
-			btnDeleteColMask.setEnabled(drawWithMask);
-			dmd.setDrawMask(drawWithMask ? 0b11111000 : 0xFFFF);
+			btnDeleteColMask.setEnabled(mode.useColorMasking);
+			dmd.setDrawMask(mode.useColorMasking ? 0b11111000 : 0xFFFF);
 		}
 	}
 
@@ -2253,8 +2252,9 @@ public class PinDmdEditor implements EventHandler {
 			dmdWidget.resetSelection();
 			aniListViewer.setSelection(StructuredSelection.EMPTY);
 			goDmdGroup.updateAnimation(nextScene);
-			btnMask.setEnabled(nextScene.getEditMode().equals(EditMode.FOLLOW));
+			btnMask.setEnabled(nextScene.getEditMode().useMask);
 			maskSpinner.setEnabled(false);
+			// just to enasure a reasonable default
 			if( nextScene.getEditMode() == null || nextScene.getEditMode().equals(EditMode.FIXED) ) {
 				// old animation may be saved with wrong edit mode
 				nextScene.setEditMode(EditMode.REPLACE);
@@ -2262,7 +2262,7 @@ public class PinDmdEditor implements EventHandler {
 			editModeViewer.setInput(mutable);
 			editModeViewer.refresh();
 			
-			setEnableHashButtons(nextScene.getEditMode().equals(EditMode.FOLLOW));
+			setEnableHashButtons(nextScene.getEditMode().useMask);
 			
 			selectedScene.set(nextScene);
 
@@ -2361,17 +2361,11 @@ public class PinDmdEditor implements EventHandler {
 			scene.setPalIndex(activePalette.index);
 			log.info("change pal index in scene {} to {}", scene.getDesc(), activePalette.index);
 			for(PalMapping p : project.palMappings) {
-				if( p.switchMode!=null) switch (p.switchMode) {
-				case ADD:
-				case FOLLOW:
-				case REPLACE:
+				if( p.switchMode!=null && p.switchMode.hasSceneReference) {
 					if(p.frameSeqName.equals(scene.getDesc())) {
 						log.info("adjusting pal index for keyframe {} to {}", p, activePalette.index);
 						p.palIndex = activePalette.index;
 					}
-					break;
-				default:
-					break;
 				}
 			}
 		}
@@ -2460,6 +2454,9 @@ public class PinDmdEditor implements EventHandler {
 					case FOLLOW:
 						switchMode = SwitchMode.FOLLOW;
 						break;
+					case LAYEREDCOL:
+						switchMode = SwitchMode.LAYEREDCOL;
+						break;
 					default:
 						switchMode = SwitchMode.EVENT;
 					}
@@ -2504,7 +2501,7 @@ public class PinDmdEditor implements EventHandler {
 	 */
 	private Mask getCurrentMask() {
 		Mask maskToUse = null; 
-		if( editMode.equals(EditMode.FOLLOW)) {
+		if( editMode.useMask) {
 			// create mask from actual scene
 			if( selectedScene.isPresent()) maskToUse = selectedScene.get().getCurrentMask();
 		} else {
@@ -2524,7 +2521,8 @@ public class PinDmdEditor implements EventHandler {
 		if (useMask) {
 			paletteTool.setNumberOfPlanes(1);
 			dmdWidget.setMask(getCurrentMask());
-			useGlobalMask = !editMode.equals(EditMode.FOLLOW);
+			// if edit mode requires use mask of the scene, turn off global masks
+			useGlobalMask = !editMode.useMask;
 		} else {
 			paletteTool.setNumberOfPlanes(dmd.getNumberOfPlanes());
 			dmdWidget.setShowMask(false);

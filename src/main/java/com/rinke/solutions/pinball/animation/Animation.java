@@ -71,12 +71,22 @@ public class Animation {
 	public int height;
 
 	public enum EditMode {
-		REPLACE("Replace"), COLMASK("Color Mask"), FIXED("Fixed"), FOLLOW("Color Mask Seq."), LAYEREDCOL("Layered ColMask");
+		REPLACE("Replace",false, false), 
+		COLMASK("Color Mask", false, true), 
+		FIXED("Fixed", false, false), 
+		FOLLOW("Color Mask Seq.", true, true),
+		LAYEREDCOL("Layered ColMask", true, true);
 
+		// label to display
 		public final String label;
-		
-		private EditMode(String label) {
+		// uses masks in scene
+		public final boolean useMask;
+		public final boolean useColorMasking;
+
+		private EditMode(String label, boolean useMask, boolean useColorMasking) {
 			this.label = label;
+			this.useMask = useMask;
+			this.useColorMasking = useColorMasking;
 		}
 
 		public static EditMode fromOrdinal(byte emo) {
