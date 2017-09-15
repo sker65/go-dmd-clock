@@ -1,5 +1,6 @@
 package com.rinke.solutions.pinball.ui;
 
+import java.awt.event.MouseAdapter;
 import java.net.URL;
 import java.util.List;
 import java.util.jar.Attributes;
@@ -10,14 +11,19 @@ import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.resource.LocalResourceManager;
 import org.eclipse.jface.resource.ResourceManager;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Link;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 
 import com.rinke.solutions.pinball.util.VersionUtil;
+
+import org.eclipse.swt.widgets.Composite;
 
 public class About extends Dialog {
 
@@ -65,9 +71,23 @@ public class About extends Dialog {
 		ResourceManager resManager = 
                 new LocalResourceManager(JFaceResources.getResources(),shlAboutPindmdEditor);
 		
-		Label logo = new Label(shlAboutPindmdEditor, SWT.NONE);
+		Label logo = new Label(shlAboutPindmdEditor, SWT.PUSH);
 		logo.setImage(resManager.createImage(ImageDescriptor.createFromFile(About.class, "/logo.png")));
 		logo.setBounds(10, 10, 195, 114);
+		logo.addMouseListener(new MouseListener() {
+			@Override
+			public void mouseUp(MouseEvent e) {
+				if( e.x > 100 && e.x < 108 && e.y > 66 && e.y < 78 ) {
+					MessageBox b = new MessageBox(shlAboutPindmdEditor, SWT.OK);
+					b.setText("Credits");
+					b.setMessage("Thanks to all my supporters. Especially Elke.");
+					b.open();				
+				}
+			}
+			
+			@Override public void mouseDown(MouseEvent e) {}
+			@Override public void mouseDoubleClick(MouseEvent e) {}
+		});
 		
 		Button btnOk = new Button(shlAboutPindmdEditor, SWT.NONE);
 		btnOk.addListener(SWT.Selection, e->shlAboutPindmdEditor.close());
@@ -87,5 +107,4 @@ public class About extends Dialog {
 		lblVersion.setText(lbl);
 		
 	}
-	
 }

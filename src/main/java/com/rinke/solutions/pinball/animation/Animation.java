@@ -3,7 +3,6 @@ package com.rinke.solutions.pinball.animation;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -11,10 +10,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.ImmutableMap;
 import com.rinke.solutions.pinball.DMD;
-import com.rinke.solutions.pinball.PinDmdEditor;
-import com.rinke.solutions.pinball.Worker;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Plane;
 import com.rinke.solutions.pinball.model.RGB;
@@ -613,5 +609,5 @@ public class Animation {
 	public void setProjectAnimation(boolean projectAnimation) {
 		this.projectAnimation = projectAnimation;
 	}
-
+	
 }

@@ -121,5 +121,10 @@ public class CompiledAnimation extends Animation {
 		if( !frames.isEmpty() ) throw new RuntimeException("cannot set dimension, when already allocates frames");
 	}
 	
+	public int getNumberOfPlanes() {
+		return frames != null ? frames.stream().mapToInt(f->f.planes.size()).max().orElse(0) : 0;
+	}
+
+
 
 }

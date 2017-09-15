@@ -651,7 +651,7 @@ public class PinDmdEditor implements EventHandler {
 		cutScene.setDesc(name);
 		cutScene.setPalIndex(activePalette.index);
 		cutScene.setProjectAnimation(true);
-		cutScene.setEditMode(EditMode.REPLACE);
+		cutScene.setEditMode(EditMode.COLMASK);
 				
 		scenes.put(name, cutScene);
 		
@@ -2803,8 +2803,7 @@ public class PinDmdEditor implements EventHandler {
 		new MenuItem(menu_2, SWT.SEPARATOR);
 
 		MenuItem mntmExportAnimation = new MenuItem(menu_2, SWT.NONE);
-		mntmExportAnimation.setText("Export Animation as GIF");
-		
+		mntmExportAnimation.setText("Export Animation as GIF");	
 		mntmExportAnimation.addListener(SWT.Selection, e -> {
 			Animation ani = playingAnis.get(0);
 			Palette pal = project.paletteMap.get(ani.getPalIndex());

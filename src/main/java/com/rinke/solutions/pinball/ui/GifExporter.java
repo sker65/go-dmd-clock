@@ -87,6 +87,7 @@ public class GifExporter extends Dialog {
 		dmdWidget.setBounds(0, 0, width, height);
 		dmdWidget.setPitch(pitch);
 		dmdWidget.setVisible(false);
+		int saveActframe = ani.actFrame;
 		ani.actFrame = 0;
 		progressBar.setMinimum(0);
 		progressBar.setMaximum(ani.getFrameCount(dmd));
@@ -125,6 +126,7 @@ public class GifExporter extends Dialog {
 					LOG.error("error exporting to {}", filename);
 					throw new RuntimeException("error eporting to " + filename, e);
 				} finally {
+					ani.actFrame = saveActframe;
 					try {
 						gifWriter.close();
 					} catch (IOException e) {
