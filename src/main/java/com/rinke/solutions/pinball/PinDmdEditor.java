@@ -1756,7 +1756,7 @@ public class PinDmdEditor implements EventHandler {
 		maskSpinner = new Spinner(grpDrawing, SWT.BORDER);
 		maskSpinner.setToolTipText("select the mask to use");
 		maskSpinner.setMinimum(0);
-		maskSpinner.setMaximum(9);
+		maskSpinner.setMaximum(26);
 		maskSpinner.setEnabled(false);
 		maskSpinner.addListener(SWT.Selection, e -> onMaskNumberChanged(maskSpinner.getSelection()));
 		
@@ -2549,7 +2549,10 @@ public class PinDmdEditor implements EventHandler {
 			hasChanged = true;
 		}
 		if (useGlobalMask && hasChanged) {
-			Mask maskToUse = project.masks.get(maskSpinner.getSelection());
+			while( project.masks.size()-1 < newMaskNumber ) {
+				project.masks.add(new Mask(dmdSize.planeSize));
+			}
+			Mask maskToUse = project.masks.get(newMaskNumber);
 			dmdWidget.setMask(maskToUse);
 			editAniObserver.update(animationHandler, null);
 		}
