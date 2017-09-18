@@ -212,6 +212,9 @@ public abstract class Pin2DmdConnector {
         	}
            	send(buffer, usb);
     	} else {
+    		if( bufferSize / planeSize == 2 ) {
+    			bufferSize *= 2;				// double buffer size for 4 plane output
+    		}
         	byte[] buffer = buildFrameBuffer(bufferSize, 0xE7, 0);
         	if( frame.planes.size() == 2 ) {
         		byte[] planeAnd = new byte[planeSize];
