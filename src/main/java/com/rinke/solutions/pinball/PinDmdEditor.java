@@ -916,7 +916,8 @@ public class PinDmdEditor implements EventHandler {
 					Frame f = cani.render(tmp, false);
 					for( int j = 0; j < f.planes.size(); j++) {
 						if (((1 << j) & p.mask) == 0) {
-							//Arrays.fill(f.planes.get(j).data, (byte)0);
+							// dont remove original frames form vni format
+							// Arrays.fill(f.planes.get(j).data, (byte)0);
 						}
 					}
 				}
@@ -1195,11 +1196,13 @@ public class PinDmdEditor implements EventHandler {
 		TableViewerColumn viewerCol1 = new TableViewerColumn(aniListViewer, SWT.LEFT);
 		viewerCol1.setEditingSupport(
 				new GenericTextCellEditor<Animation>(aniListViewer, ani -> ani.getDesc(), (ani, newName) -> {
-					if( !recordings.containsKey(newName)) {
-						renameRecording(ani.getDesc(), newName);
-						ani.setDesc(newName);
-					} else {
-						warn("Recording name not unique","Recording names must be unique. Please choose a different name");
+					if( !ani.getDesc().equals(newName)) {
+						if( !recordings.containsKey(newName)) {
+							renameRecording(ani.getDesc(), newName);
+							ani.setDesc(newName);
+						} else {
+							warn("Recording name not unique","Recording names must be unique. Please choose a different name");
+						}
 					}
 				}
 			));
@@ -1756,7 +1759,7 @@ public class PinDmdEditor implements EventHandler {
 		maskSpinner = new Spinner(grpDrawing, SWT.BORDER);
 		maskSpinner.setToolTipText("select the mask to use");
 		maskSpinner.setMinimum(0);
-		maskSpinner.setMaximum(26);
+		maskSpinner.setMaximum(25);
 		maskSpinner.setEnabled(false);
 		maskSpinner.addListener(SWT.Selection, e -> onMaskNumberChanged(maskSpinner.getSelection()));
 		
