@@ -36,6 +36,7 @@ public class CompiledAnimationTest {
 		}
 		assertEquals(-2,sum);
 		
+		dmd.addUndoBuffer();
 		dmd.setPixel(0, 0, 1);
 		
 		uut.commitDMDchanges(dmd, null);
