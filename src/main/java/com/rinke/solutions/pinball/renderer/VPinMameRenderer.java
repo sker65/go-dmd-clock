@@ -66,6 +66,11 @@ public class VPinMameRenderer extends Renderer {
 				}
 				int lineLenght = line.length();
 				if (lineLenght == 0) {
+					// check for number of rows
+					int noOfRows = j / dmd.getBytesPerRow();
+					if( noOfRows == 16 && dmd.getHeight() == 32 ) {
+						res = centerRows( res, dmd.getPlaneSizeInByte(), dmd.getBytesPerRow() );
+					}
 					frames.add(res);
 					frameNo++;
 					res = new Frame(
@@ -119,6 +124,21 @@ public class VPinMameRenderer extends Renderer {
 				}
 		}
 		this.maxFrame = frameNo;
+	}
+
+	private Frame centerRows(Frame in, int planeSize, int bytesPerRow) {
+		Frame out = new Frame(
+				new byte[planeSize],
+				new byte[planeSize],
+				new byte[planeSize],
+				new byte[planeSize]
+				);
+		for(int p = 0; p<in.planes.size(); p++) {
+			for( int row = 8; row < 24; row++) {
+				System.arraycopy(in.planes.get(p).data, (row-8)*bytesPerRow, out.planes.get(p).data, row*bytesPerRow, bytesPerRow);
+			}
+		}
+		return out;
 	}
 
 	private int hex2int(char ch) {

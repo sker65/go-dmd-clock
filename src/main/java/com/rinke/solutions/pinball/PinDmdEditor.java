@@ -1563,7 +1563,7 @@ public class PinDmdEditor implements EventHandler {
 		});
 		
 		btnDelBookmark = new Button(composite, SWT.NONE);
-		btnDelBookmark.setText("Delete");
+		btnDelBookmark.setText("Del");
 		btnDelBookmark.addListener(SWT.Selection, e->{
 			if( selectedRecording.isPresent() ) {
 				Animation r = selectedRecording.get();

@@ -117,9 +117,9 @@ public class DeviceConfig extends Dialog {
         Button btnOk = new Button(shell, SWT.NONE);
         fd_grpConfig.bottom = new FormAttachment(100, -47);
         FormData fd_btnOk = new FormData();
-        fd_btnOk.top = new FormAttachment(0, 155);
+        fd_btnOk.top = new FormAttachment(grpConfig, 9);
+        fd_btnOk.right = new FormAttachment(grpConfig, 0, SWT.RIGHT);
         fd_btnOk.left = new FormAttachment(0, 405);
-        fd_btnOk.right = new FormAttachment(100, -10);
         btnOk.setLayoutData(fd_btnOk);
         btnOk.setText("Ok");
         
@@ -139,7 +139,7 @@ public class DeviceConfig extends Dialog {
      */
     void createContents() {
         shell = new Shell(getParent(), getStyle());
-        shell.setSize(480, 215);
+        shell.setSize(480, 242);
         shell.setText("Device Configuration");
         shell.setLayout(new FormLayout());
         

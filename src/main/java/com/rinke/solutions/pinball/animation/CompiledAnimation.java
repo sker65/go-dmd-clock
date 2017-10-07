@@ -93,13 +93,18 @@ public class CompiledAnimation extends Animation {
 			clockWasAdded = false;
 			return;
 		}
-	    if( actFrame >= 0 && actFrame < frames.size() && dmd.canUndo() ) {
+	    if( actFrame >= 0 && actFrame < frames.size() ) {
 	    	Frame aniFrame = frames.get(actFrame);
-	        Frame dmdFrame = dmd.getFrame();
-	        // if target has no mask, don't create one
-	        dmdFrame.copyToWithMask(aniFrame, aniFrame.hasMask() ? -1 : (-1<<1) );
-	        aniFrame.setHash(hash);
-	        setDirty(true);
+	    	if( dmd.canUndo() ) {
+		        Frame dmdFrame = dmd.getFrame();
+		        // if target has no mask, don't create one
+		        dmdFrame.copyToWithMask(aniFrame, aniFrame.hasMask() ? -1 : (-1<<1) );
+		        setDirty(true);
+	    	}
+	    	if( !Arrays.areEqual(hash, aniFrame.crc32)) {
+		        aniFrame.setHash(hash);
+		        setDirty(true);
+	    	}
 	    }
 	}
 
