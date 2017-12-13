@@ -830,7 +830,7 @@ public class PinDmdEditor implements EventHandler {
 	}
 	
 	private void onExportVirtualPinProject() {
-		licManager.requireOneOf(Capability.VPIN, Capability.GODMD);
+//		licManager.requireOneOf(Capability.VPIN, Capability.GODMD);
 		String filename = fileChooserUtil.choose(SWT.SAVE, project.name, new String[] { "*.pal" }, new String[] { "Export pal" });
 		if (filename != null) {
 			warn("Warning", "Please don´t publish projects with copyrighted material / frames");
@@ -2382,8 +2382,10 @@ public class PinDmdEditor implements EventHandler {
 			clipboardHandler.setPalette(activePalette);
 			log.info("new palette is {}", activePalette);
 			setViewerSelection(paletteTypeComboViewer, activePalette.type);
-			if (livePreviewActive)
+			if (livePreviewActive) {
+//				connector.upload(activePalette,handle);
 				connector.switchToPal(activePalette.index, handle);
+			}
 		}
 	}
 
@@ -2407,6 +2409,10 @@ public class PinDmdEditor implements EventHandler {
 				handle = connector.connect(pin2dmdAdress);
 				livePreviewActive = livePreviewIsOn;
 				for( Palette pal : project.paletteMap.values() ) {
+					log.debug("uploading palette: {}", pal);
+					try {
+						Thread.sleep(100);
+					} catch (InterruptedException e) {}
 					connector.upload(pal,handle);
 				}
 				// upload actual palette
