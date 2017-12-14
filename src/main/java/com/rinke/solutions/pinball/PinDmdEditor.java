@@ -880,7 +880,7 @@ public class PinDmdEditor implements EventHandler {
 
 	void exportProject(String filename, OutputStreamProvider streamProvider, boolean realPin) {
 		log.info("export project {} file {}", realPin?"real":"vpin", filename);
-		licManager.requireOneOf(Capability.VPIN, Capability.REALPIN, Capability.GODMD);
+		if( realPin) licManager.requireOneOf(Capability.VPIN, Capability.REALPIN, Capability.GODMD);
 
 		// rebuild frame seq map	
 		HashMap <String,FrameSeq> frameSeqMap = new HashMap<>();
