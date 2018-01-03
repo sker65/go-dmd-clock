@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.OptionalInt;
 import java.util.UUID;
 
 import lombok.extern.slf4j.Slf4j;
@@ -83,11 +84,16 @@ public class PaletteHandler {
 		if (!isNewPaletteName(name)) {
 			name = "new" + UUID.randomUUID().toString().substring(0, 4);
 		}
-		editor.activePalette = new Palette(editor.activePalette.colors, editor.project.paletteMap.size(), name);
+		editor.activePalette = new Palette(editor.activePalette.colors, getHighestIndex(editor.project.paletteMap)+1, name);
 		editor.project.paletteMap.put(editor.activePalette.index,editor.activePalette);
 		editor.paletteTool.setPalette(editor.activePalette);
 		editor.paletteComboViewer.refresh();
 		editor.paletteComboViewer.setSelection(new StructuredSelection(editor.activePalette), true);
+	}
+
+	private int getHighestIndex(HashMap<Integer, Palette> paletteMap) {
+		OptionalInt max = paletteMap.values().stream().mapToInt(p->p.index).max();
+		return max.orElse(0);
 	}
 
 	public void savePalette() {
