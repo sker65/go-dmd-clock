@@ -1514,21 +1514,23 @@ public class PinDmdEditor implements EventHandler {
 
 		btnMarkStart.setText("Mark Start");
 		btnMarkStart.addListener(SWT.Selection, e -> {
-			cutInfo.setStart(getSourceAnimation().actFrame);
+			if( getSourceAnimation() != null ) cutInfo.setStart(getSourceAnimation().actFrame);
 		});
 
 		btnMarkEnd.setText("Mark End");
 		btnMarkEnd.addListener(SWT.Selection, e -> {
-			cutInfo.setEnd(getSourceAnimation().actFrame);
+			if( getSourceAnimation() != null ) cutInfo.setEnd(getSourceAnimation().actFrame);
 		});
 
 		btnCut.setText("Cut");
 		btnCut.addListener(SWT.Selection, e -> {
-			// respect number of planes while cutting / copying
+				// respect number of planes while cutting / copying
+			if( getSourceAnimation() != null ) {
 				cutScene(getSourceAnimation(), cutInfo.getStart(), cutInfo.getEnd(), buildUniqueName(scenes));
 				log.info("cutting out scene from {}", cutInfo);
 				cutInfo.reset();
-			});
+			}
+		});
 		
 		btnAddFrame = new Button(composite, SWT.NONE);
 		btnAddFrame.setText("Frame+");
@@ -1876,12 +1878,14 @@ public class PinDmdEditor implements EventHandler {
 	}
 
 	void onInvert() {
-		dmd.addUndoBuffer();
-		byte[] data = dmd.getFrame().mask.data;
-		for( int i = 0; i < data.length; i++) {
-			data[i] = (byte) ~data[i];
+		if( dmd.hasMask() ) { // TODO check why this is called sometimes without mask
+			dmd.addUndoBuffer();
+			byte[] data = dmd.getFrame().mask.data;
+			for( int i = 0; i < data.length; i++) {
+				data[i] = (byte) ~data[i];
+			}
+			dmd.setMask(data);
 		}
-		dmd.setMask(data);
 	}
 
 	private Composite createKeyFrameGroup(Composite parent) {
