@@ -147,6 +147,7 @@ public class DMD extends Observable {
     }
     
     public int getPixelWithoutMask(int x, int y) {
+    	if( rangeCheck(x,y) ) return 0;
     	byte mask = (byte) (0b10000000 >> (x % 8));
     	int v = 0;
     	for(int plane = 0; plane < frame.planes.size(); plane++) {
@@ -155,11 +156,16 @@ public class DMD extends Observable {
     	return v;
     }
     
-    private boolean maskIsRelevant() {
+    private boolean rangeCheck(int x, int y) {
+		return ( x<0 || y <0 || x >= width || y >= height );
+	}
+
+	private boolean maskIsRelevant() {
     	return (drawMask & 1) != 0 && frame.hasMask();
     }
    
     public int getPixel(int x, int y) {
+    	if( rangeCheck(x,y) ) return 0;
     	byte mask = (byte) (0b10000000 >> (x % 8));
     	int v = 0;
     	if( maskIsRelevant() ) {
