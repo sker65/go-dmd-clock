@@ -84,7 +84,11 @@ public class VPinMameRenderer extends Renderer {
 					line = stream.readLine();
 					continue;
 				}
-				for (int i = 0; i<line.length(); i++) {
+				int charsToRead = Math.min(dmd.getWidth(), line.length());
+				if( dmd.getWidth() != line.length() ) {
+					log.warn("unexpected line length={}, line: {}", line.length(), line);
+				}
+				for (int i = 0; i<charsToRead; i++) {
 					int k = i;
 					if( lineLenght > dmd.getWidth()){
 						//v1 = Integer.parseInt(line.substring(i,i+1), 16);
