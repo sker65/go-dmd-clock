@@ -145,21 +145,21 @@ public class VPinMameRenderer extends Renderer {
 		return out;
 	}
 
-	private int hex2int(char ch) {
-		int r = ch - '0';
-		if( ch >= 'A' ) r -= 'A' - '0';
-		if( ch >= 'a' ) r -= 'a' - 'A';
-		return r;
+	int hex2int(char ch) {
+		if( ch >= '0' && ch <= '9') return ch - '0';
+		if( ch >= 'A' && ch <= 'F') return ch -'A' + 10;
+		if( ch >= 'a' && ch <= 'f') return ch -'a' + 10;
+		return 0;
 	}
 
-	private void inc(Map<Integer, Integer> map, int v) {
+	/*private void inc(Map<Integer, Integer> map, int v) {
 		if( map.containsKey(v)) {
 			map.put(v, map.get(v)+1);
 		} else {
 			map.put(v, 1);
 		}
 		
-	}
+	}*/
 
 	private void reducePlanes(List<Frame> frames, int maxNumberOfPlanes) {
 		for (Frame frame : frames) {

@@ -32,4 +32,11 @@ public class VPinMameRendererTest {
 		assertEquals(2119, uut.frames.size());
 		assertEquals(4, uut.getNumberOfPlanes());
 	}
+
+	@Test
+	public void testHex2int() throws Exception {
+		assertEquals(15, uut.hex2int('f'));
+		assertEquals(15, uut.hex2int('F'));
+		assertEquals(9, uut.hex2int('9'));
+	}
 }
