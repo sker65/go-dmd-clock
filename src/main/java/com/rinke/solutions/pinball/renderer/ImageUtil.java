@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
@@ -190,6 +191,8 @@ public class ImageUtil {
 			res.setMask(new byte[dmd.getPlaneSizeInByte()]);
 		}
 		
+		Map<Integer,Integer> alphaDist = new HashMap<>();
+		
 		for (int x = 0; x < Math.min(dmdImage.getWidth(),dmd.getWidth()); x++) {
 			for (int y = 0; y < Math.min(dmdImage.getHeight(),dmd.getHeight()); y++) {
 
@@ -197,6 +200,8 @@ public class ImageUtil {
 				int idx = findBestColorIndex(rgb, palette);
 				int mask = (0b10000000 >> (x%8));
 				if( hasAlpha ) {
+					int alpha = (rgb>>24)&0xFF;
+					updateDist( alphaDist, alpha );
 					boolean v = ((rgb>>24)&0xFF) > 128;
 					if( v ) {
 		    			res.mask.data[y*dmd.getBytesPerRow()+x/8] |= mask;
@@ -226,9 +231,28 @@ public class ImageUtil {
 				}
 			}
 		}
+		log.info("distribution of alpha channel: {}", printDistri(alphaDist));
 		return res;
 	}
 	
+	private static String printDistri(Map<Integer, Integer> map) {
+		StringBuilder sb= new StringBuilder();
+		for( Entry<Integer, Integer> i : map.entrySet()) {
+			sb.append("val="); sb.append(i.getKey()); sb.append(", c=");
+			sb.append(i.getValue()); sb.append("\n");
+		}
+		return sb.toString();
+	}
+
+	private static void updateDist(Map<Integer, Integer> map, int alpha) {
+		Integer count = map.get(alpha);
+		if( count != null ) {
+			count++;
+		} else {
+			map.put(alpha, new Integer(1));
+		}
+	}
+
 	private static int findColorIndex(int rgb, Palette palette) {
 		for (int i = 0; i < palette.colors.length; i++) {
 			RGB p = palette.colors[i];
@@ -260,13 +284,12 @@ public class ImageUtil {
 		for( int j = 0; j < 15 ; j++) {
 			res.planes.add(new Plane((byte)j, new byte[w*h/8]));
 		}
-		System.out.println("dmdImage: "+dmdImage.getWidth()+" "+dmdImage.getHeight());
-		;
+
 		for (int x = 0; x < dmdImage.getWidth(); x++) {
 			for (int y = 0; y < dmdImage.getHeight(); y++) {
 
 				int rgb = dmdImage.getRGB(x, y);
-				System.out.println(x+" "+y+" "+Long.toHexString(rgb));
+
 				// reduce color depth to 15 bit
 				int nrgb = ( rgb >> 3 ) & 0x1F;
 				nrgb |= ( ( rgb >> 11 ) & 0x1F ) << 5;

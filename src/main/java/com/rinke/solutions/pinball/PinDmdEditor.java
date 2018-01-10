@@ -2929,6 +2929,12 @@ public class PinDmdEditor implements EventHandler {
 		MenuItem mntmGetHelp = new MenuItem(menu_4, SWT.NONE);
 		mntmGetHelp.setText("Get help");
 		mntmGetHelp.addListener(SWT.Selection, e -> Program.launch(HELP_URL));
+		
+		MenuItem mntmSendReport = new MenuItem(menu_4, SWT.NONE);
+		mntmSendReport.setText("Send Report");
+		mntmSendReport.addListener(SWT.Selection, e -> {
+			throw new NullPointerException();
+		});
 
 		MenuItem mntmRegister = new MenuItem(menu_4, SWT.NONE);
 		mntmRegister.setText("Register");

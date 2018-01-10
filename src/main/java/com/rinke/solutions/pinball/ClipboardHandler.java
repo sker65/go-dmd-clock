@@ -75,6 +75,8 @@ public class ClipboardHandler implements Runnable {
 			if( imageData != null ) {
 				dmd.addUndoBuffer();
 				BufferedImage bufferedImage = ImageUtil.convert(new Image(Display.getCurrent(),imageData));
+				log.info("pasting image from clipboard: {}, hasAlpha: {}", bufferedImage, bufferedImage.getColorModel().hasAlpha() );
+				log.info("target frame no of planes: {}", dmd.getNumberOfPlanes());
 				if( dmd.getNumberOfPlanes() <= 4) {
 					Frame res = ImageUtil.convertToFrameWithPalette(bufferedImage, dmd, palette, false);
 					PasteTool pasteTool = new PasteTool(0, width, height,0,0);
