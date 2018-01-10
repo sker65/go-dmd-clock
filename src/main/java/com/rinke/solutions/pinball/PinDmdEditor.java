@@ -1712,7 +1712,9 @@ public class PinDmdEditor implements EventHandler {
 		drawTools.put("circle", new CircleTool(paletteTool.getSelectedColor(), false));
 		drawTools.put("filledCircle", new CircleTool(paletteTool.getSelectedColor(), true));
 //		drawTools.put("colorize", new ColorizeTool(paletteTool.getSelectedColor()));
-		drawTools.put("select", new SelectTool(paletteTool.getSelectedColor(), dmdWidget));
+		SelectTool t = new SelectTool(paletteTool.getSelectedColor(), dmdWidget);
+		t.setDMD(dmd);
+		drawTools.put("select", t );
 		// notify draw tool on color changes
 		drawTools.values().forEach(d -> paletteTool.addIndexListener(d));
 		// let draw tools notify when draw action is finished
