@@ -818,7 +818,7 @@ public class PinDmdEditor implements EventHandler {
 	}
 	
 	private void onExportRealPinProject() {
-		licManager.requireOneOf( Capability.REALPIN, Capability.GODMD);
+		licManager.requireOneOf( Capability.REALPIN, Capability.GODMD, Capability.XXL_DISPLAY);
 		String filename = fileChooserUtil.choose(SWT.SAVE, project.name, new String[] { "*.pal" }, new String[] { "Export pal" });
 		if (filename != null) {
 			warn("Warning", "Please don´t publish projects with copyrighted material / frames");
@@ -880,7 +880,7 @@ public class PinDmdEditor implements EventHandler {
 
 	void exportProject(String filename, OutputStreamProvider streamProvider, boolean realPin) {
 		log.info("export project {} file {}", realPin?"real":"vpin", filename);
-		if( realPin) licManager.requireOneOf(Capability.VPIN, Capability.REALPIN, Capability.GODMD);
+		if( realPin) licManager.requireOneOf(Capability.VPIN, Capability.REALPIN, Capability.GODMD, Capability.XXL_DISPLAY);
 
 		// rebuild frame seq map	
 		HashMap <String,FrameSeq> frameSeqMap = new HashMap<>();

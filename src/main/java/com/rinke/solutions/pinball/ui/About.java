@@ -96,7 +96,7 @@ public class About extends Dialog {
 		
 		Link lblBySteve = new Link(shlAboutPindmdEditor, SWT.NONE);
 		lblBySteve.setBounds(211, 22, 144, 103);
-		lblBySteve.setText("by Steve\n(C) 2016/2017\n\n\n<a href=\"https://github.com/sker65/go-dmd-clock\">https://github.com/sker65/go-dmd-clock</a>");
+		lblBySteve.setText("by Steve\n(C) 2016-2018\n\n\n<a href=\"https://github.com/sker65/go-dmd-clock\">https://github.com/sker65/go-dmd-clock</a>");
 		
 		Label lblVersion = new Label(shlAboutPindmdEditor, SWT.NONE);
 		lblVersion.setBounds(72, 126, 283, 67);
