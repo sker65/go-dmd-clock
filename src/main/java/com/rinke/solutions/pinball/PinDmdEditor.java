@@ -57,6 +57,8 @@ import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.program.Program;
@@ -67,6 +69,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.MessageBox;
@@ -171,6 +174,9 @@ public class PinDmdEditor implements EventHandler {
 	@Option(name = "-ani", usage = "animation file to load", required = false)
 	private String aniToLoad;
 
+	@Option(name = "-play", usage = "animation file to play fullscreen", required = false)
+	private String playFile;
+
 	@Option(name = "-cut", usage = "<src name>,<new name>,<start>,<end>", required = false)
 	private String cutCmd;
 
@@ -227,6 +233,7 @@ public class PinDmdEditor implements EventHandler {
 	Button btnNext;
 	ComboViewer paletteTypeComboViewer;
 	DMDWidget dmdWidget;
+	DMDWidget fullScreenWidget = null;
 	ResourceManager resManager;
 
 	Button btnNewPalette;
@@ -561,12 +568,12 @@ public class PinDmdEditor implements EventHandler {
 		boolean goDMDenabled = ApplicationProperties.getBoolean(ApplicationProperties.GODMD_ENABLED_PROP_KEY);
 		animationHandler.setEnableClock(goDMDenabled);
 		
+		createBindings();
+
 		onNewProject();
 
 		paletteComboViewer.getCombo().select(0);
 		paletteTool.setPalette(activePalette);
-
-		createBindings();
 
 		SplashScreen splashScreen = SplashScreen.getSplashScreen();
 		if (splashScreen != null) {
@@ -623,6 +630,13 @@ public class PinDmdEditor implements EventHandler {
 		}
 		if (aniToLoad != null) {
 			aniAction.loadAni(aniToLoad, false, true);
+		}
+		if (playFile != null) {
+			List<Animation> anis = aniAction.loadAni(playFile, false, true);
+			playingAnis.addAll(anis);
+			// start playback
+			onStartStopClicked(true);
+			playFullScreen();
 		}
 		if (cutCmd != null && !recordings.isEmpty()) {
 			String[] cuts = cutCmd.split(",");
@@ -2589,8 +2603,12 @@ public class PinDmdEditor implements EventHandler {
 	}
 
 	private void dmdRedraw() {
-		dmdWidget.redraw();
-		previewDmd.redraw();
+		if( fullScreenWidget != null ) {
+			fullScreenWidget.redraw();
+		} else {
+			dmdWidget.redraw();
+			previewDmd.redraw();
+		}
 	}
 	
 	void onFrameSeqChanged(Animation ani) {
@@ -2851,6 +2869,13 @@ public class PinDmdEditor implements EventHandler {
 		mntmRecentAnimationsItem.setMenu(mntmRecentAnimations);
 
 		new MenuItem(menu_2, SWT.SEPARATOR);
+		
+		MenuItem mntmPlayFullscreen = new MenuItem(menu_2, SWT.NONE);
+		mntmPlayFullscreen.setText("Play Fullscreen");
+		mntmPlayFullscreen.setAccelerator(SWT.MOD1 + SWT.F11);
+		mntmPlayFullscreen.addListener(SWT.Selection, e -> playFullScreen());
+		
+		new MenuItem(menu_2, SWT.SEPARATOR);
 
 		MenuItem mntmExportAnimation = new MenuItem(menu_2, SWT.NONE);
 		mntmExportAnimation.setText("Export Animation as GIF");	
@@ -2947,6 +2972,46 @@ public class PinDmdEditor implements EventHandler {
 		MenuItem mntmAbout = new MenuItem(menu_4, SWT.NONE);
 		mntmAbout.setText("About");
 		mntmAbout.addListener(SWT.Selection, e -> new About(shell).open(pluginsPath, loadedPlugins));
+	}
+
+	private void playFullScreen() {
+		final Shell shell = new Shell(display, SWT.NO_TRIM | SWT.ON_TOP);
+		Rectangle b = display.getBounds();
+		shell.setBounds(b);
+		shell.setFullScreen(true);
+		Color black = new Color(display, 0, 0, 0);
+		shell.setBackground(black);
+		//shell.setLayout(new GridLayout(1, false));
+	    fullScreenWidget = new DMDWidget(shell, SWT.DOUBLE_BUFFERED, dmd, false);
+	    //fullScreenWidget.setLayoutData(new GridData(SWT.CENTER, SWT.FILL, true, true));
+	    fullScreenWidget.setBackground(black);
+	    Rectangle r = shell.getBounds();
+	    fullScreenWidget.setBounds(r.x, r.y, r.width, r.height);
+	    fullScreenWidget.setPalette(activePalette);
+	    int w = fullScreenWidget.getPitch()*dmd.getWidth()+fullScreenWidget.getMargin()*2;
+	    int h = fullScreenWidget.getPitch()*dmd.getHeight()+fullScreenWidget.getMargin()*2;
+	    fullScreenWidget.setBounds((r.width-w)/2,(r.height-h)/2,w,h);
+	   
+	    display.addFilter(SWT.KeyDown, new Listener() {
+			@Override
+			public void handleEvent(Event e) {
+				if(e.character == 27 ) {
+					shell.dispose();
+				}
+			}
+		});
+		shell.open();
+		
+	    // Set up the event loop.
+	    while (!shell.isDisposed()  ) {
+	      if (!display.readAndDispatch()) {
+	        // If no more entries in event queue
+	        display.sleep();
+	      }
+	    }
+	    fullScreenWidget.dispose();
+	    black.dispose();
+	    fullScreenWidget = null;
 	}
 
 	private void onRemoveSelection() {

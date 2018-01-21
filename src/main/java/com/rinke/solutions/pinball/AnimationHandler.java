@@ -121,14 +121,14 @@ public class AnimationHandler extends Observable implements Runnable{
                 }
 		
 				if( ani.hasEnded() ) {
-					if( !ani.isMutable() ){
+					//if( !ani.isMutable() ){
 						ani.restart();
 						if( showClock) setClockActive(true);
 						index++;
 						if( index >= anis.size()) {
 							index = 0;
 						}
-					}
+					//}
 				}
 			}
 		}

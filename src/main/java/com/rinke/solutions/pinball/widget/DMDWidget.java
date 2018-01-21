@@ -12,6 +12,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.RGB;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
@@ -58,6 +59,7 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 	private Rect selection;
 	private Cursor cursor;
 	private boolean inSelection;
+	private boolean escPressed;
 	
 	@FunctionalInterface
 	public static interface FrameChangedListerner {
@@ -72,6 +74,7 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 		this.addListener( SWT.MouseDown, e -> handleMouse(e));
 		this.addListener( SWT.MouseUp, e -> handleMouse(e));
 		this.addListener( SWT.MouseMove, e -> handleMouse(e));
+		this.addListener(SWT.KeyDown, e->handleKey(e));
 		if( scrollable ) {
 			hBar = this.getHorizontalBar();
 			vBar = this.getVerticalBar();
@@ -85,6 +88,12 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 		if( drawTool != null ) drawTool.setDMD(dmd);
 	}
 	
+	private void handleKey(Event e) {
+		if( e.character == 27 ) {
+			this.escPressed = true;
+		}
+	}
+
 	public void setSelection( int x, int y, int w, int h) {
 		if( w==0 && h==0)
 			this.selection = null;
@@ -244,7 +253,9 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
         GC gcImage = new GC(image);
         gcImage.setBackground(bg);
         gcImage.fillRectangle(0, 0, w, h);
+        long startDrawing = System.currentTimeMillis();
         drawDMD(gcImage, dmd.getFrame(), numberOfSubframes, useColorIndex, cols);
+        //System.out.println("draw time: "+(System.currentTimeMillis()-startDrawing));
         if( showMask && dmd.getFrame().mask != null) {
             drawMask(display, cols, image, gcImage);
         }
@@ -299,9 +310,38 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 		gcImage.drawImage(rubberImage, 0, 0);
 		gcRubber.dispose();
 	}
+	
+	private void drawDMDwithoutMask(GC gcImage, Frame frame, int numberOfSubframes, boolean useColorIndex, Color[] cols) {
+		for (int row = 0; row < resolutionY; row++) {
+            for (int col = 0; col < resolutionX; col++) {
+                byte mask = (byte) (0b10000000 >> (col % 8));
+                int v = 0;
+                for(int i = 0; i < numberOfSubframes;i++) {
+                	if( col / 8 + row * bytesPerRow < frame.getPlane(i).length) {
+            			v += (frame.getPlane(i)[col / 8 + row * bytesPerRow] & mask) != 0 ? (1<<i) : 0;
+                	}
+                }
+                if( useColorIndex ) {
+                	gcImage.setBackground(cols[v]);
+                } else {
+                	// v is rgb directly
+                	int r = (v >> 10) << 3;
+                    int g = ( ( v >> 5 ) & 0x1F ) << 3;
+                    int b = ( v & 0x1F ) << 3;
+                	Color c = resourceManager.createColor(new RGB(r,g,b));
+                	gcImage.setBackground(c);
+                }
+                gcImage.fillOval(margin + col * pitch, margin + row * pitch, pitch, pitch);
+            }
+		}
+	}
 
 	private void drawDMD(GC gcImage, Frame frame, int numberOfSubframes, boolean useColorIndex, Color[] cols) {
 		boolean checkMask = maskOut && frame.hasMask();
+		if( !checkMask ) {
+			drawDMDwithoutMask(gcImage, frame, numberOfSubframes, useColorIndex, cols);
+			return;
+		}
 		byte[] maskData = checkMask?frame.mask.data:null;
 		for (int row = 0; row < resolutionY; row++) {
             for (int col = 0; col < resolutionX; col++) {
@@ -454,5 +494,25 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 
 	public Rect getSelection() {
 		return this.selection;
+	}
+
+	public boolean isEscPressed() {
+		return escPressed;
+	}
+
+	public int getWidth() {
+		return width;
+	}
+
+	public int getHeight() {
+		return height;
+	}
+
+	public int getPitch() {
+		return pitch;
+	}
+
+	public int getMargin() {
+		return margin;
 	}
 }
