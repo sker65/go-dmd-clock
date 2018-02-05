@@ -53,14 +53,17 @@ import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
@@ -1153,47 +1156,27 @@ public class PinDmdEditor implements EventHandler {
 		}
 	}
 	
-	/**
-	 * Create contents of the window.
-	 */
-	void createContents(Shell shell) {
-		shell.setSize(1380, 660);
-		shell.setText("Pin2dmd - Editor");
-		shell.setLayout(new GridLayout(4, false));
-
-		createMenu(shell);
+	Composite createListComposite(Composite parent) {
 		
-		setProjectFilename(null);
+		Composite listComp = new Composite(parent, 0);
+		listComp.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
+		GridLayout gl_listComp = new GridLayout(3, false);
+		listComp.setLayout(gl_listComp);
 
-		recentProjectsMenuManager = new RecentMenuManager("recentProject", 4, menuPopRecentProjects, e -> loadProject((String) e.widget.getData()));
-		recentProjectsMenuManager.loadRecent();
-
-		recentPalettesMenuManager = new RecentMenuManager("recentPalettes", 4, mntmRecentPalettes, e -> paletteHandler.loadPalette((String) e.widget.getData()));
-		recentPalettesMenuManager.loadRecent();
-
-		recentAnimationsMenuManager = new RecentMenuManager("recentAnimations", 4, mntmRecentAnimations, e -> aniAction.loadAni(((String) e.widget.getData()),
-				true, true));
-		recentAnimationsMenuManager.loadRecent();
-
-		resManager = new LocalResourceManager(JFaceResources.getResources(), shell);
-
-		Label lblAnimations = new Label(shell, SWT.NONE);
+		Label lblAnimations = new Label(listComp, SWT.NONE);
 		lblAnimations.setText("Recordings");
 		
-		Label lblScences = new Label(shell, SWT.NONE);
+		Label lblScences = new Label(listComp, SWT.NONE);
 		lblScences.setText("Scences");
 
-		Label lblKeyframes = new Label(shell, SWT.NONE);
-		lblKeyframes.setText("KeyFrames");
+		Label lblKeyframes = new Label(listComp, SWT.NONE);
+		lblKeyframes.setText("Keyframes");
 
-		Label lblPreview = new Label(shell, SWT.NONE);
-		lblPreview.setText("Preview");
-		
 		int listWidth = 150;
-		int listHeight = 231;
+		int listHeight = 181;
 		int colWidth = 220;
 
-		aniListViewer = new TableViewer(shell, SWT.BORDER | SWT.V_SCROLL);
+		aniListViewer = new TableViewer(listComp, SWT.BORDER | SWT.V_SCROLL);
 		Table aniList = aniListViewer.getTable();
 		GridData gd_aniList = new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1);
 		gd_aniList.heightHint = listHeight;
@@ -1223,7 +1206,7 @@ public class PinDmdEditor implements EventHandler {
 		viewerCol1.getColumn().setWidth(colWidth);
 		viewerCol1.setLabelProvider(new IconLabelProvider<Animation>(shell, o -> o.getIconAndText() ));
 		
-		sceneListViewer = new TableViewer(shell, SWT.SINGLE | SWT.BORDER | SWT.V_SCROLL);
+		sceneListViewer = new TableViewer(listComp, SWT.SINGLE | SWT.BORDER | SWT.V_SCROLL);
 		Table sceneList = sceneListViewer.getTable();
 		GridData gd_list = new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1);
 		gd_list.heightHint = listHeight;
@@ -1254,7 +1237,7 @@ public class PinDmdEditor implements EventHandler {
 		viewerCol2.getColumn().setWidth(colWidth);
 		viewerCol2.setLabelProvider(new IconLabelProvider<Animation>(shell, ani -> ani.getIconAndText() ));
 
-		keyframeTableViewer = new TableViewer(shell, SWT.SINGLE | SWT.BORDER | SWT.V_SCROLL);
+		keyframeTableViewer = new TableViewer(listComp, SWT.SINGLE | SWT.BORDER | SWT.V_SCROLL);
 		Table keyframeList = keyframeTableViewer.getTable();
 		GridData gd_keyframeList = new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1);
 		gd_keyframeList.heightHint = listHeight;
@@ -1274,16 +1257,7 @@ public class PinDmdEditor implements EventHandler {
 		viewerColumn.getColumn().setWidth(colWidth);
 		viewerColumn.setLabelProvider(new IconLabelProvider<PalMapping>(shell, o -> Pair.of(o.switchMode.name().toLowerCase(), o.name ) ));
 
-		dmdWidget = new DMDWidget(shell, SWT.DOUBLE_BUFFERED, this.dmd, true);
-		// dmdWidget.setBounds(0, 0, 700, 240);
-		GridData gd_dmdWidget = new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1);
-		gd_dmdWidget.heightHint = listHeight;
-		gd_dmdWidget.widthHint = 816;
-		dmdWidget.setLayoutData(gd_dmdWidget);
-		dmdWidget.setPalette(activePalette);
-		dmdWidget.addListeners(l -> onFrameChanged(l));
-
-		Composite composite_1 = new Composite(shell, SWT.NONE);
+		Composite composite_1 = new Composite(listComp, SWT.NONE);
 		composite_1.setLayout(new GridLayout(2, false));
 		GridData gd_composite_1 = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
 		gd_composite_1.widthHint = listWidth;
@@ -1316,7 +1290,7 @@ public class PinDmdEditor implements EventHandler {
 		btnSortAni.setText("Sort");
 		btnSortAni.addListener(SWT.Selection, e -> onSortAnimations(recordings));
 		
-		Composite composite_4 = new Composite(shell, SWT.NONE);
+		Composite composite_4 = new Composite(listComp, SWT.NONE);
 		composite_4.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
 		GridLayout gl_composite_4 = new GridLayout(3, false);
 		gl_composite_4.horizontalSpacing = 1;
@@ -1356,7 +1330,7 @@ public class PinDmdEditor implements EventHandler {
 		btnSetScenePal.setEnabled(false);
 		btnSetScenePal.addListener(SWT.Selection, e -> onSetScenePalette());
 
-		Composite composite_2 = new Composite(shell, SWT.NONE);
+		Composite composite_2 = new Composite(listComp, SWT.NONE);
 		GridLayout gl_composite_2 = new GridLayout(3, false);
 		gl_composite_2.marginWidth = 1;
 		gl_composite_2.horizontalSpacing = 1;
@@ -1384,52 +1358,74 @@ public class PinDmdEditor implements EventHandler {
 		btnSetKeyFramePal.setText("Pal");
 		btnSetKeyFramePal.setEnabled(false);
 		btnSetKeyFramePal.addListener(SWT.Selection, e -> onSetKeyframePalette());
+		
+		return listComp;
 
-		scale = new Scale(shell, SWT.NONE);
-		GridData gd_scale = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
-		gd_scale.widthHint = 826;
-		scale.setLayoutData(gd_scale);
-		scale.addListener(SWT.Selection, e -> animationHandler.setPos(scale.getSelection()));
-		
-		CTabFolder tabFolder = new CTabFolder(shell, SWT.FLAT);
-		GridData gd_tabFolder = new GridData(SWT.LEFT, SWT.CENTER, false, false, 3, 4);
-		gd_tabFolder.heightHint = 255;
-		gd_tabFolder.widthHint = 504;
-		tabFolder.setLayoutData(gd_tabFolder);
-		
-		CTabItem tbtmKeyframe = new CTabItem(tabFolder, SWT.NONE);
-		tbtmKeyframe.setText(TabMode.KEYFRAME.label);
-		tbtmKeyframe.setControl(createKeyFrameGroup(tabFolder));
-		new Label(grpKeyframe, SWT.NONE);
-		new Label(grpKeyframe, SWT.NONE);
-		new Label(grpKeyframe, SWT.NONE);
-		new Label(grpKeyframe, SWT.NONE);
-		new Label(grpKeyframe, SWT.NONE);
-		
-		CTabItem tbtmGodmd = new CTabItem(tabFolder, SWT.NONE);
-		tbtmGodmd.setText(TabMode.GODMD.label);
-		
-		goDmdGroup =  new GoDmdGroup(tabFolder);
-		tbtmGodmd.setControl( goDmdGroup.getGrpGoDMDCrtls() );
+	}
+	
+	/**
+	 * Create contents of the window.
+	 */
+	void createContents(Shell shell) {
+		shell.setMaximized(true);
+		shell.setText("Pin2dmd - Editor");
 
-		CTabItem tbtmPropertyText = new CTabItem(tabFolder, SWT.NONE);
-		tbtmPropertyText.setText(TabMode.PROP.label);
+		createMenu(shell);
 		
-		textProperty = new Text(tabFolder, SWT.BORDER | SWT.V_SCROLL | SWT.MULTI);
-		tbtmPropertyText.setControl(textProperty);
-		
-		tabFolder.setSelection(tbtmKeyframe);
-		tabFolder.addListener(SWT.Selection, e->{
-			log.debug("tab changed: {}", tabFolder.getSelection().getText());
-			this.tabMode = TabMode.fromLabel(tabFolder.getSelection().getText());
-		});
+		setProjectFilename(null);
 
-		Group grpDetails = new Group(shell, SWT.NONE);
+		recentProjectsMenuManager = new RecentMenuManager("recentProject", 4, menuPopRecentProjects, e -> loadProject((String) e.widget.getData()));
+		recentProjectsMenuManager.loadRecent();
+
+		recentPalettesMenuManager = new RecentMenuManager("recentPalettes", 4, mntmRecentPalettes, e -> paletteHandler.loadPalette((String) e.widget.getData()));
+		recentPalettesMenuManager.loadRecent();
+
+		recentAnimationsMenuManager = new RecentMenuManager("recentAnimations", 4, mntmRecentAnimations, e -> aniAction.loadAni(((String) e.widget.getData()),
+				true, true));
+		recentAnimationsMenuManager.loadRecent();
+
+		resManager = new LocalResourceManager(JFaceResources.getResources(), shell);
+		
+		//shell.setLayout(new FillLayout());
+		//shell.setLayout(new RowLayout());
+		shell.setLayout(new GridLayout(3,false));
+		Composite comp = shell;
+		
+		createListComposite(comp);
+
+		createTabbedFolder(comp);
+
+		Composite drawPalGroup = new Composite(comp,0);
+		drawPalGroup.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
+		drawPalGroup.setLayout(new GridLayout(1,false));
+		createPalettesGroup(drawPalGroup);
+		createDrawingGroup(drawPalGroup);
+
+		Composite previewGroup = new Composite(comp,0);
+		previewGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
+		GridLayout gl_previewGroup = new GridLayout(1,false);
+		gl_previewGroup.marginRight = 20;
+		previewGroup.setLayout(gl_previewGroup);
+		createPreviewComposite(previewGroup);
+		createDetailsGroup(previewGroup);
+		createStartStopControl(previewGroup);
+		
+		ObserverManager.bind(maskDmdObserver, e -> btnUndo.setEnabled(e), () -> maskDmdObserver.canUndo());
+		ObserverManager.bind(maskDmdObserver, e -> btnRedo.setEnabled(e), () -> maskDmdObserver.canRedo());
+		maskDmdObserver.addObserver((dmd,o)->updateHashes(dmd));
+
+	}
+	
+	private void createDetailsGroup(Composite parent) {
+		
+		Group grpDetails = new Group(parent, SWT.NONE);
+		grpDetails.setLayoutData(new GridData(SWT.FILL, SWT.TOP, false, false, 1, 1));
 		grpDetails.setLayout(new GridLayout(12, false));
-		GridData gd_grpDetails = new GridData(SWT.LEFT, SWT.CENTER, false, true, 1, 1);
+		
+		/*GridData gd_grpDetails = new GridData(SWT.LEFT, SWT.CENTER, false, true, 1, 1);
 		gd_grpDetails.heightHint = 27;
 		gd_grpDetails.widthHint = 815;
-		grpDetails.setLayoutData(gd_grpDetails);
+		grpDetails.setLayoutData(gd_grpDetails);*/
 		grpDetails.setText("Details");
 
 		Label lblFrame = new Label(grpDetails, SWT.NONE);
@@ -1489,20 +1485,256 @@ public class PinDmdEditor implements EventHandler {
 		btnLivePreview = new Button(grpDetails, SWT.CHECK);
 		btnLivePreview.setToolTipText("controls live preview to real display device");
 		btnLivePreview.setText("Live Preview");
-				
-						Button btnIncPitch = new Button(grpDetails, SWT.NONE);
-						btnIncPitch.setText("+");
-								
-										Button btnDecPitch = new Button(grpDetails, SWT.NONE);
-										btnDecPitch.setText("-");
-										btnDecPitch.addListener(SWT.Selection, e -> dmdWidget.decPitch());
-						btnIncPitch.addListener(SWT.Selection, e -> dmdWidget.incPitch());
 		btnLivePreview.addListener(SWT.Selection, e -> onLivePreviewSwitched(btnLivePreview.getSelection()));
+				
+		Button btnIncPitch = new Button(grpDetails, SWT.NONE);
+		btnIncPitch.setText("+");
+								
+		Button btnDecPitch = new Button(grpDetails, SWT.NONE);
+		btnDecPitch.setText("-");
+		btnDecPitch.addListener(SWT.Selection, e -> dmdWidget.decPitch());
+		btnIncPitch.addListener(SWT.Selection, e -> dmdWidget.incPitch());
+	}
 
-		Composite composite = new Composite(shell, SWT.NONE);
-		GridData gd_composite = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+	private void createDrawingGroup(Composite parent) {
+		
+		Group grpDrawing = new Group(parent, SWT.NONE);
+		GridData gd_grpDrawing = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+		gd_grpDrawing.widthHint = 541;
+		grpDrawing.setLayoutData(gd_grpDrawing);
+		grpDrawing.setLayout(new GridLayout(7, false));
+		
+		/*GridData gd_grpDrawing = new GridData(SWT.LEFT, SWT.CENTER, false, true, 1, 1);
+		gd_grpDrawing.heightHint = 83;
+		gd_grpDrawing.widthHint = 812;
+		grpDrawing.setLayoutData(gd_grpDrawing);*/
+		
+		grpDrawing.setText("Drawing");
+
+		drawTools.put("pencil", new SetPixelTool(paletteTool.getSelectedColor()));
+		drawTools.put("fill", new FloodFillTool(paletteTool.getSelectedColor()));
+		drawTools.put("rect", new RectTool(paletteTool.getSelectedColor()));
+		drawTools.put("line", new LineTool(paletteTool.getSelectedColor()));
+		drawTools.put("circle", new CircleTool(paletteTool.getSelectedColor(), false));
+		drawTools.put("filledCircle", new CircleTool(paletteTool.getSelectedColor(), true));
+//		drawTools.put("colorize", new ColorizeTool(paletteTool.getSelectedColor()));
+		SelectTool t = new SelectTool(paletteTool.getSelectedColor(), dmdWidget);
+		t.setDMD(dmd);
+		drawTools.put("select", t );
+		// notify draw tool on color changes
+		drawTools.values().forEach(d -> paletteTool.addIndexListener(d));
+		// let draw tools notify when draw action is finished
+		drawTools.values().forEach(d->d.addObserver((dmd,o)->updateHashes(dmd)));
+		
+		paletteTool.addListener(palette -> {
+			if (livePreviewActive) {
+				connector.upload(activePalette, handle);
+			}
+		});
+				
+						drawToolBar = new ToolBar(grpDrawing, SWT.FLAT | SWT.RIGHT);
+						GridData gd_drawToolBar = new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1);
+						gd_drawToolBar.widthHint = 184;
+						drawToolBar.setLayoutData(gd_drawToolBar);
+						
+								ToolItem tltmPen = new ToolItem(drawToolBar, SWT.RADIO);
+								tltmPen.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/pencil.png")));
+								tltmPen.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("pencil")));
+								
+										ToolItem tltmFill = new ToolItem(drawToolBar, SWT.RADIO);
+										tltmFill.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/color-fill.png")));
+										tltmFill.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("fill")));
+										
+												ToolItem tltmRect = new ToolItem(drawToolBar, SWT.RADIO);
+												tltmRect.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/rect.png")));
+												tltmRect.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("rect")));
+												
+														ToolItem tltmLine = new ToolItem(drawToolBar, SWT.RADIO);
+														tltmLine.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/line.png")));
+														tltmLine.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("line")));
+														
+																ToolItem tltmCircle = new ToolItem(drawToolBar, SWT.RADIO);
+																tltmCircle.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/oval.png")));
+																tltmCircle.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("circle")));
+																
+																		ToolItem tltmFilledCircle = new ToolItem(drawToolBar, SWT.RADIO);
+																		tltmFilledCircle.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/oval2.png")));
+																		tltmFilledCircle.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("filledCircle")));
+																		
+																				//		ToolItem tltmColorize = new ToolItem(drawToolBar, SWT.RADIO);
+																		//		tltmColorize.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/colorize.png")));
+																		//		tltmColorize.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("colorize")));
+																				
+																				ToolItem tltmMark = new ToolItem(drawToolBar, SWT.RADIO);
+																				tltmMark.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/select.png")));
+																				tltmMark.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("select")));
+		
+		editModeViewer = new ComboViewer(grpDrawing, SWT.READ_ONLY);
+		Combo combo_2 = editModeViewer.getCombo();
+		GridData gd_combo_2 = new GridData(SWT.LEFT, SWT.CENTER, false, false, 2, 1);
+		gd_combo_2.widthHint = 150;
+		combo_2.setLayoutData(gd_combo_2);
+		editModeViewer.setContentProvider(ArrayContentProvider.getInstance());
+		editModeViewer.setLabelProvider(new LabelProviderAdapter<EditMode>(o -> o.label));
+		
+				editModeViewer.setInput(EditMode.values());
+				editModeViewer.addSelectionChangedListener(e -> onEditModeChanged(e));
+		
+		// TODO the list depends on animation type
+		// for immutable only fixed ist selectable
+		// else replace / mask / follow
+		/*1 - Replacement
+		2 - AddCol
+		3 - AddCol mit Follow Hash
+
+		könnte man wenn Mode = 3 und Mask = checked die Maske vom Frame editieren
+		(Auswahl 1-10 wäre da ausgegraut)
+
+		In Modus 1+2 würde ich die Mask-Checkbox, Maskennummer-Dropdown und die Hash-Checkboxen alle auch ausgrauen,
+		da das alles editierten Content kein Sinn macht. 
+		-> Die wären dann alle nur bei Dumps aktiv.*/
+		if( selectedScene.isPresent() ) {
+			setViewerSelection(editModeViewer, selectedScene.get().getEditMode());
+		} else {
+			setViewerSelection(editModeViewer, EditMode.FIXED);
+		}
+		//btnColorMask.add
+
+		Label lblMaskNo = new Label(grpDrawing, SWT.NONE);
+		lblMaskNo.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+		lblMaskNo.setText("Mask:");
+
+		maskSpinner = new Spinner(grpDrawing, SWT.BORDER);
+		maskSpinner.setToolTipText("select the mask to use");
+		maskSpinner.setMinimum(0);
+		maskSpinner.setMaximum(25);
+		maskSpinner.setEnabled(false);
+		maskSpinner.addListener(SWT.Selection, e -> onMaskNumberChanged(maskSpinner.getSelection()));
+		
+		btnMask = new Button(grpDrawing, SWT.CHECK);
+		//btnMask.setText("Mask");
+		btnMask.setEnabled(false);
+		btnMask.addListener(SWT.Selection, e -> onMaskChecked(btnMask.getSelection()));
+		
+		btnCopyToPrev = new Button(grpDrawing, SWT.NONE);
+		btnCopyToPrev.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+		btnCopyToPrev.setText("CopyPrev");
+		btnCopyToPrev.addListener(SWT.Selection, e->onCopyAndMoveToPrevFrameClicked());
+		
+		btnCopyToNext = new Button(grpDrawing, SWT.NONE);
+		btnCopyToNext.setToolTipText("copy the actual scene / color mask to next frame and move forward");
+		btnCopyToNext.setText("CopyNext");
+		btnCopyToNext.addListener(SWT.Selection, e->onCopyAndMoveToNextFrameClicked());
+		
+		btnUndo = new Button(grpDrawing, SWT.NONE);
+		btnUndo.setText("&Undo");
+		btnUndo.addListener(SWT.Selection, e -> onUndoClicked());
+		
+		btnRedo = new Button(grpDrawing, SWT.NONE);
+		btnRedo.setText("&Redo");
+		btnRedo.addListener(SWT.Selection, e -> onRedoClicked());
+		
+		btnDeleteColMask = new Button(grpDrawing, SWT.NONE);
+		btnDeleteColMask.setText("Delete");
+		btnDeleteColMask.setEnabled(false);
+		btnDeleteColMask.addListener(SWT.Selection, e -> onDeleteColMaskClicked());
+		
+		btnInvert = new Button(grpDrawing, SWT.NONE);
+		btnInvert.setText("Invert");
+		btnInvert.addListener(SWT.Selection, e->onInvert());
+		btnInvert.setEnabled(false);
+
+		new Label(grpDrawing, SWT.NONE);
+		
+	}
+
+	private void createPalettesGroup(Composite parent) {
+		Group grpPalettes = new Group(parent, SWT.NONE);
+		GridData gd_grpPalettes = new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1);
+		gd_grpPalettes.widthHint = 539;
+		grpPalettes.setLayoutData(gd_grpPalettes);
+		GridLayout gl_grpPalettes = new GridLayout(5, false);
+		gl_grpPalettes.verticalSpacing = 2;
+		gl_grpPalettes.horizontalSpacing = 2;
+		grpPalettes.setLayout(gl_grpPalettes);
+		
+		/*GridData gd_grpPalettes = new GridData(SWT.LEFT, SWT.CENTER, false, true, 1, 1);
+		gd_grpPalettes.widthHint = 814;
+		gd_grpPalettes.heightHint = 71;
+		grpPalettes.setLayoutData(gd_grpPalettes);*/
+		
+		grpPalettes.setText("Palettes");
+
+		paletteComboViewer = new ComboViewer(grpPalettes, SWT.NONE);
+		Combo combo = paletteComboViewer.getCombo();
+		GridData gd_combo = new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1);
+		gd_combo.widthHint = 166;
+		combo.setLayoutData(gd_combo);
+		paletteComboViewer.setContentProvider(ArrayContentProvider.getInstance());
+		paletteComboViewer.setLabelProvider(new LabelProviderAdapter<Palette>(o -> o.index + " - " + o.name));
+		paletteComboViewer.setInput(project.paletteMap.values());
+		paletteComboViewer.addSelectionChangedListener(event -> onPaletteChanged(getFirstSelected(event)));
+
+		paletteTypeComboViewer = new ComboViewer(grpPalettes, SWT.READ_ONLY);
+		Combo combo_1 = paletteTypeComboViewer.getCombo();
+		combo_1.setToolTipText("Type of palette. Default palette is choosen at start and after timed switch is expired");
+		GridData gd_combo_1 = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+		gd_combo_1.widthHint = 96;
+		combo_1.setLayoutData(gd_combo_1);
+		paletteTypeComboViewer.setContentProvider(ArrayContentProvider.getInstance());
+		paletteTypeComboViewer.setInput(PaletteType.values());
+		setViewerSelection(paletteTypeComboViewer, activePalette.type);
+		paletteTypeComboViewer.addSelectionChangedListener(e -> onPaletteTypeChanged(e));
+		
+		btnNewPalette = new Button(grpPalettes, SWT.NONE);
+		btnNewPalette.setToolTipText("Creates a new palette by copying the actual colors");
+		btnNewPalette.setText("New");
+		btnNewPalette.addListener(SWT.Selection, e -> paletteHandler.newPalette());
+		
+				btnRenamePalette = new Button(grpPalettes, SWT.NONE);
+				btnRenamePalette.setToolTipText("Confirms the new palette name");
+				btnRenamePalette.setText("Rename");
+				btnRenamePalette.addListener(SWT.Selection, e -> {
+					String newName = paletteComboViewer.getCombo().getText();
+					if (newName.contains(" - ")) {
+						activePalette.name = newName.split(" - ")[1];
+						setPaletteViewerByIndex(activePalette.index);
+						paletteComboViewer.refresh();
+					} else {
+						warn("Illegal palette name", "Palette names must consist of palette index and name.\nName format therefore must be '<idx> - <name>'");
+						paletteComboViewer.getCombo().setText(activePalette.index + " - " + activePalette.name);
+					}
+
+				});
+		
+		Button btnDeletePalette = new Button(grpPalettes, SWT.NONE);
+		btnDeletePalette.setText("Delete");
+		btnDeletePalette.addListener(SWT.Selection, e->paletteHandler.onDeletePalette());
+
+		Composite grpPal = new Composite(grpPalettes, SWT.NONE);
+		grpPal.setLayout(new GridLayout(1, false));
+		GridData gd_grpPal = new GridData(SWT.LEFT, SWT.TOP, false, false, 3, 1);
+		gd_grpPal.widthHint = 333;
+		gd_grpPal.heightHint = 22;
+		grpPal.setLayoutData(gd_grpPal);
+		paletteTool = new PaletteTool(shell, grpPal, SWT.FLAT | SWT.RIGHT, activePalette);
+		paletteTool.addListener(dmdWidget);
+		
+		Label lblCtrlclick = new Label(grpPalettes, SWT.NONE);
+		lblCtrlclick.setText("Ctrl-Click to edit");
+		new Label(grpPalettes, SWT.NONE);
+		
+	}
+
+	private void createStartStopControl(Composite parent) {
+		
+		Composite composite = new Composite(parent, SWT.NONE);
+		composite.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
+		
+		/*GridData gd_composite = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
 		gd_composite.widthHint = 779;
-		composite.setLayoutData(gd_composite);
+		composite.setLayoutData(gd_composite);*/
+		
 		composite.setLayout(new GridLayout(11, false));
 
 		btnStartStop = new Button(composite, SWT.NONE);
@@ -1590,241 +1822,114 @@ public class PinDmdEditor implements EventHandler {
 				}
 			}
 		});
-
-		Group grpPalettes = new Group(shell, SWT.NONE);
-		GridLayout gl_grpPalettes = new GridLayout(6, false);
-		gl_grpPalettes.verticalSpacing = 2;
-		gl_grpPalettes.horizontalSpacing = 2;
-		grpPalettes.setLayout(gl_grpPalettes);
-		GridData gd_grpPalettes = new GridData(SWT.LEFT, SWT.CENTER, false, true, 1, 1);
-		gd_grpPalettes.widthHint = 814;
-		gd_grpPalettes.heightHint = 71;
-		grpPalettes.setLayoutData(gd_grpPalettes);
-		grpPalettes.setText("Palettes");
-
-		paletteComboViewer = new ComboViewer(grpPalettes, SWT.NONE);
-		Combo combo = paletteComboViewer.getCombo();
-		GridData gd_combo = new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1);
-		gd_combo.widthHint = 166;
-		combo.setLayoutData(gd_combo);
-		paletteComboViewer.setContentProvider(ArrayContentProvider.getInstance());
-		paletteComboViewer.setLabelProvider(new LabelProviderAdapter<Palette>(o -> o.index + " - " + o.name));
-		paletteComboViewer.setInput(project.paletteMap.values());
-		paletteComboViewer.addSelectionChangedListener(event -> onPaletteChanged(getFirstSelected(event)));
-
-		paletteTypeComboViewer = new ComboViewer(grpPalettes, SWT.READ_ONLY);
-		Combo combo_1 = paletteTypeComboViewer.getCombo();
-		combo_1.setToolTipText("Type of palette. Default palette is choosen at start and after timed switch is expired");
-		GridData gd_combo_1 = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
-		gd_combo_1.widthHint = 96;
-		combo_1.setLayoutData(gd_combo_1);
-		paletteTypeComboViewer.setContentProvider(ArrayContentProvider.getInstance());
-		paletteTypeComboViewer.setInput(PaletteType.values());
-		setViewerSelection(paletteTypeComboViewer, activePalette.type);
-		paletteTypeComboViewer.addSelectionChangedListener(e -> onPaletteTypeChanged(e));
 		
-		new Label(grpPalettes, SWT.NONE);
-		
-		btnNewPalette = new Button(grpPalettes, SWT.NONE);
-		btnNewPalette.setToolTipText("Creates a new palette by copying the actual colors");
-		btnNewPalette.setText("New");
-		btnNewPalette.addListener(SWT.Selection, e -> paletteHandler.newPalette());
-
-		btnRenamePalette = new Button(grpPalettes, SWT.NONE);
-		btnRenamePalette.setToolTipText("Confirms the new palette name");
-		btnRenamePalette.setText("Rename");
-		btnRenamePalette.addListener(SWT.Selection, e -> {
-			String newName = paletteComboViewer.getCombo().getText();
-			if (newName.contains(" - ")) {
-				activePalette.name = newName.split(" - ")[1];
-				setPaletteViewerByIndex(activePalette.index);
-				paletteComboViewer.refresh();
-			} else {
-				warn("Illegal palette name", "Palette names must consist of palette index and name.\nName format therefore must be '<idx> - <name>'");
-				paletteComboViewer.getCombo().setText(activePalette.index + " - " + activePalette.name);
-			}
-
-		});
-		
-		Button btnDeletePalette = new Button(grpPalettes, SWT.NONE);
-		btnDeletePalette.setText("Delete");
-		btnDeletePalette.addListener(SWT.Selection, e->paletteHandler.onDeletePalette());
-
-		Composite grpPal = new Composite(grpPalettes, SWT.NONE);
-		grpPal.setLayout(new GridLayout(1, false));
-		GridData gd_grpPal = new GridData(SWT.LEFT, SWT.TOP, false, false, 3, 1);
-		gd_grpPal.widthHint = 333;
-		gd_grpPal.heightHint = 22;
-		grpPal.setLayoutData(gd_grpPal);
-		// GridData gd_grpPal = new GridData(SWT.LEFT, SWT.CENTER, false, false,
-		// 1, 1);
-		// gd_grpPal.widthHint = 223;
-		// gd_grpPal.heightHint = 61;
-		// grpPal.setLayoutData(gd_grpPal);
-		//
-		paletteTool = new PaletteTool(shell, grpPal, SWT.FLAT | SWT.RIGHT, activePalette);
-
-		paletteTool.addListener(dmdWidget);
-								
-		Label lblCtrlclickToEdit = new Label(grpPalettes, SWT.NONE);
-		GridData gd_lblCtrlclickToEdit = new GridData(SWT.CENTER, SWT.CENTER, false, false, 2, 1);
-		gd_lblCtrlclickToEdit.widthHint = 131;
-		lblCtrlclickToEdit.setLayoutData(gd_lblCtrlclickToEdit);
-		lblCtrlclickToEdit.setText("Ctrl-Click to edit color");
-		new Label(grpPalettes, SWT.NONE);
-		
-
-		Group grpDrawing = new Group(shell, SWT.NONE);
-		grpDrawing.setLayout(new GridLayout(6, false));
-		GridData gd_grpDrawing = new GridData(SWT.LEFT, SWT.CENTER, false, true, 1, 1);
-		gd_grpDrawing.heightHint = 83;
-		gd_grpDrawing.widthHint = 812;
-		grpDrawing.setLayoutData(gd_grpDrawing);
-		grpDrawing.setText("Drawing");
-
-		drawToolBar = new ToolBar(grpDrawing, SWT.FLAT | SWT.RIGHT);
-		GridData gd_drawToolBar = new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1);
-		gd_drawToolBar.widthHint = 184;
-		drawToolBar.setLayoutData(gd_drawToolBar);
-
-		ToolItem tltmPen = new ToolItem(drawToolBar, SWT.RADIO);
-		tltmPen.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/pencil.png")));
-		tltmPen.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("pencil")));
-
-		ToolItem tltmFill = new ToolItem(drawToolBar, SWT.RADIO);
-		tltmFill.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/color-fill.png")));
-		tltmFill.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("fill")));
-
-		ToolItem tltmRect = new ToolItem(drawToolBar, SWT.RADIO);
-		tltmRect.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/rect.png")));
-		tltmRect.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("rect")));
-
-		ToolItem tltmLine = new ToolItem(drawToolBar, SWT.RADIO);
-		tltmLine.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/line.png")));
-		tltmLine.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("line")));
-
-		ToolItem tltmCircle = new ToolItem(drawToolBar, SWT.RADIO);
-		tltmCircle.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/oval.png")));
-		tltmCircle.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("circle")));
-
-		ToolItem tltmFilledCircle = new ToolItem(drawToolBar, SWT.RADIO);
-		tltmFilledCircle.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/oval2.png")));
-		tltmFilledCircle.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("filledCircle")));
-
-		//		ToolItem tltmColorize = new ToolItem(drawToolBar, SWT.RADIO);
-//		tltmColorize.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/colorize.png")));
-//		tltmColorize.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("colorize")));
-		
-		ToolItem tltmMark = new ToolItem(drawToolBar, SWT.RADIO);
-		tltmMark.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/select.png")));
-		tltmMark.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("select")));
-
-		drawTools.put("pencil", new SetPixelTool(paletteTool.getSelectedColor()));
-		drawTools.put("fill", new FloodFillTool(paletteTool.getSelectedColor()));
-		drawTools.put("rect", new RectTool(paletteTool.getSelectedColor()));
-		drawTools.put("line", new LineTool(paletteTool.getSelectedColor()));
-		drawTools.put("circle", new CircleTool(paletteTool.getSelectedColor(), false));
-		drawTools.put("filledCircle", new CircleTool(paletteTool.getSelectedColor(), true));
-//		drawTools.put("colorize", new ColorizeTool(paletteTool.getSelectedColor()));
-		SelectTool t = new SelectTool(paletteTool.getSelectedColor(), dmdWidget);
-		t.setDMD(dmd);
-		drawTools.put("select", t );
-		// notify draw tool on color changes
-		drawTools.values().forEach(d -> paletteTool.addIndexListener(d));
-		// let draw tools notify when draw action is finished
-		drawTools.values().forEach(d->d.addObserver((dmd,o)->updateHashes(dmd)));
-		
-		paletteTool.addListener(palette -> {
-			if (livePreviewActive) {
-				connector.upload(activePalette, handle);
-			}
-		});
-		
-		editModeViewer = new ComboViewer(grpDrawing, SWT.READ_ONLY);
-		Combo combo_2 = editModeViewer.getCombo();
-		GridData gd_combo_2 = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
-		gd_combo_2.widthHint = 141;
-		combo_2.setLayoutData(gd_combo_2);
-		editModeViewer.setContentProvider(ArrayContentProvider.getInstance());
-		editModeViewer.setLabelProvider(new LabelProviderAdapter<EditMode>(o -> o.label));
-		
-		// TODO the list depends on animation type
-		// for immutable only fixed ist selectable
-		// else replace / mask / follow
-		/*1 - Replacement
-		2 - AddCol
-		3 - AddCol mit Follow Hash
-
-		könnte man wenn Mode = 3 und Mask = checked die Maske vom Frame editieren
-		(Auswahl 1-10 wäre da ausgegraut)
-
-		In Modus 1+2 würde ich die Mask-Checkbox, Maskennummer-Dropdown und die Hash-Checkboxen alle auch ausgrauen,
-		da das alles editierten Content kein Sinn macht. 
-		-> Die wären dann alle nur bei Dumps aktiv.*/
-
-		editModeViewer.setInput(EditMode.values());
-		if( selectedScene.isPresent() ) {
-			setViewerSelection(editModeViewer, selectedScene.get().getEditMode());
-		} else {
-			setViewerSelection(editModeViewer, EditMode.FIXED);
-		}
-		editModeViewer.addSelectionChangedListener(e -> onEditModeChanged(e));
-		//btnColorMask.add
-
-		Label lblMaskNo = new Label(grpDrawing, SWT.NONE);
-		lblMaskNo.setText("Mask No:");
-
-		maskSpinner = new Spinner(grpDrawing, SWT.BORDER);
-		maskSpinner.setToolTipText("select the mask to use");
-		maskSpinner.setMinimum(0);
-		maskSpinner.setMaximum(25);
-		maskSpinner.setEnabled(false);
-		maskSpinner.addListener(SWT.Selection, e -> onMaskNumberChanged(maskSpinner.getSelection()));
-		
-		btnMask = new Button(grpDrawing, SWT.CHECK);
-		GridData gd_btnMask = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
-		gd_btnMask.widthHint = 62;
-		btnMask.setLayoutData(gd_btnMask);
-		btnMask.setText("Mask");
-		btnMask.setEnabled(false);
-		btnMask.addListener(SWT.Selection, e -> onMaskChecked(btnMask.getSelection()));
-		
-		btnInvert = new Button(grpDrawing, SWT.NONE);
-		btnInvert.setText("Invert");
-		btnInvert.addListener(SWT.Selection, e->onInvert());
-		btnInvert.setEnabled(false);
-		
-		btnCopyToPrev = new Button(grpDrawing, SWT.NONE);
-		btnCopyToPrev.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
-		btnCopyToPrev.setText("CopyToPrev");
-		btnCopyToPrev.addListener(SWT.Selection, e->onCopyAndMoveToPrevFrameClicked());
-		
-		btnCopyToNext = new Button(grpDrawing, SWT.NONE);
-		btnCopyToNext.setToolTipText("copy the actual scene / color mask to next frame and move forward");
-		btnCopyToNext.setText("CopyToNext");
-		btnCopyToNext.addListener(SWT.Selection, e->onCopyAndMoveToNextFrameClicked());
-		
-		btnUndo = new Button(grpDrawing, SWT.NONE);
-		btnUndo.setText("&Undo");
-		btnUndo.addListener(SWT.Selection, e -> onUndoClicked());
-		
-		btnRedo = new Button(grpDrawing, SWT.NONE);
-		btnRedo.setText("&Redo");
-		btnRedo.addListener(SWT.Selection, e -> onRedoClicked());
-		
-		btnDeleteColMask = new Button(grpDrawing, SWT.NONE);
-		btnDeleteColMask.setText("Delete");
-		btnDeleteColMask.setEnabled(false);
-		new Label(grpDrawing, SWT.NONE);
-		btnDeleteColMask.addListener(SWT.Selection, e -> onDeleteColMaskClicked());
-
-		ObserverManager.bind(maskDmdObserver, e -> btnUndo.setEnabled(e), () -> maskDmdObserver.canUndo());
-		ObserverManager.bind(maskDmdObserver, e -> btnRedo.setEnabled(e), () -> maskDmdObserver.canRedo());
-		
-		maskDmdObserver.addObserver((dmd,o)->updateHashes(dmd));
-
 	}
-	
+
+	private void createTabbedFolder(Composite parent) {
+		
+		CTabFolder tabFolder = new CTabFolder(parent, SWT.FLAT);
+		tabFolder.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
+		
+		/*GridData gd_tabFolder = new GridData(SWT.LEFT, SWT.CENTER, false, false, 3, 4);
+		gd_tabFolder.heightHint = 255;
+		gd_tabFolder.widthHint = 504;
+		tabFolder.setLayoutData(gd_tabFolder);*/
+		
+		CTabItem tbtmKeyframe = new CTabItem(tabFolder, SWT.NONE);
+		tbtmKeyframe.setText(TabMode.KEYFRAME.label);
+		tbtmKeyframe.setControl(createKeyFrameGroup(tabFolder));
+		
+		btnFetchDuration = new Button(grpKeyframe, SWT.NONE);
+		btnFetchDuration.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
+		btnFetchDuration.setToolTipText("Fetches duration for palette switches by calculating the difference between actual timestamp and keyframe timestamp");
+		btnFetchDuration.setText("Fetch Duration");
+		btnFetchDuration.setEnabled(false);
+		btnFetchDuration.addListener(SWT.Selection, e -> {
+			if (selectedPalMapping != null) {
+				selectedPalMapping.durationInMillis = lastTimeCode - saveTimeCode;
+				selectedPalMapping.durationInFrames = (int) selectedPalMapping.durationInMillis / FRAME_RATE;
+				txtDuration.setText(selectedPalMapping.durationInMillis + "");
+			}
+		});
+		
+		Label lblEvent = new Label(grpKeyframe, SWT.NONE);
+		lblEvent.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+		lblEvent.setText("Event:");
+		
+		Composite composite_5 = new Composite(grpKeyframe, SWT.NONE);
+		GridLayout gl_composite_5 = new GridLayout(3, false);
+		gl_composite_5.marginWidth = 0;
+		gl_composite_5.marginHeight = 0;
+		composite_5.setLayout(gl_composite_5);
+		GridData gd_composite_5 = new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1);
+		gd_composite_5.heightHint = 24;
+		gd_composite_5.widthHint = 134;
+		composite_5.setLayoutData(gd_composite_5);
+		new Label(composite_5, SWT.NONE);
+		
+		spinnerDeviceId = new Spinner(composite_5, SWT.BORDER);
+		spinnerDeviceId.setMaximum(255);
+		spinnerDeviceId.setMinimum(0);
+		spinnerDeviceId.addModifyListener(e->onEventSpinnerChanged(spinnerDeviceId, 8));
+		
+		spinnerEventId = new Spinner(composite_5, SWT.BORDER);
+		spinnerEventId.setMaximum(255);
+		spinnerEventId.setMinimum(0);
+		spinnerEventId.addModifyListener(e->onEventSpinnerChanged(spinnerEventId, 0));
+		
+		btnAddEvent = new Button(grpKeyframe, SWT.NONE);
+		btnAddEvent.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
+		btnAddEvent.setText("Event");
+		btnAddEvent.addListener(SWT.Selection, e->onAddKeyFrameClicked(SwitchMode.EVENT));
+		
+		CTabItem tbtmGodmd = new CTabItem(tabFolder, SWT.NONE);
+		tbtmGodmd.setText(TabMode.GODMD.label);
+		
+		goDmdGroup =  new GoDmdGroup(tabFolder);
+		tbtmGodmd.setControl( goDmdGroup.getGrpGoDMDCrtls() );
+
+		CTabItem tbtmPropertyText = new CTabItem(tabFolder, SWT.NONE);
+		tbtmPropertyText.setText(TabMode.PROP.label);
+		
+		textProperty = new Text(tabFolder, SWT.BORDER | SWT.V_SCROLL | SWT.MULTI);
+		tbtmPropertyText.setControl(textProperty);
+		
+		tabFolder.setSelection(tbtmKeyframe);
+		tabFolder.addListener(SWT.Selection, e->{
+			log.debug("tab changed: {}", tabFolder.getSelection().getText());
+			this.tabMode = TabMode.fromLabel(tabFolder.getSelection().getText());
+		});
+
+		
+	}
+
+	private void createPreviewComposite(Composite parent) {
+
+		Composite comp = new Composite(parent,0);
+		GridData gd_comp = new GridData(SWT.FILL);
+		gd_comp.grabExcessHorizontalSpace = true;
+		gd_comp.grabExcessVerticalSpace = true;
+		gd_comp.verticalAlignment = SWT.FILL;
+		gd_comp.horizontalAlignment = SWT.FILL;
+		comp.setLayoutData(gd_comp);
+		GridLayout gl_comp = new GridLayout(1, false);
+		comp.setLayout(gl_comp);
+		
+		dmdWidget = new DMDWidget(comp, SWT.DOUBLE_BUFFERED, this.dmd, true);
+		//gd_dmdWidget.heightHint = 231;
+		//gd_dmdWidget.widthHint = 1600;
+		dmdWidget.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		
+		dmdWidget.setPalette(activePalette);
+		dmdWidget.addListeners(l -> onFrameChanged(l));
+
+		scale = new Scale(comp, SWT.NONE);
+		//gd_scale.widthHint = 826;
+		scale.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		scale.addListener(SWT.Selection, e -> animationHandler.setPos(scale.getSelection()));
+		
+	}
+
 	void addFrame(CompiledAnimation ani) {
 		log.info("adding frame at {}", ani.actFrame);
 		ani.addFrame(ani.actFrame, new Frame(ani.frames.get(ani.actFrame)));
@@ -1906,48 +2011,42 @@ public class PinDmdEditor implements EventHandler {
 
 	private Composite createKeyFrameGroup(Composite parent) {
 		grpKeyframe = new Composite(parent, 0);
-		grpKeyframe.setLayout(new GridLayout(5, false));
+		GridLayout gl_grpKeyframe = new GridLayout(3, false);
+		gl_grpKeyframe.horizontalSpacing = 0;
+		gl_grpKeyframe.marginWidth = 0;
+		grpKeyframe.setLayout(gl_grpKeyframe);
 		GridData gd_grpKeyframe = new GridData(SWT.FILL, SWT.TOP, false, false, 3, 4);
 		gd_grpKeyframe.heightHint = 257;
-		gd_grpKeyframe.widthHint = 490;
+		//gd_grpKeyframe.widthHint = 460;
 		grpKeyframe.setLayoutData(gd_grpKeyframe);
 //		grpKeyframe.setText("KeyFrames");
 //		grpKeyframe.setVisible(!ApplicationProperties.getBoolean(ApplicationProperties.GODMD_ENABLED_PROP_KEY, false));
 		
-		Composite composite_hash = new Composite(grpKeyframe, SWT.NONE);
+		Composite hashPreviewGrp = new Composite(grpKeyframe, SWT.NONE);
+		hashPreviewGrp.setLayout(new GridLayout(2, false));
+		hashPreviewGrp.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
+		Composite composite_hash = new Composite(hashPreviewGrp, SWT.NONE);
 		//gd_composite_hash.widthHint = 105;
-		GridData gd_composite_hash = new GridData(SWT.LEFT, SWT.CENTER, false, false, 2, 1);
-		gd_composite_hash.widthHint = 148;
+		GridData gd_composite_hash = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+		gd_composite_hash.widthHint = 110;
 		composite_hash.setLayoutData(gd_composite_hash);
 		createHashButtons(composite_hash, 10, 0);
 		
-		previewDmd = new DMDWidget(grpKeyframe, SWT.DOUBLE_BUFFERED, dmd, false);
-		GridData gd_dmdPreWidget = new GridData(SWT.LEFT, SWT.TOP, false, false, 2, 1);
-		gd_dmdPreWidget.heightHint = 64;
-		gd_dmdPreWidget.widthHint = 235;
-		previewDmd.setLayoutData(gd_dmdPreWidget);
+		previewDmd = new DMDWidget(hashPreviewGrp, SWT.DOUBLE_BUFFERED, dmd, false);
+		previewDmd.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		
 		previewDmd.setDrawingEnabled(false);
 		previewDmd.setPalette(previewPalettes.get(0));
 		previewDmd.setMaskOut(true);
 		new Label(grpKeyframe, SWT.NONE);
 		new Label(grpKeyframe, SWT.NONE);
-		new Label(grpKeyframe, SWT.NONE);
-		new Label(grpKeyframe, SWT.NONE);
-
-		int btnWidth = 155;
-
+		
 		btnAddKeyframe = new Button(grpKeyframe, SWT.NONE);
 		btnAddKeyframe.setToolTipText("Adds a key frame that switches palette");
-		GridData gd_btnAddKeyframe = new GridData(SWT.LEFT, SWT.BOTTOM, false, false, 1, 1);
-		gd_btnAddKeyframe.widthHint = btnWidth;
-		btnAddKeyframe.setLayoutData(gd_btnAddKeyframe);
-		btnAddKeyframe.setText("Add Palette Switch");
+		btnAddKeyframe.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, false, false, 1, 1));
+		btnAddKeyframe.setText("Palette");
 		btnAddKeyframe.setEnabled(false);
 		btnAddKeyframe.addListener(SWT.Selection, e -> onAddKeyFrameClicked(SwitchMode.PALETTE));
-		
-		Label label = new Label(grpKeyframe, SWT.NONE);
-		label.setText(" ");
-		new Label(grpKeyframe, SWT.NONE);
 		
 		Label lblScene = new Label(grpKeyframe, SWT.NONE);
 		lblScene.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
@@ -1965,16 +2064,12 @@ public class PinDmdEditor implements EventHandler {
 		frameSeqViewer.addSelectionChangedListener(event -> onFrameSeqChanged(getFirstSelected(event)));
 		
 		btnAddFrameSeq = new Button(grpKeyframe, SWT.NONE);
-		GridData gd_btnAddFrameSeq = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
-		gd_btnAddFrameSeq.widthHint = btnWidth;
-		btnAddFrameSeq.setLayoutData(gd_btnAddFrameSeq);
+		btnAddFrameSeq.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
 		btnAddFrameSeq.setToolTipText("Adds a keyframe that triggers playback of a scene");
-		btnAddFrameSeq.setText("Add ColorScene Switch");
+		btnAddFrameSeq.setText("ColorScene");
 		// TODO add switch mode depend on ani scene
 		btnAddFrameSeq.addListener(SWT.Selection, e -> onAddFrameSeqClicked(SwitchMode.REPLACE));
 		btnAddFrameSeq.setEnabled(false);
-		new Label(grpKeyframe, SWT.NONE);
-		new Label(grpKeyframe, SWT.NONE);
 		
 		Label lblDuration = new Label(grpKeyframe, SWT.NONE);
 		lblDuration.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
@@ -1990,59 +2085,6 @@ public class PinDmdEditor implements EventHandler {
 				selectedPalMapping.durationInFrames = (int) selectedPalMapping.durationInMillis / 40;
 			}
 		});
-		
-		btnFetchDuration = new Button(grpKeyframe, SWT.NONE);
-		GridData gd_btnFetchDuration = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
-		gd_btnFetchDuration.widthHint = btnWidth;
-		btnFetchDuration.setLayoutData(gd_btnFetchDuration);
-		btnFetchDuration.setToolTipText("Fetches duration for palette switches by calculating the difference between actual timestamp and keyframe timestamp");
-		btnFetchDuration.setText("Fetch Duration");
-		btnFetchDuration.setEnabled(false);
-		btnFetchDuration.addListener(SWT.Selection, e -> {
-			if (selectedPalMapping != null) {
-				selectedPalMapping.durationInMillis = lastTimeCode - saveTimeCode;
-				selectedPalMapping.durationInFrames = (int) selectedPalMapping.durationInMillis / FRAME_RATE;
-				txtDuration.setText(selectedPalMapping.durationInMillis + "");
-			}
-		});
-		new Label(grpKeyframe, SWT.NONE);
-		
-		Label lblNewLabel = new Label(grpKeyframe, SWT.NONE);
-		GridData gd_lblNewLabel = new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1);
-		gd_lblNewLabel.widthHint = 121;
-		lblNewLabel.setLayoutData(gd_lblNewLabel);
-		
-		Label lblEvent = new Label(grpKeyframe, SWT.NONE);
-		lblEvent.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
-		lblEvent.setText("Event:");
-		
-		Composite composite_5 = new Composite(grpKeyframe, SWT.NONE);
-		GridLayout gl_composite_5 = new GridLayout(2, false);
-		gl_composite_5.marginWidth = 0;
-		gl_composite_5.marginHeight = 0;
-		composite_5.setLayout(gl_composite_5);
-		GridData gd_composite_5 = new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1);
-		gd_composite_5.heightHint = 24;
-		gd_composite_5.widthHint = 134;
-		composite_5.setLayoutData(gd_composite_5);
-		
-		spinnerDeviceId = new Spinner(composite_5, SWT.BORDER);
-		spinnerDeviceId.setMaximum(255);
-		spinnerDeviceId.setMinimum(0);
-		spinnerDeviceId.addModifyListener(e->onEventSpinnerChanged(spinnerDeviceId, 8));
-		
-		spinnerEventId = new Spinner(composite_5, SWT.BORDER);
-		spinnerEventId.setMaximum(255);
-		spinnerEventId.setMinimum(0);
-		spinnerEventId.addModifyListener(e->onEventSpinnerChanged(spinnerEventId, 0));
-		
-		btnAddEvent = new Button(grpKeyframe, SWT.NONE);
-		GridData gd_btnAddEvent = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
-		gd_btnAddEvent.widthHint = btnWidth;
-		btnAddEvent.setLayoutData(gd_btnAddEvent);
-		btnAddEvent.setText("Add Event");
-		new Label(grpKeyframe, SWT.NONE);
-		btnAddEvent.addListener(SWT.Selection, e->onAddKeyFrameClicked(SwitchMode.EVENT));
 		
 		return grpKeyframe;
 	}
@@ -2220,6 +2262,7 @@ public class PinDmdEditor implements EventHandler {
 	}
 
 	private void setDrawMaskByEditMode(EditMode mode) {
+		if( dmdWidget == null ) return;
 		if( dmdWidget.isShowMask() ) {
 			// only draw on mask
 			// TODO mask drawing and plane drawing with mask should be controlled seperately

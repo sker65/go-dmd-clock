@@ -172,6 +172,12 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 	public void setPitch(int p) {
 		this.pitch = p;
 	}
+	
+	@Override
+	public void setBounds(Rectangle rect) {
+		super.setBounds(rect);
+		this.setBounds(rect.x, rect.y, rect.width, rect.height);
+	}
 
 	@Override
 	public void setBounds(int x, int y, int width, int height) {
@@ -515,4 +521,5 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 	public int getMargin() {
 		return margin;
 	}
+
 }
