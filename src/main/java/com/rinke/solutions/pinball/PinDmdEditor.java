@@ -1532,42 +1532,42 @@ public class PinDmdEditor implements EventHandler {
 			}
 		});
 				
-						drawToolBar = new ToolBar(grpDrawing, SWT.FLAT | SWT.RIGHT);
-						GridData gd_drawToolBar = new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1);
-						gd_drawToolBar.widthHint = 184;
-						drawToolBar.setLayoutData(gd_drawToolBar);
+		drawToolBar = new ToolBar(grpDrawing, SWT.FLAT | SWT.RIGHT);
+		GridData gd_drawToolBar = new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1);
+		gd_drawToolBar.widthHint = 184;
+		drawToolBar.setLayoutData(gd_drawToolBar);
 						
-								ToolItem tltmPen = new ToolItem(drawToolBar, SWT.RADIO);
-								tltmPen.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/pencil.png")));
-								tltmPen.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("pencil")));
+		ToolItem tltmPen = new ToolItem(drawToolBar, SWT.RADIO);
+		tltmPen.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/pencil.png")));
+		tltmPen.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("pencil")));
 								
-										ToolItem tltmFill = new ToolItem(drawToolBar, SWT.RADIO);
-										tltmFill.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/color-fill.png")));
-										tltmFill.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("fill")));
+		ToolItem tltmFill = new ToolItem(drawToolBar, SWT.RADIO);
+		tltmFill.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/color-fill.png")));
+		tltmFill.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("fill")));
 										
-												ToolItem tltmRect = new ToolItem(drawToolBar, SWT.RADIO);
-												tltmRect.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/rect.png")));
-												tltmRect.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("rect")));
+		ToolItem tltmRect = new ToolItem(drawToolBar, SWT.RADIO);
+		tltmRect.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/rect.png")));
+		tltmRect.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("rect")));
 												
-														ToolItem tltmLine = new ToolItem(drawToolBar, SWT.RADIO);
-														tltmLine.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/line.png")));
-														tltmLine.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("line")));
-														
-																ToolItem tltmCircle = new ToolItem(drawToolBar, SWT.RADIO);
-																tltmCircle.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/oval.png")));
-																tltmCircle.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("circle")));
-																
-																		ToolItem tltmFilledCircle = new ToolItem(drawToolBar, SWT.RADIO);
-																		tltmFilledCircle.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/oval2.png")));
-																		tltmFilledCircle.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("filledCircle")));
-																		
-																				//		ToolItem tltmColorize = new ToolItem(drawToolBar, SWT.RADIO);
-																		//		tltmColorize.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/colorize.png")));
-																		//		tltmColorize.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("colorize")));
-																				
-																				ToolItem tltmMark = new ToolItem(drawToolBar, SWT.RADIO);
-																				tltmMark.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/select.png")));
-																				tltmMark.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("select")));
+		ToolItem tltmLine = new ToolItem(drawToolBar, SWT.RADIO);
+		tltmLine.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/line.png")));
+		tltmLine.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("line")));
+
+		ToolItem tltmCircle = new ToolItem(drawToolBar, SWT.RADIO);
+		tltmCircle.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/oval.png")));
+		tltmCircle.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("circle")));
+
+		ToolItem tltmFilledCircle = new ToolItem(drawToolBar, SWT.RADIO);
+		tltmFilledCircle.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/oval2.png")));
+		tltmFilledCircle.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("filledCircle")));
+
+		//		ToolItem tltmColorize = new ToolItem(drawToolBar, SWT.RADIO);
+//		tltmColorize.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/colorize.png")));
+//		tltmColorize.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("colorize")));
+		
+		ToolItem tltmMark = new ToolItem(drawToolBar, SWT.RADIO);
+		tltmMark.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/select.png")));
+		tltmMark.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("select")));
 		
 		editModeViewer = new ComboViewer(grpDrawing, SWT.READ_ONLY);
 		Combo combo_2 = editModeViewer.getCombo();
@@ -1577,8 +1577,8 @@ public class PinDmdEditor implements EventHandler {
 		editModeViewer.setContentProvider(ArrayContentProvider.getInstance());
 		editModeViewer.setLabelProvider(new LabelProviderAdapter<EditMode>(o -> o.label));
 		
-				editModeViewer.setInput(EditMode.values());
-				editModeViewer.addSelectionChangedListener(e -> onEditModeChanged(e));
+		editModeViewer.setInput(EditMode.values());
+		editModeViewer.addSelectionChangedListener(e -> onEditModeChanged(e));
 		
 		// TODO the list depends on animation type
 		// for immutable only fixed ist selectable
@@ -1691,21 +1691,21 @@ public class PinDmdEditor implements EventHandler {
 		btnNewPalette.setText("New");
 		btnNewPalette.addListener(SWT.Selection, e -> paletteHandler.newPalette());
 		
-				btnRenamePalette = new Button(grpPalettes, SWT.NONE);
-				btnRenamePalette.setToolTipText("Confirms the new palette name");
-				btnRenamePalette.setText("Rename");
-				btnRenamePalette.addListener(SWT.Selection, e -> {
-					String newName = paletteComboViewer.getCombo().getText();
-					if (newName.contains(" - ")) {
-						activePalette.name = newName.split(" - ")[1];
-						setPaletteViewerByIndex(activePalette.index);
-						paletteComboViewer.refresh();
-					} else {
-						warn("Illegal palette name", "Palette names must consist of palette index and name.\nName format therefore must be '<idx> - <name>'");
-						paletteComboViewer.getCombo().setText(activePalette.index + " - " + activePalette.name);
-					}
+		btnRenamePalette = new Button(grpPalettes, SWT.NONE);
+		btnRenamePalette.setToolTipText("Confirms the new palette name");
+		btnRenamePalette.setText("Rename");
+		btnRenamePalette.addListener(SWT.Selection, e -> {
+			String newName = paletteComboViewer.getCombo().getText();
+			if (newName.contains(" - ")) {
+				activePalette.name = newName.split(" - ")[1];
+				setPaletteViewerByIndex(activePalette.index);
+				paletteComboViewer.refresh();
+			} else {
+				warn("Illegal palette name", "Palette names must consist of palette index and name.\nName format therefore must be '<idx> - <name>'");
+				paletteComboViewer.getCombo().setText(activePalette.index + " - " + activePalette.name);
+			}
 
-				});
+		});
 		
 		Button btnDeletePalette = new Button(grpPalettes, SWT.NONE);
 		btnDeletePalette.setText("Delete");
@@ -1718,7 +1718,6 @@ public class PinDmdEditor implements EventHandler {
 		gd_grpPal.heightHint = 22;
 		grpPal.setLayoutData(gd_grpPal);
 		paletteTool = new PaletteTool(shell, grpPal, SWT.FLAT | SWT.RIGHT, activePalette);
-		paletteTool.addListener(dmdWidget);
 		
 		Label lblCtrlclick = new Label(grpPalettes, SWT.NONE);
 		lblCtrlclick.setText("Ctrl-Click to edit");
@@ -1922,6 +1921,7 @@ public class PinDmdEditor implements EventHandler {
 		
 		dmdWidget.setPalette(activePalette);
 		dmdWidget.addListeners(l -> onFrameChanged(l));
+		paletteTool.addListener(dmdWidget);
 
 		scale = new Scale(comp, SWT.NONE);
 		//gd_scale.widthHint = 826;
