@@ -67,6 +67,7 @@ public abstract class DrawTool extends Observable implements ColorIndexChangedLi
 	public boolean mouseDown(int x, int y)  { return false; }
 
 	public void setDMD(DMD dmd) {
+		assert dmd!=null;
 		this.dmd = dmd;
 	}
 

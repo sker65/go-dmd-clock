@@ -1517,10 +1517,10 @@ public class PinDmdEditor implements EventHandler {
 		drawTools.put("line", new LineTool(paletteTool.getSelectedColor()));
 		drawTools.put("circle", new CircleTool(paletteTool.getSelectedColor(), false));
 		drawTools.put("filledCircle", new CircleTool(paletteTool.getSelectedColor(), true));
-//		drawTools.put("colorize", new ColorizeTool(paletteTool.getSelectedColor()));
-		SelectTool t = new SelectTool(paletteTool.getSelectedColor(), dmdWidget);
-		t.setDMD(dmd);
-		drawTools.put("select", t );
+		
+		selectTool = new SelectTool(paletteTool.getSelectedColor());
+		selectTool.setDMD(dmd);
+		drawTools.put("select", selectTool );
 		// notify draw tool on color changes
 		drawTools.values().forEach(d -> paletteTool.addIndexListener(d));
 		// let draw tools notify when draw action is finished
@@ -1921,7 +1921,10 @@ public class PinDmdEditor implements EventHandler {
 		
 		dmdWidget.setPalette(activePalette);
 		dmdWidget.addListeners(l -> onFrameChanged(l));
+		
+		// wire some dependencies to dmdWidget
 		paletteTool.addListener(dmdWidget);
+		selectTool.setDmdWidget(dmdWidget);
 
 		scale = new Scale(comp, SWT.NONE);
 		//gd_scale.widthHint = 826;
@@ -3132,6 +3135,7 @@ public class PinDmdEditor implements EventHandler {
 	private Button btnDelBookmark;
 	private Button btnAddFrame;
 	private Button btnDelFrame;
+	private SelectTool selectTool;
 	
 	private void updateHashes(Frame frame) {
 		if( frame == null ) return;

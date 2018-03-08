@@ -11,9 +11,8 @@ public class SelectTool extends DrawTool {
 	private int x2, y2, x3, y3;
 	private int move;
 
-	public SelectTool(int actualColor, DMDWidget dmdWidget) {
+	public SelectTool(int actualColor) {
 		super(actualColor);
-		this.dmdWidget = dmdWidget;
 	}
 
 	@Override
@@ -115,5 +114,9 @@ public class SelectTool extends DrawTool {
 		drawRect(x2,y2,x3,y3);
 	}
 
+	public void setDmdWidget(DMDWidget dmdWidget) {
+		assert dmdWidget!=null;
+		this.dmdWidget = dmdWidget;
+	}
 	
 }
