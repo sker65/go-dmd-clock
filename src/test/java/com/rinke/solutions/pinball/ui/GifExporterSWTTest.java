@@ -33,7 +33,7 @@ public class GifExporterSWTTest {
 	@Before
 	public void setUp() throws Exception {
 		Animation ani = CompiledAnimation.buildAnimationFromFile("./src/test/resources/ex1.ani", AnimationType.COMPILED);
-		gifExporter = new GifExporter(displayHelper.createShell(), palette, ani );
+		gifExporter = new GifExporter(/*displayHelper.createShell(),*/ palette, ani );
 		gifExporter.createContents();
 	}
 

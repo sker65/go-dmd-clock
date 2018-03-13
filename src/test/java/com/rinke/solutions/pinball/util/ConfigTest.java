@@ -15,26 +15,27 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import com.fappel.swt.DisplayHelper;
 
-public class ApplicationPropertiesTest {
+public class ConfigTest {
 
 	Random rand = new Random();
 	String file;
+	Config uut;
 	
 	@Before
 	public void setUp() throws Exception {
 		file = Integer.toHexString(rand.nextInt(1000000))+".dat";
-		ApplicationProperties.setPropFile(file);
+		uut = new Config(file);
 	}
 	
 	@After
 	public void tearDown() throws Exception {
-		String filename = ApplicationProperties.getInstance().getFilename();
+		String filename = uut.getFilename();
 		new File(filename).deleteOnExit();
 	}
 
 	@Test
 	public void testPut() throws Exception {
-		ApplicationProperties.put("foo", "bar");
+		uut.put("foo", "bar");
 	}
 
 }

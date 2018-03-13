@@ -1,36 +1,30 @@
-package com.rinke.solutions.pinball;
+package com.rinke.solutions.pinball.view.handler;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.jface.viewers.ComboViewer;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.RGB;
-import com.rinke.solutions.pinball.util.RecentMenuManager;
-import com.rinke.solutions.pinball.widget.PaletteTool;
+import com.rinke.solutions.pinball.view.handler.PaletteHandler;
+import com.rinke.solutions.pinball.view.model.ViewModel;
 
 public class PaletteHandlerTest {
 
 	PaletteHandler uut;
-	PinDmdEditor editor;
+	private ViewModel vm;
 
 	@Before
 	public void setUp() throws Exception {
-		editor = new PinDmdEditor();
-		uut = new PaletteHandler(editor, null);
-		uut.editor.paletteComboViewer = mock(ComboViewer.class);
-		uut.editor.recentPalettesMenuManager = mock(RecentMenuManager.class);
-		uut.editor.paletteTool = mock(PaletteTool.class);
+		vm = new ViewModel();
+		uut = new PaletteHandler(vm);
 	}
 
 	@Test
@@ -61,7 +55,6 @@ public class PaletteHandlerTest {
 
 	@Test
 	public void testLoadPaletteString() throws Exception {
-		editor.project.paletteMap.clear();
 		uut.loadPalette("./src/test/resources/smartdmd.txt");
 	}
 
@@ -78,7 +71,7 @@ public class PaletteHandlerTest {
 				new RGB(8,0,0), new RGB(9,1,1), new RGB(10,2,2), new RGB(11,3,3),
 				new RGB(12,0,0), new RGB(13,1,1), new RGB(14,2,2), new RGB(15,3,3),
 				};
-		uut.editor.activePalette = new Palette(colors,0,"foo");
+		vm.setSelectedPalette(new Palette(colors,0,"foo"));
 		uut.copyPalettePlaneUpgrade();
 	}
 
