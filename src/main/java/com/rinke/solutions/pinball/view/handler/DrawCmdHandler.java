@@ -86,7 +86,18 @@ public class DrawCmdHandler extends AbstractCommandHandler implements EventHandl
 		}
 		vm.setDmdDirty(true);
 	}
+	
+	public void onDrawingEnabledChanged(boolean o, boolean n) {
+		vm.setCopyToNextEnabled(n);
+		vm.setCopyToPrevEnabled(n);
+		vm.setDeleteColMaskEnabled(n);
+		vm.setBtnDelFrameEnabled(n);
+	}
 
+	public void onSelectedFrameChanged(int ov, int nv) {
+		vm.setCopyToNextEnabled(vm.drawingEnabled && nv<vm.maxFrame);
+		vm.setCopyToPrevEnabled(vm.drawingEnabled && nv>vm.minFrame);
+	}
 	
 	public void onSelectedEditModeChanged(EditMode old, EditMode mode) {
 		if( vm.selectedScene != null ) {
@@ -104,6 +115,8 @@ public class DrawCmdHandler extends AbstractCommandHandler implements EventHandl
 			vm.setMaskEnabled(vm.selectedEditMode.useMask);
 			recordingsCmdHandler.setEnableHashButtons(vm.selectedEditMode.useMask);
 			animation.setEditMode(vm.selectedEditMode);
+			// to force update on master detail
+			vm.scenes.refresh();
 		}
 		setDrawMaskByEditMode(vm.selectedEditMode);
 	}
@@ -141,9 +154,9 @@ public class DrawCmdHandler extends AbstractCommandHandler implements EventHandl
 		}
 	}
 
-	public void onSelectedSceneChanged(CompiledAnimation o, CompiledAnimation n) {
-		vm.setBtnDelFrameEnabled(n!=null && n.frames.size()>1);
-	}
+//	public void onSelectedSceneChanged(CompiledAnimation o, CompiledAnimation n) {
+//		vm.setBtnDelFrameEnabled(n!=null && n.frames.size()>1);
+//	}
 	
 	void updateHashes(Observable o) {
 		onUpdateHashes();
@@ -186,8 +199,5 @@ public class DrawCmdHandler extends AbstractCommandHandler implements EventHandl
 		}
 		vm.setBtnDelFrameEnabled(ani.frames.size()>1);
 	}
-
-
-
 	
 }

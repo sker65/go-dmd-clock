@@ -39,6 +39,7 @@ import com.rinke.solutions.pinball.api.LicenseManager.Capability;
 import com.rinke.solutions.pinball.io.FileHelper;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.FrameSeq;
+import com.rinke.solutions.pinball.model.Mask;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.PaletteType;
@@ -65,11 +66,17 @@ public class ProjectHandler extends AbstractCommandHandler {
 	
 	@Value
 	boolean backup;
-
 	
 	public ProjectHandler(ViewModel vm) {
 		super(vm);
 	}
+	
+	public void onDmdSizeChanged( DmdSize o, DmdSize newSize) {
+		vm.dmd.setSize(newSize.width, newSize.height);
+		vm.init(vm.dmd, newSize, vm.pin2dmdAdress, vm.numberOfHashButtons);
+		vm.setDmdDirty(true);
+	}
+
 
 	public void onLoadProject() {
 		String filename = fileChooserUtil.choose(SWT.OPEN, null, new String[] { "*.xml;*.json;" }, new String[] { "Project XML", "Project JSON" });
@@ -125,50 +132,66 @@ public class ProjectHandler extends AbstractCommandHandler {
 
 	public void onLoadProject(String filename) {
 		log.info("load project from {}", filename);
-		Project projectToLoad = (Project) fileHelper.loadObject(filename);
-		if (projectToLoad != null) {
-			//projectToLoad.populatePaletteToMap();
-			vm.populatePaletteToMap(projectToLoad.getPalettes());
-			if( projectToLoad.width == 0) {
-				projectToLoad.width = 128;
-				projectToLoad.height = 32; // default for older projects
+		// TODO clear view model
+		Project p = (Project) fileHelper.loadObject(filename);
+		if (p != null) {
+			// populate palettes
+			vm.paletteMap.clear();
+			vm.paletteMap.putAll(p.paletteMap);
+			for( Palette pal : p.getPalettes() ) {
+				if( !vm.paletteMap.containsKey(pal.index) ) vm.paletteMap.put(pal.index, pal);
+				else messageUtil.warn("duplicate palette", "project file contains conflicting palette definition. Pal No "+pal.index);
 			}
-			DmdSize newSize = DmdSize.fromWidthHeight(projectToLoad.width, projectToLoad.height);
+			if( p.width == 0) {
+				p.width = 128;
+				p.height = 32; // default for older projects
+			}
+			DmdSize newSize = DmdSize.fromWidthHeight(p.width, p.height);
+			vm.dmd.setSize(p.width, p.height);
 			vm.setDmdSize(newSize);
 			vm.setProjectFilename(filename);
-			Project project = projectToLoad;
 			vm.recordings.clear();
 			vm.scenes.clear();
+			vm.inputFiles.clear();
+			vm.inputFiles.addAll(p.inputFiles);
+			
+			// mask
+			vm.masks.clear();
+			vm.masks.addAll(p.masks);
+			log.info("loaded {} masks", vm.masks.size());
+			if( p.mask != null ) vm.mask = new Mask(p.mask, false);
+			else vm.mask = new Mask(vm.dmdSize.planeSize);
 			
 			// if inputFiles contain project filename remove it
 			String aniFilename = replaceExtensionTo("ani", filename);
-			project.inputFiles.remove(aniFilename); // full name
-			project.inputFiles.remove(new File(aniFilename).getName()); // simple name
+			p.inputFiles.remove(aniFilename); // full name
+			p.inputFiles.remove(new File(aniFilename).getName()); // simple name
 			String msg = "";
-			for (String file : project.inputFiles) {
+			for (String file : p.inputFiles) {
 				try {
 					List<Animation> anis = aniAction.loadAni(buildRelFilename(filename, file), true, false);
 					if( !anis.isEmpty() ) {
 						Animation firstAni = anis.get(0);
-						if( project.recordingNameMap.containsKey(file)) {
-							firstAni.setDesc(project.recordingNameMap.get(file));
+						if( p.recordingNameMap.containsKey(file)) {
+							firstAni.setDesc(p.recordingNameMap.get(file));
 						}
 					}
 				} catch( RuntimeException e) {
 					msg +="\nProblem loading "+file+": "+e.getMessage();
 				}
 			}
+			vm.recordingNameMap.putAll(p.recordingNameMap);
 			
 			List<Animation> loadedWithProject = aniAction.loadAni(aniFilename, true, false);
 			loadedWithProject.stream().forEach(a->a.setProjectAnimation(true));
 			
-			// populate palettes
-			vm.populatePaletteToMap(project.getPalettes());
 			vm.setSelectedPalette(firstFromMap(vm.paletteMap));
 			
 			// populate keyframes
 			vm.keyframes.clear();
-			project.palMappings.stream().forEach(pm->vm.keyframes.put(pm.name, pm));
+			p.palMappings.stream().forEach(pm->vm.keyframes.put(pm.name, pm));
+			
+			vm.bookmarksMap.putAll(p.bookmarksMap);
 			
 			vm.setDirty(false);
 			
@@ -204,10 +227,16 @@ public class ProjectHandler extends AbstractCommandHandler {
 		if( file.contains(File.separator)) return file;
 		return new File(parent).getParent() + File.separator + new File(file).getName();
 	}
+	
+	String bareName(String filename) {
+		String b = new File(filename).getName();
+		int i = b.lastIndexOf('.');
+		return i==-1?b:b.substring(0, i);
+	}
 
-	void onExportRealPinProject() {
+	public void onExportRealPinProject() {
 		licenseManager.requireOneOf( Capability.REALPIN, Capability.GODMD, Capability.XXL_DISPLAY);
-		String filename = fileChooserUtil.choose(SWT.SAVE, vm.projectFilename, new String[] { "*.pal" }, new String[] { "Export pal" });
+		String filename = fileChooserUtil.choose(SWT.SAVE, bareName(vm.projectFilename), new String[] { "*.pal" }, new String[] { "Export pal" });
 		if (filename != null) {
 			messageUtil.warn("Warning", "Please don´t publish projects with copyrighted material / frames");
 			onExportProject(filename, f -> new FileOutputStream(f), true);
@@ -217,24 +246,28 @@ public class ProjectHandler extends AbstractCommandHandler {
 		}
 	}
 	
-	void onExportVirtualPinProject() {
+	public void onExportVirtualPinProject() {
 //		licManager.requireOneOf(Capability.VPIN, Capability.GODMD);
-		String filename = fileChooserUtil.choose(SWT.SAVE, vm.projectFilename, new String[] { "*.pal" }, new String[] { "Export pal" });
+		String filename = fileChooserUtil.choose(SWT.SAVE, bareName(vm.projectFilename), new String[] { "*.pal" }, new String[] { "Export pal" });
 		if (filename != null) {
 			messageUtil.warn("Warning", "Please don´t publish projects with copyrighted material / frames");
 			onExportProject(filename, f -> new FileOutputStream(f), false);
 		}
 	}
-
-	public void onSaveProject(boolean saveAs) {
-		if( saveAs || vm.projectFilename==null ) {
-			String filename = fileChooserUtil.choose(SWT.SAVE, vm.projectFilename, new String[] { "*.xml" }, new String[] { "Project XML" });
-			if (filename != null) {
-				onSaveProject(filename);
-				vm.setProjectFilename(filename);
-			}
+	
+	public void onSaveProject() {
+		if( vm.projectFilename != null) {
+			saveProject(vm.projectFilename);
 		} else {
-			onSaveProject(vm.projectFilename);
+			onSaveAsProject();
+		}
+	}
+
+	public void onSaveAsProject() {
+		String filename = fileChooserUtil.choose(SWT.SAVE, vm.projectFilename, new String[] { "*.xml" }, new String[] { "Project XML" });
+		if (filename != null) {
+			saveProject(filename);
+			vm.setProjectFilename(filename);
 		}
 	}
 
@@ -248,7 +281,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 		if( realPin) licenseManager.requireOneOf(Capability.VPIN, Capability.REALPIN, Capability.GODMD, Capability.XXL_DISPLAY);
 
 		Project project = new Project();
-		// populate everything
+		populateVmToProject(vm, project);
 		
 		// rebuild frame seq map	
 		HashMap <String,FrameSeq> frameSeqMap = new HashMap<>();
@@ -358,25 +391,25 @@ public class ProjectHandler extends AbstractCommandHandler {
 		}		
 	}
 
-	public void onSaveProject(String filename) {
+	public void saveProject(String filename) {
 		log.info("write project to {}", filename);
 		String aniFilename = replaceExtensionTo("ani", filename);
 		
 		if( backup ) {
 			backupFiles(filename, aniFilename);
 		}
-		Project project = new Project();
-		// TODO populate everything
+		Project p = new Project();
+		populateVmToProject(vm, p);
 		
 		String baseName = new File(aniFilename).getName();
 		String baseNameWithoutExtension = baseName.substring(0, baseName.indexOf('.'));
-		if (project.name == null) {
-			project.name = baseNameWithoutExtension;
-		} else if (!project.name.equals(baseNameWithoutExtension)) {
+		if (p.name == null) {
+			p.name = baseNameWithoutExtension;
+		} else if (!p.name.equals(baseNameWithoutExtension)) {
 			// save as
-			project.inputFiles.remove(project.name + ".ani");
+			p.inputFiles.remove(p.name + ".ani");
 		}
-		project.setDimension(vm.dmdSize.width, vm.dmdSize.height);
+		p.setDimension(vm.dmdSize.width, vm.dmdSize.height);
 		
 		// we need to "tag" the projects animations that are always stored in the projects ani file
 		// the project ani file is not included in the inputFile list but animations gets loaded
@@ -384,7 +417,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 		
 		String path = new File(filename).getParent(); 
 		// so first check directly included anis in project inputfiles
-		for( String inFile : project.inputFiles) {
+		for( String inFile : p.inputFiles) {
 			Optional<Animation> optAni = vm.recordings.values().stream().filter(a -> a.getName().equals(path+File.separator+inFile)).findFirst();
 			optAni.ifPresent(a-> {
 				if( a.isDirty()) {
@@ -395,9 +428,25 @@ public class ProjectHandler extends AbstractCommandHandler {
 		}
 		
 		storeOrDeleteProjectAnimations(aniFilename);
-		fileHelper.storeObject(project, filename);
+		fileHelper.storeObject(p, filename);
 		
 		vm.setDirty(false);
+	}
+	
+	public void populateVmToProject(ViewModel vm, Project p) {
+		// populate everything
+		p.inputFiles.addAll(vm.inputFiles);
+		if( vm.projectFilename != null ) p.name = new File(vm.projectFilename).getName();
+		p.bookmarksMap.putAll(vm.bookmarksMap);
+		if( vm.mask != null ) p.mask = vm.mask.data;
+		p.palMappings.addAll(vm.keyframes.values());
+		p.height = vm.dmdSize.height;
+		p.width = vm.dmdSize.width;
+		p.version = 1; // default
+		p.paletteMap.putAll(vm.paletteMap);
+		p.masks.clear();
+		p.masks.addAll(vm.masks);
+		p.recordingNameMap.putAll(vm.recordingNameMap);
 	}
 
 	private void backupFiles(String... filenames) {

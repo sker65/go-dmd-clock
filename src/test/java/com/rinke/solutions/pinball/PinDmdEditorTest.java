@@ -25,7 +25,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import com.rinke.solutions.pinball.PinDmdEditor.TabMode;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.AnimationType;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
@@ -37,7 +36,6 @@ import com.rinke.solutions.pinball.model.PalMapping.SwitchMode;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.RGB;
 import com.rinke.solutions.pinball.test.Util;
-import com.rinke.solutions.pinball.util.ApplicationProperties;
 import com.rinke.solutions.pinball.util.RecentMenuManager;
 import com.rinke.solutions.pinball.view.handler.CutCmdHandler;
 import com.rinke.solutions.pinball.view.handler.ScenesCmdHandler;
@@ -70,7 +68,7 @@ public class PinDmdEditorTest {
 	
 	CutCmdHandler cutCmdHandler;
 
-	@Before
+/*	@Before
 	public void setup() throws Exception {
 		uut.licManager.verify("src/test/resources/#3E002400164732.key");
 		vm = new ViewModel();
@@ -215,28 +213,27 @@ public class PinDmdEditorTest {
 		assertNotEquals("Scene 1", actual);
 	}
 
-	/*@Test
-	public void testOnInvert() throws Exception {
-		byte[] data = new byte[512];
-		uut.dmd.setMask(data);
-		uut.onInvert();
-		assertEquals((byte) 0xFF, (byte) uut.dmd.getFrame().mask.data[0]);
-	}*/
+//	public void testOnInvert() throws Exception {
+//		byte[] data = new byte[512];
+//		uut.dmd.setMask(data);
+//		uut.onInvert();
+//		assertEquals((byte) 0xFF, (byte) uut.dmd.getFrame().mask.data[0]);
+//	}
 
 	@Test
 	public void testFromLabel() throws Exception {
 		assertEquals(TabMode.KEYFRAME, TabMode.fromLabel("KeyFrame"));
 	}
 
-	/*@Test
-	public void testRefreshPin2DmdHost() throws Exception {
-		String filename = "foo.properties";
-		System.out.println("propfile: " + filename);
-		new FileOutputStream(filename).close(); // touch file
-		ApplicationProperties.setPropFile(filename);
-		uut.onPin2dmdAdressChanged(null, "foo");
-		new File(filename).delete();
-	}
+//	@Test
+//	public void testRefreshPin2DmdHost() throws Exception {
+//		String filename = "foo.properties";
+//		System.out.println("propfile: " + filename);
+//		new FileOutputStream(filename).close(); // touch file
+//		ApplicationProperties.setPropFile(filename);
+//		uut.onPin2dmdAdressChanged(null, "foo");
+//		new File(filename).delete();
+//	}
 
 	@Test
 	public void testRenameSceneShouldAdjustKey() throws Exception {

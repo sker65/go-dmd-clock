@@ -53,9 +53,11 @@ public class AutosaveHandler extends AbstractCommandHandler implements Runnable 
 	}
 
 	private void doAutoSave() {
-		String filename = getFilename();
-		log.info("auto save to {}", filename);
-		projectHandler.onSaveProject(filename);
+		if( autosave ) {
+			String filename = getFilename();
+			log.info("auto save to {}", filename);
+			projectHandler.saveProject(filename);
+		}
 	}
 	
 	String replaceExtensionTo(String newExt, String filename) {

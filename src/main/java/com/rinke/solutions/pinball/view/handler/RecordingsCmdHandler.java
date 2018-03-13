@@ -3,6 +3,7 @@ package com.rinke.solutions.pinball.view.handler;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -52,7 +53,7 @@ public class RecordingsCmdHandler extends AbstractListCmdHandler implements View
 		vm.setHashButtonsEnabled(enabled);
 	}
 	
-	private EditMode immutable[] = { EditMode.FIXED };
+	private List<EditMode> immutable = Arrays.asList( EditMode.FIXED );
 
 	public void onSelectedRecordingChanged(Animation o, Animation a) {
 			log.info("onRecordingSelectionChanged: {}", a);
@@ -69,11 +70,11 @@ public class RecordingsCmdHandler extends AbstractListCmdHandler implements View
 				vm.setMaskEnabled(true);
 				vm.setMaskSpinnerEnabled(true);
 				
-				vm.availableEditModes.clear();
-				vm.availableEditModes.addAll(Arrays.asList(immutable));
 				// sani check for recordings edit mode
 				if( !EditMode.FIXED.equals(a.getEditMode()) ) a.setEditMode(EditMode.FIXED);
-				vm.setSelectedEditMode(a.getEditMode());
+
+				if( current == null ) vm.availableEditModes.replaceAll(immutable);
+				vm.setSelectedEditMode(EditMode.FIXED);
 				
 				setEnableHashButtons(true);
 
@@ -89,7 +90,6 @@ public class RecordingsCmdHandler extends AbstractListCmdHandler implements View
 				} else {
 					//TODO v.goDmdGroup.transitionCombo.select(0);
 				}
-
 				
 				//onColorMaskChecked(a.getEditMode()==EditMode.COLMASK);// doesnt fire event?????
 				vm.dmd.setNumberOfSubframes(numberOfPlanes);
@@ -103,8 +103,6 @@ public class RecordingsCmdHandler extends AbstractListCmdHandler implements View
 				}
 				vm.setBookmarkComboEnabled(true);
 			} else {
-				//selectedRecording.set(null);
-				//v.recordingsListViewer.setSelection(StructuredSelection.EMPTY);
 				vm.bookmarks.clear();
 				vm.setBookmarkComboEnabled(false);
 			}
@@ -154,7 +152,7 @@ public class RecordingsCmdHandler extends AbstractListCmdHandler implements View
 	public void onRenameRecording(String oldName, String newName){
 		updateAnimationMapKey(oldName, newName, vm.recordings);
 		updatePalMappingsRecordingNames(oldName, newName);
-		//ed.project.recordingNameMap.put(oldName, newName);
+		vm.recordingNameMap.put(oldName, newName);
 		vm.setDirty(true);
 	}
 	

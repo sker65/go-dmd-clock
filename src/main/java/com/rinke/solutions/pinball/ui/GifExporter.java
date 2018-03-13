@@ -8,6 +8,9 @@ import java.io.IOException;
 import javax.imageio.stream.FileImageOutputStream;
 import javax.imageio.stream.ImageOutputStream;
 
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
@@ -27,6 +30,8 @@ import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.rinke.solutions.beans.Autowired;
+import com.rinke.solutions.beans.Bean;
 import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.PinDmdEditor;
 import com.rinke.solutions.pinball.animation.Animation;
@@ -35,23 +40,25 @@ import com.rinke.solutions.pinball.io.GifSequenceWriter;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.renderer.ImageUtil;
+import com.rinke.solutions.pinball.util.FileChooserUtil;
 import com.rinke.solutions.pinball.widget.DMDWidget;
 
 import org.eclipse.swt.widgets.Label;
 
+@Bean
+@Slf4j
 public class GifExporter extends Dialog {
     
-    private static final Logger LOG = LoggerFactory.getLogger(GifExporter.class);
-
     protected Object result;
     protected Shell shell;
     private String lastPath;
+    @Autowired FileChooserUtil fileChooserUtil;
 
 	private ProgressBar progressBar;
 	
 	private GifSequenceWriter gifWriter;
-	Animation ani;
-	Palette palette;
+	@Setter Animation ani;
+	@Setter Palette palette;
 	Display display;
 
 	private String filename;
@@ -68,11 +75,9 @@ public class GifExporter extends Dialog {
      * @param parent
      * @param style
      */
-    public GifExporter(Palette palette, Animation ani) {
+    public GifExporter() {
         super(new Shell(), SWT.CLOSE | SWT.TITLE | SWT.BORDER | SWT.OK | SWT.APPLICATION_MODAL);
         //setText("Device Config");
-        this.ani = ani;
-        this.palette = palette;
     }
     
 
@@ -118,12 +123,12 @@ public class GifExporter extends Dialog {
 							if( !progressBar.isDisposed()) progressBar.setSelection(ani.actFrame);	
 						});
 	
-						LOG.info("exporting frame {} to {}", ani.actFrame, filename);
+						log.info("exporting frame {} to {}", ani.actFrame, filename);
 						if (abort || ani.hasEnded())
 							break;
 					}
 				} catch( IOException /*| InterruptedException*/ e) {
-					LOG.error("error exporting to {}", filename);
+					log.error("error exporting to {}", filename);
 					throw new RuntimeException("error eporting to " + filename, e);
 				} finally {
 					ani.actFrame = saveActframe;
@@ -137,31 +142,17 @@ public class GifExporter extends Dialog {
 			writer.start();
 
 		} catch (IOException e) {
-			LOG.error("error exporting to {}", filename);
+			log.error("error exporting to {}", filename);
 			throw new RuntimeException("error eporting to " + filename, e);
 		}
 
 	}
-
-    // testability overridden by tests
-    protected FileChooser createFileChooser(Shell shell, int flags) {   
-        return new FileDialogDelegate(shell, flags);
-    }
     
     protected void save() {
-        FileChooser fileChooser = createFileChooser(shell, SWT.SAVE);
-        fileChooser.setOverwrite(true);
-        //fileChooser.setFileName("pin2dmd.dat");
-        if (lastPath != null)
-            fileChooser.setFilterPath(lastPath);
-        fileChooser.setFilterExtensions(new String[] { "*.gif" });
-        fileChooser.setFilterNames(new String[] {  "animated gif" });
-        filename = fileChooser.open();
-        lastPath = fileChooser.getFilterPath();        
+    	filename = fileChooserUtil.choose(SWT.SAVE, lastPath, new String[] { "*.gif" }, new String[] {  "animated gif" });
         if (filename != null) {
             exportAni(filename);
         }
-        //shell.close();
     }
 
 

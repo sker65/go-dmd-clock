@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.PaintEvent;
@@ -31,6 +32,7 @@ import com.rinke.solutions.pinball.widget.PaletteTool.ColorChangedListerner;
 
 import static com.rinke.solutions.pinball.widget.SWTUtil.toSwtRGB;
 
+@Slf4j
 public class DMDWidget extends ResourceManagedCanvas implements ColorChangedListerner {
 	
 	private Palette palette;	// color palette
@@ -475,6 +477,7 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 		change.firePropertyChange("showMask", old, showMask);
 		this.showMask = showMask;
 		if( old != showMask ) {
+			log.debug("show mask: {}->{}",old,showMask);
 			redraw();
 		}
 	}
@@ -488,6 +491,7 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 		dmd.setMask(mask.data);
 		this.setShowMask(true);
 		this.setMaskLocked(mask.locked);
+		redraw();
 	}
 
 	public void setMaskOut(boolean maskOut) {

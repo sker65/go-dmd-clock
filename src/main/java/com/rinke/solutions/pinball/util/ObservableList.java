@@ -69,6 +69,12 @@ public class ObservableList<T> extends ObservableCollection<T> implements List<T
 	public List<T> subList(int fromIndex, int toIndex) {
 		return listDelegate.subList(fromIndex, toIndex);
 	}
+	
+	public void replaceAll( Collection<? extends T> c ) {
+		listDelegate.clear();
+		listDelegate.addAll(c);
+		setChanged(); notifyObservers();
+	}
 
     @Override
     public String toString() {

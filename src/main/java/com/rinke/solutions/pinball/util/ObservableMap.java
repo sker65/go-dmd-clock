@@ -141,4 +141,8 @@ public class ObservableMap<K,V> extends Observable implements Map<K,V> {
     public String toString() {
         return "ObservableMap [delegate=" + delegate + "]";
     }
+
+	public void refresh() {
+		setChanged(); notifyObservers();
+	}
 }

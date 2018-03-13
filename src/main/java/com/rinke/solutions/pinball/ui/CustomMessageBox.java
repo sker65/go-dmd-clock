@@ -3,6 +3,8 @@ package com.rinke.solutions.pinball.ui;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Dialog;
@@ -30,7 +32,7 @@ public class CustomMessageBox extends Dialog {
 	 */
 	public CustomMessageBox(Shell parent, int style, int icon, String title, String header, 
 			String message, String[] buttons, int defaultBtn) {
-		super(parent, style +(SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL));
+		super(parent, style | (SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL));
 		setText(title);
 		this.iconNo = icon;
 		this.header = header;
@@ -47,6 +49,13 @@ public class CustomMessageBox extends Dialog {
 		createContents();
 		shell.open();
 		shell.pack();
+		// center
+		Rectangle parentSize = getParent().getBounds();
+		Rectangle shellSize = shell.getBounds();
+		int locationX = (parentSize.width - shellSize.width)/2+parentSize.x;
+		int locationY = (parentSize.height - shellSize.height)/2+parentSize.y;
+		shell.setLocation(new Point(locationX, locationY));
+		
 		Display display = getParent().getDisplay();
 		while (!shell.isDisposed()) {
 			if (!display.readAndDispatch()) {
@@ -64,7 +73,12 @@ public class CustomMessageBox extends Dialog {
 		//shell.setSize(450, 300);
 		shell.setText(getText());
 		
-		shell.setLayout(new GridLayout(3, true));
+		GridLayout gl_shell = new GridLayout(3, true);
+		gl_shell.marginTop = 20;
+		gl_shell.marginRight = 5;
+		gl_shell.marginLeft = 5;
+		gl_shell.marginBottom = 15;
+		shell.setLayout(gl_shell);
 		
 		GridData data = new GridData();
         Label image = new Label(shell, SWT.NONE);

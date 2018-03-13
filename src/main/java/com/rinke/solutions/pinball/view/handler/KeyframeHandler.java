@@ -181,66 +181,67 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 		}
 	}
 
-	public void onSelectedKeyFrameChanged(PalMapping old, PalMapping palMapping) {
-		if( palMapping != null) {
-			if (palMapping.equals(vm.selectedKeyFrame)) {
-				vm.setSelectedKeyFrame(null);
-				return;
-			}
-			// set new mapping
-			vm.setSelectedKeyFrame(palMapping);
+	public void onSelectedKeyFrameChanged(PalMapping old, PalMapping nk) {
+		if( nk != null) {
+// to unselect
+//			if (palMapping.equals(vm.selectedKeyFrame)) {
+//				vm.setSelectedKeyFrame(null);
+//				return;
+//			}
 
-			log.debug("selected new palMapping {}", vm.selectedKeyFrame);
+			log.debug("selected new palMapping {}", nk);
 
-			vm.setSelectedHashIndex(vm.selectedKeyFrame.hashIndex);
+			vm.setSelectedHashIndex(nk.hashIndex);
 
 			// current firmware always checks with and w/o mask
 			// btnMask.setSelection(selectedPalMapping.withMask);
 			// btnMask.notifyListeners(SWT.Selection, new Event());
 
 			vm.setDuration(vm.selectedKeyFrame.durationInMillis);
-			vm.setSelectedPaletteByIndex(vm.selectedKeyFrame.palIndex);
-			if( palMapping.switchMode.equals(SwitchMode.EVENT)) {
-				vm.setSelectedSpinnerDeviceId(palMapping.durationInMillis >> 8);
-				vm.setSelectedSpinnerEventId(palMapping.durationInMillis & 0xFF);
+			vm.setSelectedPaletteByIndex(nk.palIndex);
+
+			if( nk.switchMode.equals(SwitchMode.EVENT)) {
+				vm.setSelectedSpinnerDeviceId(nk.durationInMillis >> 8);
+				vm.setSelectedSpinnerEventId(nk.durationInMillis & 0xFF);
 			}
 			
 			vm.setSelectedScene(null);
 			Animation rec = vm.recordings.isEmpty() ? null : vm.recordings.values().iterator().next(); // get the first one
-			if( !StringUtils.isEmpty(vm.selectedKeyFrame.animationName )) {
-				if( vm.recordings.containsKey(vm.selectedKeyFrame.animationName) ) {
-					rec = vm.recordings.get(vm.selectedKeyFrame.animationName);
+			if( !StringUtils.isEmpty(nk.animationName )) {
+				if( vm.recordings.containsKey(nk.animationName) ) {
+					rec = vm.recordings.get(nk.animationName);
 				} else {
-					log.warn("keyframe has invalid reference to recording '{}'", vm.selectedKeyFrame.animationName);
+					log.warn("keyframe has invalid reference to recording '{}'", nk.animationName);
 				}
 			} else {
-				log.warn("keyframe has invalid empty reference: '{}'", vm.selectedKeyFrame.animationName);
+				log.warn("keyframe has invalid empty reference: '{}'", nk.animationName);
 			}
 			vm.setSelectedRecording(rec);
 			
 			if (vm.selectedKeyFrame.frameSeqName != null)
-				vm.setSelectedFrameSeq(vm.scenes.get(vm.selectedKeyFrame.frameSeqName));
+				vm.setSelectedFrameSeq(vm.scenes.get(nk.frameSeqName));
 
-			vm.setSelectedFrame(vm.selectedKeyFrame.frameIndex);
+			vm.setSelectedFrame(nk.frameIndex);
 
-			vm.setMaskActive(vm.selectedKeyFrame.withMask);
-			if(vm.selectedKeyFrame.withMask) {
+			vm.setMaskActive(nk.withMask);
+			if(nk.withMask) {
 				vm.setMaskSpinnerEnabled(true);
-				vm.setSelectedMask(vm.selectedKeyFrame.maskNumber);
+				vm.setSelectedMask(nk.maskNumber);
 
-				String txt = vm.hashLbl[vm.selectedHashIndex];
-				if( !txt.startsWith("M")) vm.hashLbl[vm.selectedHashIndex] = "M" + vm.selectedKeyFrame.maskNumber + " " + txt;
+				String[] lbls = Arrays.copyOf(vm.hashLbl, vm.hashLbl.length);
+				String txt = lbls[vm.selectedHashIndex];
+				if( !txt.startsWith("M")) lbls[vm.selectedHashIndex] = "M" + nk.maskNumber + " " + txt;
+				vm.setHashLbl(lbls);
 			}
 			
 			if( vm.selectedRecording!=null )
-				vm.saveTimeCode = (int) vm.selectedRecording.getTimeCode(vm.selectedKeyFrame.frameIndex);
+				vm.saveTimeCode = (int) vm.selectedRecording.getTimeCode(nk.frameIndex);
 		} else {
 			vm.setSelectedKeyFrame(null);
 		}
-		vm.setDeleteKeyFrameEnabled(palMapping != null);
-		vm.setSetKeyFramePalEnabled(palMapping != null && SwitchMode.PALETTE.equals(palMapping.switchMode));
-		vm.setFetchDurationEnabled(palMapping != null);
-		vm.setDmdDirty(true);
+		vm.setDeleteKeyFrameEnabled(nk != null);
+		vm.setSetKeyFramePalEnabled(nk != null && SwitchMode.PALETTE.equals(nk.switchMode));
+		vm.setFetchDurationEnabled(nk != null);
 	}
 
 	public void onSelectedFrameSeqChanged(Animation old, Animation ani) {

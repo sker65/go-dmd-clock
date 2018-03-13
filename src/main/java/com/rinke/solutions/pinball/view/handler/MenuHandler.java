@@ -13,6 +13,7 @@ import com.rinke.solutions.beans.Value;
 import com.rinke.solutions.pinball.AnimationHandler;
 import com.rinke.solutions.pinball.DmdSize;
 import com.rinke.solutions.pinball.animation.Animation;
+import com.rinke.solutions.pinball.model.Mask;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.ui.ConfigDialog;
 import com.rinke.solutions.pinball.ui.ExportGoDmd;
@@ -31,6 +32,8 @@ public class MenuHandler extends AbstractCommandHandler implements ViewBindingHa
 	@Autowired
 	private View deviceConfig;
 	@Autowired
+	private GifExporter gifExporter;
+	@Autowired
 	private ConfigDialog configDialog;
 	@Autowired Config config;
 	
@@ -47,11 +50,13 @@ public class MenuHandler extends AbstractCommandHandler implements ViewBindingHa
 		super(vm);
 	}
 
-	public void onGifExport() {
+	public void onExportGif() {
 		Animation ani = vm.playingAnis.get(0);
-		Palette pal = vm.paletteMap.get(ani.getPalIndex());
-		GifExporter exporter = new GifExporter( pal, ani);
-		exporter.open();
+		if( ani != null ) {
+			gifExporter.setAni(ani);
+			gifExporter.setPalette(vm.selectedPalette);
+			gifExporter.open();
+		}
 	}
 
 	public void onExportGoDmd() {
@@ -84,18 +89,33 @@ public class MenuHandler extends AbstractCommandHandler implements ViewBindingHa
 		config.put(Config.DMDSIZE, vm.dmdSize.ordinal());
 	}
 
-
 	public void onNewProject() {
+		// init palette
+		vm.paletteMap.clear();
+		Palette.getDefaultPalettes().stream().forEach(p->vm.paletteMap.put(p.index, p));
 		vm.setSelectedPalette(vm.paletteMap.get(0));
+
+		// init masks
+		vm.mask = new Mask(vm.dmdSize.planeSize);
+		vm.masks.clear();
+		for(int i = 0; i < vm.maxNumberOfMasks; i++) {
+			vm.masks.add( new Mask(vm.dmdSize.planeSize) );
+		}
+		
+		// clear lists
 		vm.recordings.clear();
 		vm.scenes.clear();
+		vm.keyframes.clear();
+		
+		vm.recordingNameMap.clear();
+		
 		vm.playingAnis.clear();
 		vm.setSelectedRecording(null);
 		vm.setSelectedScene(null);
 		animationHandler.setAnimations(vm.playingAnis);
 		vm.setProjectFilename(null);
 	}
-	
+
 	public void onAbout() {
 		log.info("onAbout");
 		about.open();
@@ -125,9 +145,5 @@ public class MenuHandler extends AbstractCommandHandler implements ViewBindingHa
 	public void setAnimationHandler(AnimationHandler animationHandler) {
 		 this.animationHandler = animationHandler;
 	}
-	
-	/*public void onLoadAniWithFC(boolean append) {
-		aniActionHandler.onLoadAniWithFC(append);
-	}*/
-	
+		
 }

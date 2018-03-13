@@ -6,6 +6,7 @@ import org.eclipse.swt.widgets.Shell;
 
 import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.Bean;
+import com.rinke.solutions.pinball.ui.CustomMessageBox;
 
 @Bean
 public class MessageUtil {
@@ -24,6 +25,11 @@ public class MessageUtil {
 		MessageBox messageBox = new MessageBox(shell, style);
 		messageBox.setText(header);
 		messageBox.setMessage(msg);
+		return messageBox.open();
+	}
+
+	public int warn(int style, String title, String header, String msg, String[] buttons, int def) {
+		CustomMessageBox messageBox = new CustomMessageBox(shell, style, SWT.ICON_WARNING,title,header, msg, buttons,def);
 		return messageBox.open();
 	}
 

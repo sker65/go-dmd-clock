@@ -53,55 +53,45 @@ public class PinDmdEditorIOSWTTest {
 	@Rule
 	public TemporaryFolder testFolder = new TemporaryFolder();
 	
-	PinDmdEditor uut = new PinDmdEditor(){
+	PinDmdEditor uut = new PinDmdEditor();
 
-		@Override
-		protected void setupUIonProjectLoad() {}
-		
-	};
+//	@Before
+//	public void setUp() throws Exception {
+//		uut.licManager.verify("src/test/resources/#3E002400164732.key");
+//		uut.aniAction = new AnimationActionHandler(uut) {
+//
+//			@Override
+//			protected Progress getProgress() {
+//				return null;
+//			}
+//			
+//		};
+//		uut.vm = new ViewModel();
+//
+//		uut.v.recentAnimationsMenuManager = recentAnimationsMenuManager;
+//		uut.v.shell = shell;
+//		uut.v.recentProjectsMenuManager = recentProjectsMenuManager;
+//		uut.v.mntmSaveProject = menuItemMock;
+//
+//		uut.v.dmdWidget = mock(DMDWidget.class);
+//		uut.v.previewDmd = mock(DMDWidget.class);
+//		uut.v.paletteComboViewer = mock(ComboViewer.class);
+//		uut.v.keyframeTableViewer = mock(TableViewer.class);
+//		uut.animationHandler = mock(AnimationHandler.class);
+//	}
 
-	@Before
-	public void setUp() throws Exception {
-		uut.licManager.verify("src/test/resources/#3E002400164732.key");
-		uut.aniAction = new AnimationActionHandler(uut) {
-
-			@Override
-			protected Progress getProgress() {
-				return null;
-			}
-			
-		};
-		uut.vm = new ViewModel();
-
-		uut.v.recentAnimationsMenuManager = recentAnimationsMenuManager;
-		uut.v.shell = shell;
-		uut.v.recentProjectsMenuManager = recentProjectsMenuManager;
-		uut.v.mntmSaveProject = menuItemMock;
-
-		uut.v.dmdWidget = mock(DMDWidget.class);
-		uut.v.previewDmd = mock(DMDWidget.class);
-		uut.v.paletteComboViewer = mock(ComboViewer.class);
-		uut.v.keyframeTableViewer = mock(TableViewer.class);
-		uut.animationHandler = mock(AnimationHandler.class);
-	}
-
-	@Test
-	public final void testLoadProject() {
-		uut.loadProject("src/test/resources/ex1.xml");
-	}
-
-	@Test
-	public final void testLoadAndSaveProject() throws Exception {
-		String tempFile = testFolder.newFile("ex1.xml").getPath();
-		uut.loadProject("./src/test/resources/ex1.xml");
-		uut.saveProject(tempFile);
-		XMLUnit.setIgnoreWhitespace(true);
-		assertXMLEqual(new FileReader("./src/test/resources/ex1.xml"), new FileReader(tempFile));
-		Animation ani = CompiledAnimation.read(testFolder.getRoot()+"/ex1.ani").get(0);
-		Animation ani2 = CompiledAnimation.read("./src/test/resources/ex1.ani").get(0);
-		compare(ani,ani2);
-		assertNull(Util.isBinaryIdentical(testFolder.getRoot()+"/ex1.ani", "./src/test/resources/ex1.ani"));
-	}
+//	@Test
+//	public final void testLoadAndSaveProject() throws Exception {
+//		String tempFile = testFolder.newFile("ex1.xml").getPath();
+//		uut.loadProject("./src/test/resources/ex1.xml");
+//		uut.saveProject(tempFile);
+//		XMLUnit.setIgnoreWhitespace(true);
+//		assertXMLEqual(new FileReader("./src/test/resources/ex1.xml"), new FileReader(tempFile));
+//		Animation ani = CompiledAnimation.read(testFolder.getRoot()+"/ex1.ani").get(0);
+//		Animation ani2 = CompiledAnimation.read("./src/test/resources/ex1.ani").get(0);
+//		compare(ani,ani2);
+//		assertNull(Util.isBinaryIdentical(testFolder.getRoot()+"/ex1.ani", "./src/test/resources/ex1.ani"));
+//	}
 
 	@SuppressWarnings("deprecation")
 	private void compare(Animation ani, Animation ani2) {

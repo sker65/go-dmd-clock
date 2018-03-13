@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import lombok.Setter;
+import lombok.extern.apachecommons.CommonsLog;
 import lombok.extern.slf4j.Slf4j;
 
 import org.eclipse.swt.SWT;
@@ -16,6 +17,7 @@ import org.eclipse.swt.widgets.Shell;
 import com.google.common.collect.Lists;
 import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.Bean;
+import com.rinke.solutions.databinding.Command;
 import com.rinke.solutions.pinball.animation.AniWriter;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.Animation.EditMode;
@@ -27,18 +29,21 @@ import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.ui.Progress;
 import com.rinke.solutions.pinball.util.FileChooserUtil;
 import com.rinke.solutions.pinball.util.MessageUtil;
+import com.rinke.solutions.pinball.view.handler.AbstractCommandHandler;
 import com.rinke.solutions.pinball.view.model.ViewModel;
 
 @Slf4j
 @Bean
-public class AnimationActionHandler {
-	
-	@Autowired ViewModel vm;
+public class AnimationActionHandler extends AbstractCommandHandler {
 	
 	@Autowired MessageUtil messageUtil;
 	@Autowired FileChooserUtil fileChooserUtil;
 	@Setter private Shell shell;
 		
+	public AnimationActionHandler(ViewModel vm) {
+		super(vm);
+	}
+	
 	protected Progress getProgress() {
 		return shell!=null ? new Progress(shell) : null;
 	}
@@ -63,8 +68,13 @@ public class AnimationActionHandler {
 			aniWriter.run();
 		anisToSave.forEach(a->a.setDirty(false));
 	}
+	
+	@Command
+	public void onLoadAnimation(String filename, boolean append, boolean populate) {
+		loadAni(filename, append, true);
+	}
 
-	protected void onLoadAniWithFC(boolean append) {
+	public void onLoadAniWithFC(boolean append) {
 		List<String> filenames = fileChooserUtil.chooseMulti(SWT.OPEN|SWT.MULTI, null, new String[] { "*.properties;*.ani;*.txt.gz;*.pcap;*.pcap.gz;*.*" }, new String[] { "Animationen",
 				"properties, txt.gz, ani, mov" });
 
@@ -103,6 +113,7 @@ public class AnimationActionHandler {
 		} catch( IOException e) {
 			log.error("error load anis from {}", filename, e);
 		}
+		
 		if (populateProject) {
 			if (!append)
 				vm.inputFiles.clear();
@@ -137,7 +148,8 @@ public class AnimationActionHandler {
 					log.info("ani size was adjusted: {}", ani);
 				}
 				if( ani.width != vm.dmdSize.width || ani.height != vm.dmdSize.height) {
-					messageUtil.warn("Size mismatch", "size of animation does not match to project dmd size");
+					int r = messageUtil.warn(SWT.OK | SWT.CANCEL, "Size mismatch", "size of animation does not match to project dmd size");
+					if( r == SWT.CANCEL ) break;
 				} else {
 					populateAni(cani, vm.scenes);
 				}

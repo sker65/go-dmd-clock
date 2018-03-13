@@ -46,6 +46,7 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 					vm.setDirty(true);
 				}
 			}
+			vm.setMask(null);
 			vm.dmd.removeMask();
 			vm.setUseGlobalMask(false);
 		}
@@ -53,7 +54,7 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 		
 		hashCmdHandler.updateHashes(vm.dmd.getFrame());
 		
-		vm.setDmdDirty(true);
+		//bound to mask active vm.setDmdDirty(true);
 		drawCmdHandler.setDrawMaskByEditMode(vm.selectedEditMode);
 		updateDrawingEnabled();
 	}

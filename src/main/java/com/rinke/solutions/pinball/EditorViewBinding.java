@@ -11,22 +11,38 @@ import org.eclipse.swt.widgets.Button;
 import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.Bean;
 import com.rinke.solutions.pinball.model.Palette;
+import com.rinke.solutions.pinball.view.handler.AbstractCommandHandler;
 import com.rinke.solutions.pinball.view.handler.ViewBindingHandler;
 import com.rinke.solutions.pinball.view.model.ViewModel;
 
 @Bean
-public class EditorViewBinding implements ViewBindingHandler {
+public class EditorViewBinding extends AbstractCommandHandler implements ViewBindingHandler {
 
 	@Setter private EditorView editorView;
+	
 	@Autowired private AnimationHandler animationHandler;
-	private ViewModel vm;
 
 	private String frameTextPrefix = "Pin2dmd Editor ";
 	private String internalName;
 	
 	public EditorViewBinding(ViewModel vm) {
-		super();
-		this.vm = vm;
+		super(vm);
+	}
+	
+	public void onCut(Palette pal) {
+		editorView.clipboardHandler.onCut(pal);
+	}
+	
+	public void onCopy(Palette pal) {
+		editorView.clipboardHandler.onCopy(pal);
+	}
+	
+	public void onPaste() {
+		editorView.clipboardHandler.onPaste();
+	}
+
+	public void onPasteHoover() {
+		editorView.clipboardHandler.onPasteHoover();
 	}
 	
 	private void updateTitle(String t, boolean dirty) {
@@ -102,7 +118,6 @@ public class EditorViewBinding implements ViewBindingHandler {
 			});
 		}
 	}
-
 	
 	// trigger redraw
 	public void onDmdDirtyChanged(boolean o, boolean n) {

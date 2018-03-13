@@ -32,7 +32,7 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 	
 	FileHelper fileHelper = new FileHelper();
 	@Autowired FileChooserUtil fileChooserUtil;
-	@Autowired private MessageUtil messageUtil;
+	@Autowired MessageUtil messageUtil;
 	
 	public PaletteHandler(ViewModel vm) {
 		super(vm);

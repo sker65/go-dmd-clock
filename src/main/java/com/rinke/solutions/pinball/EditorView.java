@@ -87,6 +87,7 @@ import com.rinke.solutions.pinball.widget.SetPixelTool;
 @Slf4j
 public class EditorView implements MainView {
 	
+	private static final String AUTO_SAVE = "autoSave";
 	int numberOfHashes;
 	
 	public EditorView(int numberOfHashes, boolean checkDirty) {
@@ -118,54 +119,9 @@ public class EditorView implements MainView {
 		dispatcher.dispatch(new Command<Object[]>(params, name));
 	}
 	
-/*	private void enableDrawing(boolean e) {
-		vm.setDrawingEnabled(e);
-		vm.setCopyToNextEnabled(e);
-		vm.setCopyToPrevEnabled(e);
-		if( e ) {
-			if( vm.selectedRecording!=null) vm.setSelectedEditMode(vm.selectedRecording.getEditMode());
-		} else {
-			vm.setSelectedEditMode( EditMode.FIXED);
-		}
-	}*/
-
-	/*private boolean animationIsEditable() {
-		return (vm.useGlobalMask && !vm.masks.get(vm.selectedMask).locked) || (animationHandler.isStopped() && isEditable(animationHandler.getAnimations()));
-	}
-
-	private boolean isEditable(java.util.List<Animation> a) {
-		if (a != null) {
-			return a.size() == 1 && a.get(0).isMutable();
-		}
-		return false;
-	}*/
-
 	public void createBindingsInternal() {
-		// do some bindings
-		// editAniObserver = ObserverManager.bind(animationHandler, e -> this.enableDrawing(e), () -> animationIsEditable());
-		
-		// ObserverManager.bind(animationHandler, e -> dmdWidget.setDrawingEnabled(e), () -> animationHandler.isStopped());
-
-		// ObserverManager.bind(animationHandler, e -> btnPrev.setEnabled(e), () -> animationHandler.isStopped() && animationHandler.hasAnimations());
-		// ObserverManager.bind(animationHandler, e -> btnNext.setEnabled(e), () -> animationHandler.isStopped() && animationHandler.hasAnimations());
-
-		//ObserverManager.bind(animations, e -> v.btnStartStop.setEnabled(e), () -> !this.animations.isEmpty() && animationHandler.isStopped());
-		//ObserverManager.bind(recordings, e -> v.btnPrev.setEnabled(e), () -> !this.recordings.isEmpty());
-		//ObserverManager.bind(recordings, e -> v.btnNext.setEnabled(e), () -> !this.recordings.isEmpty());
-		
-		//ObserverManager.bind(recordings, e -> vm.setMarkStartEnabled(e), () -> !this.recordings.isEmpty());
-
-		//ObserverManager.bind(recordings, e -> v.recordingsListViewer.refresh(), () -> true);
-		
-		// ObserverManager.bind(vm.scenes, e -> v.sceneListViewer.refresh(), () -> true);
-		// ObserverManager.bind(vm.scenes, e -> populateFrameSeqList(), () -> true);
-
-		// ObserverManager.bind(animations, e->v.btnAddFrameSeq.setEnabled(e),
-		// ()->!frameSeqList.isEmpty());
-		
 		DataBinder dataBinder = new DataBinder();
 		dataBinder.bind(this, vm);
-
 	}
 
 	Display display;
@@ -204,7 +160,8 @@ public class EditorView implements MainView {
 	@GuiBinding(prop=SELECTION, propName="selectedPaletteType")
 	ComboViewer paletteTypeComboViewer;
 	
-	@PojoBinding(srcs={"mask", "showMask", "palette" }, targets={"mask","maskActive", "selectedPalette" }) 
+	@PojoBinding(srcs={"mask", "showMask", "palette", "drawingEnabled" }, 
+			targets={"mask","maskActive", "selectedPalette", "drawingEnabled" }) 
 	DMDWidget dmdWidget;
 	
 	@PojoBinding(src="selection", target="selection") 
@@ -307,22 +264,22 @@ public class EditorView implements MainView {
 		MenuItem mntmNewProject = new MenuItem(menu_1, SWT.NONE);
 		mntmNewProject.setText("New Project\tCtrl-N");
 		mntmNewProject.setAccelerator(SWT.MOD1 + 'N');
-		mntmNewProject.addListener(SWT.Selection, e -> dirtyCheck("newProject"));
+		mntmNewProject.addListener(SWT.Selection, e -> dirtyCheck("newProject", "New Project"));
 
 		MenuItem mntmLoadProject = new MenuItem(menu_1, SWT.NONE);
 		mntmLoadProject.setText("Load Project\tCtrl-O");
 		mntmLoadProject.setAccelerator(SWT.MOD1 + 'O');
-		mntmLoadProject.addListener(SWT.Selection, e -> dispatchCmd("loadProject"));
+		mntmLoadProject.addListener(SWT.Selection, e -> dirtyCheck(LOAD_PROJECT, "Load Project"));
 
 		mntmSaveProject = new MenuItem(menu_1, SWT.NONE);
 		mntmSaveProject.setText("Save Project\tCrtl-S");
 		mntmSaveProject.setAccelerator(SWT.MOD1 + 'S');
-		mntmSaveProject.addListener(SWT.Selection, e -> dispatchCmd("saveProject",false));
+		mntmSaveProject.addListener(SWT.Selection, e -> dispatchCmd("saveProject"));
 
 		MenuItem mntmSaveAsProject = new MenuItem(menu_1, SWT.NONE);
 		mntmSaveAsProject.setText("Save Project as\tShift-Crtl-S");
 		mntmSaveAsProject.setAccelerator(SWT.MOD1|SWT.MOD2 + 'S');
-		mntmSaveAsProject.addListener(SWT.Selection, e -> dispatchCmd("saveProject",true));
+		mntmSaveAsProject.addListener(SWT.Selection, e -> dispatchCmd("saveAsProject"));
 
 		MenuItem mntmRecentProjects = new MenuItem(menu_1, SWT.CASCADE);
 		mntmRecentProjects.setText("Recent Projects");
@@ -352,7 +309,7 @@ public class EditorView implements MainView {
 
 		MenuItem mntmExit = new MenuItem(menu_1, SWT.NONE);
 		mntmExit.setText("Exit\tCtrl-Q");
-		mntmExit.addListener(SWT.Selection, e -> dirtyCheck(QUIT) );
+		mntmExit.addListener(SWT.Selection, e -> dirtyCheck(QUIT, "Quit") );
 
 		MenuItem mntmedit = new MenuItem(menu, SWT.CASCADE);
 		mntmedit.setText("&Edit");
@@ -454,7 +411,7 @@ public class EditorView implements MainView {
 
 		MenuItem mntmLoadPalette = new MenuItem(menu_3, SWT.NONE);
 		mntmLoadPalette.setText("Load Palette");
-		mntmLoadPalette.addListener(SWT.Selection, e -> dispatchCmd("loadPalette"));
+		mntmLoadPalette.addListener(SWT.Selection, e -> dispatchCmd(LOAD_PALETTE));
 
 		MenuItem mntmSavePalette = new MenuItem(menu_3, SWT.NONE);
 		mntmSavePalette.setText("Save Palette");
@@ -694,13 +651,13 @@ public class EditorView implements MainView {
 		createMenu(shell);
 		
 		recentProjectsMenuManager = new RecentMenuManager("recentProject", 4, menuPopRecentProjects, 
-				e -> dispatchCmd("loadProject",(String) e.widget.getData()), config);
+				e -> dispatchCmd(LOAD_PROJECT,(String) e.widget.getData()), config);
 
 		recentPalettesMenuManager = new RecentMenuManager("recentPalettes", 4, mntmRecentPalettes, 
-				e -> dispatchCmd("loadPalette",(String) e.widget.getData()), config);
+				e -> dispatchCmd(LOAD_PALETTE,(String) e.widget.getData()), config);
 
 		recentAnimationsMenuManager = new RecentMenuManager("recentAnimations", 4, mntmRecentAnimations, 
-				e -> dispatchCmd("loadAnimation",((String) e.widget.getData()), true, true), config);
+				e -> dispatchCmd(LOAD_ANIMATION,((String) e.widget.getData()), true, true), config);
 
 		resManager = new LocalResourceManager(JFaceResources.getResources(), shell);
 		
@@ -1401,13 +1358,16 @@ public class EditorView implements MainView {
 	 * @param cmd cmd to dispatch
 	 * @return true, if flow should proceed
 	 */
-	 boolean dirtyCheck(String cmd) {
+	 boolean dirtyCheck(String cmd, String but) {
 		boolean proceed = true;
 		if( checkDirty && vm.dirty ) {
-			int res = messageUtil.warn(SWT.ICON_WARNING | SWT.OK | SWT.CANCEL,
-					"Unsaved Changes","There are unsaved changes in project. Proceed?");
-			System.out.println(res);
-			proceed = (res == SWT.OK);
+			int res = messageUtil.warn(0,
+					"Warning unsaved changes",
+					"Unsaved Changes",
+					"There are unsaved changes in project.",
+					new String[]{"", "Cancel", but}, 2);
+			//System.out.println(res);
+			proceed = (res == 2);
 		} 
 		if( proceed ) dispatchCmd(cmd);
 		return proceed;
@@ -1432,7 +1392,7 @@ public class EditorView implements MainView {
 		if (SWT.getPlatform().equals("cocoa")) {
 			CocoaGuiEnhancer enhancer = new CocoaGuiEnhancer("Pin2dmd Editor");
 			enhancer.hookApplicationMenu(display, 
-					e -> e.doit = dirtyCheck(QUIT),
+					e -> e.doit = dirtyCheck(QUIT, "Quit"),
 					new ActionAdapter(() -> dispatchCmd(ABOUT) ),
 					new ActionAdapter(() -> dispatchCmd("configuration") )
 				);
@@ -1462,10 +1422,10 @@ public class EditorView implements MainView {
 		clipboardHandler = new ClipboardHandler(vm.dmd, dmdWidget, vm.selectedPalette);
 
 		//timerExec(animationHandler.getRefreshDelay(), cyclicRedraw);
-		timerExec(1000*300, ()->dispatchCmd("autoSave"));
+		timerExec(1000*300, ()->dispatchCmd(AUTO_SAVE));
 
 		shell.addListener(SWT.Close, e -> {
-			e.doit = dirtyCheck(QUIT);
+			e.doit = dirtyCheck(QUIT, "Quit");
 		});
 		
 		shell.open();

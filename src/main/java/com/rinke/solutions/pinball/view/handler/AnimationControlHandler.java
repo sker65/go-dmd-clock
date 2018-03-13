@@ -62,7 +62,7 @@ public class AnimationControlHandler extends AbstractCommandHandler implements V
 			log.info("Starting animation playback");
 			if( vm.selectedScene != null ){
 				vm.selectedScene.commitDMDchanges(vm.dmd, vm.hashes.get(vm.selectedHashIndex)); 
-				vm.setDirty(vm.selectedScene.isDirty());
+				vm.setDirty(vm.dirty|vm.selectedScene.isDirty());
 			}
 			animationHandler.start();
 			//vm.setNextTimerExec(animationHandler.getRefreshDelay());
@@ -75,7 +75,7 @@ public class AnimationControlHandler extends AbstractCommandHandler implements V
 	public void onPrevFrame() {
 		if(vm.selectedScene!=null) {
 			vm.selectedScene.commitDMDchanges(vm.dmd, vm.hashes.get(vm.selectedHashIndex)); 
-			vm.setDirty(vm.selectedScene.isDirty());
+			vm.setDirty(vm.dirty|vm.selectedScene.isDirty());
 		}
 		//animationHandler.prev();
 		vm.setSelectedFrame(vm.selectedFrame-vm.frameIncrement);
@@ -93,7 +93,7 @@ public class AnimationControlHandler extends AbstractCommandHandler implements V
 	public void onNextFrame() {
 		if( vm.selectedScene != null){
 			vm.selectedScene.commitDMDchanges(vm.dmd,vm.hashes.get(vm.selectedHashIndex)); 
-			vm.setDirty(vm.selectedScene.isDirty());
+			vm.setDirty(vm.dirty|vm.selectedScene.isDirty());
 		}
 		//animationHandler.next();
 		vm.setSelectedFrame(vm.selectedFrame+vm.frameIncrement);

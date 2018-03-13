@@ -10,10 +10,11 @@ import org.eclipse.swt.widgets.Shell;
 
 import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.Bean;
+import com.rinke.solutions.beans.Scope;
 import com.rinke.solutions.pinball.ui.FileChooser;
 import com.rinke.solutions.pinball.ui.FileDialogDelegate;
 
-@Bean
+@Bean(scope=Scope.PROTOTYPE)
 public class FileChooserUtil {
 
 	String lastPath;

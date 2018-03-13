@@ -1,6 +1,7 @@
 package com.rinke.solutions.pinball.view.model;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -10,7 +11,6 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import lombok.Getter;
-import lombok.Setter;
 
 import com.rinke.solutions.beans.Bean;
 import com.rinke.solutions.databinding.ViewBinding;
@@ -50,6 +50,7 @@ public class ViewModel extends AbstractModel {
 	public Map<String,Integer> scenesPosMap = new HashMap<String, Integer>();
 	public Map<String,Set<Bookmark>> bookmarksMap = new HashMap<String, Set<Bookmark>>();
 	public List<String> inputFiles = new ArrayList<>();
+	public HashMap<String,String> recordingNameMap = new HashMap<>();
 	
 	public List<Palette> previewPalettes = Palette.previewPalettes();
 	
@@ -63,6 +64,7 @@ public class ViewModel extends AbstractModel {
 	// animation, listener in der UI Klasse
 	public int nextTimerExec;
 	public boolean shouldClose;
+	private List<EditMode> immutable = Arrays.asList( Animation.EditMode.FIXED );
 	
 	public void init(DMD dmd, DmdSize ds, String address, int noOfMasks) {
 		this.dmd = dmd;
@@ -72,10 +74,14 @@ public class ViewModel extends AbstractModel {
 		
 		setProjectFilename(null);
 		setDirty(false);
-		populatePaletteToMap(Palette.getDefaultPalettes());
+		Palette.getDefaultPalettes().stream().forEach(p->paletteMap.put(p.index, p));
 		setMaxNumberOfMasks(noOfMasks);
-		setSelectedPalette(Palette.getDefaultPalettes().get(0));
+		setSelectedPalette(paletteMap.values().iterator().next());
 		resetMask(ds, noOfMasks);
+		mask = new Mask(ds.planeSize);
+		Arrays.fill(mask.data, (byte)0xFF);
+		availableEditModes.replaceAll(immutable);
+		setSelectedEditMode(EditMode.FIXED);
 	}
 	
 	// drawing
@@ -147,7 +153,7 @@ public class ViewModel extends AbstractModel {
 	@ViewBinding public boolean mntmUploadPalettesEnabled;
 	@ViewBinding public boolean mntmUploadProjectEnabled;
 	
-	@ViewBinding public ObservableList<EditMode> availableEditModes = new ObservableList<EditMode>(new ArrayList<>());
+	@ViewBinding public ObservableList<EditMode> availableEditModes = new ObservableList<Animation.EditMode>(new ArrayList<>());
 	@ViewBinding public EditMode selectedEditMode = EditMode.FIXED;
 	@ViewBinding public PaletteType selectedPaletteType;
 	
@@ -184,12 +190,6 @@ public class ViewModel extends AbstractModel {
 	
 	@ViewBinding public Palette selectedPalette = Palette.getDefaultPalettes().get(0);
 	@ViewBinding public ObservableMap<Integer,Palette> paletteMap = new ObservableMap<>(new LinkedHashMap<>());
-	
-	public void populatePaletteToMap(List<Palette> palettes) {
-		for(Palette p:palettes) {
-			paletteMap.put(p.index, p);
-		}
-	}
 	
 	public void setDmdSize(DmdSize dmdSize) {
 		firePropertyChange("dmdSize", this.dmdSize, this.dmdSize = dmdSize);
@@ -369,10 +369,6 @@ public class ViewModel extends AbstractModel {
 
 	public void setBtnAddEventEnabled(boolean btnAddEventEnabled) {
 		firePropertyChange("btnAddEventEnabled", this.btnAddEventEnabled, this.btnAddEventEnabled = btnAddEventEnabled);
-	}
-
-	public ObservableList<EditMode> getAvailableEditModes() {
-		return availableEditModes;
 	}
 
 	public void setAvailableEditModes(ObservableList<EditMode> availableEditModes) {

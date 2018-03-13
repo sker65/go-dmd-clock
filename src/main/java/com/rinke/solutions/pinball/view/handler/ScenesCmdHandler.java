@@ -3,6 +3,7 @@ package com.rinke.solutions.pinball.view.handler;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +26,9 @@ import com.rinke.solutions.pinball.view.model.ViewModel;
 public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBindingHandler {
 
 	@Autowired private MessageUtil messageUtil;
-	private EditMode mutable[] = { EditMode.REPLACE, EditMode.COLMASK, EditMode.FOLLOW, EditMode.LAYEREDCOL };
+	
+	private List<EditMode> mutable = Arrays.asList( EditMode.REPLACE, EditMode.COLMASK, EditMode.FOLLOW, EditMode.LAYEREDCOL );
+	
 	@Autowired private RecordingsCmdHandler recordingsCmdHandler;
 	@Autowired private DrawCmdHandler drawCmdHandler;
 
@@ -43,7 +46,7 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 		if( current != null ) {
 			vm.scenesPosMap.put(current.getDesc(), current.actFrame);
 			current.commitDMDchanges(vm.dmd,vm.hashes.get(vm.selectedHashIndex));
-			vm.setDirty(current.isDirty());
+			vm.setDirty(vm.dirty | current.isDirty());
 		}
 		if( nextScene != null ) {
 			// deselect recording
@@ -51,17 +54,20 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 			vm.setSelection(null);
 			vm.setSelectedRecording(null);
 			
+			vm.setSelectedKeyFrame(null);
+			
 		//	v.goDmdGroup.updateAnimation(nextScene);
 
 			vm.setMaskEnabled(nextScene.getEditMode().useMask);
+			vm.setMaskActive(nextScene.getEditMode().useMask);
 			vm.setMaskSpinnerEnabled(false);
 			// just to enasure a reasonable default
 			if( nextScene.getEditMode() == null || nextScene.getEditMode().equals(EditMode.FIXED) ) {
 				// old animation may be saved with wrong edit mode
 				nextScene.setEditMode(EditMode.REPLACE);
 			}
-			vm.availableEditModes.clear();
-			vm.availableEditModes.addAll(Arrays.asList(mutable));
+			if( current == null ) vm.availableEditModes.replaceAll(mutable);
+			vm.setSelectedEditMode(nextScene.getEditMode());
 			
 			recordingsCmdHandler.setEnableHashButtons(nextScene.getEditMode().useMask);
 			
@@ -80,10 +86,10 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 
 			vm.setSelectedPaletteByIndex(nextScene.getPalIndex());
 			
-			vm.setSelectedEditMode(nextScene.getEditMode());
+			drawCmdHandler.setDrawMaskByEditMode(nextScene.getEditMode());
+			vm.setDrawingEnabled((vm.useGlobalMask && !vm.masks.get(vm.selectedMask).locked) 
+					|| !vm.animationIsPlaying && vm.selectedScene.isMutable());
 
-			drawCmdHandler.setDrawMaskByEditMode(nextScene.getEditMode());// doesnt fire event?????
-			
 			vm.dmd.setNumberOfSubframes(numberOfPlanes);
 			
 			vm.setPaletteToolPlanes(vm.useGlobalMask?1:numberOfPlanes);
@@ -91,7 +97,7 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 			recordingsCmdHandler.setPlayingAni(nextScene, vm.scenesPosMap.getOrDefault(nextScene.getDesc(), 0));
 			
 		} else {
-			vm.setSelectedScene(null);
+			vm.setDrawingEnabled(false);
 		}
 		// v.goDmdGroup.updateAniModel(nextScene);
 		vm.setDeleteSceneEnabled(nextScene!=null);

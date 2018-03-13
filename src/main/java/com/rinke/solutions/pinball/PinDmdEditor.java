@@ -190,7 +190,9 @@ public class PinDmdEditor {
 	public void open(String[] args) {
 		
 		beanFactory = new SimpleBeanFactory();
-		beanFactory.setValueProvider(new com.rinke.solutions.pinball.util.Config());
+		Config config = new Config();
+		config.load();
+		beanFactory.setValueProvider(config);
 		beanFactory.scanPackages("com.rinke.solutions.pinball");
 		
 		beanFactory.setSingleton("beanFactory", beanFactory);
@@ -218,9 +220,6 @@ public class PinDmdEditor {
 		autoSaveHandler.checkAutoSaveAtStartup();
 		animationHandler.setEventHandler(drawCmdHandler);
 		
-		
-		processCmdLine();
-		
 		// register all view handlers with the dispatcher
 		List<CommandHandler> handlers = beanFactory.getBeansOfType(CommandHandler.class);
 		handlers.forEach(h->dispatcher.registerHandler(h));
@@ -230,6 +229,9 @@ public class PinDmdEditor {
 		viewModelChangeHandler = new ChangeHandlerHelper<ViewBindingHandler>(beanFactory, ViewBindingHandler.class);
 		
 		vm.addPropertyChangeListener( e->viewModelChanged(e) );
+		
+		// process cmdLine AFTER all handler are registered
+		processCmdLine();
 		
 		mainView.open();
 		
@@ -252,6 +254,7 @@ public class PinDmdEditor {
 		// cmd line processing
 		if (loadFile != null) {
 			projectHandler.onLoadProject(loadFile);
+			vm.setProjectFilename(loadFile);
 		}
 		if (aniToLoad != null) {
 			aniAction.loadAni(aniToLoad, false, true);
@@ -270,7 +273,7 @@ public class PinDmdEditor {
 			}
 		}
 		if (saveFile != null) {
-			projectHandler.onSaveProject(saveFile);
+			projectHandler.saveProject(saveFile);
 		}
 	}
 	
