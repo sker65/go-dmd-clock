@@ -14,9 +14,11 @@ import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.rinke.solutions.beans.Bean;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.renderer.PngRenderer;
 
+@Bean
 public class DMDClock {
 	
     private static Logger LOG = LoggerFactory.getLogger(DMDClock.class); 
@@ -88,6 +90,10 @@ public class DMDClock {
 	}
 	
 	String alpha = "0123456789: .C*";
+	
+	public DMDClock() {
+		this(false);
+	}
 	
 	public DMDClock(boolean showSeconds) {
 		super();

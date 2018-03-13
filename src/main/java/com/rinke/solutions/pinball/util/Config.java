@@ -7,14 +7,18 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Properties;
 
+import com.rinke.solutions.beans.Bean;
+import com.rinke.solutions.beans.BeanFactory;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class ApplicationProperties {
+@Bean
+public class Config implements BeanFactory.PropertyProvider {
 
 	private String propertiesFilename = "pin2dmd.properties";
-	public static final String PIN2DMD_ADRESS_PROP_KEY = "pin2dmdAdress";
-	public static final String PIN2DMD_DMDSIZE_PROP_KEY = "dmdSize";
+	public static final String PIN2DMD_ADRESS = "pin2dmdAdress";
+	public static final String DMDSIZE = "dmdSize";
 	public static final String GODMD_ENABLED_PROP_KEY = "godmdEnabled";
 	public static final String AUTOSAVE_INTERVAL = "autosaveInterval";
 	public static final String AUTOSAVE = "autosave";
@@ -24,19 +28,15 @@ public class ApplicationProperties {
 	public static final String ADDPALWHENCUT = "addPalWhenCut";
 	public static final String CREATEBOOKCUT= "createBookmarkAfterCut";
 	public static final String BACKUP = "backup";
+	public static final String GODMD_EXPORT_PATH = "goDmdExportPath";
 
-	private static ApplicationProperties theInstance;
-
-	public static synchronized ApplicationProperties getInstance() {
-		if (theInstance == null) {
-			theInstance = new ApplicationProperties();
-			theInstance.load();
-		}
-		return theInstance;
+	public Config() {
+		super();
 	}
 
-	private ApplicationProperties() {
+	public Config(String file) {
 		super();
+		this.propertiesFilename = file;
 	}
 
 	private Properties props = new Properties();
@@ -45,6 +45,10 @@ public class ApplicationProperties {
 		String homeDir = System.getProperty("user.home");
 		String filename = homeDir + File.separator + propertiesFilename;
 		return filename;
+	}
+	
+	public void init() {
+		load();
 	}
 
 	public void load() {
@@ -59,17 +63,17 @@ public class ApplicationProperties {
 		}
 	}
 
-	public static Properties getProperties() {
-		return getInstance().props;
+	public  Properties getProperties() {
+		return props;
 	}
 
-	public static void put(String key, String value) {
-		log.debug("setting prop {} to '{}'", key, value);
-		String old = getInstance().props.getProperty(key);
+	public  void put(String key, String value) {
+		log.debug("setting prop {} to '{}'", key, value);
+		String old = props.getProperty(key);
 		if( !value.equals(old) ) {
-			log.info("value for prop {} changed {} -> {}", key, old, value);
-			getInstance().props.put(key, value);
-			getInstance().save();
+			log.info("value for prop {} changed {} -> {}", key, old, value);
+			props.put(key, value);
+			save();
 		}
 	}
 
@@ -83,42 +87,47 @@ public class ApplicationProperties {
 		}
 	}
 
-	public static String get(String key) {
-		String val = getInstance().props.getProperty(key);
-		log.trace("get prop {} = '{}' ", key, val);
+	public  String get(String key) {
+		String val = props.getProperty(key);
+		log.debug("get prop {} = '{}' ", key, val);
 		return val;
 	}
 
 	/** mainly for testing purpose */
-	public static void setPropFile(String filename) {
-		getInstance().propertiesFilename = filename;
+	public  void setPropFile(String filename) {
+		propertiesFilename = filename;
 		
 	}
 
-	public static boolean getBoolean(String key) {
+	public  boolean getBoolean(String key) {
 		return getBoolean(key, false);
 	}
 
-	public static boolean getBoolean(String key, boolean defaultVal) {
+	public  boolean getBoolean(String key, boolean defaultVal) {
 		String val = get(key);
 		return val!=null?Boolean.parseBoolean(val):defaultVal;	
 	}
 	
-	public static int getInteger(String key) {
+	public  int getInteger(String key) {
 		return getInteger(key, 0);
 	}
 
-	public static int getInteger(String key, int defaultVal) {
+	public  int getInteger(String key, int defaultVal) {
 		String val = get(key);
 		return val!=null?Integer.parseInt(val):defaultVal;	
 	}
 
-	public static void put(String key, int val) {
+	public  void put(String key, int val) {
 		put(key, Integer.toString(val));
 	}
 
-	public static void put(String key, boolean val) {
+	public  void put(String key, boolean val) {
 		put(key, Boolean.toString(val));
+	}
+
+	@Override
+	public String getProperty(String key) {
+		return props.getProperty(key);
 	}
 	
 }

@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -48,6 +49,8 @@ public class PaletteTool implements ColorModifiedListener {
 	List<ColorChangedListerner> colorChangedListeners = new ArrayList<>();
 	List<ColorIndexChangedListerner> indexChangedListeners = new ArrayList<>();
 	ColorPicker colorPicker = new ColorPicker(Display.getDefault(), null);
+	// just for the sake of POJO spec
+	@Getter private int numberOfPlanes;
 
 	@FunctionalInterface
 	public static interface ColorChangedListerner {
@@ -83,6 +86,7 @@ public class PaletteTool implements ColorModifiedListener {
 	}
 
 	public void setNumberOfPlanes(int planes) {
+		this.numberOfPlanes = planes;
 		log.info("setting number of planes: {}",planes);
 		switch (planes) {
 		case 1:
@@ -186,6 +190,9 @@ public class PaletteTool implements ColorModifiedListener {
 			updateSelectedColor(evt.rgb);
 			break;
 		}
+	}
+	public Palette getPalette() {
+		return palette;
 	}
 
 }

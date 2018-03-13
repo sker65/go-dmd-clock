@@ -8,7 +8,7 @@ import java.util.Observer;
  * do it delegates (can)Undo and (can)Redo calls, depending on mask set
  * and forwards observer notifies.
  */
-class MaskDmdObserver extends Observable implements Observer {
+public class MaskDmdObserver extends Observable implements Observer {
 	private DMD dmd;
 	private DMD mask;
 	

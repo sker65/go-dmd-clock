@@ -9,6 +9,7 @@ import java.lang.reflect.Constructor;
 
 import lombok.extern.slf4j.Slf4j;
 
+import com.rinke.solutions.beans.Bean;
 import com.rinke.solutions.pinball.model.Bookmark;
 import com.rinke.solutions.pinball.model.Format;
 import com.rinke.solutions.pinball.model.Frame;
@@ -31,6 +32,7 @@ import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 import com.thoughtworks.xstream.mapper.Mapper;
 
 @Slf4j
+@Bean
 public class FileHelper {
 	
     private XStream xstream;

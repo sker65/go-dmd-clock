@@ -19,28 +19,30 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Spinner;
+import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Text;
 
+import com.rinke.solutions.beans.Autowired;
+import com.rinke.solutions.beans.Bean;
+import com.rinke.solutions.beans.Scope;
+import com.rinke.solutions.beans.Value;
 import com.rinke.solutions.pinball.DmdSize;
 import com.rinke.solutions.pinball.LabelProviderAdapter;
 import com.rinke.solutions.pinball.io.ConnectorFactory;
 import com.rinke.solutions.pinball.io.Pin2DmdConnector;
 import com.rinke.solutions.pinball.io.Pin2DmdConnector.ConnectionHandle;
-import com.rinke.solutions.pinball.util.ApplicationProperties;
-
-import org.eclipse.swt.widgets.Spinner;
-import org.eclipse.swt.widgets.TabFolder;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
+import com.rinke.solutions.pinball.util.Config;
+import com.rinke.solutions.pinball.view.View;
 
 @Slf4j
-public class Config extends Dialog {
+@Bean(name="configDialog", scope=Scope.PROTOTYPE)
+public class ConfigDialog extends Dialog implements View {
     
-	protected Object result;
     protected Shell shell;
     private DmdSize dmdSize;
-    private String address;
+
     public boolean okPressed;
 
     private ComboViewer dmdSizeViewer;
@@ -56,16 +58,20 @@ public class Config extends Dialog {
 	private Button btnCreatePaletteAfter;
 	private Button btnCreateBookmarkAfter;
 	private Button btnBackupOnSave;
+	
+	@Value(key=Config.PIN2DMD_ADRESS)
+    private String address;
+	
+	@Autowired Config config;
     
     /**
      * Create the dialog.
      * @param parent
      * @param style
      */
-    public Config(Shell parent) {
+    public ConfigDialog(Shell parent) {
         super(parent, SWT.CLOSE | SWT.TITLE | SWT.BORDER | SWT.OK | SWT.APPLICATION_MODAL);
         setText("Configuration");
-        dmdSize = DmdSize.fromOrdinal(ApplicationProperties.getInteger("dmdSize",0));
     }
 
     public String getPin2DmdHost() {
@@ -87,19 +93,21 @@ public class Config extends Dialog {
      * Open the dialog.
      * @return the result
      */
-    public Object open(String address) {
-        createContents();
-        this.address = address;
-        pin2dmdHost.setText(address!=null?address:"");
+    public void open() {
         
-        btnAutosaveActive.setSelection(ApplicationProperties.getBoolean(ApplicationProperties.AUTOSAVE, false));
-        autosaveInterval.setSelection(ApplicationProperties.getInteger(ApplicationProperties.AUTOSAVE_INTERVAL, 10));
-        btnCreateKeyFrame.setSelection(ApplicationProperties.getBoolean(ApplicationProperties.AUTOKEYFRAME, false));
-        spinnerNoPlanes.setSelection(ApplicationProperties.getInteger(ApplicationProperties.NOOFPLANES, 4));
-        btnUseOldExport.setSelection(ApplicationProperties.getBoolean(ApplicationProperties.OLDEXPORT, false));
-        btnCreatePaletteAfter.setSelection(ApplicationProperties.getBoolean(ApplicationProperties.ADDPALWHENCUT, false));
-        btnCreateBookmarkAfter.setSelection(ApplicationProperties.getBoolean(ApplicationProperties.CREATEBOOKCUT, false));
-        btnBackupOnSave.setSelection(ApplicationProperties.getBoolean(ApplicationProperties.BACKUP, false));
+    	dmdSize = DmdSize.fromOrdinal(config.getInteger(Config.DMDSIZE,0));
+
+        createContents();
+
+        pin2dmdHost.setText(address!=null?address:"");
+        btnAutosaveActive.setSelection(config.getBoolean(Config.AUTOSAVE, false));
+        autosaveInterval.setSelection(config.getInteger(Config.AUTOSAVE_INTERVAL, 10));
+        btnCreateKeyFrame.setSelection(config.getBoolean(Config.AUTOKEYFRAME, false));
+        spinnerNoPlanes.setSelection(config.getInteger(Config.NOOFPLANES, 4));
+        btnUseOldExport.setSelection(config.getBoolean(Config.OLDEXPORT, false));
+        btnCreatePaletteAfter.setSelection(config.getBoolean(Config.ADDPALWHENCUT, false));
+        btnCreateBookmarkAfter.setSelection(config.getBoolean(Config.CREATEBOOKCUT, false));
+        btnBackupOnSave.setSelection(config.getBoolean(Config.BACKUP, false));
         
         shell.open();
         shell.layout();
@@ -109,7 +117,6 @@ public class Config extends Dialog {
                 display.sleep();
             }
         }
-        return result;
     }
 
     /**
@@ -293,14 +300,14 @@ public class Config extends Dialog {
 		log.info("ok pressed");
 		okPressed = true;
 		dmdSize = (DmdSize) ((StructuredSelection) dmdSizeViewer.getSelection()).getFirstElement();
-        ApplicationProperties.put(ApplicationProperties.AUTOSAVE, btnAutosaveActive.getSelection());
-        ApplicationProperties.put(ApplicationProperties.AUTOSAVE_INTERVAL, autosaveInterval.getSelection()); 
-        ApplicationProperties.put(ApplicationProperties.AUTOKEYFRAME, btnCreateKeyFrame.getSelection()); 
-        ApplicationProperties.put(ApplicationProperties.NOOFPLANES, spinnerNoPlanes.getSelection());
-        ApplicationProperties.put(ApplicationProperties.OLDEXPORT, btnUseOldExport.getSelection());
-        ApplicationProperties.put(ApplicationProperties.ADDPALWHENCUT, btnCreatePaletteAfter.getSelection());
-        ApplicationProperties.put(ApplicationProperties.CREATEBOOKCUT, btnCreateBookmarkAfter.getSelection());
-        ApplicationProperties.put(ApplicationProperties.BACKUP, btnBackupOnSave.getSelection());
+        config.put(Config.AUTOSAVE, btnAutosaveActive.getSelection());
+        config.put(Config.AUTOSAVE_INTERVAL, autosaveInterval.getSelection()); 
+        config.put(Config.AUTOKEYFRAME, btnCreateKeyFrame.getSelection()); 
+        config.put(Config.NOOFPLANES, spinnerNoPlanes.getSelection());
+        config.put(Config.OLDEXPORT, btnUseOldExport.getSelection());
+        config.put(Config.ADDPALWHENCUT, btnCreatePaletteAfter.getSelection());
+        config.put(Config.CREATEBOOKCUT, btnCreateBookmarkAfter.getSelection());
+        config.put(Config.BACKUP, btnBackupOnSave.getSelection());
 		shell.close();
 	}
 }

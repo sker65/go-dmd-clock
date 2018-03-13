@@ -7,46 +7,48 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 
 import com.google.common.collect.Lists;
+import com.rinke.solutions.beans.Autowired;
+import com.rinke.solutions.beans.Bean;
 import com.rinke.solutions.pinball.animation.AniWriter;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.Animation.EditMode;
 import com.rinke.solutions.pinball.animation.AnimationFactory;
 import com.rinke.solutions.pinball.animation.AnimationType;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
+import com.rinke.solutions.pinball.model.Model;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.ui.Progress;
 import com.rinke.solutions.pinball.util.FileChooserUtil;
+import com.rinke.solutions.pinball.util.MessageUtil;
+import com.rinke.solutions.pinball.view.model.ViewModel;
 
 @Slf4j
+@Bean
 public class AnimationActionHandler {
 	
-	PinDmdEditor editor;
-	FileChooserUtil fileChooserUtil;
-	private Shell shell;
+	@Autowired ViewModel vm;
 	
-	public AnimationActionHandler(PinDmdEditor pinDmdEditor, Shell shell) {
-		editor = pinDmdEditor;
-		this.shell = shell;
-		fileChooserUtil = new FileChooserUtil(shell);
-	}
-	
+	@Autowired MessageUtil messageUtil;
+	@Autowired FileChooserUtil fileChooserUtil;
+	@Setter private Shell shell;
+		
 	protected Progress getProgress() {
-		return new Progress(shell);
+		return shell!=null ? new Progress(shell) : null;
 	}
 
 	public void onSaveAniWithFC(int version) {
-		String defaultName = editor.selectedRecording.isPresent() ? editor.selectedRecording.get().getDesc() : "animation";
+		String defaultName = vm.selectedRecording!=null ? vm.selectedRecording.getDesc() : "animation";
 		String filename = fileChooserUtil.choose(SWT.SAVE, defaultName, new String[] { "*.ani" }, new String[] { "Animations" });
 		if (filename != null) {
 			log.info("store animation to {}", filename);
-			storeAnimations(editor.recordings.values(), filename, version, true);
+			storeAnimations(vm.recordings.values(), filename, version, true);
 		}
 	}
 
@@ -54,7 +56,7 @@ public class AnimationActionHandler {
 		java.util.List<Animation> anisToSave = anis.stream().filter(a -> saveAll || a.isDirty()).collect(Collectors.toList());
 		if( anisToSave.isEmpty() ) return;// Pair.of(0, Collections.emptyMap());
 		Progress progress = getProgress();
-		AniWriter aniWriter = new AniWriter(anisToSave, filename, version, editor.project.paletteMap, progress);
+		AniWriter aniWriter = new AniWriter(anisToSave, filename, version, vm.paletteMap, progress);
 		if( progress != null ) 
 			progress.open(aniWriter);
 		else
@@ -103,22 +105,22 @@ public class AnimationActionHandler {
 		}
 		if (populateProject) {
 			if (!append)
-				editor.project.inputFiles.clear();
-			if (!editor.project.inputFiles.contains(filename))
-				editor.project.inputFiles.add(filename);
+				vm.inputFiles.clear();
+			if (!vm.inputFiles.contains(filename))
+				vm.inputFiles.add(filename);
 		}
 
 		// animationHandler.setAnimations(sourceAnis);
 		if (!append) {
-			editor.recordings.clear();
-			editor.scenes.clear();
-			editor.playingAnis.clear();
+			vm.recordings.clear();
+			vm.scenes.clear();
+			vm.playingAnis.clear();
 		}
-		DMD dmd = new DMD(editor.dmdSize.width,editor.dmdSize.height);
+		DMD dmd = new DMD(vm.dmdSize.width,vm.dmdSize.height);
 		for (Animation ani : loadedList) {
 			if( ani instanceof CompiledAnimation ) {
 				CompiledAnimation cani = (CompiledAnimation)ani;
-				editor.project.inputFiles.remove(filename);
+				vm.inputFiles.remove(filename);
 				ani.setProjectAnimation(true);
 				if( EditMode.FIXED.equals(ani.getEditMode())) {
 					ani.setEditMode(EditMode.REPLACE);
@@ -134,29 +136,23 @@ public class AnimationActionHandler {
 					}
 					log.info("ani size was adjusted: {}", ani);
 				}
-				if( ani.width != editor.project.width || ani.height != editor.project.height) {
-					warn("Size mismatch", "size of animation does not match to project dmd size");
+				if( ani.width != vm.dmdSize.width || ani.height != vm.dmdSize.height) {
+					messageUtil.warn("Size mismatch", "size of animation does not match to project dmd size");
 				} else {
-					populateAni(cani, editor.scenes);
+					populateAni(cani, vm.scenes);
 				}
 			} else {
-				populateAni(ani, editor.recordings);
+				populateAni(ani, vm.recordings);
 			}	
 			
 			ani.init(dmd);
-			populatePalette(ani, editor.project.paletteMap);
+			populatePalette(ani, vm.paletteMap);
 		}
-		editor.recentAnimationsMenuManager.populateRecent(filename);
-		editor.project.dirty = true;
+		vm.setRecentAnimations(filename);
+		vm.setDirty(true);
 		return loadedList;
 	}
 	
-	private void warn(String header, String msg) {
-		MessageBox messageBox = new MessageBox(shell, SWT.ICON_WARNING | SWT.OK);
-		messageBox.setText(header);
-		messageBox.setMessage(msg);
-		messageBox.open();
-	}
 	private <T extends Animation> void populateAni( T ani, Map<String, T> anis) {
 		if (anis.containsKey(ani.getDesc())) {
 			int i = 0;
@@ -188,17 +184,16 @@ public class AnimationActionHandler {
 				Palette aniPalette = new Palette(ani.getAniColors(), palettes.size(), ani.getDesc());
 				palettes.put(aniPalette.index,aniPalette);
 				ani.setPalIndex(aniPalette.index);
-				editor.paletteComboViewer.refresh();
 			}
 		}
 	}
 
 	public void onSaveSingleAniWithFC(int version) {
-		if( editor.selectedScene.isPresent() ) {
-			String filename = fileChooserUtil.choose(SWT.SAVE, editor.selectedScene.get().getDesc(), new String[] { "*.ani" }, new String[] { "Animations" });
+		if( vm.selectedScene!=null ) {
+			String filename = fileChooserUtil.choose(SWT.SAVE, vm.selectedScene.getDesc(), new String[] { "*.ani" }, new String[] { "Animations" });
 			if (filename != null) {
 				log.info("store animation to {}", filename);
-				storeAnimations(Lists.newArrayList(editor.selectedScene.get()), filename, version, true);
+				storeAnimations(Lists.newArrayList(vm.selectedScene), filename, version, true);
 			}
 		}
 	}

@@ -103,7 +103,6 @@ public class CompiledAnimation extends Animation {
 	    	}
 	    	if( !Arrays.areEqual(hash, aniFrame.crc32)) {
 		        aniFrame.setHash(hash);
-		        setDirty(true);
 	    	}
 	    }
 	}

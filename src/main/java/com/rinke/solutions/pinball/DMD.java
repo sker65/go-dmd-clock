@@ -7,6 +7,7 @@ import java.util.Observable;
 
 import lombok.extern.slf4j.Slf4j;
 
+import com.rinke.solutions.beans.Bean;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Plane;
 

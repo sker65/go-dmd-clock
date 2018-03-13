@@ -10,6 +10,7 @@ public class SelectTool extends DrawTool {
 	private DMDWidget dmdWidget;
 	private int x2, y2, x3, y3;
 	private int move;
+	private Rect selection;
 
 	public SelectTool(int actualColor) {
 		super(actualColor);
@@ -102,11 +103,17 @@ public class SelectTool extends DrawTool {
 		return true;
 	}
 	
+	public void setSelection(Rect r) {
+		this.selection = r;
+		if( r == null ) setSelection(0, 0, 0, 0);
+		else setSelection(r.x1, r.y1, r.x2-r.x1, r.y2-r.y1);
+	}
+	
 	public Rect getSelection() {
-		return new Rect(x2, y2, x3, y3);
+		return this.selection;
 	}
 
-	public void setSelection(int x, int y, int width, int height) {
+	private void setSelection(int x, int y, int width, int height) {
 		log.info("set selection: x={}, y={}, w={}, h={}", x,y,width,height);
 		x2 = x; x3 = x2+width;
 		y2 = y; y3 = y2+height;

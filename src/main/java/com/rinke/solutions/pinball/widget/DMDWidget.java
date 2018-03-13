@@ -1,7 +1,11 @@
 package com.rinke.solutions.pinball.widget;
 
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
 import java.util.List;
+
+import lombok.Getter;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.PaintEvent;
@@ -66,6 +70,17 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 		public void frameChanged(Frame frame);
 	}
 	
+	PropertyChangeSupport change = new PropertyChangeSupport(this);
+	// just for the sake of POJO spec
+	@Getter private Mask mask;
+	public void addPropertyChangeListener(PropertyChangeListener l) {
+		change.addPropertyChangeListener(l);
+	}
+
+	public void removePropertyChangeListener(PropertyChangeListener l) {
+		change.removePropertyChangeListener(l);
+	}
+	
 	public DMDWidget(Composite parent, int style, DMD dmd, boolean scrollable) {
 		super(parent, style + ( scrollable ? SWT.V_SCROLL + SWT.H_SCROLL : 0));
 		this.scrollable = scrollable;
@@ -95,10 +110,14 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 	}
 
 	public void setSelection( int x, int y, int w, int h) {
-		if( w==0 && h==0)
+		if( w==0 && h==0) {
+			change.firePropertyChange("selection", this.selection, null);
 			this.selection = null;
-		else
-			this.selection = new Rect( x,y,x+w,y+h);
+		} else {
+			Rect r = new Rect( x,y,x+w,y+h);
+			change.firePropertyChange("selection", this.selection, r);
+			this.selection = r;
+		}
 		redraw();
 	}
 	
@@ -162,6 +181,7 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 	
 	public void resetSelection() {
 		setSelection(0, 0, 0, 0);
+		// TODO may this should be handled from draw controller
 		restorePreviousDrawTool();
 	}
 	
@@ -392,6 +412,7 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 	}
 
 	public void setPalette(Palette palette) {
+		change.firePropertyChange("palette", this.palette, palette);
 		this.palette = palette;
 		redraw();
 	}
@@ -408,6 +429,7 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 	}
 
 	public void setDrawTool(DrawTool drawTool) {
+		change.firePropertyChange("drawTool", this.drawTool, drawTool);
 		previousDrawTool = this.drawTool;
 		this.drawTool = drawTool;
 		if(drawTool!= null) {
@@ -423,7 +445,9 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 	}
 
 	public void setSelection(Rect s) {
-		setSelection(s.x1, s.y1, s.x2-s.x1, s.y2-s.y1);
+		this.selection = s;
+		if( s != null ) setSelection(s.x1, s.y1, s.x2-s.x1, s.y2-s.y1);
+		else resetSelection();
 	}
 
 	public boolean isDrawingEnabled() {
@@ -431,6 +455,7 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 	}
 
 	public void setDrawingEnabled(boolean drawingEnabled) {
+		change.firePropertyChange("drawingEnabled", this.drawingEnabled, drawingEnabled);
 		this.drawingEnabled = drawingEnabled;
 	}
 
@@ -447,6 +472,7 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 
 	public void setShowMask(boolean showMask) {
 		boolean old = this.showMask;
+		change.firePropertyChange("showMask", old, showMask);
 		this.showMask = showMask;
 		if( old != showMask ) {
 			redraw();
@@ -458,6 +484,7 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 	}
 
 	public void setMask(Mask mask) {
+		this.mask = mask;
 		dmd.setMask(mask.data);
 		this.setShowMask(true);
 		this.setMaskLocked(mask.locked);
@@ -492,9 +519,41 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 		public static boolean selected( Rect sel, int x, int y) {
 			return sel==null||sel.inSelection(x, y);
 		}
+		
 		@Override
 		public String toString() {
 			return String.format("Rect [x1=%s, y1=%s, x2=%s, y2=%s]", x1, y1, x2, y2);
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + x1;
+			result = prime * result + x2;
+			result = prime * result + y1;
+			result = prime * result + y2;
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			Rect other = (Rect) obj;
+			if (x1 != other.x1)
+				return false;
+			if (x2 != other.x2)
+				return false;
+			if (y1 != other.y1)
+				return false;
+			if (y2 != other.y2)
+				return false;
+			return true;
 		}
 	}
 

@@ -1,20 +1,21 @@
 package com.rinke.solutions.pinball.ui;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.widgets.Combo;
 
-import com.rinke.solutions.pinball.util.ApplicationProperties;
+import com.rinke.solutions.beans.Autowired;
+import com.rinke.solutions.beans.Bean;
+import com.rinke.solutions.pinball.util.Config;
 
-public class ExportGoDdmd extends Dialog {
+@Bean
+public class ExportGoDmd extends Dialog {
 
 	private static final String GODMD_EXPORT_PATH = "godmdExportPath";
 	private static final String GODMD_EXPORT_VERSION = "godmdExportVersion";
@@ -22,14 +23,15 @@ public class ExportGoDdmd extends Dialog {
 	protected Shell shlExportForGodmd;
 	private Text text;
 	private Combo versionCombo;
+	@Autowired private Config config;
 
 	/**
 	 * Create the dialog.
 	 * @param parent
 	 * @param style
 	 */
-	public ExportGoDdmd(Shell parent, int style) {
-		super(parent, SWT.CLOSE | SWT.TITLE | SWT.BORDER | SWT.OK | SWT.APPLICATION_MODAL);
+	public ExportGoDmd( int style) {
+		super(new Shell(), SWT.CLOSE | SWT.TITLE | SWT.BORDER | SWT.OK | SWT.APPLICATION_MODAL);
 		setText("Export for goDMD");
 	}
 
@@ -39,7 +41,7 @@ public class ExportGoDdmd extends Dialog {
 	 */
 	public Pair<String,Integer> open() {
 		createContents();
-		String path = ApplicationProperties.get(GODMD_EXPORT_PATH);
+		String path = config.get(Config.GODMD_EXPORT_PATH);
 		text.setText(path!=null?path:"");
 		shlExportForGodmd.open();
 		shlExportForGodmd.layout();
@@ -81,7 +83,7 @@ public class ExportGoDdmd extends Dialog {
 		versionCombo.setBounds(68, 34, 122, 22);
 		String items[] = { "RG Version 1", "RGB Version 2" };
 		versionCombo.setItems(items);
-		versionCombo.select(ApplicationProperties.getInteger(GODMD_EXPORT_VERSION, 0));
+		versionCombo.select(config.getInteger(GODMD_EXPORT_VERSION, 0));
 		
 		Label lblVersion = new Label(shlExportForGodmd, SWT.NONE);
 		lblVersion.setText("Version:");
@@ -112,8 +114,8 @@ public class ExportGoDdmd extends Dialog {
 	}
 
 	private void onExport() {
-		ApplicationProperties.put(GODMD_EXPORT_VERSION, versionCombo.getSelectionIndex());
-		ApplicationProperties.put(GODMD_EXPORT_PATH, text.getText());
+		config.put(GODMD_EXPORT_VERSION, versionCombo.getSelectionIndex());
+		config.put(GODMD_EXPORT_PATH, text.getText());
 		result = Pair.of(text.getText(), versionCombo.getSelectionIndex());
 		shlExportForGodmd.close();
 	}

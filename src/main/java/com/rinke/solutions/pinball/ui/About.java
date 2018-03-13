@@ -1,10 +1,6 @@
 package com.rinke.solutions.pinball.ui;
 
-import java.awt.event.MouseAdapter;
-import java.net.URL;
 import java.util.List;
-import java.util.jar.Attributes;
-import java.util.jar.Manifest;
 
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.JFaceResources;
@@ -21,12 +17,20 @@ import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 
+import com.rinke.solutions.beans.Autowired;
+import com.rinke.solutions.beans.Bean;
+import com.rinke.solutions.beans.Scope;
 import com.rinke.solutions.pinball.util.VersionUtil;
+import com.rinke.solutions.pinball.view.View;
 
-import org.eclipse.swt.widgets.Composite;
+@Bean(name="about", scope=Scope.PROTOTYPE)
+public class About extends Dialog implements View {
 
-public class About extends Dialog {
-
+	@Autowired
+	String pluginsPath;
+	@Autowired
+	List<String> plugins;
+	
 	protected Shell shlAboutPindmdEditor;
 
 	/**
@@ -44,7 +48,7 @@ public class About extends Dialog {
 	 * @param pluginsPath 
 	 * @return the result
 	 */
-	public void open(String pluginsPath, List<String> plugins) {
+	public void open() {
 		createContents(pluginsPath, plugins);
 		shlAboutPindmdEditor.open();
 		shlAboutPindmdEditor.layout();
@@ -107,4 +111,5 @@ public class About extends Dialog {
 		lblVersion.setText(lbl);
 		
 	}
+
 }

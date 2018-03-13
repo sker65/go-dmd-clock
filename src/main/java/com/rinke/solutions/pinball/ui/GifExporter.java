@@ -68,8 +68,8 @@ public class GifExporter extends Dialog {
      * @param parent
      * @param style
      */
-    public GifExporter(Shell parent, Palette palette, Animation ani) {
-        super(parent, SWT.CLOSE | SWT.TITLE | SWT.BORDER | SWT.OK | SWT.APPLICATION_MODAL);
+    public GifExporter(Palette palette, Animation ani) {
+        super(new Shell(), SWT.CLOSE | SWT.TITLE | SWT.BORDER | SWT.OK | SWT.APPLICATION_MODAL);
         //setText("Device Config");
         this.ani = ani;
         this.palette = palette;

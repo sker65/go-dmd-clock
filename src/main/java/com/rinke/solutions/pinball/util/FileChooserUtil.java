@@ -4,20 +4,20 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.Setter;
+
 import org.eclipse.swt.widgets.Shell;
 
+import com.rinke.solutions.beans.Autowired;
+import com.rinke.solutions.beans.Bean;
 import com.rinke.solutions.pinball.ui.FileChooser;
 import com.rinke.solutions.pinball.ui.FileDialogDelegate;
 
+@Bean
 public class FileChooserUtil {
 
 	String lastPath;
-	Shell shell;
-
-	public FileChooserUtil(Shell shell) {
-		super();
-		this.shell = shell;
-	}
+	@Autowired Shell shell;
 
 	// testability overridden by tests
 	protected FileChooser createFileChooser(Shell shell, int flags) {

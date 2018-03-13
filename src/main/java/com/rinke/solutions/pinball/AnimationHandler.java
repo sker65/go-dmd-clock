@@ -5,20 +5,24 @@ import java.util.Observable;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.eclipse.swt.widgets.Scale;
-
+import com.rinke.solutions.beans.Autowired;
+import com.rinke.solutions.beans.Bean;
+import com.rinke.solutions.beans.Value;
 import com.rinke.solutions.pinball.animation.AniEvent;
 import com.rinke.solutions.pinball.animation.AniEvent.Type;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.EventHandler;
 import com.rinke.solutions.pinball.model.Frame;
+import com.rinke.solutions.pinball.util.Config;
+import com.rinke.solutions.pinball.view.model.ViewModel;
 
 /**
  * handles the sequence of animations and clock
  * @author sr
  */
 @Slf4j
-public class AnimationHandler extends Observable implements Runnable{
+@Bean
+public class AnimationHandler implements Runnable {
 
 	private List<Animation> anis;
 	private int index; // index of the current animation
@@ -28,15 +32,17 @@ public class AnimationHandler extends Observable implements Runnable{
 	private EventHandler eventHandler;
 	private final DMD dmd;
 	private volatile boolean stop = true;
-	private Scale scale;
 	private boolean showClock = true;
 	private int lastRenderedFrame = -1;
 
 	private boolean forceRerender;
+	@Value(key=Config.GODMD_ENABLED_PROP_KEY)
 	private boolean enableClock;
-	
-	public AnimationHandler(List<Animation> anis, DMDClock clock, DMD dmd) {
-		this.anis = anis;
+	private ViewModel vm;
+
+	public AnimationHandler( ViewModel vm, DMDClock clock, DMD dmd) {
+		this.vm = vm;
+		this.anis = vm.playingAnis;
 		this.clock = clock;
 		this.dmd = dmd;
 	}
@@ -71,14 +77,14 @@ public class AnimationHandler extends Observable implements Runnable{
 				clock.restart();
 				//not used transitionFrame=0;
 			}
-			if( scale.isDisposed() ) return;
+			//if( scale.isDisposed() ) return;
 			eventHandler.notifyAni(new AniEvent(Type.CLOCK));
 		} else {
 			if( anis==null || anis.isEmpty() ) {
 				setClockActive(true);
 			} else {
 				
-				if( scale.isDisposed() ) return;
+				//if( scale.isDisposed() ) return;
 
 				Animation ani = anis.get(index); 
 				updateScale(ani);
@@ -95,7 +101,7 @@ public class AnimationHandler extends Observable implements Runnable{
 				        clock.renderTime(dmd,false);
 				}
 				Frame res = ani.render(dmd,stop);
-                scale.setSelection(ani.actFrame);
+                //vm.setSelectedFrame(ani.actFrame);
                 eventHandler.notifyAni(new AniEvent(Type.ANI, ani, res ));
                 
                 lastRenderedFrame = ani.actFrame;
@@ -136,9 +142,9 @@ public class AnimationHandler extends Observable implements Runnable{
 	}
 
 	public void updateScale(Animation ani) {
-		scale.setMinimum(ani.start);
-		scale.setMaximum(ani.end);
-		scale.setIncrement(ani.skip);
+		vm.setMinFrame(ani.start);
+		vm.setMaxFrame(ani.end);
+		vm.setFrameIncrement(ani.skip);
 	}
 
 	public int getRefreshDelay() {
@@ -158,15 +164,19 @@ public class AnimationHandler extends Observable implements Runnable{
 	
 	public void start() {
 		setStop(false);
+		vm.setAnimationIsPlaying(true);	
+		vm.setStartStopLabel("Stop");
 	}
 	
 	public void setStop(boolean b) {
 		this.stop = b;
-		setChanged();
-		notifyObservers();
+//		setChanged();
+//		notifyObservers();
 	}
 
 	public void stop() {
+		vm.setAnimationIsPlaying(false);	
+		vm.setStartStopLabel("Start");
 		setStop(true);
 	}
 
@@ -180,10 +190,6 @@ public class AnimationHandler extends Observable implements Runnable{
 		if( index <0 || index >= anis.size() ) return;
 		anis.get(index).next();
 		run();
-	}
-
-	public void setScale(Scale scale) {
-		this.scale = scale;
 	}
 
 	public void setPos(int pos) {
@@ -208,8 +214,8 @@ public class AnimationHandler extends Observable implements Runnable{
 		} else {
 			startClock();
 		}
-		setChanged();
-		notifyObservers();
+//		setChanged();
+//		notifyObservers();
 	}
 
 	public boolean isShowClock() {
@@ -242,6 +248,10 @@ public class AnimationHandler extends Observable implements Runnable{
 
 	public void setEnableClock(boolean b) {
 		this.enableClock = b;
+	}
+
+	public void setVm(ViewModel vm) {
+		this.vm = vm;
 	}
 
 }

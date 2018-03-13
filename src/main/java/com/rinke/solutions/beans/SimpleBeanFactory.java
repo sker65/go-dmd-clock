@@ -31,6 +31,7 @@ import org.reflections.Reflections;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
+import static org.reflections.ReflectionUtils.*;
 
 /**
 * simple bean factory.
@@ -233,13 +234,13 @@ public class SimpleBeanFactory extends DefaultHandler implements BeanFactory {
 			String beanName = getBeannameFromClass(c);
 			if( ba!=null && !StringUtils.isEmpty(ba.name())) beanName = ba.name();
 			def = new BeanDefinition(beanName, isSingleton, c, init);
-			for(Field f: c.getDeclaredFields() ) {
-				if(f.isAnnotationPresent(Autowired.class)) {
-					def.setter.add(new SetterCall(null, null, f.getName(), f.getType()));
-				} else if( f.isAnnotationPresent(Value.class)) {
-					Object val = getValueForField(f);
-					if( val != null ) def.setter.add(new SetterCall(null, val, f.getName(), f.getType()));
-				}
+			// use getFields to also include autowire from base class
+			for(Field f: getAllFields(c, withAnnotation(Autowired.class) ) ) {
+				def.setter.add(new SetterCall(null, null, f.getName(), f.getType()));
+			}
+			for(Field f: getAllFields(c, withAnnotation(Value.class) ) ) {
+				Object val = getValueForField(f);
+				if( val != null ) def.setter.add(new SetterCall(null, val, f.getName(), f.getType()));
 			}
 		} catch (SecurityException e) {
 			log.error("error scanning bean",e);
@@ -327,13 +328,14 @@ public class SimpleBeanFactory extends DefaultHandler implements BeanFactory {
     @Override
 	public Object getBean(String id) {
     	log.debug("getting bean {}",id);
-        if( singletons.get(id) != null ) {
+        if( singletons.containsKey(id) ) {
             return singletons.get(id);
         } else {
             BeanDefinition def = beanDefs.get(id);
             if( def == null ) throw new RuntimeException("no bean with name '"+id+"' found");
             Object bean = null;
             try {
+        		error = new StringBuilder();
             	if( def.factoryBeanname != null ) {
             		// create factory bean first
             		Object factory = getBean(def.factoryBeanname);
@@ -343,19 +345,19 @@ public class SimpleBeanFactory extends DefaultHandler implements BeanFactory {
             		Optional<Constructor<?>> defCtor = ctors.stream().filter(c->c.getParameterCount()==0).findFirst();
             		// prefer default ctor (if any)
             		if( defCtor.isPresent() ) {
-            			bean = tryCreate(def.clazz, defCtor.get());
+            			bean = tryCreate(error, def.clazz, defCtor.get());
             			ctors.remove(defCtor.get());
             		}
             		// if defaultCtor wasn't successful, try the others
             		if( bean == null ) {
     	            	for( Constructor<?> ctor : ctors ) {
-    	            		bean = tryCreate(def.clazz, ctor);
+    	            		bean = tryCreate(error, def.clazz, ctor);
     	            		if( bean != null) break;
     	            	}
             		}
             	}
             	if( bean == null ) {
-            		throw new RuntimeException("could not create bean: "+id);
+            		throw new RuntimeException("could not create bean: "+id+" reason: "+error);
             	}
                 for (SetterCall call : def.setter) {
                     Object v = call.value != null ? call.value : getBeanByTypeAndName(call.requiredType, false, call.ref);
@@ -363,9 +365,12 @@ public class SimpleBeanFactory extends DefaultHandler implements BeanFactory {
                     	call.setter.invoke(bean,new Object[] {v});
                     } else {
                     	// inject field
-                    	Field field = def.clazz.getDeclaredField(call.ref);
-                    	field.setAccessible(true);
-                    	field.set(bean, v);
+                    	Optional<Field> opt = getAllFields(def.clazz, withName(call.ref)).stream().findFirst();
+                    	if( opt.isPresent() ) {
+                        	opt.get().setAccessible(true);
+                        	opt.get().set(bean, v);
+                    	};
+
                     }
                 }
     
@@ -392,7 +397,7 @@ public class SimpleBeanFactory extends DefaultHandler implements BeanFactory {
     	beanDefs.put(name, new BeanDefinition(name,true,instance.getClass(),null));
     }
 
-    private Object tryCreate(Class<?> clazz, Constructor<?> ctor) {
+    private Object tryCreate(StringBuilder error, Class<?> clazz, Constructor<?> ctor) {
     	log.debug("create {} with {}", clazz.getSimpleName(), ctor);
 		try {
 			if( ctor.getParameterCount() == 0 ) {
@@ -407,14 +412,17 @@ public class SimpleBeanFactory extends DefaultHandler implements BeanFactory {
 					Autowired aw = apt[i].getAnnotation(Autowired.class);
 					if( aw != null && !StringUtils.isEmpty(aw.name()) ) desiredName = aw.name();
 					Object p = getBeanByTypeAndName(pt[i], true, desiredName);
-					if( p == null ) return null;
+					if( p == null ) {
+						error.append("could not find bean of type "+pt[i]+" with name "+desiredName);
+						return null;
+					}
 					params.add(p);
 				}
 				ctor.setAccessible(true);
 				return ctor.newInstance(params.toArray(new Object[params.size()]));
 			}
 		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-			log.error("error creating bean");
+			log.error("error creating bean", e);
 		}
 		return null;
 	}
@@ -426,6 +434,8 @@ public class SimpleBeanFactory extends DefaultHandler implements BeanFactory {
 	public <T> T getBeanByType(Class<T> pt) {
     	return getBeanByTypeAndName(pt, false, null);
     }
+    
+    StringBuilder error = new StringBuilder();
 
 	/* (non-Javadoc)
 	 * @see com.rinke.solutions.beans.BeanFactory#getBeanByTypeAndName(java.lang.Class, boolean, java.lang.String)
@@ -433,16 +443,27 @@ public class SimpleBeanFactory extends DefaultHandler implements BeanFactory {
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T> T getBeanByTypeAndName(Class<T> pt, boolean ignoreError, String name) {
+		if( singletons.containsKey(name) ) {
+			if( singletons.get(name).getClass().equals(pt) ) return (T) singletons.get(name);
+		}
+		List<Object> objs = singletons.values().stream().filter(o->o.getClass().equals(pt)).collect(Collectors.toList());
+		if( objs.size() == 1) return (T) objs.get(0);
+		error.append("type "+pt+" is ambiquious, please specify a name");
 		List<BeanDefinition> candidates = new ArrayList<>();
 		for(BeanDefinition item : beanDefs.values()) {
 			if( pt.isAssignableFrom(item.clazz)) candidates.add(item);
 		}
 		
-		if( candidates.size()==1 ) return (T) getBean(candidates.get(0).name);
+		if( candidates.size()==1 ) {
+			return (T) getBean(candidates.get(0).name);
+		}
 		if( name != null && candidates.size()>1) {
 			// filter by provided name to narrow scope
 			List<BeanDefinition> reduced = candidates.stream().filter(b->name.equals(b.name)).collect(Collectors.toList());
-			if( reduced.size() == 1) return (T) getBean(reduced.get(0).name);
+			if( reduced.size() == 1) {
+				return (T) getBean(reduced.get(0).name);
+			}
+			error.append("bean of class "+pt+" is ambiquious "+candidates);
 			if( !ignoreError ) throw new RuntimeException("cannot create bean of type "+pt + " candidates = "+reduced);
 		}
 		if( !ignoreError ) throw new RuntimeException("cannot create bean of type '"+pt+"' no beanDef availbable in "+this.toString());
@@ -508,6 +529,17 @@ public class SimpleBeanFactory extends DefaultHandler implements BeanFactory {
 	@Override
 	public <T> T getBeanOfType(Class<T> pt, String name) {
 		return getBeanByTypeAndName(pt, false, name);
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder s = new StringBuilder();
+		singletons.entrySet().stream().forEach(e->s.append(String.format("%s -> %s\n",e.getKey(),e.getValue())));
+		StringBuilder b = new StringBuilder();
+		beanDefs.entrySet().stream().forEach(e->b.append(String.format("%s -> %s\n",e.getKey(),e.getValue())));
+		
+		return String.format("SimpleBeanFactory [%d singletons=%s, %d beanDefs=%s]", 
+				singletons.size(), s.toString(), beanDefs.size(), b.toString());
 	}
 
 }
