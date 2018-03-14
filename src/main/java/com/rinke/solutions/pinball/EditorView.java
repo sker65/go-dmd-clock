@@ -50,9 +50,11 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
+import org.slf4j.LoggerFactory;
 
 import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.BeanFactory;
+import com.rinke.solutions.beans.SimpleBeanFactory;
 import com.rinke.solutions.databinding.DataBinder;
 import com.rinke.solutions.databinding.GuiBinding;
 import com.rinke.solutions.databinding.PojoBinding;
@@ -87,13 +89,13 @@ import com.rinke.solutions.pinball.widget.SetPixelTool;
 @Slf4j
 public class EditorView implements MainView {
 	
-	private static final String AUTO_SAVE = "autoSave";
 	int numberOfHashes;
-	
+
 	public EditorView(int numberOfHashes, boolean checkDirty) {
 		btnHash = new Button[numberOfHashes];
 		this.numberOfHashes = numberOfHashes;
 		this.checkDirty = checkDirty;
+		//this.shell = new Shell();
 	}
 
 	private static final String HELP_URL = "http://pin2dmd.com/editor/";
@@ -123,7 +125,7 @@ public class EditorView implements MainView {
 		DataBinder dataBinder = new DataBinder();
 		dataBinder.bind(this, vm);
 	}
-
+	
 	Display display;
 	protected Shell shell;
 
@@ -642,9 +644,11 @@ public class EditorView implements MainView {
 
 
 	/**
+	 * @wbp.parser.entryPoint
 	 * Create contents of the window.
 	 */
 	public void createContents() {
+		//shell = new Shell(); // for the sake of window builder
 		shell.setMaximized(true);
 		shell.setText("Pin2dmd - Editor");
 
@@ -662,19 +666,18 @@ public class EditorView implements MainView {
 		resManager = new LocalResourceManager(JFaceResources.getResources(), shell);
 		
 		shell.setLayout(new GridLayout(3,false));
-		Composite comp = shell;
 		
-		createListComposite(comp);
+		createListComposite(shell);
 
-		createTabbedFolder(comp);
+		createTabbedFolder(shell);
 
-		Composite drawPalGroup = new Composite(comp,0);
+		Composite drawPalGroup = new Composite(shell,0);
 		drawPalGroup.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
 		drawPalGroup.setLayout(new GridLayout(1,false));
 		createPalettesGroup(drawPalGroup);
 		createDrawingGroup(drawPalGroup);
 
-		Composite previewGroup = new Composite(comp,0);
+		Composite previewGroup = new Composite(shell,0);
 		previewGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
 		GridLayout gl_previewGroup = new GridLayout(1,false);
 		gl_previewGroup.marginRight = 20;
@@ -1456,6 +1459,17 @@ public class EditorView implements MainView {
 	@Override
 	public void createBindings() {
 		Realm.runWithDefault(realm, () -> createBindingsInternal());
+	}
+	
+	/**
+	 * @wbp.parser.entryPoint
+	 */
+	public static void main(String[] args) {
+		EditorView editor = new EditorView(4,true);
+		BeanFactory beanFactory = new SimpleBeanFactory();
+		beanFactory.setSingleton("config",new Config());
+		editor.init(new ViewModel(), beanFactory);
+		editor.open();
 	}
 
 }

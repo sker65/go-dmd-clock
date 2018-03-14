@@ -140,7 +140,7 @@ public class RecordingsCmdHandler extends AbstractListCmdHandler implements View
 		onSortAnimations(vm.recordings);
 	}
 	
-	private void updatePalMappingsRecordingNames(String oldKey, String newKey) {
+	void updatePalMappingsRecordingNames(String oldKey, String newKey) {
 		if( StringUtils.equals(oldKey, newKey) ) return;
 		vm.keyframes.values().forEach(p->{
 			if( p.animationName != null && p.animationName.equals(oldKey)) {

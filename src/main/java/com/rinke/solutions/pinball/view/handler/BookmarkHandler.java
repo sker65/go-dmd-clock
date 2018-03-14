@@ -8,15 +8,12 @@ import org.apache.commons.lang3.StringUtils;
 import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.Bean;
 import com.rinke.solutions.pinball.AnimationHandler;
-import com.rinke.solutions.pinball.PinDmdEditor;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.model.Bookmark;
 import com.rinke.solutions.pinball.view.model.ViewModel;
 
 @Bean
 public class BookmarkHandler extends AbstractCommandHandler implements ViewBindingHandler {
-
-	@Autowired AnimationHandler animationHandler;
 
 	public BookmarkHandler(ViewModel vm ) {
 		super(vm);
@@ -25,8 +22,6 @@ public class BookmarkHandler extends AbstractCommandHandler implements ViewBindi
 	public void onSelectedBookmarkChanged(Bookmark o, Bookmark n) {
 		if( n != null && vm.selectedRecording != null ) {
 			vm.setSelectedFrame(n.pos);
-			// TODO should ne decoupled
-			animationHandler.setPos(n.pos);
 		}
 	}
 
@@ -55,8 +50,7 @@ public class BookmarkHandler extends AbstractCommandHandler implements ViewBindi
 			vm.bookmarksMap.put(animation.getDesc(),set);
 		}
 		set.add(new Bookmark(bookmarkName, pos));
-		vm.bookmarks.clear();
-		vm.bookmarks.addAll(set);
+		vm.bookmarks.replaceAll(set);
 	}
 
 

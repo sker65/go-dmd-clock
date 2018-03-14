@@ -98,18 +98,18 @@ public class PinDmdEditor {
 	ChangeHandlerHelper<ViewBindingHandler> viewModelChangeHandler;
 	private BeanFactory beanFactory;
 
-	//@Autowired AnimationHandler animationHandler;
-	@Autowired DMDClock clock;
-	@Autowired AnimationActionHandler aniAction;
+	@Autowired private AnimationActionHandler aniAction;
 	@Autowired private AutosaveHandler autoSaveHandler;
-	@Autowired ViewModel vm;
-	@Autowired CutCmdHandler cutCmdHandler;
-	@Autowired RecordingsCmdHandler recordingsCmdHandler;
-	@Autowired DrawCmdHandler drawCmdHandler;
-	@Autowired AnimationControlHandler animationControlHandler;
-	@Autowired ProjectHandler projectHandler;
-	@Autowired Config config;
-	@Autowired AnimationHandler animationHandler;
+	@Autowired private ViewModel vm;
+	@Autowired private CutCmdHandler cutCmdHandler;
+	@Autowired private DrawCmdHandler drawCmdHandler;
+	@Autowired private AnimationControlHandler animationControlHandler;
+	@Autowired private ProjectHandler projectHandler;
+	@Autowired public AnimationHandler animationHandler;
+	@Autowired private CmdDispatcher dispatcher;
+	@Autowired private MenuHandler menuHandler;
+	
+	int actFrameOfSelectedAni = 0;
 
 	@Value String pin2dmdAdress;
 
@@ -277,9 +277,6 @@ public class PinDmdEditor {
 		}
 	}
 	
-	@Autowired private CmdDispatcher dispatcher;
-	@Autowired MenuHandler menuHandler;
-
 	private void viewModelChanged(PropertyChangeEvent e) {
 		String propName = e.getPropertyName();
 		Object nv = e.getNewValue();
@@ -293,10 +290,7 @@ public class PinDmdEditor {
 		viewModelChangeHandler.callOnChangedHandlers(propName, nv, ov);
 	}
 
-	int actFrameOfSelectedAni = 0;
-	
-	@Autowired private HashCmdHandler hashCmdHandler;
-	@Autowired private LivePreviewHandler livePreviewHandler;
 
+	
 
 }

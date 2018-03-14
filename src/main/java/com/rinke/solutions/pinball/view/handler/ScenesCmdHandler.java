@@ -126,7 +126,7 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 	}
 	
 	// called when scene gets renamed
-	private void updateBookmarkNames(String old, String newName) {
+	void updateBookmarkNames(String old, String newName) {
 		for( Set<Bookmark> bookmarks : vm.bookmarksMap.values()) {
 			Iterator<Bookmark> i = bookmarks.iterator();
 			while(i.hasNext() ) {

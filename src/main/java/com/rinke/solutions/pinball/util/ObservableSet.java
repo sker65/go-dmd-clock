@@ -8,5 +8,11 @@ public class ObservableSet<T> extends ObservableCollection<T> implements Set<T> 
 	public ObservableSet(Collection<T> delegate) {
 		super(delegate);
 	}
+	
+	public void replaceAll( Collection<? extends T> c) {
+		delegate.clear();
+		delegate.addAll(c);
+		setChanged(); notifyObservers();
+	}
 
 }
