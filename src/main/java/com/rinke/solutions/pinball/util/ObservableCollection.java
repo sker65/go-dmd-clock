@@ -47,13 +47,13 @@ public class ObservableCollection<T> extends Observable implements Collection<T>
 
 	public boolean add(T e) {
 		boolean r = delegate.add(e);
-		setChanged(); notifyObservers();
+		refresh();
 		return r;
 	}
 
 	public boolean remove(Object o) {
 		boolean r = delegate.remove(o);
-		setChanged(); notifyObservers();
+		refresh();
 		return r;
 	}
 
@@ -63,19 +63,19 @@ public class ObservableCollection<T> extends Observable implements Collection<T>
 
 	public boolean addAll(Collection<? extends T> c) {
 		boolean r = delegate.addAll(c);
-		setChanged(); notifyObservers();
+		refresh();
 		return r;
 	}
 
 	public boolean removeAll(Collection<?> c) {
 		boolean r = delegate.removeAll(c);
-		setChanged(); notifyObservers();
+		refresh();
 		return r;
 	}
 
 	public boolean removeIf(Predicate<? super T> filter) {
 		boolean r = delegate.removeIf(filter);
-		if( r ){ setChanged(); notifyObservers(); }
+		if( r ){ refresh(); }
 		return r;
 	}
 
@@ -85,7 +85,7 @@ public class ObservableCollection<T> extends Observable implements Collection<T>
 
 	public void clear() {
 		delegate.clear();
-		setChanged(); notifyObservers();
+		refresh();
 	}
 
 	public boolean equals(Object o) {
@@ -106,6 +106,10 @@ public class ObservableCollection<T> extends Observable implements Collection<T>
 
 	public Stream<T> parallelStream() {
 		return delegate.parallelStream();
+	}
+	
+	public void refresh() {
+		setChanged(); notifyObservers();
 	}
 
     @Override

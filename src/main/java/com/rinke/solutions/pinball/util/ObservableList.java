@@ -16,7 +16,7 @@ public class ObservableList<T> extends ObservableCollection<T> implements List<T
 	@Override
 	public boolean addAll(int index, Collection<? extends T> c) {
 		boolean r = listDelegate.addAll(index, c);
-		setChanged(); notifyObservers();
+		refresh();
 		return r;
 	}
 
@@ -28,20 +28,20 @@ public class ObservableList<T> extends ObservableCollection<T> implements List<T
 	@Override
 	public T set(int index, T element) {
 		T r = listDelegate.set(index, element);
-		setChanged(); notifyObservers();
+		refresh();
 		return r;
 	}
 
 	@Override
 	public void add(int index, T element) {
 		listDelegate.add(index, element);
-		setChanged(); notifyObservers();
+		refresh();
 	}
 
 	@Override
 	public T remove(int index) {
 		T r = listDelegate.remove(index);
-		setChanged(); notifyObservers();
+		refresh();
 		return r;
 	}
 
@@ -73,6 +73,10 @@ public class ObservableList<T> extends ObservableCollection<T> implements List<T
 	public void replaceAll( Collection<? extends T> c ) {
 		listDelegate.clear();
 		listDelegate.addAll(c);
+		refresh();
+	}
+	
+	public void refresh() {
 		setChanged(); notifyObservers();
 	}
 

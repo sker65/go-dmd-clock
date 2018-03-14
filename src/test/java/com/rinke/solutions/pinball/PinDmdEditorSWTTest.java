@@ -122,29 +122,8 @@ public class PinDmdEditorSWTTest {
 	      
 	};
 	
-//	@Test
-//	public void testOnDeleteColMaskClicked() throws Exception {
-//		when(dmdWidget.isShowMask()).thenReturn(true);
-//		uut.onDeleteColMaskClicked();
-//	}
 	
 /*	@Test
-	public void testSelectKeyFrame() throws Exception {
-		uut.v.shell = shell;
-		PalMapping palMapping = new PalMapping(0,"foo");
-		palMapping.animationName = "drwho-dump";
-		palMapping.frameIndex = 0;
-		palMapping.switchMode = SwitchMode.PALETTE;
-		uut.aniAction = new AnimationActionHandler(uut);
-		
-		uut.aniAction.loadAni("./src/test/resources/drwho-dump.txt.gz", false, true);
-		
-		SelectionChangedEvent e = new SelectionChangedEvent(uut.v.keyframeTableViewer, 
-				new StructuredSelection(palMapping));
-		fireSelectionChanged(uut.v.keyframeTableViewer, e);
-		
-		// TODO add verify
-	}
 	
 	@Test
 	public void testNotifyAniClear() throws Exception {

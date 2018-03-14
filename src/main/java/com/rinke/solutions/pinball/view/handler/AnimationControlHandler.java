@@ -80,10 +80,6 @@ public class AnimationControlHandler extends AbstractCommandHandler implements V
 		//animationHandler.prev();
 		vm.setSelectedFrame(vm.selectedFrame-vm.frameIncrement);
 		
-// should be bound that way anyways
-//		if( v.dmdWidget.isShowMask() ) {
-//			vm.setMaskActive(true);
-//		}
 		if( vm.selectedEditMode.useMask && vm.selectedScene!=null) {
 			selectHash(vm.selectedScene);
 		}
@@ -95,11 +91,9 @@ public class AnimationControlHandler extends AbstractCommandHandler implements V
 			vm.selectedScene.commitDMDchanges(vm.dmd,vm.hashes.get(vm.selectedHashIndex)); 
 			vm.setDirty(vm.dirty|vm.selectedScene.isDirty());
 		}
-		//animationHandler.next();
+
 		vm.setSelectedFrame(vm.selectedFrame+vm.frameIncrement);
-//		if( v.dmdWidget.isShowMask() ) {
-//			vm.setMaskActive(true);
-//		}
+
 		if( vm.selectedEditMode.useMask && vm.selectedScene!=null) {
 			selectHash(vm.selectedScene);
 		}
@@ -135,7 +129,7 @@ public class AnimationControlHandler extends AbstractCommandHandler implements V
 
 	public void onUpdateDelay() {
 		CompiledAnimation ani = vm.selectedScene;
-		if( vm.selectedFrame < ani.frames.size() ) {
+		if( ani != null && vm.selectedFrame < ani.frames.size() ) {
 			log.debug("Setting delay of frame {} to {}", vm.selectedFrame, vm.delay);
 			ani.frames.get(vm.selectedFrame).delay = vm.delay;
 		}
@@ -145,5 +139,4 @@ public class AnimationControlHandler extends AbstractCommandHandler implements V
 		this.animationHandler = animationHandler;
 	}
 	
-
 }

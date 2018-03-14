@@ -64,7 +64,7 @@ public class ViewModel extends AbstractModel {
 	// animation, listener in der UI Klasse
 	public int nextTimerExec;
 	public boolean shouldClose;
-	private List<EditMode> immutable = Arrays.asList( Animation.EditMode.FIXED );
+//	private List<EditMode> immutable = Arrays.asList( Animation.EditMode.FIXED );
 	
 	public void init(DMD dmd, DmdSize ds, String address, int noOfMasks) {
 		this.dmd = dmd;
@@ -80,8 +80,8 @@ public class ViewModel extends AbstractModel {
 		resetMask(ds, noOfMasks);
 		mask = new Mask(ds.planeSize);
 		Arrays.fill(mask.data, (byte)0xFF);
-		availableEditModes.replaceAll(immutable);
-		setSelectedEditMode(EditMode.FIXED);
+		//availableEditModes.replaceAll(immutable);
+		//setSelectedEditMode(EditMode.FIXED); // if initialized to FIXED fire propchange is suppressed
 	}
 	
 	// drawing
@@ -153,8 +153,8 @@ public class ViewModel extends AbstractModel {
 	@ViewBinding public boolean mntmUploadPalettesEnabled;
 	@ViewBinding public boolean mntmUploadProjectEnabled;
 	
-	@ViewBinding public ObservableList<EditMode> availableEditModes = new ObservableList<Animation.EditMode>(new ArrayList<>());
-	@ViewBinding public EditMode selectedEditMode = EditMode.FIXED;
+	@ViewBinding public ObservableList<EditMode> availableEditModes = new ObservableList<>(new ArrayList<>());
+	@ViewBinding public EditMode selectedEditMode;
 	@ViewBinding public PaletteType selectedPaletteType;
 	
 	// animation stuff

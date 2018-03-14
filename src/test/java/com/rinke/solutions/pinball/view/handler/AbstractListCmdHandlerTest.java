@@ -15,18 +15,15 @@ import com.rinke.solutions.pinball.animation.AnimationType;
 import com.rinke.solutions.pinball.view.model.ViewModel;
 
 @RunWith(MockitoJUnitRunner.class)
-public class AbstractListCmdHandlerTest {
+public class AbstractListCmdHandlerTest extends HandlerTest {
 	
 	@Mock
 	private AnimationHandler animationHandler;
 	
 	private AbstractListCmdHandler uut;
 	
-	private ViewModel vm;
-	
 	@Before
 	public void setup() {
-		this.vm = new ViewModel();
 		uut = new AbstractListCmdHandler(vm);
 		uut.setAnimationHandler(animationHandler);
 	}

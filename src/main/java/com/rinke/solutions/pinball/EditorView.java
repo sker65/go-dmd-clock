@@ -89,6 +89,7 @@ import com.rinke.solutions.pinball.widget.SetPixelTool;
 @Slf4j
 public class EditorView implements MainView {
 	
+	public static final String DELETE_COL_MASK = "deleteColMask";
 	int numberOfHashes;
 
 	public EditorView(int numberOfHashes, boolean checkDirty) {
@@ -903,7 +904,7 @@ public class EditorView implements MainView {
 		deleteColMask = new Button(grpDrawing, SWT.NONE);
 		deleteColMask.setText("Delete");
 		deleteColMask.setEnabled(false);
-		deleteColMask.addListener(SWT.Selection, e -> dispatchCmd("deleteColMask"));
+		deleteColMask.addListener(SWT.Selection, e -> dispatchCmd(DELETE_COL_MASK));
 		
 		btnInvert = new Button(grpDrawing, SWT.NONE);
 		btnInvert.setText("Invert");

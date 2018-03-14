@@ -14,19 +14,22 @@ import org.apache.http.impl.cookie.BrowserCompatSpecFactory.SecurityLevel;
 import org.eclipse.swt.widgets.Spinner;
 import org.slf4j.Logger;
 
+import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.Bean;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.Animation.EditMode;
 import com.rinke.solutions.pinball.model.Model;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.PalMapping.SwitchMode;
+import com.rinke.solutions.pinball.util.MessageUtil;
 import com.rinke.solutions.pinball.view.model.ViewModel;
 
 @Bean
 @Slf4j
 public class KeyframeHandler extends AbstractCommandHandler implements ViewBindingHandler {
 
-	private Logger messageUtil;
+	@Autowired
+	MessageUtil messageUtil;
 
 	public KeyframeHandler(ViewModel vm) {
 		super(vm);
@@ -34,13 +37,13 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 
 	public void onSelectedSpinnerDeviceIdChanged(int o, int n) {
 		if( vm.selectedKeyFrame != null ) {
-			vm.selectedKeyFrame.durationInMillis = vm.selectedSpinnerDeviceId << 8 +vm.selectedSpinnerEventId; 
+			vm.selectedKeyFrame.durationInMillis = n << 8 +vm.selectedSpinnerEventId; 
 		}
 	}
 
 	public void onSelectedSpinnerEventIdChanged(int o, int n) {
 		if( vm.selectedKeyFrame != null ) {
-			vm.selectedKeyFrame.durationInMillis = vm.selectedSpinnerDeviceId << 8 +vm.selectedSpinnerEventId; 
+			vm.selectedKeyFrame.durationInMillis = vm.selectedSpinnerDeviceId << 8 + n; 
 		}
 	}
 
@@ -183,11 +186,6 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 
 	public void onSelectedKeyFrameChanged(PalMapping old, PalMapping nk) {
 		if( nk != null) {
-// to unselect
-//			if (palMapping.equals(vm.selectedKeyFrame)) {
-//				vm.setSelectedKeyFrame(null);
-//				return;
-//			}
 
 			log.debug("selected new palMapping {}", nk);
 
@@ -197,7 +195,7 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 			// btnMask.setSelection(selectedPalMapping.withMask);
 			// btnMask.notifyListeners(SWT.Selection, new Event());
 
-			vm.setDuration(vm.selectedKeyFrame.durationInMillis);
+			vm.setDuration(nk.durationInMillis);
 			vm.setSelectedPaletteByIndex(nk.palIndex);
 
 			if( nk.switchMode.equals(SwitchMode.EVENT)) {
@@ -218,7 +216,7 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 			}
 			vm.setSelectedRecording(rec);
 			
-			if (vm.selectedKeyFrame.frameSeqName != null)
+			if (nk.frameSeqName != null)
 				vm.setSelectedFrameSeq(vm.scenes.get(nk.frameSeqName));
 
 			vm.setSelectedFrame(nk.frameIndex);
@@ -247,7 +245,5 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 	public void onSelectedFrameSeqChanged(Animation old, Animation ani) {
 		vm.setBtnAddFrameSeqEnabled(ani != null && vm.selectedRecording!=null);
 	}
-
-
 
 }

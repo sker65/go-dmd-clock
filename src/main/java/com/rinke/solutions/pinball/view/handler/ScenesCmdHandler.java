@@ -172,8 +172,6 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 		}
 	}
 
-
-
 	public void onRenameScene(String oldName, String newName){
 		updateAnimationMapKey(oldName, newName, vm.scenes);
 		updateBookmarkNames( oldName, newName );

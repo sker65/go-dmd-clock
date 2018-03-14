@@ -24,16 +24,14 @@ import com.rinke.solutions.pinball.model.RGB;
 import com.rinke.solutions.pinball.view.model.ViewModel;
 
 @RunWith(MockitoJUnitRunner.class)
-public class ScenesCmdHandlerTest {
+public class ScenesCmdHandlerTest extends HandlerTest {
 	@Mock
 	private AnimationHandler animationHandler;
-	//@InjectMocks
+
 	private ScenesCmdHandler uut;
-	private ViewModel vm;
 
 	@Before
 	public void setUp() throws Exception {
-		this.vm = new ViewModel();
 		this.uut = new ScenesCmdHandler(vm);
 		this.uut.animationHandler = animationHandler;
 	}

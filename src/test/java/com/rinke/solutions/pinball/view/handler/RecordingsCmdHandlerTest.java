@@ -17,17 +17,15 @@ import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.view.model.ViewModel;
 
 @RunWith(MockitoJUnitRunner.class)
-public class RecordingsCmdHandlerTest {
+public class RecordingsCmdHandlerTest extends HandlerTest {
+	
 	@Mock
 	private AnimationHandler animationHandler;
 	
 	private RecordingsCmdHandler uut;
 
-	private ViewModel vm;
-
 	@Before
 	public void setUp() throws Exception {
-		this.vm = new ViewModel();
 		this.uut = new RecordingsCmdHandler(vm);
 		this.uut.animationHandler = animationHandler;
 	}

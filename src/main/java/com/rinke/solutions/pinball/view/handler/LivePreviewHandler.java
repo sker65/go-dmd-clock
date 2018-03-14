@@ -32,8 +32,8 @@ public class LivePreviewHandler extends AbstractCommandHandler implements ViewBi
 	ConnectionHandle handle;
 	Pin2DmdConnector connector;
 	
-	@Autowired private MessageUtil messageUtil;
-	@Autowired private ProjectHandler projectHandler;
+	@Autowired MessageUtil messageUtil;
+	@Autowired ProjectHandler projectHandler;
 	
 	public void init() {
 		connector = ConnectorFactory.create(vm.pin2dmdAdress);
@@ -142,7 +142,7 @@ public class LivePreviewHandler extends AbstractCommandHandler implements ViewBi
 	public void onSelectedPaletteChanged(Palette o, Palette newPalette) {
 		if (vm.livePreviewActive ) {
 	//		connector.upload(vm.selectedPalette,handle);
-			connector.switchToPal(vm.selectedPalette.index, handle);
+			connector.switchToPal(newPalette.index, handle);
 		}
 	}
 

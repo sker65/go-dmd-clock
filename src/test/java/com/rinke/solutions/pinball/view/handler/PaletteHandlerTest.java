@@ -3,26 +3,36 @@ package com.rinke.solutions.pinball.view.handler;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.when;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 
+
 import com.rinke.solutions.pinball.model.Palette;
+import com.rinke.solutions.pinball.model.PaletteType;
 import com.rinke.solutions.pinball.model.RGB;
+import com.rinke.solutions.pinball.util.FileChooserUtil;
 import com.rinke.solutions.pinball.util.MessageUtil;
 import com.rinke.solutions.pinball.view.handler.PaletteHandler;
 import com.rinke.solutions.pinball.view.model.ViewModel;
 
-public class PaletteHandlerTest {
+public class PaletteHandlerTest extends HandlerTest  {
 
 	PaletteHandler uut;
-	private ViewModel vm;
+	
+	@Rule
+	public TemporaryFolder tmpFolder = new TemporaryFolder();
 	
 	RGB[] colors = { 
 			new RGB(0,0,0), new RGB(1,1,1), new RGB(2,2,2), new RGB(3,3,3),
@@ -31,11 +41,14 @@ public class PaletteHandlerTest {
 			new RGB(12,0,0), new RGB(13,1,1), new RGB(14,2,2), new RGB(15,3,3),
 			};
 
+	private FileChooserUtil fileChooserUtil;
+
 	@Before
 	public void setUp() throws Exception {
-		vm = new ViewModel();
 		uut = new PaletteHandler(vm);
 		uut.messageUtil = Mockito.mock(MessageUtil.class);
+		this.fileChooserUtil = Mockito.mock(FileChooserUtil.class);
+		uut.fileChooserUtil = fileChooserUtil;
 	}
 
 	@Test
@@ -82,7 +95,10 @@ public class PaletteHandlerTest {
 
 	@Test
 	public void testOnRenamePalette() throws Exception {
-		vm.setSelectedPalette(new Palette(colors,2,"pal1"));
+		Palette p = new Palette(colors,2,"pal1");
+		vm.paletteMap.clear();
+		vm.paletteMap.put(p.index, p);
+		vm.setSelectedPalette(p);
 		uut.onRenamePalette("2 - foo");
 		assertThat(vm.selectedPalette.name, equalTo("foo"));
 		assertThat(vm.selectedPalette.index, equalTo(2));
@@ -94,5 +110,39 @@ public class PaletteHandlerTest {
 		uut.onRenamePalette("2**oo");
 		assertThat(vm.selectedPalette.name, equalTo("pal1"));
 		assertThat(vm.selectedPalette.index, equalTo(2));
+	}
+
+	@Test
+	public void testOnSelectedPaletteTypeChanged() throws Exception {
+		uut.onSelectedPaletteTypeChanged(PaletteType.DEFAULT, PaletteType.NORMAL);
+	}
+
+	@Test
+	public void testOnSelectedPaletteChanged() throws Exception {
+		Palette pal1 = new Palette(colors, 1, "pal1");
+		Palette pal2 = new Palette(colors, 2, "pal2");
+		uut.onSelectedPaletteChanged(pal1, pal2);
+	}
+
+	@Test
+	public void testOnNewPalette() throws Exception {
+		uut.onNewPalette();
+	}
+
+	@Test
+	public void testOnSavePalette() throws Exception {
+		Palette pal1 = new Palette(colors, 1, "pal1");
+		vm.setSelectedPalette(pal1);
+		String file = tmpFolder.newFile("pal.json").getAbsolutePath();
+		when(fileChooserUtil.choose(anyInt(), anyString(), anyObject(), anyObject() )).thenReturn(file);
+		uut.onSavePalette();
+	}
+
+	@Test
+	public void testOnDeletePalette() throws Exception {
+		Palette pal1 = new Palette(colors, 1, "pal1");
+		vm.setSelectedPalette(pal1);
+		vm.paletteMap.put(pal1.index, pal1);
+		uut.onDeletePalette();
 	}
 }

@@ -57,10 +57,10 @@ public class RecordingsCmdHandler extends AbstractListCmdHandler implements View
 
 	public void onSelectedRecordingChanged(Animation o, Animation a) {
 			log.info("onRecordingSelectionChanged: {}", a);
-			Animation current = o;
-			if( current == null && a == null ) return;
-			if(a!= null && current != null && a.getDesc().equals(current.getDesc())) return;
-			if( current != null ) recordingsPosMap.put(current.getDesc(), current.actFrame);
+			//Animation current = o;
+			if( o == null && a == null ) return;
+			if(a!= null && o != null && a.getDesc().equals(o.getDesc())) return;
+			if( o != null ) recordingsPosMap.put(o.getDesc(), o.actFrame);
 			if( a != null) {
 				vm.cutInfo.reset();
 				vm.setSelection(null);;
@@ -73,8 +73,11 @@ public class RecordingsCmdHandler extends AbstractListCmdHandler implements View
 				// sani check for recordings edit mode
 				if( !EditMode.FIXED.equals(a.getEditMode()) ) a.setEditMode(EditMode.FIXED);
 
-				if( current == null ) vm.availableEditModes.replaceAll(immutable);
+				if( o == null ) {
+					vm.availableEditModes.replaceAll(immutable);
+				}
 				vm.setSelectedEditMode(EditMode.FIXED);
+				
 				
 				setEnableHashButtons(true);
 

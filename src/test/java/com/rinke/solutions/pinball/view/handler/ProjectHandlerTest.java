@@ -35,7 +35,7 @@ import java.io.FileOutputStream;
 import java.util.List;
 
 @RunWith(MockitoJUnitRunner.class)
-public class ProjectHandlerTest {
+public class ProjectHandlerTest extends HandlerTest {
 	@Mock
 	private FileChooserUtil fileChooserUtil;
 
@@ -48,15 +48,8 @@ public class ProjectHandlerTest {
 	
 	@Rule
 	public TemporaryFolder testFolder = new TemporaryFolder();
-
-	private ViewModel vm;
-
-	private DMD dmd;
 	
 	@Before public void setup() {
-		this.vm = new ViewModel();
-		this.dmd = new DMD(128,32);
-		vm.init(dmd, DmdSize.Size128x32, "foo", 10);
 		uut = new ProjectHandler(vm);
 		uut.fileHelper = new FileHelper();
 		uut.aniAction = new AnimationActionHandler(vm);
@@ -167,6 +160,10 @@ public class ProjectHandlerTest {
 		assertNull(Util.isBinaryIdentical(filename, "./src/test/resources/defaultPalettes.dat"));
 	}
 
+	@Test 
+	public void testOnImportProject() throws Exception {
+		uut.importProject("./src/test/resources/test.xml");
+	}
 
 
 }

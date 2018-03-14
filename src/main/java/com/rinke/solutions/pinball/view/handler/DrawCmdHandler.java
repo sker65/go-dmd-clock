@@ -102,23 +102,32 @@ public class DrawCmdHandler extends AbstractCommandHandler implements EventHandl
 	public void onSelectedEditModeChanged(EditMode old, EditMode mode) {
 		if( vm.selectedScene != null ) {
 			CompiledAnimation animation = vm.selectedScene;
-			if( animation.isDirty() && !animation.getEditMode().equals(vm.selectedEditMode)) {
-				int res = messageUtil.warn(SWT.ICON_WARNING | SWT.YES | SWT.NO, 
-						"Changing edit mode", "you are about to change edit mode, while scene was already modified. Really change?");
-				if( res == SWT.NO ) {
-					vm.setSelectedEditMode(animation.getEditMode());
+			boolean setMode = true;
+			if( animation.isDirty() && !animation.getEditMode().equals(mode)) {
+				int res = messageUtil.warn(0, "Warning",
+						"Changing edit mode", 
+						"you are about to change edit mode to '"+mode.label+"', while scene was already modified.",
+						new String[]{"", "Cancel", "Change Mode"},2);
+				if( res == 1 ) {
+					setMode = false;
+					mode = old;
 				}
 			}
-			if(vm.selectedEditMode.useMask) {
-				animation.ensureMask();
-			} 
-			vm.setMaskEnabled(vm.selectedEditMode.useMask);
-			recordingsCmdHandler.setEnableHashButtons(vm.selectedEditMode.useMask);
-			animation.setEditMode(vm.selectedEditMode);
+			if( setMode ) {
+				animation.setEditMode(mode);
+				if(mode.useMask) {
+					animation.ensureMask();
+				} 
+			}
+			if( mode != null ) {
+				vm.setMaskEnabled(mode.useMask);
+				recordingsCmdHandler.setEnableHashButtons(mode.useMask);
+			}
+			
 			// to force update on master detail
 			vm.scenes.refresh();
 		}
-		setDrawMaskByEditMode(vm.selectedEditMode);
+		setDrawMaskByEditMode(mode);
 	}
 	
 	/**
@@ -153,10 +162,6 @@ public class DrawCmdHandler extends AbstractCommandHandler implements EventHandl
 			vm.dmd.setDrawMask(mode.useColorMasking ? 0b11111000 : 0xFFFF);
 		}
 	}
-
-//	public void onSelectedSceneChanged(CompiledAnimation o, CompiledAnimation n) {
-//		vm.setBtnDelFrameEnabled(n!=null && n.frames.size()>1);
-//	}
 	
 	void updateHashes(Observable o) {
 		onUpdateHashes();

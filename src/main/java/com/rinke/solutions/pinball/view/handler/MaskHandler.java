@@ -14,9 +14,9 @@ import com.rinke.solutions.pinball.view.model.ViewModel;
 public class MaskHandler extends AbstractCommandHandler implements ViewBindingHandler {
 
 	@Autowired
-	private HashCmdHandler hashCmdHandler;
+	HashCmdHandler hashCmdHandler;
 	@Autowired
-	private DrawCmdHandler drawCmdHandler;
+	DrawCmdHandler drawCmdHandler;
 
 	public MaskHandler(ViewModel vm) {
 		super(vm);

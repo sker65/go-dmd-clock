@@ -43,6 +43,7 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 		if (newName.contains(" - ")) {
 			vm.selectedPalette.name = newName.split(" - ")[1];
 			vm.setSelectedPaletteByIndex(vm.selectedPalette.index);
+			vm.paletteMap.refresh();
 		} else {
 			messageUtil.warn("Illegal palette name", "Palette names must consist of palette index and name.\nName format therefore must be '<idx> - <name>'");
 			vm.setEditedPaletteName(vm.selectedPalette.index + " - " + vm.selectedPalette.name);
@@ -50,23 +51,25 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 	}
 	
 	public void onSelectedPaletteTypeChanged(PaletteType o, PaletteType palType) {
-		vm.selectedPalette.type = palType;
-		// normalize: only one palette can be of type DEFAULT
-		if (PaletteType.DEFAULT.equals(palType)) {
-			for (Palette p : vm.paletteMap.values()) {
-				if (p.index != vm.selectedPalette.index) { // set previous default to
-					if (p.type.equals(PaletteType.DEFAULT)) {
-						p.type = PaletteType.NORMAL;
+		if( vm.selectedPalette != null ) {
+			vm.selectedPalette.type = palType;
+			// normalize: only one palette can be of type DEFAULT
+			if (PaletteType.DEFAULT.equals(palType)) {
+				for (Palette p : vm.paletteMap.values()) {
+					if (p.index != vm.selectedPalette.index) { // set previous default to
+						if (p.type.equals(PaletteType.DEFAULT)) {
+							p.type = PaletteType.NORMAL;
+						}
 					}
 				}
 			}
+		} else {
+			log.warn("onSelectedPaletteTypeChanged but no palette selected");
 		}
 	}
 
 	public void onSelectedPaletteChanged(Palette o, Palette newPalette) {
 		if( newPalette != null) {
-			// bound v.dmdWidget.setPalette(vm.selectedPalette);
-			// bound v.paletteTool.setPalette(vm.selectedPalette);
 			log.info("new palette is {}", vm.selectedPalette);
 			vm.setSelectedPaletteType(vm.selectedPalette.type);
 		}
@@ -106,9 +109,6 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 		
 		vm.paletteMap.put(newPalette.index, newPalette);
 		vm.setSelectedPalette(newPalette);
-		// bound editor.v.paletteTool.setPalette(vm.selectedPalette);
-		// bound editor.v.paletteComboViewer.refresh();
-		// editor.v.paletteComboViewer.setSelection(new StructuredSelection(vm.selectedPalette), true);
 	}
 	
 	public void onNewPalette() {
@@ -118,9 +118,6 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 		}
 		vm.setSelectedPalette( new Palette(vm.selectedPalette.colors, getHighestIndex(vm.paletteMap)+1, name));
 		vm.paletteMap.put(vm.selectedPalette.index,vm.selectedPalette);
-		// Bound editor.v.paletteTool.setPalette(vm.selectedPalette);
-		// bound editor.v.paletteComboViewer.refresh();
-		// bound editor.v.paletteComboViewer.setSelection(new StructuredSelection(vm.selectedPalette), true);
 	}
 
 	private int getHighestIndex(Map<Integer, Palette> paletteMap) {
@@ -128,7 +125,7 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 		return max.orElse(0);
 	}
 
-	public void savePalette() {
+	public void onSavePalette() {
 		String filename = fileChooserUtil.choose(SWT.SAVE, vm.selectedPalette.name, new String[] { "*.xml", "*.json" }, new String[] { "Paletten XML", "Paletten JSON" });
 		if (filename != null) {
 			log.info("store palette to {}", filename);
