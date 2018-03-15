@@ -87,7 +87,7 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 		super(parent, style + ( scrollable ? SWT.V_SCROLL + SWT.H_SCROLL : 0));
 		this.scrollable = scrollable;
 		setResolution(dmd);
-		//palette = Palette.getDefaultPalette();
+		palette = Palette.getDefaultPalettes().get(0);
 		this.addListener( SWT.MouseDown, e -> handleMouse(e));
 		this.addListener( SWT.MouseUp, e -> handleMouse(e));
 		this.addListener( SWT.MouseMove, e -> handleMouse(e));
@@ -264,7 +264,7 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
         if( useColorIndex ) {
             cols = new Color[1<<numberOfSubframes];
             if( numberOfSubframes == 2) {
-				cols[0] = resourceManager.createColor(toSwtRGB(palette.colors[0]));
+ 				cols[0] = resourceManager.createColor(toSwtRGB(palette.colors[0]));
                 cols[1] = resourceManager.createColor(toSwtRGB(palette.colors[1]));
                 cols[2] = resourceManager.createColor(toSwtRGB(palette.colors[4]));
                 cols[3] = resourceManager.createColor(toSwtRGB(palette.colors[15]));

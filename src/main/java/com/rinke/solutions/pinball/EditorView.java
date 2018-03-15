@@ -4,9 +4,13 @@ import static com.rinke.solutions.databinding.WidgetProp.*;
 import static com.rinke.solutions.pinball.Commands.*;
 
 import java.awt.SplashScreen;
+import java.awt.image.BufferedImage;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
+
+import javax.imageio.ImageIO;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -61,10 +65,13 @@ import com.rinke.solutions.databinding.PojoBinding;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.Animation.EditMode;
 import com.rinke.solutions.pinball.model.Bookmark;
+import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.PalMapping.SwitchMode;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.PaletteType;
+import com.rinke.solutions.pinball.model.Plane;
+import com.rinke.solutions.pinball.renderer.ImageUtil;
 import com.rinke.solutions.pinball.swt.ActionAdapter;
 import com.rinke.solutions.pinball.swt.CocoaGuiEnhancer;
 import com.rinke.solutions.pinball.ui.RegisterLicense;
@@ -89,6 +96,7 @@ import com.rinke.solutions.pinball.widget.SetPixelTool;
 @Slf4j
 public class EditorView implements MainView {
 	
+	public static final String FRAME_CHANGED = "frameChanged";
 	public static final String DELETE_COL_MASK = "deleteColMask";
 	int numberOfHashes;
 
@@ -649,7 +657,13 @@ public class EditorView implements MainView {
 	 * Create contents of the window.
 	 */
 	public void createContents() {
-		//shell = new Shell(); // for the sake of window builder
+		
+		 // for the sake of window builder
+//		shell = new Shell();
+//		shell.setSize(1400, 1075);
+//		this.vm = new ViewModel();
+//		vm.dmd = new DMD(192, 64);
+		
 		shell.setMaximized(true);
 		shell.setText("Pin2dmd - Editor");
 
@@ -1078,7 +1092,9 @@ public class EditorView implements MainView {
 		createHashButtons(composite_hash, 10, 0);
 		
 		previewDmd = new DMDWidget(hashPreviewGrp, SWT.DOUBLE_BUFFERED, vm.dmd, false);
-		previewDmd.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		GridData gd_previewDmd = new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1);
+		gd_previewDmd.widthHint = 203;
+		previewDmd.setLayoutData(gd_previewDmd);
 		previewDmd.setDrawingEnabled(false);
 		previewDmd.setMaskOut(true);
 
@@ -1316,20 +1332,16 @@ public class EditorView implements MainView {
 		//gd_dmdWidget.heightHint = 231;
 		//gd_dmdWidget.widthHint = 1600;
 		dmdWidget.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		
-		dmdWidget.setPalette(vm.selectedPalette);
-		dmdWidget.addListeners(frame -> dispatchCmd("frameChanged",frame));
+		dmdWidget.addListeners(frame -> dispatchCmd(FRAME_CHANGED,frame));
 		
 		// wire some dependencies to dmdWidget
 		paletteTool.addListener(dmdWidget);
 		selectTool.setDmdWidget(dmdWidget);
 
 		frame = new Scale(comp, SWT.NONE);
-		//gd_scale.widthHint = 826;
+		frame.setMinimum(0);
+		frame.setMaximum(1);
 		frame.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		
-		// bound frame.addListener(SWT.Selection, e -> animationHandler.setPos(frame.getSelection()));
-		
 	}
 
 	CyclicRedraw cyclicRedraw = new CyclicRedraw();
@@ -1413,6 +1425,21 @@ public class EditorView implements MainView {
 		}
 
 	}
+	
+	private void copyLogo(DMD dmd) {
+    	BufferedImage master;
+		try {
+			URL resource = getClass().getResource("/init-dmd-"+dmd.getWidth()+".png");
+			master = ImageIO.read(resource);
+			Frame f = ImageUtil.convertToFrame(master, dmd.getWidth(), dmd.getHeight());
+			dmd.setNumberOfSubframes(15);
+			for( int i = 0; i<15; i++) {
+				dmd.getFrame().planes.set(i, new Plane(f.planes.get(i)));
+			}
+		} catch (Exception e) {
+		}
+	}
+
 
 	// hier ist breits alles injected
 	private void innerOpen() {
@@ -1431,6 +1458,8 @@ public class EditorView implements MainView {
 		shell.addListener(SWT.Close, e -> {
 			e.doit = dirtyCheck(QUIT, "Quit");
 		});
+		
+		copyLogo(vm.dmd);
 		
 		shell.open();
 		shell.layout();
@@ -1463,7 +1492,7 @@ public class EditorView implements MainView {
 	}
 	
 	/**
-	 * @wbp.parser.entryPoint
+	 * @wfffbp.parser.entryPoint
 	 */
 	public static void main(String[] args) {
 		EditorView editor = new EditorView(4,true);

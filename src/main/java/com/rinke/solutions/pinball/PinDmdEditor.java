@@ -1,5 +1,6 @@
 package com.rinke.solutions.pinball;
 
+import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.io.File;
 import java.io.IOException;
@@ -11,6 +12,8 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import javax.imageio.ImageIO;
 
 import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.CmdLineException;
@@ -26,6 +29,7 @@ import com.rinke.solutions.beans.SimpleBeanFactory;
 import com.rinke.solutions.beans.Value;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.api.LicenseManagerFactory;
+import com.rinke.solutions.pinball.renderer.ImageUtil;
 import com.rinke.solutions.pinball.util.Config;
 import com.rinke.solutions.pinball.view.ChangeHandlerHelper;
 import com.rinke.solutions.pinball.view.CmdDispatcher;
@@ -232,6 +236,9 @@ public class PinDmdEditor {
 		
 		// process cmdLine AFTER all handler are registered
 		processCmdLine();
+		
+		vm.setMinFrame(0);
+		vm.setMaxFrame(0);
 		
 		mainView.open();
 		

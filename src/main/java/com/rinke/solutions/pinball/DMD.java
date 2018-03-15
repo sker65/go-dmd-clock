@@ -1,22 +1,27 @@
 package com.rinke.solutions.pinball;
 
+import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Observable;
+
+import javax.imageio.ImageIO;
 
 import lombok.extern.slf4j.Slf4j;
 
 import com.rinke.solutions.beans.Bean;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Plane;
+import com.rinke.solutions.pinball.renderer.ImageUtil;
 
 @Slf4j
 public class DMD extends Observable {
 
     private int width;
     private int height;
-    private int drawMask = 0xFFFF; // limits drawing (setPixel) to planes, that are not masked
+    private int drawMask = (byte)0xFFFF; // limits drawing (setPixel) to planes, that are not masked
     private int bytesPerRow;
     
     private Frame frame = new Frame();
