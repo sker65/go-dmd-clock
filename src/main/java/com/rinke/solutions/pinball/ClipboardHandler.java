@@ -5,9 +5,6 @@ import java.util.Arrays;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.eclipse.swt.dnd.Clipboard;
-import org.eclipse.swt.dnd.ImageTransfer;
-import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.PaletteData;
@@ -17,6 +14,7 @@ import org.eclipse.swt.widgets.Display;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.renderer.ImageUtil;
+import com.rinke.solutions.pinball.swt.SWTClipboard;
 import com.rinke.solutions.pinball.widget.DMDWidget;
 import com.rinke.solutions.pinball.widget.DMDWidget.Rect;
 import com.rinke.solutions.pinball.widget.PasteTool;
@@ -26,13 +24,11 @@ import com.rinke.solutions.pinball.widget.PasteTool;
  * @author Stefan Rinke
  */
 @Slf4j
-// TODO introduce an interface that eliminates the direct dependencies from SWT
+// TODO introduce interface to decouple the imaging types as well: Image / ImageData / RGB / PaletteData / Display
 public class ClipboardHandler implements Runnable {
 	
-	Display display; // needed to create clipboard instance AND timerExec
-	Clipboard clipboard; // getContents / setContents / getAvailableTypeNames
-	// referenced: org.eclipse.swt.dnd.Transfer
-	
+	// introduce an interface that eliminates the direct dependencies from SWT clipboard
+	ClipboardFacade clipboard; 
 	DMDWidget dmdWidget;
 
 	DMD dmd;
@@ -51,8 +47,7 @@ public class ClipboardHandler implements Runnable {
 		super();
 		this.dmd = dmd;
 		this.dmdWidget = dmdWidget;
-		this.display = Display.getCurrent();
-		this.clipboard = new Clipboard(display);
+		this.clipboard = new SWTClipboard();
 		this.width = dmd.getWidth();
 		this.height = dmd.getHeight();
 		this.palette = pal;
@@ -66,7 +61,7 @@ public class ClipboardHandler implements Runnable {
 	 * paste into current image but hoover over to be able to place inserted image
 	 */
 	public void onPasteHoover() {
-		Frame frame = (Frame) clipboard.getContents(DmdFrameTransfer.getInstance());
+		Frame frame = (Frame) clipboard.getContents("DmdFrameTransfer");
 		dmdWidget.resetSelection();
 		if( frame != null ) {
 			log.debug("dx={}, dy={}", dx, dy);
@@ -75,7 +70,7 @@ public class ClipboardHandler implements Runnable {
 			pasteTool.setMaskOnly(dmdWidget.isShowMask());
 			dmdWidget.setDrawTool(pasteTool);
 		} else {
-			ImageData imageData = (ImageData) clipboard.getContents(ImageTransfer.getInstance());
+			ImageData imageData = (ImageData) clipboard.getContents("ImageTransfer");
 			if( imageData != null ) {
 				dmd.addUndoBuffer();
 				BufferedImage bufferedImage = ImageUtil.convert(new Image(Display.getCurrent(),imageData));
@@ -175,7 +170,7 @@ public class ClipboardHandler implements Runnable {
 			new Object[] { 
 					buildImageData(dmd, dmdWidget.isShowMask(), activePalette, sel), 
 					buildFrame(dmd, dmdWidget.isShowMask(), dmdWidget.getSelection() ) },
-			new Transfer[]{ ImageTransfer.getInstance(), DmdFrameTransfer.getInstance() });
+			new String[]{ "ImageTransfer", "DmdFrameTransfer" });
 		if( sel != null ) {
 			dx = sel.x1;
 			dy = sel.y1;
@@ -218,7 +213,7 @@ public class ClipboardHandler implements Runnable {
 			log.info("Clipboard type: {}", item);
 		}
 		dmdWidget.resetSelection();
-		Frame frame = (Frame) clipboard.getContents(DmdFrameTransfer.getInstance());
+		Frame frame = (Frame) clipboard.getContents("DmdFrameTransfer");
 		if( frame != null ) {
 			dmd.addUndoBuffer();
 			if (dmdWidget.isShowMask()) {
@@ -227,7 +222,7 @@ public class ClipboardHandler implements Runnable {
 				frame.copyToWithMask(dmd.getFrame(), dmd.getDrawMask());
 			}
 		} else {
-			ImageData imageData = (ImageData) clipboard.getContents(ImageTransfer.getInstance());
+			ImageData imageData = (ImageData) clipboard.getContents("ImageTransfer");
 			if( imageData != null ) {
 				dmd.addUndoBuffer();
 				log.info("image data depth: {}", imageData.depth);
@@ -253,7 +248,7 @@ public class ClipboardHandler implements Runnable {
 			nextCheck = now + 10000;
 			checkClipboard();
 		}
-		display.asyncExec(this);
+		//display.asyncExec(this);
 	}
 
 	private void checkClipboard() {

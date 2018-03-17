@@ -1,4 +1,4 @@
-package com.rinke.solutions.pinball;
+package com.rinke.solutions.pinball.swt;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
