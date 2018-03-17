@@ -22,7 +22,7 @@ import static org.mockito.Mockito.*;
 public class ClipboardHandlerSWTTest {
 	
 	@Mock
-	private Clipboard clipboardMock;
+	private ClipboardFacade clipboardMock;
 
 	@Mock
 	private DMD dmd;
@@ -62,7 +62,7 @@ public class ClipboardHandlerSWTTest {
 	@Test
 	public void testOnPaste() throws Exception {
 		Object obj = new Frame();
-		when(clipboardMock.getContents(eq(DmdFrameTransfer.getInstance()))).thenReturn(obj);
+		when(clipboardMock.getContents(eq("DmdFrameTransfer"))).thenReturn(obj);
 		when(clipboardMock.getAvailableTypeNames()).thenReturn(new String[]{"foo"});
 		Frame dmdFrame = new Frame();
 		when(dmd.getFrame()).thenReturn(dmdFrame);
