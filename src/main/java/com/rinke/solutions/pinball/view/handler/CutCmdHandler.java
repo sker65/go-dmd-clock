@@ -40,7 +40,7 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 	}
 	
 	public void onSelectedFrameChanged(int o, int n) {
-		vm.setCutEnabled(vm.cutInfo.canCut());
+		vm.setSceneCutEnabled(vm.cutInfo.canCut());
 		vm.setMarkEndEnabled(vm.cutInfo.canMarkEnd(n));
 	}
 
@@ -53,7 +53,7 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 	public void onMarkStart() {
 		if( getSourceAnimation() != null ) {
 			vm.cutInfo.setStart(getSourceAnimation().actFrame);
-			vm.setCutEnabled(vm.cutInfo.canCut());
+			vm.setSceneCutEnabled(vm.cutInfo.canCut());
 			vm.setMarkEndEnabled(vm.cutInfo.canMarkEnd(getSourceAnimation().actFrame));
 		}
 	}
@@ -61,11 +61,11 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 	public void onMarkEnd() {
 		if( getSourceAnimation() != null ) {
 			vm.cutInfo.setEnd(getSourceAnimation().actFrame);
-			vm.setCutEnabled(vm.cutInfo.canCut());
+			vm.setSceneCutEnabled(vm.cutInfo.canCut());
 		}
 	}
 
-	public void onCut() {
+	public void onCutScene() {
 			// respect number of planes while cutting / copying
 		if( getSourceAnimation() != null ) {
 			cutScene(getSourceAnimation(), vm.cutInfo.getStart(), vm.cutInfo.getEnd(), buildUniqueName(vm.scenes));

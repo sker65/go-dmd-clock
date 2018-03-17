@@ -67,7 +67,7 @@ public class RecordingsCmdHandler extends AbstractListCmdHandler implements View
 				
 				vm.setSelectedScene(null);
 				
-				vm.setMaskEnabled(true);
+				vm.setDetectionMaskEnabled(true);
 				vm.setMaskSpinnerEnabled(true);
 				
 				// sani check for recordings edit mode

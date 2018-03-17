@@ -58,8 +58,8 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 			
 		//	v.goDmdGroup.updateAnimation(nextScene);
 
-			vm.setMaskEnabled(nextScene.getEditMode().useMask);
-			vm.setMaskActive(nextScene.getEditMode().useMask);
+			vm.setDetectionMaskEnabled(nextScene.getEditMode().useMask);
+			vm.setDetectionMaskActive(nextScene.getEditMode().useMask);
 			vm.setMaskSpinnerEnabled(false);
 			// just to enasure a reasonable default
 			if( nextScene.getEditMode() == null || nextScene.getEditMode().equals(EditMode.FIXED) ) {

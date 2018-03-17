@@ -87,6 +87,11 @@ public class DrawCmdHandler extends AbstractCommandHandler implements EventHandl
 		vm.setDmdDirty(true);
 	}
 	
+	public void onSelectionChanged( Rect o, Rect n) {
+		vm.setCutEnabled(n!=null);
+		vm.setCopyEnabled(n!=null);
+	}
+	
 	public void onDrawingEnabledChanged(boolean o, boolean n) {
 		vm.setCopyToNextEnabled(n);
 		vm.setCopyToPrevEnabled(n);
@@ -120,7 +125,7 @@ public class DrawCmdHandler extends AbstractCommandHandler implements EventHandl
 				} 
 			}
 			if( mode != null ) {
-				vm.setMaskEnabled(mode.useMask);
+				vm.setDetectionMaskEnabled(mode.useMask);
 				recordingsCmdHandler.setEnableHashButtons(mode.useMask);
 			}
 			
@@ -153,7 +158,7 @@ public class DrawCmdHandler extends AbstractCommandHandler implements EventHandl
 	 * @param mode
 	 */
 	public void setDrawMaskByEditMode(EditMode mode) {
-		if( vm.maskActive ) {
+		if( vm.detectionMaskActive ) {
 			// only draw on mask
 			// TODO mask drawing and plane drawing with mask should be controlled seperately
 			vm.dmd.setDrawMask( 0b00000001);

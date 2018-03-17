@@ -110,11 +110,15 @@ public class ViewModel extends AbstractModel {
 	public int saveTimeCode;
 	
 	@ViewBinding public int selectedMask;
-	@ViewBinding public boolean maskEnabled;
+	@ViewBinding public boolean detectionMaskEnabled;
+	@ViewBinding public boolean layerMaskEnabled;
+	@ViewBinding public boolean detectionMaskActive;
+	@ViewBinding public boolean layerMaskActive;
+	
 	@ViewBinding public boolean maskSpinnerEnabled;
 	@ViewBinding public int maxNumberOfMasks;
 	
-	@ViewBinding public boolean maskActive;
+
 	@ViewBinding public Mask mask;
 	public ObservableList<Mask> masks = new ObservableList<>(new ArrayList<>());
 	
@@ -133,7 +137,7 @@ public class ViewModel extends AbstractModel {
 
 	@ViewBinding public boolean markStartEnabled;
 	@ViewBinding public boolean markEndEnabled;
-	@ViewBinding public boolean cutEnabled;
+	@ViewBinding public boolean cutSceneEnabled;
 	
 	@ViewBinding public Bookmark selectedBookmark;
 	@ViewBinding public ObservableSet<Bookmark> bookmarks = new ObservableSet<>(new TreeSet<>());
@@ -152,6 +156,9 @@ public class ViewModel extends AbstractModel {
 	@ViewBinding public boolean livePreviewActive;
 	@ViewBinding public boolean mntmUploadPalettesEnabled;
 	@ViewBinding public boolean mntmUploadProjectEnabled;
+	
+	@ViewBinding public boolean cutEnabled;
+	@ViewBinding public boolean copyEnabled;
 	
 	@ViewBinding public ObservableList<EditMode> availableEditModes = new ObservableList<>(new ArrayList<>());
 	@ViewBinding public EditMode selectedEditMode;
@@ -311,8 +318,8 @@ public class ViewModel extends AbstractModel {
 		firePropertyChange("selectedPalette", this.selectedPalette, this.selectedPalette = selectedPalette);
 	}
 
-	public void setCutEnabled(boolean cutEnabled) {
-		firePropertyChange("cutEnabled", this.cutEnabled, this.cutEnabled = cutEnabled);
+	public void setSceneCutEnabled(boolean cutEnabled) {
+		firePropertyChange("cutSceneEnabled", this.cutSceneEnabled, this.cutSceneEnabled = cutEnabled);
 	}
 
 	public void setMarkEndEnabled(boolean markEndEnabled) {
@@ -421,14 +428,6 @@ public class ViewModel extends AbstractModel {
 
 	public void setSelectedMask(int selectedMask) {
 		firePropertyChange("selectedMask", this.selectedMask, this.selectedMask = selectedMask);
-	}
-
-	public void setMaskEnabled(boolean maskEnabled) {
-		firePropertyChange("maskEnabled", this.maskEnabled, this.maskEnabled = maskEnabled);
-	}
-
-	public void setMaskActive(boolean maskActive) {
-		firePropertyChange("maskActive", this.maskActive, this.maskActive = maskActive);
 	}
 
 	public void setMask(Mask mask) {
@@ -550,6 +549,30 @@ public class ViewModel extends AbstractModel {
 
 	public void setBtnPrevEnabled(boolean btnPrevEnabled) {
 		firePropertyChange("btnPrevEnabled", this.btnPrevEnabled, this.btnPrevEnabled = btnPrevEnabled);
+	}
+
+	public void setDetectionMaskEnabled(boolean detectionMaskEnabled) {
+		firePropertyChange("detectionMaskEnabled", this.detectionMaskEnabled, this.detectionMaskEnabled = detectionMaskEnabled);
+	}
+
+	public void setLayerMaskEnabled(boolean layerMaskEnabled) {
+		firePropertyChange("layerMaskEnabled", this.layerMaskEnabled, this.layerMaskEnabled = layerMaskEnabled);
+	}
+
+	public void setDetectionMaskActive(boolean detectionMaskActive) {
+		firePropertyChange("detectionMaskActive", this.detectionMaskActive, this.detectionMaskActive = detectionMaskActive);
+	}
+
+	public void setLayerMaskActive(boolean layerMaskActive) {
+		firePropertyChange("layerMaskActive", this.layerMaskActive, this.layerMaskActive = layerMaskActive);
+	}
+
+	public void setCutEnabled(boolean cutEnabled) {
+		firePropertyChange("cutEnabled", this.cutEnabled, this.cutEnabled = cutEnabled);
+	}
+
+	public void setCopyEnabled(boolean copyEnabled) {
+		firePropertyChange("copyEnabled", this.copyEnabled, this.copyEnabled = copyEnabled);
 	}
 
 }

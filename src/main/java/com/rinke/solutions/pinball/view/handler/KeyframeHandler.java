@@ -62,7 +62,7 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 			palMapping.withMask = true;
 			palMapping.maskNumber = vm.selectedMask;
 			vm.masks.get(vm.selectedMask).locked = true;
-			vm.setMaskActive(true);
+			vm.setDetectionMaskActive(true);
 		}
 
 		if (!checkForDuplicateKeyFrames(palMapping)) {
@@ -116,7 +116,7 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 					palMapping.withMask = true;
 					palMapping.maskNumber = vm.selectedMask;
 					vm.masks.get(vm.selectedMask).locked = true;
-					vm.setMaskActive(true);
+					vm.setDetectionMaskActive(true);
 				}
 				if (!checkForDuplicateKeyFrames(palMapping)) {
 					vm.keyframes.put(palMapping.name,palMapping);
@@ -159,7 +159,7 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 		for (int i = 0; i < vm.masks.size(); i++) {
 			vm.masks.get(i).locked = useMasks.contains(i);
 		}
-		vm.setMaskActive(vm.useGlobalMask);
+		vm.setDetectionMaskActive(vm.useGlobalMask);
 	}
 	
 	public void onSetKeyframePalette() {
@@ -221,7 +221,7 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 
 			vm.setSelectedFrame(nk.frameIndex);
 
-			vm.setMaskActive(nk.withMask);
+			vm.setDetectionMaskActive(nk.withMask);
 			if(nk.withMask) {
 				vm.setMaskSpinnerEnabled(true);
 				vm.setSelectedMask(nk.maskNumber);

@@ -72,7 +72,7 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 	 */
 	 public void onDeleteColMask() {
 		vm.dmd.addUndoBuffer();
-		vm.dmd.fill(vm.maskActive?(byte)0xFF:0);
+		vm.dmd.fill(vm.detectionMaskActive?(byte)0xFF:0);
 		vm.setDmdDirty(true);
 	}
 

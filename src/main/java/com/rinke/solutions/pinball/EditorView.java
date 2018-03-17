@@ -96,8 +96,7 @@ import com.rinke.solutions.pinball.widget.SetPixelTool;
 @Slf4j
 public class EditorView implements MainView {
 	
-	public static final String FRAME_CHANGED = "frameChanged";
-	public static final String DELETE_COL_MASK = "deleteColMask";
+	
 	int numberOfHashes;
 
 	public EditorView(int numberOfHashes, boolean checkDirty) {
@@ -109,6 +108,7 @@ public class EditorView implements MainView {
 
 	private static final String HELP_URL = "http://pin2dmd.com/editor/";
 	private static final int FRAME_RATE = 40;
+	
 
 	@Autowired CmdDispatcher dispatcher;
 	@Autowired ViewModel vm;
@@ -172,7 +172,7 @@ public class EditorView implements MainView {
 	ComboViewer paletteTypeComboViewer;
 	
 	@PojoBinding(srcs={"mask", "showMask", "palette", "drawingEnabled" }, 
-			targets={"mask","maskActive", "selectedPalette", "drawingEnabled" }) 
+			targets={"mask","detectionMaskActive", "selectedPalette", "drawingEnabled" }) 
 	DMDWidget dmdWidget;
 	
 	@PojoBinding(src="selection", target="selection") 
@@ -189,7 +189,7 @@ public class EditorView implements MainView {
 	ComboViewer frameSeqViewer;
 	@GuiBinding(prop=ENABLED) Button markStart;
 	@GuiBinding(prop=ENABLED) Button markEnd;
-	@GuiBinding(prop=ENABLED) Button cut;
+	@GuiBinding(prop=ENABLED) Button cutScene;
 	@GuiBinding( props= { ENABLED, LABEL } ) private Button startStop;
 	@GuiBinding(prop=ENABLED) Button btnAddFrameSeq;
 	@PojoBinding(src="palette", target="previewDmdPalette") 
@@ -202,14 +202,22 @@ public class EditorView implements MainView {
 	@GuiBinding( prop=TEXT, propName="delay" ) Text txtDelayVal;
 	Button btnSortAni;
 
-	@GuiBinding(props={ENABLED,SELECTION}, propNames={"maskEnabled", "maskActive"}) 
-	Button mask;
+	@GuiBinding(props={ENABLED,SELECTION}, propNames={"detectionMaskEnabled", "detectionMaskActive"}) 
+	Button detectionMask;
+	@GuiBinding(props={ENABLED,SELECTION}, propNames={"layerMaskEnabled", "layerMaskActive"}) 
+	Button layerMask;
 	@GuiBinding( prop=SELECTION, propName="livePreviewActive") 
 	Button btnLivePreview;
 
 	Menu menuPopRecentProjects;
 	Menu mntmRecentAnimations;
 	Menu mntmRecentPalettes;
+	
+	@GuiBinding( prop=ENABLED )
+	private MenuItem copy;
+	@GuiBinding( prop=ENABLED )
+	private MenuItem cut;
+	
 
 	@GuiBinding(props={ENABLED,SELECTION,MAX}, propNames={"maskSpinnerEnabled","selectedMask", "maxNumberOfMasks"}) 
 	Spinner maskSpinner;
@@ -285,12 +293,12 @@ public class EditorView implements MainView {
 		mntmSaveProject = new MenuItem(menu_1, SWT.NONE);
 		mntmSaveProject.setText("Save Project\tCrtl-S");
 		mntmSaveProject.setAccelerator(SWT.MOD1 + 'S');
-		mntmSaveProject.addListener(SWT.Selection, e -> dispatchCmd("saveProject"));
+		mntmSaveProject.addListener(SWT.Selection, e -> dispatchCmd(SAVE_PROJECT));
 
 		MenuItem mntmSaveAsProject = new MenuItem(menu_1, SWT.NONE);
 		mntmSaveAsProject.setText("Save Project as\tShift-Crtl-S");
 		mntmSaveAsProject.setAccelerator(SWT.MOD1|SWT.MOD2 + 'S');
-		mntmSaveAsProject.addListener(SWT.Selection, e -> dispatchCmd("saveAsProject"));
+		mntmSaveAsProject.addListener(SWT.Selection, e -> dispatchCmd(SAVE_AS_PROJECT));
 
 		MenuItem mntmRecentProjects = new MenuItem(menu_1, SWT.CASCADE);
 		mntmRecentProjects.setText("Recent Projects");
@@ -302,19 +310,19 @@ public class EditorView implements MainView {
 
 		MenuItem mntmImportProject = new MenuItem(menu_1, SWT.NONE);
 		mntmImportProject.setText("Import Project");
-		mntmImportProject.addListener(SWT.Selection, e -> dispatchCmd("importProject"));
+		mntmImportProject.addListener(SWT.Selection, e -> dispatchCmd(IMPORT_PROJECT));
 
 		MenuItem mntmExportRealPinProject = new MenuItem(menu_1, SWT.NONE);
 		mntmExportRealPinProject.setText("Export Project (real pin)");
-		mntmExportRealPinProject.addListener(SWT.Selection, e -> dispatchCmd("exportRealPinProject"));
+		mntmExportRealPinProject.addListener(SWT.Selection, e -> dispatchCmd(EXPORT_REAL_PIN_PROJECT));
 
 		MenuItem mntmExportVpinProject = new MenuItem(menu_1, SWT.NONE);
 		mntmExportVpinProject.setText("Export Project (virt pin)");
-		mntmExportVpinProject.addListener(SWT.Selection, e -> dispatchCmd("exportVirtualPinProject"));
+		mntmExportVpinProject.addListener(SWT.Selection, e -> dispatchCmd(EXPORT_VIRTUAL_PIN_PROJECT));
 
 		mntmUploadProject = new MenuItem(menu_1, SWT.NONE);
 		mntmUploadProject.setText("Upload Project");
-		mntmUploadProject.addListener(SWT.Selection, e -> dispatchCmd("uploadProject"));
+		mntmUploadProject.addListener(SWT.Selection, e -> dispatchCmd(UPLOAD_PROJECT));
 
 		new MenuItem(menu_1, SWT.SEPARATOR);
 
@@ -328,47 +336,47 @@ public class EditorView implements MainView {
 		Menu menu_5 = new Menu(mntmedit);
 		mntmedit.setMenu(menu_5);
 
-		MenuItem mntmCut = new MenuItem(menu_5, SWT.NONE);
-		mntmCut.setText("Cut \tCtrl-X");
-		mntmCut.setAccelerator(SWT.MOD1 + 'X');
-		mntmCut.addListener(SWT.Selection, e -> dispatchCmd("cut",vm.selectedPalette));
+		cut = new MenuItem(menu_5, SWT.NONE);
+		cut.setText("Cut \tCtrl-X");
+		cut.setAccelerator(SWT.MOD1 + 'X');
+		cut.addListener(SWT.Selection, e -> dispatchCmd(CUT,vm.selectedPalette));
 
-		MenuItem mntmCopy = new MenuItem(menu_5, SWT.NONE);
-		mntmCopy.setText("Copy \tCtrl-C");
-		mntmCopy.setAccelerator(SWT.MOD1 + 'C');
-		mntmCopy.addListener(SWT.Selection, e -> dispatchCmd("copy",vm.selectedPalette));
+		copy = new MenuItem(menu_5, SWT.NONE);
+		copy.setText("Copy \tCtrl-C");
+		copy.setAccelerator(SWT.MOD1 + 'C');
+		copy.addListener(SWT.Selection, e -> dispatchCmd(COPY,vm.selectedPalette));
 
 		MenuItem mntmPaste = new MenuItem(menu_5, SWT.NONE);
 		mntmPaste.setText("Paste\tCtrl-V");
 		mntmPaste.setAccelerator(SWT.MOD1 + 'V');
-		mntmPaste.addListener(SWT.Selection, e -> dispatchCmd("paste")); 
+		mntmPaste.addListener(SWT.Selection, e -> dispatchCmd(PASTE)); 
 
 		MenuItem mntmPasteWithHover = new MenuItem(menu_5, SWT.NONE);
 		mntmPasteWithHover.setText("Paste Over\tShift-Ctrl-V");
 		mntmPasteWithHover.setAccelerator(SWT.MOD1 + SWT.MOD2 + 'V');
-		mntmPasteWithHover.addListener(SWT.Selection, e -> dispatchCmd("pasteHoover")); 
+		mntmPasteWithHover.addListener(SWT.Selection, e -> dispatchCmd(PASTE_HOOVER)); 
 		
 		mntmSelectAll = new MenuItem(menu_5, SWT.NONE);
 		mntmSelectAll.setText("Select All\tCtrl-A");
 		mntmSelectAll.setAccelerator(SWT.MOD1 + 'A');
-		mntmSelectAll.addListener(SWT.Selection, e -> dispatchCmd("selectAll") );
+		mntmSelectAll.addListener(SWT.Selection, e -> dispatchCmd(SELECT_ALL) );
 
 		mntmDeSelect = new MenuItem(menu_5, SWT.NONE);
 		mntmDeSelect.setText("Remove Selection\tShift-Ctrl-A");
 		mntmDeSelect.setAccelerator(SWT.MOD1 + SWT.MOD2 + 'A');
-		mntmDeSelect.addListener(SWT.Selection, e -> dispatchCmd("removeSelection") );
+		mntmDeSelect.addListener(SWT.Selection, e -> dispatchCmd(REMOVE_SELECTION) );
 
 		new MenuItem(menu_5, SWT.SEPARATOR);
 
 		mntmUndo = new MenuItem(menu_5, SWT.NONE);
 		mntmUndo.setText("Undo\tCtrl-Z");
 		mntmUndo.setAccelerator(SWT.MOD1 + 'Z');
-		mntmUndo.addListener(SWT.Selection, e -> dispatchCmd("undo"));
+		mntmUndo.addListener(SWT.Selection, e -> dispatchCmd(UNDO));
 
 		mntmRedo = new MenuItem(menu_5, SWT.NONE);
 		mntmRedo.setText("Redo\tShift-Ctrl-Z");
 		mntmRedo.setAccelerator(SWT.MOD1 + SWT.MOD2 + 'Z');
-		mntmRedo.addListener(SWT.Selection, e -> dispatchCmd("redo"));
+		mntmRedo.addListener(SWT.Selection, e -> dispatchCmd(REDO));
 
 		MenuItem mntmAnimations = new MenuItem(menu, SWT.CASCADE);
 		mntmAnimations.setText("&Animations");
@@ -378,19 +386,19 @@ public class EditorView implements MainView {
 
 		MenuItem mntmLoadAnimation = new MenuItem(menu_2, SWT.NONE);
 		mntmLoadAnimation.setText("Load Animation(s)");
-		mntmLoadAnimation.addListener(SWT.Selection, e -> dispatchCmd("loadAniWithFC",true));
+		mntmLoadAnimation.addListener(SWT.Selection, e -> dispatchCmd(LOAD_ANI_WITH_FC,true));
 		
 		MenuItem mntmLoadRecordings = new MenuItem(menu_2, SWT.NONE);
 		mntmLoadRecordings.setText("Load Recording(s)");
-		mntmLoadRecordings.addListener(SWT.Selection, e -> dispatchCmd("loadAniWithFC",true));
+		mntmLoadRecordings.addListener(SWT.Selection, e -> dispatchCmd(LOAD_ANI_WITH_FC,true));
 		
 		MenuItem mntmSaveAnimation = new MenuItem(menu_2, SWT.NONE);
 		mntmSaveAnimation.setText("Save Animation(s) ...");
-		mntmSaveAnimation.addListener(SWT.Selection, e -> dispatchCmd("saveAniWithFC",1));
+		mntmSaveAnimation.addListener(SWT.Selection, e -> dispatchCmd(SAVE_ANI_WITH_FC,1));
 		
 		MenuItem mntmSaveSingleAnimation = new MenuItem(menu_2, SWT.NONE);
 		mntmSaveSingleAnimation.setText("Save single Animation");
-		mntmSaveSingleAnimation.addListener(SWT.Selection, e -> dispatchCmd("saveSingleAniWithFC",1));
+		mntmSaveSingleAnimation.addListener(SWT.Selection, e -> dispatchCmd(SAVE_SINGLE_ANI_WITH_FC,1));
 
 		MenuItem mntmRecentAnimationsItem = new MenuItem(menu_2, SWT.CASCADE);
 		mntmRecentAnimationsItem.setText("Recent Animations");
@@ -409,11 +417,11 @@ public class EditorView implements MainView {
 
 		MenuItem mntmExportAnimation = new MenuItem(menu_2, SWT.NONE);
 		mntmExportAnimation.setText("Export Animation as GIF");	
-		mntmExportAnimation.addListener(SWT.Selection, e -> dispatchCmd("exportGif"));
+		mntmExportAnimation.addListener(SWT.Selection, e -> dispatchCmd(EXPORT_GIF));
 
 		MenuItem mntmExportForGodmd = new MenuItem(menu_2, SWT.NONE);
 		mntmExportForGodmd.setText("Export for goDMD ...");
-		mntmExportForGodmd.addListener(SWT.Selection, e-> dispatchCmd("exportGoDmd"));
+		mntmExportForGodmd.addListener(SWT.Selection, e-> dispatchCmd(EXPORT_GO_DMD));
 
 		MenuItem mntmpalettes = new MenuItem(menu, SWT.CASCADE);
 		mntmpalettes.setText("&Palettes / Mode");
@@ -426,7 +434,7 @@ public class EditorView implements MainView {
 
 		MenuItem mntmSavePalette = new MenuItem(menu_3, SWT.NONE);
 		mntmSavePalette.setText("Save Palette");
-		mntmSavePalette.addListener(SWT.Selection, e -> dispatchCmd("savePalette"));
+		mntmSavePalette.addListener(SWT.Selection, e -> dispatchCmd(SAVE_PALETTE));
 
 		MenuItem mntmRecentPalettesItem = new MenuItem(menu_3, SWT.CASCADE);
 		mntmRecentPalettesItem.setText("Recent Palettes");
@@ -438,17 +446,17 @@ public class EditorView implements MainView {
 
 		mntmUploadPalettes = new MenuItem(menu_3, SWT.NONE);
 		mntmUploadPalettes.setText("Upload Palettes");
-		mntmUploadPalettes.addListener(SWT.Selection, e -> dispatchCmd("uploadPalette",vm.selectedPalette));
+		mntmUploadPalettes.addListener(SWT.Selection, e -> dispatchCmd(UPLOAD_PALETTE,vm.selectedPalette));
 
 		new MenuItem(menu_3, SWT.SEPARATOR);
 
 		MenuItem mntmConfig = new MenuItem(menu_3, SWT.NONE);
 		mntmConfig.setText("Configuration");
-		mntmConfig.addListener(SWT.Selection, e -> dispatchCmd("configuration") );
+		mntmConfig.addListener(SWT.Selection, e -> dispatchCmd(CONFIGURATION) );
 
 		MenuItem mntmDevice = new MenuItem(menu_3, SWT.NONE);
 		mntmDevice.setText("Create Device File / WiFi");
-		mntmDevice.addListener(SWT.Selection, e -> dispatchCmd("deviceConfiguration"));
+		mntmDevice.addListener(SWT.Selection, e -> dispatchCmd(DEVICE_CONFIGURATION));
 
 		MenuItem mntmUsbconfig = new MenuItem(menu_3, SWT.NONE);
 		mntmUsbconfig.setText("Configure Device via USB");
@@ -518,7 +526,7 @@ public class EditorView implements MainView {
 				new GenericTextCellEditor<Animation>(recordingsListViewer, ani -> ani.getDesc(), (ani, newName) -> {
 					if( !ani.getDesc().equals(newName)) {
 						if( !vm.recordings.containsKey(newName)) {
-							dispatchCmd("renameRecording",ani.getDesc(), newName);
+							dispatchCmd(RENAME_RECORDING,ani.getDesc(), newName);
 							ani.setDesc(newName);
 						} else {
 							messageUtil.warn("Recording name not unique","Recording names must be unique. Please choose a different name");
@@ -550,7 +558,7 @@ public class EditorView implements MainView {
 						if( !vm.scenes.containsKey(newName)) {
 							String oldName = ani.getDesc();
 							ani.setDesc(newName);
-							dispatchCmd("renameScene",oldName, newName);
+							dispatchCmd(RENAME_SCENE,oldName, newName);
 							//frameSeqViewer.refresh();
 						} else {
 							messageUtil.warn("Scene name not unique","Scene names must be unique. Please choose a different name");
@@ -591,12 +599,12 @@ public class EditorView implements MainView {
 		deleteRecording.setToolTipText("Deletes selected recording");
 		deleteRecording.setText("Del");
 		deleteRecording.setEnabled(false);
-		deleteRecording.addListener(SWT.Selection, e -> dispatchCmd("deleteRecording"));
+		deleteRecording.addListener(SWT.Selection, e -> dispatchCmd(DELETE_RECORDING));
 
 		btnSortAni = new Button(composite_1, SWT.NONE);
 		btnSortAni.setToolTipText("Sorts recordings by name");
 		btnSortAni.setText("Sort");
-		btnSortAni.addListener(SWT.Selection, e -> dispatchCmd("sortRecording"));
+		btnSortAni.addListener(SWT.Selection, e -> dispatchCmd(SORT_RECORDING));
 		
 		Composite composite_4 = new Composite(listComp, SWT.NONE);
 		composite_4.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
@@ -610,18 +618,18 @@ public class EditorView implements MainView {
 		deleteScene.setToolTipText("Deletes selected scene");
 		deleteScene.setEnabled(false);
 		deleteScene.setText("Del");
-		deleteScene.addListener(SWT.Selection, e -> dispatchCmd("deleteScene"));
+		deleteScene.addListener(SWT.Selection, e -> dispatchCmd(DELETE_SCENE));
 		
 		Button btnSortScene = new Button(composite_4, SWT.NONE);
 		btnSortScene.setToolTipText("Sorts scenes by name");
 		btnSortScene.setText("Sort");
-		btnSortScene.addListener(SWT.Selection, e -> dispatchCmd("sortScenes") );
+		btnSortScene.addListener(SWT.Selection, e -> dispatchCmd(SORT_SCENES) );
 		
 		btnSetScenePal = new Button(composite_4, SWT.NONE);
 		btnSetScenePal.setToolTipText("Applies palette to scene");
 		btnSetScenePal.setText("Pal");
 		btnSetScenePal.setEnabled(false);
-		btnSetScenePal.addListener(SWT.Selection, e -> dispatchCmd("setScenePalette"));
+		btnSetScenePal.addListener(SWT.Selection, e -> dispatchCmd(SET_SCENE_PALETTE));
 
 		Composite composite_2 = new Composite(listComp, SWT.NONE);
 		GridLayout gl_composite_2 = new GridLayout(3, false);
@@ -633,18 +641,18 @@ public class EditorView implements MainView {
 		deleteKeyFrame.setToolTipText("Deletes selected keyframe");
 		deleteKeyFrame.setText("Del");
 		deleteKeyFrame.setEnabled(false);
-		deleteKeyFrame.addListener(SWT.Selection, e -> dispatchCmd("deleteKeyframe"));
+		deleteKeyFrame.addListener(SWT.Selection, e -> dispatchCmd(DELETE_KEYFRAME));
 
 		Button btnSortKeyFrames = new Button(composite_2, SWT.NONE);
 		btnSortKeyFrames.setToolTipText("Sorts keyframes by name");
 		btnSortKeyFrames.setText("Sort");
-		btnSortKeyFrames.addListener(SWT.Selection, e -> dispatchCmd("sortKeyFrames"));
+		btnSortKeyFrames.addListener(SWT.Selection, e -> dispatchCmd(SORT_KEY_FRAMES));
 		
 		setKeyFramePal = new Button(composite_2, SWT.NONE);
 		setKeyFramePal.setToolTipText("Applies palette to keyframe");
 		setKeyFramePal.setText("Pal");
 		setKeyFramePal.setEnabled(false);
-		setKeyFramePal.addListener(SWT.Selection, e -> dispatchCmd("setKeyframePalette"));
+		setKeyFramePal.addListener(SWT.Selection, e -> dispatchCmd(SET_KEYFRAME_PALETTE));
 		
 		return listComp;
 
@@ -659,12 +667,13 @@ public class EditorView implements MainView {
 	public void createContents() {
 		
 		 // for the sake of window builder
-//		shell = new Shell();
-//		shell.setSize(1400, 1075);
-//		this.vm = new ViewModel();
-//		vm.dmd = new DMD(192, 64);
-		
+//			shell = new Shell();
+//			shell.setSize(1400, 1075);
+//			this.vm = new ViewModel();
+//			vm.dmd = new DMD(192, 64);
+			
 		shell.setMaximized(true);
+		
 		shell.setText("Pin2dmd - Editor");
 
 		createMenu(shell);
@@ -747,7 +756,7 @@ public class EditorView implements MainView {
 			public void keyPressed(KeyEvent event) {
 				if( event.keyCode == SWT.CR ) {
 					if( vm.selectedScene!=null ) {
-						dispatchCmd("updateDelay");
+						dispatchCmd(UPDATE_DELAY);
 						vm.setDirty(true);
 					}
 				}
@@ -812,11 +821,11 @@ public class EditorView implements MainView {
 		// notify draw tool on color changes
 		drawTools.values().forEach(d -> paletteTool.addIndexListener(d));
 		// let draw tools notify when draw action is finished
-		drawTools.values().forEach(d->d.addObserver((dmd,o)->dispatchCmd("updateHashes")));
+		drawTools.values().forEach(d->d.addObserver((dmd,o)->dispatchCmd(UPDATE_HASHES)));
 		
 		paletteTool.addListener(palette -> {
 			if (vm.livePreviewActive) {
-				dispatchCmd("uploadPalette",vm.selectedPalette);
+				dispatchCmd(UPLOAD_PALETTE,vm.selectedPalette);
 			}
 		});
 				
@@ -893,39 +902,44 @@ public class EditorView implements MainView {
 		maskSpinner.setEnabled(false);
 		//maskSpinner.addListener(SWT.Selection, e -> ed.onMaskNumberChanged(maskSpinner.getSelection()));
 		
-		mask = new Button(grpDrawing, SWT.CHECK);
-		//btnMask.setText("Mask");
-		mask.setEnabled(false);
+		detectionMask = new Button(grpDrawing, SWT.CHECK);
+		detectionMask.setText("D-Mask");
+		detectionMask.setEnabled(false);
+		detectionMask.setToolTipText("enables drawing the DETECTION MASK for triggering a keyframe");
 		
 		copyToPrev = new Button(grpDrawing, SWT.NONE);
 		copyToPrev.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
 		copyToPrev.setText("CopyPrev");
-		copyToPrev.addListener(SWT.Selection, e->dispatchCmd("copyAndMoveToPrevFrame"));
+		copyToPrev.addListener(SWT.Selection, e->dispatchCmd(COPY_AND_MOVE_TO_PREV_FRAME));
 		
 		copyToNext = new Button(grpDrawing, SWT.NONE);
 		copyToNext.setToolTipText("copy the actual scene / color mask to next frame and move forward");
 		copyToNext.setText("CopyNext");
-		copyToNext.addListener(SWT.Selection, e->dispatchCmd("copyAndMoveToNextFrame"));
+		copyToNext.addListener(SWT.Selection, e->dispatchCmd(COPY_AND_MOVE_TO_NEXT_FRAME));
 		
 		undo = new Button(grpDrawing, SWT.NONE);
 		undo.setText("&Undo");
-		undo.addListener(SWT.Selection, e -> dispatchCmd("undo"));
+		undo.addListener(SWT.Selection, e -> dispatchCmd(UNDO));
 		
 		redo = new Button(grpDrawing, SWT.NONE);
 		redo.setText("&Redo");
-		redo.addListener(SWT.Selection, e -> dispatchCmd("redo"));
+		redo.addListener(SWT.Selection, e -> dispatchCmd(REDO));
 		
 		deleteColMask = new Button(grpDrawing, SWT.NONE);
-		deleteColMask.setText("Delete");
+		deleteColMask.setText("Del");
 		deleteColMask.setEnabled(false);
 		deleteColMask.addListener(SWT.Selection, e -> dispatchCmd(DELETE_COL_MASK));
 		
 		btnInvert = new Button(grpDrawing, SWT.NONE);
-		btnInvert.setText("Invert");
-		btnInvert.addListener(SWT.Selection, e->dispatchCmd("invertMask"));
+		btnInvert.setText("Inv");
+		btnInvert.addListener(SWT.Selection, e->dispatchCmd(INVERT_MASK));
 		btnInvert.setEnabled(false);
 
-		new Label(grpDrawing, SWT.NONE);
+		layerMask = new Button(grpDrawing, SWT.CHECK);
+		layerMask.setText("L-Mask");
+		layerMask.setEnabled(false);
+		layerMask.setToolTipText("enables drawing the LAYERED MASK for layered coloring");
+
 		
 	}
 
@@ -965,16 +979,16 @@ public class EditorView implements MainView {
 		btnNewPalette = new Button(grpPalettes, SWT.NONE);
 		btnNewPalette.setToolTipText("Creates a new palette by copying the actual colors");
 		btnNewPalette.setText("New");
-		btnNewPalette.addListener(SWT.Selection, e -> dispatchCmd("newPalette"));
+		btnNewPalette.addListener(SWT.Selection, e -> dispatchCmd(NEW_PALETTE));
 		
 		btnRenamePalette = new Button(grpPalettes, SWT.NONE);
 		btnRenamePalette.setToolTipText("Confirms the new palette name");
 		btnRenamePalette.setText("Rename");
-		btnRenamePalette.addListener(SWT.Selection, e -> dispatchCmd("renamePalette", vm.editedPaletteName));
+		btnRenamePalette.addListener(SWT.Selection, e -> dispatchCmd(RENAME_PALETTE, vm.editedPaletteName));
 		
 		Button btnDeletePalette = new Button(grpPalettes, SWT.NONE);
 		btnDeletePalette.setText("Delete");
-		btnDeletePalette.addListener(SWT.Selection, e->dispatchCmd("deletePalette"));
+		btnDeletePalette.addListener(SWT.Selection, e->dispatchCmd(DELETE_PALETTE));
 
 		Composite grpPal = new Composite(grpPalettes, SWT.NONE);
 		grpPal.setLayout(new GridLayout(1, false));
@@ -1000,40 +1014,39 @@ public class EditorView implements MainView {
 		startStop = new Button(composite, SWT.NONE);
 		startStop.setToolTipText("Starts automatic playback");
 		startStop.setText("Start");
-		startStop.addListener(SWT.Selection, e -> dispatchCmd("startStop", vm.animationIsPlaying ));
+		startStop.addListener(SWT.Selection, e -> dispatchCmd(START_STOP, vm.animationIsPlaying ));
 
 		btnPrev = new Button(composite, SWT.NONE);
 		btnPrev.setToolTipText("Go back one frame");
 		btnPrev.setText("<");
-		btnPrev.addListener(SWT.Selection, e -> dispatchCmd("prevFrame"));
+		btnPrev.addListener(SWT.Selection, e -> dispatchCmd(PREV_FRAME));
 
 		btnNext = new Button(composite, SWT.NONE);
 		btnNext.setToolTipText("Move forward one frame");
 		btnNext.setText(">");
-		btnNext.addListener(SWT.Selection, e -> dispatchCmd("nextFrame"));
+		btnNext.addListener(SWT.Selection, e -> dispatchCmd(NEXT_FRAME));
 
 		markStart = new Button(composite, SWT.NONE);
 		markStart.setToolTipText("Marks start of scene for cutting");
-		markEnd = new Button(composite, SWT.NONE);
-		cut = new Button(composite, SWT.NONE);
-		cut.setToolTipText("Cuts out a new scene for editing and use a replacement or color mask");
-
 		markStart.setText("Mark Start");
-		markStart.addListener(SWT.Selection, e -> dispatchCmd("markStart"));
+		markStart.addListener(SWT.Selection, e -> dispatchCmd(MARK_START));
 
+		markEnd = new Button(composite, SWT.NONE);
 		markEnd.setText("Mark End");
-		markEnd.addListener(SWT.Selection, e ->  dispatchCmd("markEnd"));
-
-		cut.setText("Cut");
-		cut.addListener(SWT.Selection, e -> dispatchCmd("cut"));
+		markEnd.addListener(SWT.Selection, e ->  dispatchCmd(MARK_END));
+		
+		cutScene = new Button(composite, SWT.NONE);
+		cutScene.setToolTipText("Cuts out a new scene for editing and use a replacement or color mask");
+		cutScene.setText("Cut");
+		cutScene.addListener(SWT.Selection, e -> dispatchCmd(CUT_SCENE));
 
 		btnAddFrame = new Button(composite, SWT.NONE);
 		btnAddFrame.setText("Frame+");
-		btnAddFrame.addListener(SWT.Selection, e->dispatchCmd("addFrame"));
+		btnAddFrame.addListener(SWT.Selection, e->dispatchCmd(ADD_FRAME));
 		
 		btnDelFrame = new Button(composite, SWT.NONE);
 		btnDelFrame.setText("Frame-");
-		btnDelFrame.addListener(SWT.Selection, e->dispatchCmd("removeFrame"));
+		btnDelFrame.addListener(SWT.Selection, e->dispatchCmd(REMOVE_FRAME));
 		
 		bookmarkComboViewer = new ComboViewer(composite, SWT.NONE);
 		bookmarkCombo = bookmarkComboViewer.getCombo();
@@ -1045,11 +1058,11 @@ public class EditorView implements MainView {
 			
 		btnNewBookmark = new Button(composite, SWT.NONE);
 		btnNewBookmark.setText("New");
-		btnNewBookmark.addListener(SWT.Selection, e-> dispatchCmd("newBookmark"));
+		btnNewBookmark.addListener(SWT.Selection, e-> dispatchCmd(NEW_BOOKMARK));
 
 		btnDelBookmark = new Button(composite, SWT.NONE);
 		btnDelBookmark.setText("Del");
-		btnDelBookmark.addListener(SWT.Selection, e->dispatchCmd("delBookmark"));
+		btnDelBookmark.addListener(SWT.Selection, e->dispatchCmd(DEL_BOOKMARK));
 		
 	}
 	
@@ -1062,7 +1075,7 @@ public class EditorView implements MainView {
 			btnHash[i].setText("Hash" + i);
 			// btnHash[i].setFont(new Font(shell.getDisplay(), "sans", 10, 0));
 			btnHash[i].setBounds(x, y + i * 16, 331, 18);
-			btnHash[i].addListener(SWT.Selection, e -> dispatchCmd("hashSelected", (Integer) e.widget.getData()));
+			btnHash[i].addListener(SWT.Selection, e -> dispatchCmd(HASH_SELECTED, (Integer) e.widget.getData()));
 		}
 	}
 
@@ -1106,7 +1119,7 @@ public class EditorView implements MainView {
 		btnAddKeyframe.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, false, false, 1, 1));
 		btnAddKeyframe.setText("Palette");
 		btnAddKeyframe.setEnabled(false);
-		btnAddKeyframe.addListener(SWT.Selection, e -> dispatchCmd("addKeyFrame",SwitchMode.PALETTE));
+		btnAddKeyframe.addListener(SWT.Selection, e -> dispatchCmd(ADD_KEY_FRAME,SwitchMode.PALETTE));
 		
 		Label lblScene = new Label(grpKeyframe, SWT.NONE);
 		lblScene.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
@@ -1129,7 +1142,7 @@ public class EditorView implements MainView {
 		btnAddFrameSeq.setToolTipText("Adds a keyframe that triggers playback of a scene");
 		btnAddFrameSeq.setText("ColorScene");
 		// add switch mode depend on ani scene
-		btnAddFrameSeq.addListener(SWT.Selection, e -> dispatchCmd("onAddFrameSeq", vm.selectedScene.getEditMode()));
+		btnAddFrameSeq.addListener(SWT.Selection, e -> dispatchCmd(ADD_FRAME_SEQ, vm.selectedScene.getEditMode()));
 		btnAddFrameSeq.setEnabled(false);
 		
 		Label lblDuration = new Label(grpKeyframe, SWT.NONE);
@@ -1207,7 +1220,7 @@ public class EditorView implements MainView {
 		btnAddEvent = new Button(grpKeyframe, SWT.NONE);
 		btnAddEvent.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
 		btnAddEvent.setText("Event");
-		btnAddEvent.addListener(SWT.Selection, e->dispatchCmd("addKeyFrame",SwitchMode.EVENT));
+		btnAddEvent.addListener(SWT.Selection, e->dispatchCmd(ADD_KEY_FRAME,SwitchMode.EVENT));
 		
 		CTabItem tbtmGodmd = new CTabItem(tabFolder, SWT.NONE);
 		tbtmGodmd.setText(TabMode.GODMD.label);
@@ -1359,7 +1372,6 @@ public class EditorView implements MainView {
 	}
 	
 	Realm realm;
-	
 	@Override
 	public void init(ViewModel vm, BeanFactory beanFactory) {
 		display = Display.getDefault();
@@ -1410,7 +1422,7 @@ public class EditorView implements MainView {
 			enhancer.hookApplicationMenu(display, 
 					e -> e.doit = dirtyCheck(QUIT, "Quit"),
 					new ActionAdapter(() -> dispatchCmd(ABOUT) ),
-					new ActionAdapter(() -> dispatchCmd("configuration") )
+					new ActionAdapter(() -> dispatchCmd(CONFIGURATION) )
 				);
 		}
 
@@ -1473,13 +1485,13 @@ public class EditorView implements MainView {
 						display.sleep();
 					}
 				}
-				dispatchCmd("deleteAutosaveFiles");
+				dispatchCmd(DELETE_AUTOSAVE_FILES);
 				System.exit(0);
 			} catch (Exception e) {
 				log.error("unexpected error: {}", e);
 				GlobalExceptionHandler.getInstance().showError(e);
 				if (retry++ > 10) {
-					dispatchCmd("deleteAutosaveFiles");
+					dispatchCmd(DELETE_AUTOSAVE_FILES);
 					System.exit(1);
 				}
 			}

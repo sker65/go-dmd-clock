@@ -26,15 +26,19 @@ import com.rinke.solutions.pinball.widget.PasteTool;
  * @author Stefan Rinke
  */
 @Slf4j
+// TODO introduce an interface that eliminates the direct dependencies from SWT
 public class ClipboardHandler implements Runnable {
 	
-	DMD dmd;
-	Clipboard clipboard;
+	Display display; // needed to create clipboard instance AND timerExec
+	Clipboard clipboard; // getContents / setContents / getAvailableTypeNames
+	// referenced: org.eclipse.swt.dnd.Transfer
+	
 	DMDWidget dmdWidget;
+
+	DMD dmd;
 	int width;
 	int height;
 	Palette palette;
-	Display display;
 	int dx,dy;
 	
 	/**
@@ -165,13 +169,6 @@ public class ClipboardHandler implements Runnable {
 		dmdWidget.redraw();
 	}
 
-	/*private void warnNYI() {
-		MessageBox messageBox = new MessageBox(Display.getCurrent().getActiveShell(), SWT.ICON_WARNING | SWT.OK);
-		messageBox.setText("not implemented");
-		messageBox.setMessage("this function is not implemented yet");
-		messageBox.open();
-	}*/
-
 	public void onCopy(Palette activePalette) {
 		Rect sel = dmdWidget.getSelection();
 		clipboard.setContents(
@@ -261,6 +258,7 @@ public class ClipboardHandler implements Runnable {
 
 	private void checkClipboard() {
 		log.trace("check clipboard");
+		// could be used to disable / enable paste menu
 	}
 }
 
