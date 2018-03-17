@@ -26,7 +26,7 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 	 * button callback when mask checkbox is clicked.
 	 * @param useMask
 	 */
-	public void onMaskActiveChanged(boolean old, boolean useMask) {
+	public void onDetectionMaskActiveChanged(boolean old, boolean useMask) {
 		// either we use masks with follow hash mode on scenes
 		// or we use global masks on recordings
 		if (useMask) {

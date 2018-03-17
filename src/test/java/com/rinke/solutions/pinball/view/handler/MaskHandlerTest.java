@@ -43,9 +43,9 @@ public class MaskHandlerTest extends HandlerTest  {
 	}
 
 	@Test
-	public void testOnMaskActiveChanged() throws Exception {
+	public void testOnDetectionMaskActiveChanged() throws Exception {
 		vm.setSelectedEditMode(EditMode.FIXED);
-		uut.onMaskActiveChanged(false, true);
+		uut.onDetectionMaskActiveChanged(false, true);
 		verify(hashCmdHandler).updateHashes(anyObject());
 		verify(drawCmdHandler).setDrawMaskByEditMode(eq(EditMode.FIXED));
 	}

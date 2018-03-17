@@ -96,7 +96,6 @@ import com.rinke.solutions.pinball.widget.SetPixelTool;
 @Slf4j
 public class EditorView implements MainView {
 	
-	
 	int numberOfHashes;
 
 	public EditorView(int numberOfHashes, boolean checkDirty) {
@@ -306,7 +305,7 @@ public class EditorView implements MainView {
 		menuPopRecentProjects = new Menu(mntmRecentProjects);
 		mntmRecentProjects.setMenu(menuPopRecentProjects);
 
-		new MenuItem(menu_1, SWT.SEPARATOR);
+		separator(menu_1);
 
 		MenuItem mntmImportProject = new MenuItem(menu_1, SWT.NONE);
 		mntmImportProject.setText("Import Project");
@@ -323,8 +322,7 @@ public class EditorView implements MainView {
 		mntmUploadProject = new MenuItem(menu_1, SWT.NONE);
 		mntmUploadProject.setText("Upload Project");
 		mntmUploadProject.addListener(SWT.Selection, e -> dispatchCmd(UPLOAD_PROJECT));
-
-		new MenuItem(menu_1, SWT.SEPARATOR);
+		separator(menu_1);
 
 		MenuItem mntmExit = new MenuItem(menu_1, SWT.NONE);
 		mntmExit.setText("Exit\tCtrl-Q");
@@ -366,7 +364,7 @@ public class EditorView implements MainView {
 		mntmDeSelect.setAccelerator(SWT.MOD1 + SWT.MOD2 + 'A');
 		mntmDeSelect.addListener(SWT.Selection, e -> dispatchCmd(REMOVE_SELECTION) );
 
-		new MenuItem(menu_5, SWT.SEPARATOR);
+		separator(menu_5);
 
 		mntmUndo = new MenuItem(menu_5, SWT.NONE);
 		mntmUndo.setText("Undo\tCtrl-Z");
@@ -406,14 +404,14 @@ public class EditorView implements MainView {
 		mntmRecentAnimations = new Menu(mntmRecentAnimationsItem);
 		mntmRecentAnimationsItem.setMenu(mntmRecentAnimations);
 
-		new MenuItem(menu_2, SWT.SEPARATOR);
+		separator(menu_2);
 		
 		MenuItem mntmPlayFullscreen = new MenuItem(menu_2, SWT.NONE);
 		mntmPlayFullscreen.setText("Play Fullscreen");
 		mntmPlayFullscreen.setAccelerator(SWT.MOD1 + SWT.F11);
 		mntmPlayFullscreen.addListener(SWT.Selection, e -> playFullScreen() );
 		
-		new MenuItem(menu_2, SWT.SEPARATOR);
+		separator(menu_2);
 
 		MenuItem mntmExportAnimation = new MenuItem(menu_2, SWT.NONE);
 		mntmExportAnimation.setText("Export Animation as GIF");	
@@ -442,13 +440,13 @@ public class EditorView implements MainView {
 		mntmRecentPalettes = new Menu(mntmRecentPalettesItem);
 		mntmRecentPalettesItem.setMenu(mntmRecentPalettes);
 
-		new MenuItem(menu_3, SWT.SEPARATOR);
+		separator(menu_3);
 
 		mntmUploadPalettes = new MenuItem(menu_3, SWT.NONE);
 		mntmUploadPalettes.setText("Upload Palettes");
 		mntmUploadPalettes.addListener(SWT.Selection, e -> dispatchCmd(UPLOAD_PALETTE,vm.selectedPalette));
 
-		new MenuItem(menu_3, SWT.SEPARATOR);
+		separator(menu_3);
 
 		MenuItem mntmConfig = new MenuItem(menu_3, SWT.NONE);
 		mntmConfig.setText("Configuration");
@@ -482,13 +480,17 @@ public class EditorView implements MainView {
 		mntmRegister.setText("Register");
 		mntmRegister.addListener(SWT.Selection, e -> new RegisterLicense(shell).open());
 
-		new MenuItem(menu_4, SWT.SEPARATOR);
+		separator(menu_4);
 
 		MenuItem mntmAbout = new MenuItem(menu_4, SWT.NONE);
 		mntmAbout.setText("About");
 		mntmAbout.addListener(SWT.Selection, e -> dispatchCmd(ABOUT));
 	}
 	
+	private void separator(Menu menu) {
+		new MenuItem(menu, SWT.SEPARATOR);
+	}
+
 	Composite createListComposite(Composite parent) {
 		
 		Composite listComp = new Composite(parent, 0);

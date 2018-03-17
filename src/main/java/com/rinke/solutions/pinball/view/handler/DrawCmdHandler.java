@@ -160,7 +160,7 @@ public class DrawCmdHandler extends AbstractCommandHandler implements EventHandl
 	public void setDrawMaskByEditMode(EditMode mode) {
 		if( vm.detectionMaskActive ) {
 			// only draw on mask
-			// TODO mask drawing and plane drawing with mask should be controlled seperately
+			// TODO mask drawing and plane drawing with mask should be controlled separately
 			vm.dmd.setDrawMask( 0b00000001);
 		} else {
 			vm.setDeleteColMaskEnabled(mode.useColorMasking);
