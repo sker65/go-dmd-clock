@@ -32,27 +32,6 @@ public class RecordingsCmdHandler extends AbstractListCmdHandler implements View
 		super(vm);
 	}
 	
-	public void setPlayingAni(Animation ani, int pos) {
-		log.debug("set playing ani {}, {}", pos, ani);
-		vm.playingAnis.clear();
-		vm.playingAnis.add(ani);
-		animationHandler.setAnimations(vm.playingAnis);
-		animationHandler.setPos(pos);
-		vm.setSelectedFrame(pos);
-		vm.setDmdDirty(true);
-	}
-	
-	public void setEnableHashButtons(boolean enabled) {
-		boolean[] sel = Arrays.copyOf(vm.hashButtonSelected, vm.hashButtonSelected.length);
-		if( !enabled )  {
-			for (int i = 0; i < vm.hashButtonSelected.length; i++) {
-				sel[i] = false;
-			}
-			vm.setHashButtonSelected(sel);
-		}
-		vm.setHashButtonsEnabled(enabled);
-	}
-	
 	private List<EditMode> immutable = Arrays.asList( EditMode.FIXED );
 
 	public void onSelectedRecordingChanged(Animation o, Animation a) {
@@ -67,17 +46,21 @@ public class RecordingsCmdHandler extends AbstractListCmdHandler implements View
 				
 				vm.setSelectedScene(null);
 				
-				vm.setDetectionMaskEnabled(true);
-				vm.setMaskSpinnerEnabled(true);
-				
 				// sani check for recordings edit mode
 				if( !EditMode.FIXED.equals(a.getEditMode()) ) a.setEditMode(EditMode.FIXED);
 
 				if( o == null ) {
 					vm.availableEditModes.replaceAll(immutable);
 				}
-				vm.setSelectedEditMode(EditMode.FIXED);
+
+				// for recordings we use global masks
+				vm.setLayerMaskActive(false);
+				vm.setLayerMaskEnabled(false);
+				vm.setDetectionMaskEnabled(true);
+				vm.setMaskSpinnerEnabled(true);
 				
+				vm.setSuggestedEditMode(EditMode.FIXED);
+				vm.setSelectedEditMode(EditMode.FIXED);
 				
 				setEnableHashButtons(true);
 

@@ -29,7 +29,7 @@ public class MessageUtil {
 	}
 
 	public int warn(int style, String title, String header, String msg, String[] buttons, int def) {
-		CustomMessageBox messageBox = new CustomMessageBox(shell, style, SWT.ICON_WARNING,title,header, msg, buttons,def);
+		CustomMessageBox messageBox = new CustomMessageBox(shell, style, SWT.ICON_WARNING, title,header, msg, buttons,def);
 		return messageBox.open();
 	}
 

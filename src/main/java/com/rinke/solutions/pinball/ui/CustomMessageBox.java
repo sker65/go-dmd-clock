@@ -91,8 +91,8 @@ public class CustomMessageBox extends Dialog {
         lblHeader.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 2, 1));
         lblHeader.setText(this.header);
         
-        Label lblMessage = new Label(shell, SWT.NONE);
-        lblMessage.setLayoutData(new GridData(SWT.LEFT, SWT.FILL, false, true, 3, 1));
+        Label lblMessage = new Label(shell, SWT.WRAP);
+        lblMessage.setLayoutData(new GridData(SWT.LEFT, SWT.FILL, true, true, 3, 1));
         lblMessage.setText(this.message);
         
         for(int i = 0; i<3 && i < buttons.length; i++) {
@@ -118,10 +118,15 @@ public class CustomMessageBox extends Dialog {
 	public static void main(String[] args)
     {
 		CustomMessageBox dialog = 
-				new CustomMessageBox(new Shell(), 0, SWT.ICON_ERROR,
-						"Warning", "Unsaved changes", "There are unsaved changes in project",
-				new String[]{"", "Cancel", "Proceed"}, 2);
-
+//				new CustomMessageBox(new Shell(), 0, SWT.ICON_ERROR,
+//						"Warning", "Unsaved changes", "There are unsaved changes in project",
+//				new String[]{"", "Cancel", "Proceed"}, 2);
+		
+		new CustomMessageBox(new Shell(), 0, SWT.ICON_ERROR, "Warning",
+				"Changing edit mode", 
+				"you are about to change edit mode to while scene was already modified.",
+				new String[]{"", "Cancel", "Change Mode"},2);
+		
         int r = dialog.open();
         System.out.println(r);
     }

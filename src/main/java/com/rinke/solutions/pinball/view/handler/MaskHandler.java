@@ -6,6 +6,7 @@ import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.Bean;
 import com.rinke.solutions.pinball.PinDmdEditor;
 import com.rinke.solutions.pinball.animation.Animation;
+import com.rinke.solutions.pinball.animation.Animation.EditMode;
 import com.rinke.solutions.pinball.model.Mask;
 import com.rinke.solutions.pinball.view.model.ViewModel;
 
@@ -22,22 +23,24 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 		super(vm);
 	}
 	
-	/**
-	 * button callback when mask checkbox is clicked.
-	 * @param useMask
-	 */
 	public void onDetectionMaskActiveChanged(boolean old, boolean useMask) {
+		onMaskActiveChanged(old, useMask);
+	}
+	
+	public void onLayeredMaskActiveChanged(boolean old, boolean useMask) {
+		onMaskActiveChanged(old, useMask);
+	}
+
+	public void onMaskActiveChanged(boolean old, boolean useMask) {
 		// either we use masks with follow hash mode on scenes
 		// or we use global masks on recordings
 		if (useMask) {
 			vm.setPaletteToolPlanes(1);
 			vm.setMask(getCurrentMask());
 			// if edit mode requires use mask of the scene, turn off global masks
-			vm.setUseGlobalMask(!vm.selectedEditMode.useMask);
+			vm.setUseGlobalMask(vm.selectedEditMode.useGlobalMask);
 		} else {
 			vm.setPaletteToolPlanes(vm.dmd.getNumberOfPlanes());
-			// direkt gebunden
-			//v.dmdWidget.setShowMask(false);
 			
 			if( vm.useGlobalMask ) { // commit edited global mask
 				Mask mask = vm.masks.get(vm.selectedMask);
@@ -48,7 +51,6 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 			}
 			vm.setMask(null);
 			vm.dmd.removeMask();
-			vm.setUseGlobalMask(false);
 		}
 		vm.setBtnInvertEnabled(useMask);
 		
@@ -57,6 +59,24 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 		//bound to mask active vm.setDmdDirty(true);
 		drawCmdHandler.setDrawMaskByEditMode(vm.selectedEditMode);
 		updateDrawingEnabled();
+	}
+
+	public void onSelectedMaskChanged(int old, int newMaskNumber) {
+		if (vm.selectedEditMode.useGlobalMask) {
+			while( vm.masks.size()-1 < newMaskNumber ) {
+				vm.masks.add(new Mask(vm.dmdSize.planeSize));
+			}
+			vm.setMask(vm.masks.get(newMaskNumber));
+			
+			updateDrawingEnabled();
+// WHY??		vm.setUseGlobalMask(false);
+		}
+		if( vm.selectedEditMode.useLayerMask ) {
+			if( vm.selectedScene != null) {
+				vm.setMask(vm.selectedScene.getMask(newMaskNumber));
+				updateDrawingEnabled();
+			}
+		}
 	}
 
 	private boolean isEditable(java.util.List<Animation> a) {
@@ -72,7 +92,7 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 	 */
 	 public void onDeleteColMask() {
 		vm.dmd.addUndoBuffer();
-		vm.dmd.fill(vm.detectionMaskActive?(byte)0xFF:0);
+		vm.dmd.fill((vm.layerMaskActive||vm.detectionMaskActive)?(byte)0xFF:0);
 		vm.setDmdDirty(true);
 	}
 
@@ -87,26 +107,22 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 		}
 	}
 
-	public void onSelectedMaskChanged(int actMaskNumber, int newMaskNumber) {
-		boolean hasChanged = false;
-		if(newMaskNumber != actMaskNumber ) {
-			log.info("mask number changed {} -> {}", actMaskNumber, newMaskNumber);
-			actMaskNumber = newMaskNumber;
-			hasChanged = true;
-		}
-		if (vm.useGlobalMask && hasChanged) {
-			while( vm.masks.size()-1 < newMaskNumber ) {
-				vm.masks.add(new Mask(vm.dmdSize.planeSize));
+	public void updateDrawingEnabled() {
+		EditMode m = vm.selectedEditMode;
+		boolean drawing = false;
+		if( !vm.animationIsPlaying ) {
+			if( m.enableMaskDrawing && (vm.detectionMaskActive || vm.layerMaskActive ) ) {
+				if( m.useGlobalMask ) {
+					drawing = !vm.masks.get(vm.selectedMask).locked;
+				} else {
+					drawing = true;
+				}
 			}
-			vm.setMask(vm.masks.get(newMaskNumber));
-			// was v.dmdWidget.setMask(maskToUse);
-			
-			updateDrawingEnabled();
+			if( !(vm.detectionMaskActive || vm.layerMaskActive ) ) {
+				drawing = isEditable(vm.playingAnis) ;
+			}
 		}
-	}
-
-	private void updateDrawingEnabled() {
-		vm.setDrawingEnabled((vm.useGlobalMask && !vm.masks.get(vm.selectedMask).locked) || !vm.animationIsPlaying && isEditable(vm.playingAnis));
+		vm.setDrawingEnabled( drawing );
 	}
 
 	/**
@@ -115,11 +131,16 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 	 */
 	public Mask getCurrentMask() {
 		Mask maskToUse = null; 
-		if( vm.selectedEditMode.useMask) {
-			// create mask from actual scene
-			if( vm.selectedScene!=null) maskToUse = vm.selectedScene.getCurrentMask();
-		} else {
-			// use one of the project masks
+		if( vm.selectedScene!=null) {
+			if( vm.selectedEditMode.useLocalMask) {
+				// create mask from actual scene
+				maskToUse = vm.selectedScene.getCurrentMask();
+			} else if( vm.selectedEditMode.useLayerMask ){
+				maskToUse = vm.selectedScene.getMask(vm.selectedMask); 
+			}
+		}
+		if( vm.selectedEditMode.useGlobalMask ) {
+			// use one of the global masks
 			maskToUse = vm.masks.get(vm.selectedMask);
 		}
 		return maskToUse;

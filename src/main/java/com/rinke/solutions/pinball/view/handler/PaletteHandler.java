@@ -42,8 +42,10 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 	public void onRenamePalette(String newName) {
 		if (newName.contains(" - ")) {
 			vm.selectedPalette.name = newName.split(" - ")[1];
-			vm.setSelectedPaletteByIndex(vm.selectedPalette.index);
 			vm.paletteMap.refresh();
+			int idx = vm.selectedPalette.index;
+			vm.setSelectedPalette(null);	// to force refresh
+			vm.setSelectedPaletteByIndex(idx);
 		} else {
 			messageUtil.warn("Illegal palette name", "Palette names must consist of palette index and name.\nName format therefore must be '<idx> - <name>'");
 			vm.setEditedPaletteName(vm.selectedPalette.index + " - " + vm.selectedPalette.name);
@@ -116,8 +118,10 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 		if (!isNewPaletteName(name)) {
 			name = "new" + UUID.randomUUID().toString().substring(0, 4);
 		}
-		vm.setSelectedPalette( new Palette(vm.selectedPalette.colors, getHighestIndex(vm.paletteMap)+1, name));
-		vm.paletteMap.put(vm.selectedPalette.index,vm.selectedPalette);
+		Palette newPal =  new Palette(vm.selectedPalette.colors, getHighestIndex(vm.paletteMap)+1, name);
+		vm.paletteMap.put(newPal.index,newPal);
+		vm.setSelectedPalette(newPal);
+		vm.setDirty(true);
 	}
 
 	private int getHighestIndex(Map<Integer, Palette> paletteMap) {

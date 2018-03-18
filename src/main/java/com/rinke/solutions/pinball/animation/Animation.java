@@ -71,22 +71,29 @@ public class Animation {
 	public int height;
 
 	public enum EditMode {
-		REPLACE("Replace",false, false), 
-		COLMASK("Color Mask", false, true), 
-		FIXED("Fixed", false, false), 
-		FOLLOW("Color Mask Seq.", true, true),
-		LAYEREDCOL("Layered ColMask", true, true);
+		REPLACE("Replace",				false, false, false, true,  false), 
+		COLMASK("Color Mask",			false, true,  false, false, false), 
+		FIXED("Fixed", 					false, false, true,  true,  false), 
+		FOLLOW("Color Mask Seq.", 		true,  true,  true,  false, false),
+		LAYEREDCOL("Layered ColMask", 	false,  true,  true, false, true);
 
 		// label to display
 		public final String label;
 		// uses masks in scene
-		public final boolean useMask;
-		public final boolean useColorMasking;
+		public final boolean useLocalMask;
+		public final boolean enableColorMaskDrawing;  // draw only on upper planes
+		public final boolean enableMaskDrawing;       // draw on mask planes
+		public final boolean useGlobalMask;
+		public final boolean useLayerMask;
 
-		private EditMode(String label, boolean useMask, boolean useColorMasking) {
+		private EditMode(String label, boolean useLocalMask, boolean colMaskDraw, 
+				boolean enableMaskDrawing, boolean useGlobalMask, boolean layerMask) {
 			this.label = label;
-			this.useMask = useMask;
-			this.useColorMasking = useColorMasking;
+			this.useLocalMask = useLocalMask;
+			this.enableMaskDrawing = enableMaskDrawing;
+			this.enableColorMaskDrawing = colMaskDraw;
+			this.useGlobalMask = useGlobalMask;
+			this.useLayerMask = layerMask;
 		}
 
 		public static EditMode fromOrdinal(byte emo) {

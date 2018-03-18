@@ -314,6 +314,11 @@ public class DMD extends Observable {
 		return drawMask;
 	}
 
+	/**
+	 * binary mask for drawing planes. bit 0 -> mask plane
+	 * bit 1 -> first color plane ....
+	 * @param drawMask
+	 */
 	public void setDrawMask(int drawMask) {
 		 this.drawMask = drawMask;
 		 log.debug("setting draw mask to {}", Integer.toBinaryString(drawMask));

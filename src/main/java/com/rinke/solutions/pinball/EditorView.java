@@ -242,7 +242,7 @@ public class EditorView implements MainView {
 	RecentMenuManager recentPalettesMenuManager;
 	RecentMenuManager recentAnimationsMenuManager;
 	
-	@GuiBinding( props={INPUT,SELECTION}, propNames={"availableEditModes", "selectedEditMode"} )
+	@GuiBinding( props={INPUT,SELECTION}, propNames={"availableEditModes", "suggestedEditMode"} )
 	ComboViewer editModeViewer;
 	@GuiBinding(prop=ENABLED) private Button deleteScene;
 	@GuiBinding(prop=SELECTION) Spinner spinnerDeviceId;

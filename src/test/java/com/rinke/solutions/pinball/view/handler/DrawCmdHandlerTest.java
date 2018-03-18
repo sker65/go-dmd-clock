@@ -43,8 +43,8 @@ public class DrawCmdHandlerTest extends HandlerTest {
 	@Test
 	public void testOnSelectedEditModeChanged() throws Exception {
 		vm.setSelectedScene(ani);
-		drawCmdHandler.onSelectedEditModeChanged(EditMode.REPLACE, EditMode.COLMASK);
-		drawCmdHandler.onSelectedEditModeChanged(EditMode.COLMASK, EditMode.REPLACE);
+		drawCmdHandler.onSuggestedEditModeChanged(EditMode.REPLACE, EditMode.COLMASK);
+		drawCmdHandler.onSuggestedEditModeChanged(EditMode.COLMASK, EditMode.REPLACE);
 	}
 
 }

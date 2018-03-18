@@ -11,6 +11,7 @@ import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.Bean;
 import com.rinke.solutions.pinball.AnimationHandler;
 import com.rinke.solutions.pinball.DMD;
+import com.rinke.solutions.pinball.Dispatcher;
 import com.rinke.solutions.pinball.MaskDmdObserver;
 import com.rinke.solutions.pinball.ObserverManager;
 import com.rinke.solutions.pinball.PinDmdEditor;
@@ -34,8 +35,11 @@ public class DrawCmdHandler extends AbstractCommandHandler implements EventHandl
 	@Autowired RecordingsCmdHandler recordingsCmdHandler;
 	@Autowired HashCmdHandler hashCmdHandler;
 	@Autowired LivePreviewHandler livePreviewHandler;
-	private int numberOfHashes = 4;
 	@Autowired AnimationHandler animationHandler;
+	@Autowired private Dispatcher dispatcher;
+	
+	private int numberOfHashes = 4;
+
 
 	public DrawCmdHandler(ViewModel vm, DMD s) {
 		super(vm);
@@ -104,7 +108,8 @@ public class DrawCmdHandler extends AbstractCommandHandler implements EventHandl
 		vm.setCopyToPrevEnabled(vm.drawingEnabled && nv>vm.minFrame);
 	}
 	
-	public void onSelectedEditModeChanged(EditMode old, EditMode mode) {
+	public void onSuggestedEditModeChanged(final EditMode old, final EditMode mode) {
+		EditMode modeToSet = mode;
 		if( vm.selectedScene != null ) {
 			CompiledAnimation animation = vm.selectedScene;
 			boolean setMode = true;
@@ -115,24 +120,28 @@ public class DrawCmdHandler extends AbstractCommandHandler implements EventHandl
 						new String[]{"", "Cancel", "Change Mode"},2);
 				if( res == 1 ) {
 					setMode = false;
-					mode = old;
+					modeToSet = old;
 				}
 			}
 			if( setMode ) {
 				animation.setEditMode(mode);
-				if(mode.useMask) {
+				if(mode.useLocalMask) {
 					animation.ensureMask();
-				} 
+				}
+				vm.setSelectedEditMode(mode);
+			} else {
+				// reset suggested to selected (veto)
+				dispatcher.asyncExec(()->vm.setSuggestedEditMode(old));
 			}
-			if( mode != null ) {
-				vm.setDetectionMaskEnabled(mode.useMask);
-				recordingsCmdHandler.setEnableHashButtons(mode.useMask);
+			if( modeToSet != null ) {
+				vm.setDetectionMaskEnabled(modeToSet.useLocalMask);
+				recordingsCmdHandler.setEnableHashButtons(modeToSet.useLocalMask);
 			}
 			
 			// to force update on master detail
 			vm.scenes.refresh();
 		}
-		setDrawMaskByEditMode(mode);
+		setDrawMaskByEditMode(modeToSet);
 	}
 	
 	/**
@@ -158,13 +167,14 @@ public class DrawCmdHandler extends AbstractCommandHandler implements EventHandl
 	 * @param mode
 	 */
 	public void setDrawMaskByEditMode(EditMode mode) {
-		if( vm.detectionMaskActive ) {
+		if( mode.enableMaskDrawing && (vm.detectionMaskActive || vm.layerMaskActive ) ) {
 			// only draw on mask
-			// TODO mask drawing and plane drawing with mask should be controlled separately
 			vm.dmd.setDrawMask( 0b00000001);
 		} else {
-			vm.setDeleteColMaskEnabled(mode.useColorMasking);
-			vm.dmd.setDrawMask(mode.useColorMasking ? 0b11111000 : 0xFFFF);
+			vm.setDeleteColMaskEnabled(mode.enableColorMaskDrawing);
+			// either col mask drawing or normal drawing
+			// bit 0 ist mask plane in dmd
+			vm.dmd.setDrawMask(mode.enableColorMaskDrawing ? 0b11111000 : 0xFFFF);
 		}
 	}
 	

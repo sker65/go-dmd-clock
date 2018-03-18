@@ -161,7 +161,8 @@ public class ViewModel extends AbstractModel {
 	@ViewBinding public boolean copyEnabled;
 	
 	@ViewBinding public ObservableList<EditMode> availableEditModes = new ObservableList<>(new ArrayList<>());
-	@ViewBinding public EditMode selectedEditMode;
+	public EditMode selectedEditMode;
+	@ViewBinding public EditMode suggestedEditMode;
 	@ViewBinding public PaletteType selectedPaletteType;
 	
 	// animation stuff
@@ -573,6 +574,10 @@ public class ViewModel extends AbstractModel {
 
 	public void setCopyEnabled(boolean copyEnabled) {
 		firePropertyChange("copyEnabled", this.copyEnabled, this.copyEnabled = copyEnabled);
+	}
+
+	public void setSuggestedEditMode(EditMode suggestedEditMode) {
+		firePropertyChange("suggestedEditMode", this.suggestedEditMode, this.suggestedEditMode = suggestedEditMode);
 	}
 
 }

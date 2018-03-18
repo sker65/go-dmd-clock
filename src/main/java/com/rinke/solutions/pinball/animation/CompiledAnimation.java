@@ -1,5 +1,6 @@
 package com.rinke.solutions.pinball.animation;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -16,6 +17,7 @@ import com.rinke.solutions.pinball.model.Plane;
 public class CompiledAnimation extends Animation {
 
 	public List<Frame> frames;
+	private List<Mask> masks = new ArrayList<>();	// for layered coloring
 	
 	public CompiledAnimation(AnimationType type, String name, int start,
 			int end, int skip, int cycles, int holdCycles) {
@@ -28,6 +30,18 @@ public class CompiledAnimation extends Animation {
 		init();
 		setMutable(true);
 		frames = renderer.getFrames();
+	}
+	
+	public Mask getMask(int i) {
+		while( i+1 > masks.size()) {
+			Mask mask = new Mask(width/8 * height);
+			masks.add( mask );
+		}
+		return masks.get(i);
+	}
+	
+	public int getNumberOfMasks() {
+		return masks.size();
 	}
 
 	@Override

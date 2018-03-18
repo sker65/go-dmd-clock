@@ -28,9 +28,9 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 	@Autowired private MessageUtil messageUtil;
 	
 	private List<EditMode> mutable = Arrays.asList( EditMode.REPLACE, EditMode.COLMASK, EditMode.FOLLOW, EditMode.LAYEREDCOL );
-	
-	@Autowired private RecordingsCmdHandler recordingsCmdHandler;
+
 	@Autowired private DrawCmdHandler drawCmdHandler;
+	@Autowired private MaskHandler maskHandler;
 
 	public ScenesCmdHandler(ViewModel vm) {
 		super(vm);
@@ -57,21 +57,30 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 			vm.setSelectedKeyFrame(null);
 			
 		//	v.goDmdGroup.updateAnimation(nextScene);
+			
+			EditMode m = nextScene.getEditMode();
+			vm.setDetectionMaskEnabled(m.useLocalMask);
+			vm.setLayerMaskEnabled(m.useLayerMask||m.useLocalMask);
+			vm.setDetectionMaskActive(false);
+			vm.setLayerMaskActive(false);
+			
+			// warum mask auch gleich active setzen
+			// was formerly vm.setDetectionMaskActive(nextScene.getEditMode().useLocalMask);
+			vm.setMaskSpinnerEnabled(m.useLayerMask);
 
-			vm.setDetectionMaskEnabled(nextScene.getEditMode().useMask);
-			vm.setDetectionMaskActive(nextScene.getEditMode().useMask);
-			vm.setMaskSpinnerEnabled(false);
 			// just to enasure a reasonable default
 			if( nextScene.getEditMode() == null || nextScene.getEditMode().equals(EditMode.FIXED) ) {
 				// old animation may be saved with wrong edit mode
 				nextScene.setEditMode(EditMode.REPLACE);
 			}
 			if( current == null ) vm.availableEditModes.replaceAll(mutable);
+			vm.setSuggestedEditMode(nextScene.getEditMode());
 			vm.setSelectedEditMode(nextScene.getEditMode());
 			
-			recordingsCmdHandler.setEnableHashButtons(nextScene.getEditMode().useMask);
+			setEnableHashButtons(m.useLocalMask||m.useLayerMask);
 			
-			vm.setSelectedScene(nextScene);
+			// we are in the change handler anyways
+			// vm.setSelectedScene(nextScene);
 
 			int numberOfPlanes = nextScene.getRenderer().getNumberOfPlanes();
 			if( numberOfPlanes == 5) {
@@ -86,15 +95,13 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 
 			vm.setSelectedPaletteByIndex(nextScene.getPalIndex());
 			
-			drawCmdHandler.setDrawMaskByEditMode(nextScene.getEditMode());
-			vm.setDrawingEnabled((vm.useGlobalMask && !vm.masks.get(vm.selectedMask).locked) 
-					|| !vm.animationIsPlaying && vm.selectedScene.isMutable());
+			drawCmdHandler.setDrawMaskByEditMode(m);
+			maskHandler.updateDrawingEnabled();
 
 			vm.dmd.setNumberOfSubframes(numberOfPlanes);
-			
-			vm.setPaletteToolPlanes(vm.useGlobalMask?1:numberOfPlanes);
+			vm.setPaletteToolPlanes(vm.layerMaskActive||vm.detectionMaskActive?1:numberOfPlanes);
 
-			recordingsCmdHandler.setPlayingAni(nextScene, vm.scenesPosMap.getOrDefault(nextScene.getDesc(), 0));
+			setPlayingAni(nextScene, vm.scenesPosMap.getOrDefault(nextScene.getDesc(), 0));
 			
 		} else {
 			vm.setDrawingEnabled(false);

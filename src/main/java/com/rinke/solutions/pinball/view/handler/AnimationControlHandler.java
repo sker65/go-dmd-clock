@@ -80,7 +80,7 @@ public class AnimationControlHandler extends AbstractCommandHandler implements V
 		//animationHandler.prev();
 		vm.setSelectedFrame(vm.selectedFrame-vm.frameIncrement);
 		
-		if( vm.selectedEditMode.useMask && vm.selectedScene!=null) {
+		if( vm.selectedEditMode.useLocalMask && vm.selectedScene!=null) {
 			selectHash(vm.selectedScene);
 		}
 		vm.setSelection(null);
@@ -94,7 +94,7 @@ public class AnimationControlHandler extends AbstractCommandHandler implements V
 
 		vm.setSelectedFrame(vm.selectedFrame+vm.frameIncrement);
 
-		if( vm.selectedEditMode.useMask && vm.selectedScene!=null) {
+		if( vm.selectedEditMode.useLocalMask && vm.selectedScene!=null) {
 			selectHash(vm.selectedScene);
 		}
 		vm.setSelection(null);
