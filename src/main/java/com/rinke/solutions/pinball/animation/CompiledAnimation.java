@@ -32,6 +32,11 @@ public class CompiledAnimation extends Animation {
 		frames = renderer.getFrames();
 	}
 	
+	@Override
+	public List<Mask> getMasks() {
+		return masks;
+	}
+
 	public Mask getMask(int i) {
 		while( i+1 > masks.size()) {
 			Mask mask = new Mask(width/8 * height);

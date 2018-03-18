@@ -18,6 +18,7 @@ import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.PinDmdEditor;
 import com.rinke.solutions.pinball.Worker;
 import com.rinke.solutions.pinball.model.Frame;
+import com.rinke.solutions.pinball.model.Mask;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.Plane;
 import com.rinke.solutions.pinball.model.RGB;
@@ -89,6 +90,17 @@ public class AniWriter extends Worker {
 				if( version >= 4 ) {
 					os.writeShort(a.width);
 					os.writeShort(a.height);
+				}
+				if( version >= 5 ) {
+					// write layered masks
+					List<Mask> masks = a.getMasks();
+					int noOfMasks = masks!=null ? masks.size() : 0;
+					os.writeShort(noOfMasks);
+					for( int i = 0; i < noOfMasks; i++) {
+						os.writeBoolean(masks.get(i).locked);
+						os.writeShort( masks.get(i).data.length);
+						os.write( masks.get(i).data);
+					}
 				}
 
 				int preserveAct = a.getActFrame();

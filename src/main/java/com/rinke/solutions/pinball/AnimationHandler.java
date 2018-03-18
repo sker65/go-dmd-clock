@@ -13,6 +13,7 @@ import com.rinke.solutions.pinball.animation.AniEvent.Type;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.EventHandler;
 import com.rinke.solutions.pinball.model.Frame;
+import com.rinke.solutions.pinball.model.Mask;
 import com.rinke.solutions.pinball.util.Config;
 import com.rinke.solutions.pinball.view.model.ViewModel;
 
@@ -39,6 +40,7 @@ public class AnimationHandler implements Runnable {
 	@Value(key=Config.GODMD_ENABLED_PROP_KEY)
 	private boolean enableClock;
 	private ViewModel vm;
+	private Mask maskToPopulate;
 
 	public AnimationHandler( ViewModel vm, DMDClock clock, DMD dmd) {
 		this.vm = vm;
@@ -125,7 +127,9 @@ public class AnimationHandler implements Runnable {
                         dmd.writeOr(res);
                     }
                 }
-		
+                if( maskToPopulate != null ) {
+                	dmd.setMask(maskToPopulate.data);
+                }
 				if( ani.hasEnded() ) {
 					//if( !ani.isMutable() ){
 						ani.restart();
@@ -192,10 +196,24 @@ public class AnimationHandler implements Runnable {
 		run();
 	}
 
+	/**
+	 * like setPos but use currentMask to populate DMD mask while animation
+	 * @param pos
+	 * @param currentMask
+	 */
+	public void setPos(int pos, Mask currentMask) {
+		if( index <0 || index >= anis.size() ) return;
+	    anis.get(index).setPos(pos);
+	    forceRerender = true;
+	    this.maskToPopulate = currentMask;
+        run();
+	}
+
 	public void setPos(int pos) {
 		if( index <0 || index >= anis.size() ) return;
 	    anis.get(index).setPos(pos);
 	    forceRerender = true;
+	    this.maskToPopulate = null;
         run();
 	}
 	

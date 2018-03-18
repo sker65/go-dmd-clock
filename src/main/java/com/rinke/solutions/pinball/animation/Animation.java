@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.model.Frame;
+import com.rinke.solutions.pinball.model.Mask;
 import com.rinke.solutions.pinball.model.Plane;
 import com.rinke.solutions.pinball.model.RGB;
 import com.rinke.solutions.pinball.renderer.AnimatedGIFRenderer;
@@ -103,6 +104,10 @@ public class Animation {
 			return null;
 		}
 
+	}
+	
+	public List<Mask> getMasks() {
+		return null;
 	}
 	
 	private EditMode editMode = EditMode.FIXED;

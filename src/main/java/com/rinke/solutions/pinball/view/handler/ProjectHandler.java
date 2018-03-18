@@ -464,7 +464,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 		// only need to save ani's that are 'project' animations
 		List<Animation> prjAnis = vm.scenes.values().stream().filter(a->a.isProjectAnimation()).collect(Collectors.toList());
 		if( !prjAnis.isEmpty() ) {
-			aniAction.storeAnimations(prjAnis, aniFilename, 4, true);
+			aniAction.storeAnimations(prjAnis, aniFilename, 5, true);
 		} else {
 			new File(aniFilename).delete(); // delete project ani file
 		}

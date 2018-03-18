@@ -24,10 +24,12 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 	}
 	
 	public void onDetectionMaskActiveChanged(boolean old, boolean useMask) {
+		vm.setShowMask(useMask || vm.layerMaskActive );
 		onMaskActiveChanged(old, useMask);
 	}
 	
 	public void onLayeredMaskActiveChanged(boolean old, boolean useMask) {
+		vm.setShowMask(useMask || vm.detectionMaskActive );
 		onMaskActiveChanged(old, useMask);
 	}
 
@@ -53,7 +55,7 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 			vm.dmd.removeMask();
 		}
 		vm.setBtnInvertEnabled(useMask);
-		
+		vm.setDmdDirty(true);
 		hashCmdHandler.updateHashes(vm.dmd.getFrame());
 		
 		//bound to mask active vm.setDmdDirty(true);
@@ -97,14 +99,7 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 	}
 
 	public void onInvertMask() {
-		if( vm.dmd.hasMask() ) { // TODO check why this is called sometimes without mask
-			vm.dmd.addUndoBuffer();
-			byte[] data = vm.dmd.getFrame().mask.data;
-			for( int i = 0; i < data.length; i++) {
-				data[i] = (byte) ~data[i];
-			}
-			vm.dmd.setMask(data);
-		}
+		vm.dmd.invertMask();
 	}
 
 	public void updateDrawingEnabled() {

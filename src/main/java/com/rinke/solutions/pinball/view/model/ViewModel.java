@@ -114,6 +114,7 @@ public class ViewModel extends AbstractModel {
 	@ViewBinding public boolean layerMaskEnabled;
 	@ViewBinding public boolean detectionMaskActive;
 	@ViewBinding public boolean layerMaskActive;
+	@ViewBinding public boolean showMask;
 	
 	@ViewBinding public boolean maskSpinnerEnabled;
 	@ViewBinding public int maxNumberOfMasks;
@@ -578,6 +579,10 @@ public class ViewModel extends AbstractModel {
 
 	public void setSuggestedEditMode(EditMode suggestedEditMode) {
 		firePropertyChange("suggestedEditMode", this.suggestedEditMode, this.suggestedEditMode = suggestedEditMode);
+	}
+
+	public void setShowMask(boolean showMask) {
+		firePropertyChange("showMask", this.showMask, this.showMask = showMask);
 	}
 
 }

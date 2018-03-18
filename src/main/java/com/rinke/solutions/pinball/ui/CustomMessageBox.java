@@ -1,6 +1,7 @@
 package com.rinke.solutions.pinball.ui;
 
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jface.resource.FontDescriptor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.graphics.Point;
@@ -87,7 +88,7 @@ public class CustomMessageBox extends Dialog {
         image.setLayoutData(data);
         
         Label lblHeader = new Label(shell, SWT.NONE);
-        //lblHeader.setFont(SWTResourceManager.getFont(".SF NS Text", 13, SWT.BOLD));
+        lblHeader.setFont(SWTResourceManager.getBoldFont(lblHeader.getFont()));
         lblHeader.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 2, 1));
         lblHeader.setText(this.header);
         

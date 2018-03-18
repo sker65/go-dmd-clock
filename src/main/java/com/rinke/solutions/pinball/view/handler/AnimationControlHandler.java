@@ -16,6 +16,7 @@ import com.rinke.solutions.pinball.view.model.ViewModel;
 public class AnimationControlHandler extends AbstractCommandHandler implements ViewBindingHandler {
 
 	@Autowired AnimationHandler animationHandler;
+	@Autowired MaskHandler maskHandler;
 	
 	public AnimationControlHandler(ViewModel vm) {
 		super(vm);
@@ -35,7 +36,8 @@ public class AnimationControlHandler extends AbstractCommandHandler implements V
 	}
 	
 	public void onSelectedFrameChanged(int o, int n) {
-		animationHandler.setPos(n);
+		animationHandler.setPos(n, maskHandler.getCurrentMask());
+		//if( vm.detectionMaskActive || vm.layerMaskActive ) maskHandler.onMaskActiveChanged(false,true );
 		update(vm.minFrame, n, vm.maxFrame, vm.animationIsPlaying);
 	}
 
@@ -80,7 +82,7 @@ public class AnimationControlHandler extends AbstractCommandHandler implements V
 		//animationHandler.prev();
 		vm.setSelectedFrame(vm.selectedFrame-vm.frameIncrement);
 		
-		if( vm.selectedEditMode.useLocalMask && vm.selectedScene!=null) {
+		if(  (vm.selectedEditMode.useLocalMask || vm.selectedEditMode.useGlobalMask ) && vm.selectedScene!=null) {
 			selectHash(vm.selectedScene);
 		}
 		vm.setSelection(null);
@@ -94,7 +96,7 @@ public class AnimationControlHandler extends AbstractCommandHandler implements V
 
 		vm.setSelectedFrame(vm.selectedFrame+vm.frameIncrement);
 
-		if( vm.selectedEditMode.useLocalMask && vm.selectedScene!=null) {
+		if( (vm.selectedEditMode.useLocalMask || vm.selectedEditMode.useGlobalMask ) && vm.selectedScene!=null) {
 			selectHash(vm.selectedScene);
 		}
 		vm.setSelection(null);

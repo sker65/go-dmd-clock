@@ -341,6 +341,17 @@ public class DMD extends Observable {
 		}
 	}
 
+	public void invertMask() {
+		if( hasMask() ) { // TODO check why this is called sometimes without mask
+			addUndoBuffer();
+			byte[] data = getFrame().mask.data;
+			for( int i = 0; i < data.length; i++) {
+				data[i] = (byte) ~data[i];
+			}
+			setMask(data);
+		}
+	}
+
 	public void setMask(byte[] data) {
 		frame.setMask(data);
 	}
@@ -363,5 +374,6 @@ public class DMD extends Observable {
 		setPixel(x, y, b?1:0);
 		drawMask = save;
 	}
+
 
 }

@@ -171,7 +171,7 @@ public class EditorView implements MainView {
 	ComboViewer paletteTypeComboViewer;
 	
 	@PojoBinding(srcs={"mask", "showMask", "palette", "drawingEnabled" }, 
-			targets={"mask","detectionMaskActive", "selectedPalette", "drawingEnabled" }) 
+			targets={"mask","showMask", "selectedPalette", "drawingEnabled" }) 
 	DMDWidget dmdWidget;
 	
 	@PojoBinding(src="selection", target="selection") 

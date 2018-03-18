@@ -15,6 +15,7 @@ import org.apache.commons.io.IOUtils;
 import com.rinke.solutions.io.HeatShrinkDecoder;
 import com.rinke.solutions.pinball.animation.Animation.EditMode;
 import com.rinke.solutions.pinball.model.Frame;
+import com.rinke.solutions.pinball.model.Mask;
 import com.rinke.solutions.pinball.model.Plane;
 import com.rinke.solutions.pinball.model.RGB;
 
@@ -62,6 +63,17 @@ public class AniReader {
 					int width = is.readShort();
 					int height = is.readShort();
 					a.setDimension(width, height);
+				}
+				if( version >= 5 ) {
+					int noOfMasks = is.readShort();
+					List<Mask> masks = a.getMasks();
+					for( int i = 0; i < noOfMasks; i++) {
+						boolean locked = is.readBoolean();
+						int length = is.readShort();
+						byte[] data = new byte[length];
+						is.read(data);
+						masks.add(new Mask(data,locked));
+					}
 				}
 				readFrames( is, a, frames, version );
 				numberOfAnimations--;
