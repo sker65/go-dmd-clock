@@ -15,7 +15,7 @@ import com.thoughtworks.xstream.converters.UnmarshallingContext;
 import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 
-@Bean
+//@Bean
 public class XStreamUtil {
 	
 	private XStream xStream;

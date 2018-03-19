@@ -33,8 +33,7 @@ public class ReflectionDispatcher implements CmdDispatcher {
 	@Autowired
 	MessageUtil messageUtil;
 	
-	@Autowired
-	XStreamUtil xStreamUtil;
+	//@Autowired XStreamUtil xStreamUtil;
 	
 	List<CommandHandler> handler = new ArrayList<>();
 
