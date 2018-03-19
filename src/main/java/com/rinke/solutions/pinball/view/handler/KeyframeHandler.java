@@ -142,7 +142,7 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 
 	public void onDeleteKeyframe() {
 		if (vm.selectedKeyFrame != null) {
-			vm.keyframes.remove(vm.selectedKeyFrame);
+			vm.keyframes.remove(vm.selectedKeyFrame.name);
 			checkReleaseMask();
 		}
 	}

@@ -1144,7 +1144,7 @@ public class EditorView implements MainView {
 		btnAddFrameSeq.setToolTipText("Adds a keyframe that triggers playback of a scene");
 		btnAddFrameSeq.setText("ColorScene");
 		// add switch mode depend on ani scene
-		btnAddFrameSeq.addListener(SWT.Selection, e -> dispatchCmd(ADD_FRAME_SEQ, vm.selectedScene.getEditMode()));
+		btnAddFrameSeq.addListener(SWT.Selection, e -> dispatchCmd(ADD_FRAME_SEQ, vm.selectedFrameSeq.getEditMode()));
 		btnAddFrameSeq.setEnabled(false);
 		
 		Label lblDuration = new Label(grpKeyframe, SWT.NONE);
