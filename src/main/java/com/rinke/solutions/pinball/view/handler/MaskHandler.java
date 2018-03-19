@@ -28,7 +28,7 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 		onMaskActiveChanged(old, useMask);
 	}
 	
-	public void onLayeredMaskActiveChanged(boolean old, boolean useMask) {
+	public void onLayerMaskActiveChanged(boolean old, boolean useMask) {
 		vm.setShowMask(useMask || vm.detectionMaskActive );
 		onMaskActiveChanged(old, useMask);
 	}
