@@ -1077,7 +1077,8 @@ public class EditorView implements MainView {
 			btnHash[i].setText("Hash" + i);
 			// btnHash[i].setFont(new Font(shell.getDisplay(), "sans", 10, 0));
 			btnHash[i].setBounds(x, y + i * 16, 331, 18);
-			btnHash[i].addListener(SWT.Selection, e -> dispatchCmd(HASH_SELECTED, (Integer) e.widget.getData()));
+			btnHash[i].addListener(SWT.Selection, e -> dispatchCmd(HASH_SELECTED, (Integer) e.widget.getData(), 
+					((Button)e.widget).getSelection() ));
 		}
 	}
 

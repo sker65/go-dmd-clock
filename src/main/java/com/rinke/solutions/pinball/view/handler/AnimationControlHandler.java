@@ -79,7 +79,7 @@ public class AnimationControlHandler extends AbstractCommandHandler implements V
 			vm.selectedScene.commitDMDchanges(vm.dmd, vm.hashes.get(vm.selectedHashIndex)); 
 			vm.setDirty(vm.dirty|vm.selectedScene.isDirty());
 		}
-		//animationHandler.prev();
+		maskHandler.commitMaskIfNeeded();
 		vm.setSelectedFrame(vm.selectedFrame-vm.frameIncrement);
 		
 		if(  (vm.selectedEditMode.useLocalMask || vm.selectedEditMode.useGlobalMask ) && vm.selectedScene!=null) {
@@ -93,7 +93,7 @@ public class AnimationControlHandler extends AbstractCommandHandler implements V
 			vm.selectedScene.commitDMDchanges(vm.dmd,vm.hashes.get(vm.selectedHashIndex)); 
 			vm.setDirty(vm.dirty|vm.selectedScene.isDirty());
 		}
-
+		maskHandler.commitMaskIfNeeded();
 		vm.setSelectedFrame(vm.selectedFrame+vm.frameIncrement);
 
 		if( (vm.selectedEditMode.useLocalMask || vm.selectedEditMode.useGlobalMask ) && vm.selectedScene!=null) {

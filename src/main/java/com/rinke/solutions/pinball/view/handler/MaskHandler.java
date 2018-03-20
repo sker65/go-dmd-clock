@@ -32,6 +32,14 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 		vm.setShowMask(useMask || vm.detectionMaskActive );
 		onMaskActiveChanged(old, useMask);
 	}
+	
+	public void commitMaskIfNeeded() {
+		Mask mask = getCurrentMask();
+		if( mask != null && vm.dmd.getFrame().mask!=null && vm.dmd.canUndo() ) {
+			mask.commit(vm.dmd.getFrame().mask);
+			vm.setDirty(true);
+		}
+	}
 
 	public void onMaskActiveChanged(boolean old, boolean useMask) {
 		// either we use masks with follow hash mode on scenes
@@ -43,14 +51,7 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 			vm.setUseGlobalMask(vm.selectedEditMode.useGlobalMask);
 		} else {
 			vm.setPaletteToolPlanes(vm.dmd.getNumberOfPlanes());
-			
-			if( vm.useGlobalMask ) { // commit edited global mask
-				Mask mask = vm.masks.get(vm.selectedMask);
-				if(vm.dmd.getFrame().mask!=null) {
-					mask.commit(vm.dmd.getFrame().mask);
-					vm.setDirty(true);
-				}
-			}
+			commitMaskIfNeeded();
 			vm.setMask(null);
 			vm.dmd.removeMask();
 		}
@@ -69,9 +70,7 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 				vm.masks.add(new Mask(vm.dmdSize.planeSize));
 			}
 			vm.setMask(vm.masks.get(newMaskNumber));
-			
 			updateDrawingEnabled();
-// WHY??		vm.setUseGlobalMask(false);
 		}
 		if( vm.selectedEditMode.useLayerMask ) {
 			if( vm.selectedScene != null) {
@@ -79,6 +78,7 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 				updateDrawingEnabled();
 			}
 		}
+		vm.setDmdDirty(true);
 	}
 
 	private boolean isEditable(java.util.List<Animation> a) {

@@ -5,6 +5,7 @@ import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
 
+import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.Bean;
 import com.rinke.solutions.pinball.DmdSize;
 import com.rinke.solutions.pinball.model.Frame;
@@ -13,21 +14,31 @@ import com.rinke.solutions.pinball.view.model.ViewModel;
 
 @Bean
 @Slf4j
-public class HashCmdHandler extends AbstractCommandHandler {
+public class HashCmdHandler extends AbstractCommandHandler implements ViewBindingHandler {
+
+	@Autowired private KeyframeHandler keyframeHandler;
 
 	public HashCmdHandler(ViewModel vm) {
 		super(vm);
 	}
 
-	public void onHashSelected(int idx) {
-		if (vm.selectedKeyFrame != null) {
-			vm.selectedKeyFrame.hashIndex = idx;
+	public void onHashSelected(int idx, boolean on) {
+		if( on ) {
+			if (vm.selectedKeyFrame != null) {
+				vm.selectedKeyFrame.hashIndex = idx;
+			}
+			// switch palettes in preview
+			Palette palette = vm.previewPalettes.get(vm.numberOfPlanes==4?idx:(idx&1)*4);
+			log.info("switch to preview palette: {}", palette);
+			vm.setPreviewDmdPalette(palette);
+			vm.setSelectedHashIndex(idx);
+		} else {
+			vm.setSelectedHashIndex(-1);
 		}
-		// switch palettes in preview
-		Palette palette = vm.previewPalettes.get(vm.numberOfPlanes==4?idx:(idx&1)*4);
-		log.info("switch to preview palette: {}", palette);
-		vm.setPreviewDmdPalette(palette);
-		vm.setSelectedHashIndex(idx);
+	}
+	
+	public void onSelectedHashIndexChanged(int old, int n) {
+		keyframeHandler.updateKeyFrameButtons(vm.selectedRecording, vm.selectedFrameSeq, n);
 	}
 	
 	public String getPrintableHashes(byte[] p) {

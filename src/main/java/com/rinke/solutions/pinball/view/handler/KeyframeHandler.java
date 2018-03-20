@@ -18,6 +18,7 @@ import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.Bean;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.Animation.EditMode;
+import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.model.Model;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.PalMapping.SwitchMode;
@@ -45,6 +46,12 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 		if( vm.selectedKeyFrame != null ) {
 			vm.selectedKeyFrame.durationInMillis = vm.selectedSpinnerDeviceId << 8 + n; 
 		}
+	}
+	
+	public void updateKeyFrameButtons( Animation selectedRecording, Animation selectedFrameSeq, int selectedHashIndex) {
+		vm.setBtnAddKeyframeEnabled(selectedRecording != null && selectedHashIndex != -1);
+		vm.setBtnAddFrameSeqEnabled(selectedRecording != null && selectedFrameSeq != null && selectedHashIndex != -1);
+		vm.setBtnAddEventEnabled(selectedRecording != null && selectedHashIndex != -1);
 	}
 
 	public void onAddKeyFrame(SwitchMode switchMode) {
