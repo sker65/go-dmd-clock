@@ -152,6 +152,7 @@ public class ViewModel extends AbstractModel {
 	@ViewBinding public boolean btnAddKeyframeEnabled;
 	@ViewBinding public boolean btnAddFrameSeqEnabled;
 	@ViewBinding public boolean btnAddEventEnabled;
+	@ViewBinding public String btnAddFrameSeqLabel = "Color Scene";
 	@ViewBinding public boolean btnSetScenePalEnabled;
 	
 	@ViewBinding public boolean livePreviewActive;
@@ -583,6 +584,10 @@ public class ViewModel extends AbstractModel {
 
 	public void setShowMask(boolean showMask) {
 		firePropertyChange("showMask", this.showMask, this.showMask = showMask);
+	}
+
+	public void setBtnAddFrameSeqLabel(String btnAddFrameSeqLabel) {
+		firePropertyChange("btnAddFrameSeqLabel", this.btnAddFrameSeqLabel, this.btnAddFrameSeqLabel = btnAddFrameSeqLabel);
 	}
 
 }

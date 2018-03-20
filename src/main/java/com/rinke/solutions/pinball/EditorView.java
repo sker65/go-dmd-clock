@@ -190,7 +190,7 @@ public class EditorView implements MainView {
 	@GuiBinding(prop=ENABLED) Button markEnd;
 	@GuiBinding(prop=ENABLED) Button cutScene;
 	@GuiBinding( props= { ENABLED, LABEL } ) private Button startStop;
-	@GuiBinding(prop=ENABLED) Button btnAddFrameSeq;
+	@GuiBinding(props={ENABLED,LABEL}) Button btnAddFrameSeq;
 	@PojoBinding(src="palette", target="previewDmdPalette") 
 	DMDWidget previewDmd;
 
@@ -1143,7 +1143,7 @@ public class EditorView implements MainView {
 		btnAddFrameSeq = new Button(grpKeyframe, SWT.NONE);
 		btnAddFrameSeq.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
 		btnAddFrameSeq.setToolTipText("Adds a keyframe that triggers playback of a scene");
-		btnAddFrameSeq.setText("ColorScene");
+		// bound btnAddFrameSeq.setText("ColorScene");
 		// add switch mode depend on ani scene
 		btnAddFrameSeq.addListener(SWT.Selection, e -> dispatchCmd(ADD_FRAME_SEQ, vm.selectedFrameSeq.getEditMode()));
 		btnAddFrameSeq.setEnabled(false);
