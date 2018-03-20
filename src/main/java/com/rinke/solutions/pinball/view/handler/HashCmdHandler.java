@@ -82,6 +82,7 @@ public class HashCmdHandler extends AbstractCommandHandler implements ViewBindin
 			if (hash.startsWith(getEmptyHash())) {/* "BF619EAC0CDF3F68D496EA9344137E8B" */
 				lbls[i]="";
 				enabled[i]=false;
+				if( vm.selectedHashIndex == i ) vm.setSelectedHashIndex(-1);
 			} else {
 				lbls[i]=hash;
 				enabled[i]=true;//btnHashEnabled[i]; // wird nie gesetzt
