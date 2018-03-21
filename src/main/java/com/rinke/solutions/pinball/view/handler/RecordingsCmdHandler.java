@@ -102,7 +102,6 @@ public class RecordingsCmdHandler extends AbstractListCmdHandler implements View
 			vm.setDeleteRecordingEnabled(a!=null);
 			
 			keyframeHandler.updateKeyFrameButtons(a, vm.selectedFrameSeq, vm.selectedHashIndex);
-			
 	}
 	
 	public void onDeleteRecording() {
