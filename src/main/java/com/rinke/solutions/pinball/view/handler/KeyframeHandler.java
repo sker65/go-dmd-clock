@@ -87,11 +87,14 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 			case COLMASK: switchMode = SwitchMode.ADD; break;
 			case FOLLOW: switchMode = SwitchMode.FOLLOW; break;
 			case REPLACE: switchMode = SwitchMode.REPLACE; break;
+			case LAYEREDCOL: switchMode = SwitchMode.LAYEREDCOL; break;
 			default: break;
 		}
 		// retrieve switch mode from selected scene edit mode!!
 		if (vm.selectedFrameSeq != null) {
 			if (vm.selectedHashIndex != -1) {
+			// these if's are actually preconditions for enabled state on the button and should	
+			// always be true
 				Animation ani = vm.selectedFrameSeq;
 				//  add index, add ref to framesSeq
 				if( !switchMode.equals(SwitchMode.PALETTE)) {
@@ -119,11 +122,17 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 				palMapping.animationName = vm.selectedRecording.getDesc();
 				palMapping.switchMode = switchMode;
 				palMapping.frameIndex = vm.selectedRecording.actFrame;
-				if (vm.useGlobalMask) {
+				if (editMode.useGlobalMask) {
 					palMapping.withMask = true;
 					palMapping.maskNumber = vm.selectedMask;
 					vm.masks.get(vm.selectedMask).locked = true;
 					vm.setDetectionMaskActive(true);
+				} else if( editMode.useLayerMask && vm.selectedScene != null ) {
+					palMapping.withMask = true;
+					palMapping.maskNumber = vm.selectedMask;
+					vm.selectedScene.getMask(vm.selectedMask).locked = true;
+					//vm.setDetectionMaskActive(false);
+					palMapping.targetFrameIndex = 0; // how will this look like
 				}
 				if (!checkForDuplicateKeyFrames(palMapping)) {
 					vm.keyframes.put(palMapping.name,palMapping);

@@ -45,7 +45,7 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 		
 		if( current != null ) {
 			vm.scenesPosMap.put(current.getDesc(), current.actFrame);
-			current.commitDMDchanges(vm.dmd,vm.hashes.get(vm.selectedHashIndex));
+			current.commitDMDchanges(vm.dmd,vm.selectedHashIndex != -1 ? vm.hashes.get(vm.selectedHashIndex) : null);
 			vm.setDirty(vm.dirty | current.isDirty());
 		}
 		if( nextScene != null ) {
