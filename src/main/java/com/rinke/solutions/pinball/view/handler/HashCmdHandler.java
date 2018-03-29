@@ -71,7 +71,7 @@ public class HashCmdHandler extends AbstractCommandHandler implements ViewBindin
 		saveHashes(hashes);
 	}
 
-	private void refreshHashButtons(List<byte[]> hashes) {
+	void refreshHashButtons(List<byte[]> hashes) {
 		//if( v.btnHash[0] == null ) return; // avoid NPE if not initialized
 		int i = 0;
 		String[] lbls = Arrays.copyOf(vm.hashLbl, vm.numberOfHashButtons);
@@ -100,7 +100,7 @@ public class HashCmdHandler extends AbstractCommandHandler implements ViewBindin
 		vm.setHashButtonEnabled(enabled);
 	}
 
-	private String getEmptyHash() {
+	String getEmptyHash() {
 		return vm.dmdSize.equals(DmdSize.Size128x32) ? "B2AA7578" : "6C1CE17E";
 	}
 

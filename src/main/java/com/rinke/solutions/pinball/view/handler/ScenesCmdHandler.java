@@ -29,8 +29,8 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 	
 	private List<EditMode> mutable = Arrays.asList( EditMode.REPLACE, EditMode.COLMASK, EditMode.FOLLOW, EditMode.LAYEREDCOL );
 
-	@Autowired private DrawCmdHandler drawCmdHandler;
-	@Autowired private MaskHandler maskHandler;
+	@Autowired DrawCmdHandler drawCmdHandler;
+	@Autowired MaskHandler maskHandler;
 
 	public ScenesCmdHandler(ViewModel vm) {
 		super(vm);

@@ -52,7 +52,7 @@ public class AutosaveHandler extends AbstractCommandHandler implements Runnable 
 		mainView.timerExec(300*1000, this);
 	}
 
-	private void doAutoSave() {
+	void doAutoSave() {
 		if( autosave ) {
 			String filename = getFilename();
 			log.info("auto save to {}", filename);
