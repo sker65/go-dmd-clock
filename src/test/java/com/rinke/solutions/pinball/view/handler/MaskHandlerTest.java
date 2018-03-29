@@ -55,5 +55,43 @@ public class MaskHandlerTest extends HandlerTest  {
 		uut.onDeleteColMask();
 	}
 
+	@Test
+	public void testOnSelectedMaskChanged() throws Exception {
+		vm.setSelectedEditMode(EditMode.REPLACE);
+		uut.onSelectedMaskChanged(0, 1);
+	}
+
+	@Test
+	public void testOnSelectedMaskChangedLayered() throws Exception {
+		vm.setSelectedScene(getScene("foo"));
+		vm.setSelectedEditMode(EditMode.LAYEREDCOL);
+		uut.onSelectedMaskChanged(0, 1);
+	}
+
+	@Test
+	public void testGetCurrentMask() throws Exception {
+		vm.setSelectedEditMode(EditMode.REPLACE);
+		uut.getCurrentMask();
+	}
+
+	@Test
+	public void testGetCurrentMaskWithScene() throws Exception {
+		vm.setSelectedScene(getScene("foo"));
+		vm.setSelectedEditMode(EditMode.LAYEREDCOL);
+		uut.getCurrentMask();
+	}
+
+	@Test
+	public void testOnLayerMaskActiveChanged() throws Exception {
+		vm.setSelectedEditMode(EditMode.LAYEREDCOL);
+		uut.onLayerMaskActiveChanged(false, true);
+	}
+
+	@Test
+	public void testCommitMaskIfNeeded() throws Exception {
+		vm.setSelectedEditMode(EditMode.LAYEREDCOL);
+		uut.commitMaskIfNeeded();
+	}
+
 
 }

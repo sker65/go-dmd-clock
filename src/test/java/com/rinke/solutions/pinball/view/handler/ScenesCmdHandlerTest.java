@@ -27,13 +27,20 @@ import com.rinke.solutions.pinball.view.model.ViewModel;
 public class ScenesCmdHandlerTest extends HandlerTest {
 	@Mock
 	private AnimationHandler animationHandler;
+	
+	@Mock DrawCmdHandler drawCmdHandler;
+	@Mock MaskHandler maskHandler;
 
 	private ScenesCmdHandler uut;
 
 	@Before
 	public void setUp() throws Exception {
+		// setup some hashes
+		vm.hashes.add( new byte[]{0,1,2,3});
 		this.uut = new ScenesCmdHandler(vm);
 		this.uut.animationHandler = animationHandler;
+		this.uut.drawCmdHandler = drawCmdHandler;
+		this.uut.maskHandler = maskHandler;
 	}
 	
 	@Test
@@ -66,7 +73,7 @@ public class ScenesCmdHandlerTest extends HandlerTest {
 
 	@Test
 	public void testOnSetScenePalette() throws Exception {
-		CompiledAnimation cani = new CompiledAnimation(AnimationType.COMPILED, "old.txt", 0, 0, 0, 0, 0);
+		CompiledAnimation cani = getScene("old.txt");
 		cani.setDesc("scene1");
 		vm.setSelectedScene(cani);
 		RGB[] rgb = {};
@@ -94,12 +101,12 @@ public class ScenesCmdHandlerTest extends HandlerTest {
 
 	@Test
 	public void testOnDeleteScene() throws Exception {
-//		throw new RuntimeException("not yet implemented");
+		uut.onDeleteScene();
 	}
 
 	@Test
 	public void testOnSortScenes() throws Exception {
-//		throw new RuntimeException("not yet implemented");
+		uut.onSortScenes();
 	}
 
 	@Test
@@ -112,4 +119,24 @@ public class ScenesCmdHandlerTest extends HandlerTest {
 //		throw new RuntimeException("not yet implemented");
 	}
 
+	@Test
+	public void testOnSelectedSceneChanged() throws Exception {
+		CompiledAnimation oldScene = null;
+		CompiledAnimation nextScene = getScene(null);
+		uut.onSelectedSceneChanged(oldScene , nextScene);
+	}
+
+	@Test
+	public void testOnSelectedSceneChangedWithOldScene() throws Exception {
+		CompiledAnimation oldScene = getScene("old");
+		CompiledAnimation nextScene = getScene(null);
+		uut.onSelectedSceneChanged(oldScene , nextScene);
+	}
+
+	@Test
+	public void testOnSelectedSceneChangedWithNextSceneNull() throws Exception {
+		CompiledAnimation oldScene = getScene("old");
+		uut.onSelectedSceneChanged(oldScene , null);
+	}
+	
 }

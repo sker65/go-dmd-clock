@@ -4,7 +4,11 @@ package com.rinke.solutions.pinball.view.handler;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.hamcrest.MatcherAssert.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.nullValue;
+//import static org.hamcrest.Matchers.*;
+import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.*;
 
 import java.io.File;
 
@@ -13,11 +17,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import com.rinke.solutions.pinball.AnimationActionHandler;
-import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.DmdSize;
 import com.rinke.solutions.pinball.animation.AnimationType;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
@@ -44,19 +48,15 @@ public class ProjectHandlerTest extends HandlerTest {
 	
 	@Mock LicenseManager licenseManager;
 	
-	private ProjectHandler uut;
+	@InjectMocks
+	private ProjectHandler uut = new ProjectHandler(vm);
 	
 	@Rule
 	public TemporaryFolder testFolder = new TemporaryFolder();
 	
 	@Before public void setup() {
-		uut = new ProjectHandler(vm);
 		uut.fileHelper = new FileHelper();
 		uut.aniAction = new AnimationActionHandler(vm);
-		// inject mocks
-		uut.messageUtil = messageUtil;
-		uut.fileChooserUtil = fileChooserUtil;
-		uut.licenseManager = licenseManager;
 	}
 	
 	@Test
@@ -163,6 +163,68 @@ public class ProjectHandlerTest extends HandlerTest {
 	@Test 
 	public void testOnImportProject() throws Exception {
 		uut.importProject("./src/test/resources/test.xml");
+	}
+
+	@Test
+	public void testOnImportProjectWithChoose() throws Exception {
+		when(fileChooserUtil.choose(anyInt(), eq(null), any(String[].class), any(String[].class)))
+			.thenReturn("src/test/resources/test.xml");
+		uut.onImportProject();
+	}
+
+	@Test
+	public void testOnDmdSizeChanged() throws Exception {
+		uut.onDmdSizeChanged(DmdSize.Size128x32, DmdSize.Size192x64);
+	}
+
+	@Test
+	public void testOnLoadProject() throws Exception {
+		uut.onLoadProject();
+	}
+
+	@Test
+	public void testOnLoadProjectWithName() throws Exception {
+		when(fileChooserUtil.choose(anyInt(), eq(null), any(String[].class), any(String[].class)))
+			.thenReturn("src/test/resources/ex1.xml");
+		uut.onLoadProject();
+	}
+
+	@Test
+	public void testOnExportRealPinProject() throws Exception {
+		File tempFile = testFolder.newFile("test.dat");
+		when(fileChooserUtil.choose(anyInt(), anyString(), any(String[].class), any(String[].class)))
+		.thenReturn(tempFile.getAbsolutePath());
+		vm.setProjectFilename("foo"); 
+		uut.onExportRealPinProject();
+	}
+
+	@Test
+	public void testOnExportVirtualPinProject() throws Exception {
+		File tempFile = testFolder.newFile("test.dat");
+		when(fileChooserUtil.choose(anyInt(), anyString(), any(String[].class), any(String[].class)))
+		.thenReturn(tempFile.getAbsolutePath());
+		
+		vm.setProjectFilename("foo"); 
+
+		uut.onExportVirtualPinProject();
+	}
+
+	@Test
+	public void testOnSaveProject() throws Exception {
+		uut.onSaveProject();
+	}
+
+	@Test
+	public void testSaveProject() throws Exception {
+		String filename = testFolder.newFile("test.xml").getAbsolutePath();
+		uut.saveProject(filename );
+	}
+
+	@Test
+	public void testSaveProjectWithBackup() throws Exception {
+		String filename = testFolder.newFile("test.xml").getAbsolutePath();
+		uut.backup = true;
+		uut.saveProject(filename );
 	}
 
 

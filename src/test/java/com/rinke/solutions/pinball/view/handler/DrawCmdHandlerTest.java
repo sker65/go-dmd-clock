@@ -9,8 +9,12 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import com.rinke.solutions.pinball.AnimationHandler;
 import com.rinke.solutions.pinball.MaskDmdObserver;
+import com.rinke.solutions.pinball.animation.AniEvent;
+import com.rinke.solutions.pinball.animation.AniEvent.Type;
 import com.rinke.solutions.pinball.animation.Animation.EditMode;
+import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.util.MessageUtil;
+import com.rinke.solutions.pinball.widget.DMDWidget.Rect;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DrawCmdHandlerTest extends HandlerTest {
@@ -33,18 +37,58 @@ public class DrawCmdHandlerTest extends HandlerTest {
 	private RecordingsCmdHandler recordingsCmdHandler;
 	
 	@InjectMocks
-	private DrawCmdHandler drawCmdHandler = new DrawCmdHandler(vm, vm.dmd);
+	private DrawCmdHandler uut = new DrawCmdHandler(vm, vm.dmd);
 
 	@Before
 	public void setUp() throws Exception {
-		
 	}
 
 	@Test
 	public void testOnSelectedEditModeChanged() throws Exception {
 		vm.setSelectedScene(ani);
-		drawCmdHandler.onSuggestedEditModeChanged(EditMode.REPLACE, EditMode.COLMASK);
-		drawCmdHandler.onSuggestedEditModeChanged(EditMode.COLMASK, EditMode.REPLACE);
+		uut.onSuggestedEditModeChanged(EditMode.REPLACE, EditMode.COLMASK);
+		uut.onSuggestedEditModeChanged(EditMode.COLMASK, EditMode.REPLACE);
+	}
+
+	@Test
+	public void testOnDrawingEnabledChanged() throws Exception {
+		uut.onDrawingEnabledChanged(false, true);
+	}
+
+	@Test
+	public void testOnSelectedFrameChanged() throws Exception {
+		uut.onSelectedFrameChanged(0, 1);
+	}
+
+	@Test
+	public void testOnSelectionChanged() throws Exception {
+		Rect r = new Rect(0, 0, 10, 20);
+		uut.onSelectionChanged(null, r );
+		uut.onSelectionChanged(r, null );
+	}
+
+	@Test
+	public void testNotifyAni() throws Exception {
+		AniEvent evt = new AniEvent(Type.CLEAR);
+		uut.notifyAni(evt);
+	}
+
+	@Test
+	public void testNotifyAniTypeFrameChange() throws Exception {
+		AniEvent evt = new AniEvent(Type.FRAMECHANGE, getScene("foo"), new Frame() );
+		uut.notifyAni(evt );
+	}
+
+	@Test
+	public void testNotifyAniClockType() throws Exception {
+		AniEvent evt = new AniEvent(Type.CLOCK, getScene("foo"), new Frame() );
+		uut.notifyAni(evt );
+	}
+
+	@Test
+	public void testNotifyAniAniType() throws Exception {
+		AniEvent evt = new AniEvent(Type.ANI, getScene("foo"), new Frame() );
+		uut.notifyAni(evt );
 	}
 
 }

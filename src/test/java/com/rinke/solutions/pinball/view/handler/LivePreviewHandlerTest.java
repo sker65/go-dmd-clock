@@ -15,8 +15,10 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import com.rinke.solutions.pinball.api.LicenseManager;
 import com.rinke.solutions.pinball.io.Pin2DmdConnector;
+import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.PalMapping.SwitchMode;
+import com.rinke.solutions.pinball.model.Palette;
 
 @RunWith(MockitoJUnitRunner.class)
 public class LivePreviewHandlerTest extends HandlerTest {
@@ -51,6 +53,35 @@ public class LivePreviewHandlerTest extends HandlerTest {
 	@Test
 	public void testOnPin2dmdAdruessChanged() throws Exception {
 		// test reconnect
+	}
+
+	@Test
+	public void testOnPin2dmdAdressChanged() throws Exception {
+		uut.onPin2dmdAdressChanged("foo", "bar");
+	}
+
+	@Test
+	public void testOnUploadPalette() throws Exception {
+		Palette pal = Palette.getDefaultPalettes().get(0);
+		uut.onUploadPalette(pal );
+	}
+
+	@Test
+	public void testOnLivePreviewActiveChanged() throws Exception {
+		uut.onLivePreviewActiveChanged(false, true);
+	}
+
+	@Test
+	public void testOnSelectedPaletteChanged() throws Exception {
+		Palette pal = Palette.getDefaultPalettes().get(0);
+		Palette old = Palette.getDefaultPalettes().get(1);
+		uut.onSelectedPaletteChanged(old, pal);
+	}
+
+	@Test
+	public void testSendFrame() throws Exception {
+		Frame frame = getScene("foo").frames.get(0);
+		uut.sendFrame(frame );
 	}
 
 

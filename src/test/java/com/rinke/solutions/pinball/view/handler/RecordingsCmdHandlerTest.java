@@ -1,7 +1,7 @@
 package com.rinke.solutions.pinball.view.handler;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -14,20 +14,21 @@ import com.rinke.solutions.pinball.AnimationHandler;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.AnimationType;
 import com.rinke.solutions.pinball.model.PalMapping;
+import com.rinke.solutions.pinball.util.MessageUtil;
 import com.rinke.solutions.pinball.view.model.ViewModel;
 
 @RunWith(MockitoJUnitRunner.class)
 public class RecordingsCmdHandlerTest extends HandlerTest {
 	
-	@Mock
-	private AnimationHandler animationHandler;
+	@Mock AnimationHandler animationHandler;
+	@Mock KeyframeHandler keyframeHandler;
+	@Mock MessageUtil messageUtil;
 	
-	private RecordingsCmdHandler uut;
+	@InjectMocks
+	private RecordingsCmdHandler uut = new RecordingsCmdHandler(vm);
 
 	@Before
 	public void setUp() throws Exception {
-		this.uut = new RecordingsCmdHandler(vm);
-		this.uut.animationHandler = animationHandler;
 	}
 
 	@Test
@@ -55,6 +56,32 @@ public class RecordingsCmdHandlerTest extends HandlerTest {
 		uut.onRenameRecording("old", "new");
 		assertTrue( vm.recordingNameMap.containsKey("old"));
 		assertEquals("new", vm.recordingNameMap.get("old"));
+	}
+
+	@Test
+	public void testOnSelectedRecordingChanged() throws Exception {
+		uut.onSelectedRecordingChanged(null, getScene("foo"));
+	}
+
+	@Test
+	public void testOnDeleteRecording() throws Exception {
+		vm.setSelectedRecording(getScene("foo"));
+		uut.onDeleteRecording();
+	}
+
+	@Test
+	public void testOnDeleteRecordingWithKeyframe() throws Exception {
+		vm.setSelectedRecording(getScene("foo"));
+		PalMapping pal = new PalMapping(0, "pal");
+		pal.animationName = "foo";
+		vm.keyframes.put("k1", pal );
+		uut.onDeleteRecording();
+		verify(messageUtil).warn(anyString(), anyString());
+	}
+
+	@Test
+	public void testOnSortRecording() throws Exception {
+		uut.onSortRecording();
 	}
 
 
