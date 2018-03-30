@@ -1,6 +1,5 @@
 package com.rinke.solutions.pinball;
 
-import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.io.File;
 import java.io.IOException;
@@ -12,8 +11,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import javax.imageio.ImageIO;
 
 import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.CmdLineException;
@@ -29,7 +26,6 @@ import com.rinke.solutions.beans.SimpleBeanFactory;
 import com.rinke.solutions.beans.Value;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.api.LicenseManagerFactory;
-import com.rinke.solutions.pinball.renderer.ImageUtil;
 import com.rinke.solutions.pinball.util.Config;
 import com.rinke.solutions.pinball.view.ChangeHandlerHelper;
 import com.rinke.solutions.pinball.view.CmdDispatcher;
@@ -38,11 +34,8 @@ import com.rinke.solutions.pinball.view.handler.AutosaveHandler;
 import com.rinke.solutions.pinball.view.handler.CommandHandler;
 import com.rinke.solutions.pinball.view.handler.CutCmdHandler;
 import com.rinke.solutions.pinball.view.handler.DrawCmdHandler;
-import com.rinke.solutions.pinball.view.handler.HashCmdHandler;
-import com.rinke.solutions.pinball.view.handler.LivePreviewHandler;
 import com.rinke.solutions.pinball.view.handler.MenuHandler;
 import com.rinke.solutions.pinball.view.handler.ProjectHandler;
-import com.rinke.solutions.pinball.view.handler.RecordingsCmdHandler;
 import com.rinke.solutions.pinball.view.handler.ViewBindingHandler;
 import com.rinke.solutions.pinball.view.model.ViewModel;
 
@@ -52,14 +45,6 @@ public class PinDmdEditor {
 	public static int DMD_WIDTH = 128;
 	public static int DMD_HEIGHT = 32;
 	public static int PLANE_SIZE = 128/8*32;
-
-	//DMD dmd = new DMD(128, 32); // for sake of window builder
-	
-	//ObservableMap<String, Animation> recordings = new ObservableMap<String, Animation>(new LinkedHashMap<>());
-	//ObservableMap<String, CompiledAnimation> scenes = new ObservableMap<String, CompiledAnimation>(new LinkedHashMap<>());
-	//Map<String,Integer> scenesPosMap = new HashMap<String, Integer>();
-
-	//protected int lastTimeCode;
 
 	@Option(name = "-ani", usage = "animation file to load", required = false)
 	private String aniToLoad;
@@ -82,19 +67,7 @@ public class PinDmdEditor {
 	@Argument
 	private java.util.List<String> arguments = new ArrayList<String>();
 
-
-	//ObservableProperty<Animation> selectedRecording = new ObservableProperty<Animation>(null);
-	//ObservableProperty<CompiledAnimation> selectedScene = new ObservableProperty<CompiledAnimation>(null);
-	
-	//java.util.List<Animation> playingAnis = new ArrayList<Animation>();
-	//Palette activePalette;
-	
 	int numberOfHashes = 4;
-	//java.util.List<byte[]> hashes = new ArrayList<byte[]>();
-
-	// stores the overall controled enabled state, actual buttons only gets enabled ever, when this is true
-	// move to view state
-	//boolean[] btnHashEnabled = new boolean[numberOfHashes];
 
 	private String pluginsPath;
 	private List<String> loadedPlugins = new ArrayList<>();

@@ -243,8 +243,10 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 				vm.setSelectedMask(nk.maskNumber);
 
 				String[] lbls = Arrays.copyOf(vm.hashLbl, vm.hashLbl.length);
-				String txt = lbls[vm.selectedHashIndex];
-				if( !txt.startsWith("M")) lbls[vm.selectedHashIndex] = "M" + nk.maskNumber + " " + txt;
+				if( vm.selectedHashIndex != -1) {
+					String txt = lbls[vm.selectedHashIndex];
+					if( !txt.startsWith("M")) lbls[vm.selectedHashIndex] = "M" + nk.maskNumber + " " + txt;
+				}
 				vm.setHashLbl(lbls);
 			}
 			

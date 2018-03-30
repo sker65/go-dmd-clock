@@ -120,7 +120,7 @@ public class CompiledAnimation extends Animation {
 		        dmdFrame.copyToWithMask(aniFrame, aniFrame.hasMask() ? -1 : (-1<<1) );
 		        setDirty(true);
 	    	}
-	    	if( !Arrays.areEqual(hash, aniFrame.crc32)) {
+	    	if( hash!=null && !Arrays.areEqual(hash, aniFrame.crc32)) {
 		        aniFrame.setHash(hash);
 	    	}
 	    }

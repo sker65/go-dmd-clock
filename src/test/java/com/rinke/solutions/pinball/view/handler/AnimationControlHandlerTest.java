@@ -43,6 +43,12 @@ public class AnimationControlHandlerTest extends HandlerTest {
 	}
 
 	@Test
+	public void testOnNextFrameNoHash() throws Exception {
+		vm.setSelectedHashIndex(-1);
+		uut.onNextFrame();
+	}
+
+	@Test
 	public void testOnStartStop() throws Exception {
 		uut.onStartStop(true);
 	}
