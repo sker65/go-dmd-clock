@@ -229,6 +229,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 	}
 	
 	String bareName(String filename) {
+		if( filename == null ) filename = "pin2dmd.xml";
 		String b = new File(filename).getName();
 		int i = b.lastIndexOf('.');
 		return i==-1?b:b.substring(0, i);
