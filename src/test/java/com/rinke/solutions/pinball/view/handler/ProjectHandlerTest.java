@@ -76,6 +76,7 @@ public class ProjectHandlerTest extends HandlerTest {
 
 	@Test
 	public void testBareName() throws Exception {
+		assertEquals("pin2dmd", uut.bareName(null));
 		assertEquals("foo", uut.bareName("foo"));
 		assertEquals("foo", uut.bareName("foo.xml"));
 		assertEquals("foo", uut.bareName("/USER/foo.xml"));
