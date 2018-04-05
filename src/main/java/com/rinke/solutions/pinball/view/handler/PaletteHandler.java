@@ -2,6 +2,8 @@ package com.rinke.solutions.pinball.view.handler;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.OptionalInt;
@@ -13,6 +15,7 @@ import org.eclipse.swt.SWT;
 
 import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.Bean;
+import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.io.DMCImporter;
 import com.rinke.solutions.pinball.io.FileHelper;
@@ -36,7 +39,6 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 	
 	public PaletteHandler(ViewModel vm) {
 		super(vm);
-//		this.editor = editor;
 	}
 	
 	public void onRenamePalette(String newName) {
@@ -77,6 +79,53 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 		}
 	}
 	
+	int addIndex = 0;
+	
+	public void onExtractPalColorsFromFrame() {
+		Collection<RGB> cols = extractColorsFromFrame(vm.dmd);
+		boolean sometingWasAdded = false;
+		boolean dirty = false;
+		if( vm.selectedPalette != null ) {
+			do {
+				sometingWasAdded = false;
+				for(RGB c : cols) {
+					if( !containsCol(vm.selectedPalette, c) ) {
+						// add to palette
+						sometingWasAdded = true;
+						dirty = true;
+						vm.selectedPalette.colors[addIndex++] = new RGB( c.red, c.green, c.blue);
+						if( addIndex >= vm.selectedPalette.colors.length ) addIndex = 0;
+						break;
+					}
+				} 
+			} while( sometingWasAdded );
+			
+			if( dirty ) {
+				vm.setPaletteDirty(true);
+			}
+		}
+	}
+	
+	private boolean containsCol(Palette pal, RGB c) {
+		for(RGB c1 : pal.colors) {
+			if( c1.equals(c) ) return true;
+		}
+		return false;
+	}
+
+	private Collection<RGB> extractColorsFromFrame(DMD dmd) {
+		Map<Integer,RGB> res = new HashMap<Integer, RGB>();
+		for( int x = 0; x < dmd.getWidth(); x++) {
+			for(int y = 0; y < dmd.getHeight(); y++) {
+				int rgb = dmd.getPixelWithoutMask(x, y);
+				if( !res.containsKey(rgb) ) {
+					res.put(rgb, new RGB(rgb>>16, (rgb>>8) & 0xFF, rgb & 0xFF));
+				}
+			}
+		}
+		return res.values();
+	}
+
 	private boolean isNewPaletteName(String text) {
 		for (Palette pal : vm.paletteMap.values()) {
 			if (pal.name.equals(text))

@@ -326,6 +326,7 @@ public class EditorView implements MainView {
 
 		MenuItem mntmExit = new MenuItem(menu_1, SWT.NONE);
 		mntmExit.setText("Exit\tCtrl-Q");
+		mntmExit.setAccelerator(SWT.MOD1 + 'Q');
 		mntmExit.addListener(SWT.Selection, e -> dirtyCheck(QUIT, "Quit") );
 
 		MenuItem mntmedit = new MenuItem(menu, SWT.CASCADE);
@@ -433,7 +434,12 @@ public class EditorView implements MainView {
 		MenuItem mntmSavePalette = new MenuItem(menu_3, SWT.NONE);
 		mntmSavePalette.setText("Save Palette");
 		mntmSavePalette.addListener(SWT.Selection, e -> dispatchCmd(SAVE_PALETTE));
-
+		
+		MenuItem mntmExtractColorsFrom = new MenuItem(menu_3, SWT.NONE);
+		mntmExtractColorsFrom.setText("Extract Colors from Frame\tCtrl-E");
+		mntmExtractColorsFrom.setAccelerator(SWT.MOD1 + 'E');
+		mntmExtractColorsFrom.addListener(SWT.Selection, e -> dispatchCmd("extractPalColorsFromFrame"));
+		
 		MenuItem mntmRecentPalettesItem = new MenuItem(menu_3, SWT.CASCADE);
 		mntmRecentPalettesItem.setText("Recent Palettes");
 
@@ -771,6 +777,9 @@ public class EditorView implements MainView {
 		lblPlanes.setText("Planes:");
 
 		lblPlanesVal = new Text(grpDetails, SWT.NONE);
+		GridData gd_lblPlanesVal = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+		gd_lblPlanesVal.widthHint = 30;
+		lblPlanesVal.setLayoutData(gd_lblPlanesVal);
 		lblPlanesVal.setText("---");
 		new Label(grpDetails, SWT.NONE);
 
@@ -1516,5 +1525,4 @@ public class EditorView implements MainView {
 		editor.init(new ViewModel(), beanFactory);
 		editor.open();
 	}
-
 }

@@ -112,6 +112,9 @@ public class EditorViewBinding extends AbstractCommandHandler implements ViewBin
 			btns.forEach(b->b.setSelection(vm.hashButtonSelected[(int) b.getData()]));
 		} else if( propName.equals("hashLbl")) {
 			btns.forEach(b->b.setText(vm.hashLbl[(int) b.getData()]));
+		} else if( propName.equals("paletteDirty")) {
+			editorView.paletteTool.setPalette(vm.selectedPalette);
+			vm.paletteDirty = false;
 		} else if( propName.equals("hashButtonEnabled") || propName.equals("hashButtonsEnabled")) { // beware of the 's'
 			btns.forEach(b->{
 				b.setEnabled(vm.hashButtonEnabled[(int) b.getData()] && vm.hashButtonsEnabled );

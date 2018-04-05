@@ -124,6 +124,7 @@ public class ViewModel extends AbstractModel {
 	public ObservableList<Mask> masks = new ObservableList<>(new ArrayList<>());
 	
 	public boolean dmdDirty;
+	public boolean paletteDirty;
 	public boolean useGlobalMask;
 	public DMD dmd = new DMD(128,32);
 
@@ -588,6 +589,10 @@ public class ViewModel extends AbstractModel {
 
 	public void setBtnAddFrameSeqLabel(String btnAddFrameSeqLabel) {
 		firePropertyChange("btnAddFrameSeqLabel", this.btnAddFrameSeqLabel, this.btnAddFrameSeqLabel = btnAddFrameSeqLabel);
+	}
+
+	public void setPaletteDirty(boolean paletteDirty) {
+		firePropertyChange("paletteDirty", this.paletteDirty, this.paletteDirty = paletteDirty);
 	}
 
 }
