@@ -340,6 +340,8 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 	}
 	
 	private void drawDMDwithoutMask(GC gcImage, Frame frame, int numberOfSubframes, boolean useColorIndex, Color[] cols) {
+		int bitsPerColorChannel = numberOfSubframes / 3;
+		int cmask = 0xFF >> (8-bitsPerColorChannel);
 		for (int row = 0; row < resolutionY; row++) {
             for (int col = 0; col < resolutionX; col++) {
                 byte mask = (byte) (0b10000000 >> (col % 8));
@@ -353,9 +355,9 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
                 	gcImage.setBackground(cols[v]);
                 } else {
                 	// v is rgb directly
-                	int r = (v >> 10) << 3;
-                    int g = ( ( v >> 5 ) & 0x1F ) << 3;
-                    int b = ( v & 0x1F ) << 3;
+                	int r = (v >> (bitsPerColorChannel*2)) << (8-bitsPerColorChannel);
+                    int g = ( ( v >> (bitsPerColorChannel) ) & cmask ) << (8-bitsPerColorChannel);
+                    int b = ( v & cmask ) << (8-bitsPerColorChannel);
                 	Color c = resourceManager.createColor(new RGB(r,g,b));
                 	gcImage.setBackground(c);
                 }
@@ -365,6 +367,8 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 	}
 
 	private void drawDMD(GC gcImage, Frame frame, int numberOfSubframes, boolean useColorIndex, Color[] cols) {
+		int bitsPerColorChannel = numberOfSubframes / 3;
+		int cmask = 0xFF >> (8-bitsPerColorChannel);
 		boolean checkMask = maskOut && frame.hasMask();
 		if( !checkMask ) {
 			drawDMDwithoutMask(gcImage, frame, numberOfSubframes, useColorIndex, cols);
@@ -393,9 +397,9 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
                 	gcImage.setBackground(cols[v]);
                 } else {
                 	// v is rgb directly
-                	int r = (v >> 10) << 3;
-                    int g = ( ( v >> 5 ) & 0x1F ) << 3;
-                    int b = ( v & 0x1F ) << 3;
+                	int r = (v >> (bitsPerColorChannel*2)) << (8-bitsPerColorChannel);
+                    int g = ( ( v >> (bitsPerColorChannel) ) & cmask ) << (8-bitsPerColorChannel);
+                    int b = ( v & cmask ) << (8-bitsPerColorChannel);
                 	Color c = resourceManager.createColor(new RGB(r,g,b));
                 	gcImage.setBackground(c);
                 }

@@ -23,6 +23,7 @@ import com.rinke.solutions.pinball.renderer.PcapRenderer;
 import com.rinke.solutions.pinball.renderer.PinDumpRenderer;
 import com.rinke.solutions.pinball.renderer.PngRenderer;
 import com.rinke.solutions.pinball.renderer.Renderer;
+import com.rinke.solutions.pinball.renderer.RgbRenderer;
 import com.rinke.solutions.pinball.renderer.VPinMameRenderer;
 import com.rinke.solutions.pinball.renderer.VideoCapRenderer;
 
@@ -424,6 +425,9 @@ public class Animation {
 			break;
 		case IMGIO:
 			renderer = new ImageIORenderer(pattern);
+			break;
+		case RGB:
+			renderer = new RgbRenderer();
 			break;
 		default:
 			break;

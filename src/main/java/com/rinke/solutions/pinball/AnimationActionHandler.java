@@ -102,6 +102,8 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 			loadedList.addAll(AnimationFactory.createAnimationsFromProperties(filename,shell));
 		} else if (extensionIs(filename, ".pcap", ".pcap.gz")) {
 			loadedList.add(Animation.buildAnimationFromFile(filename, AnimationType.PCAP));
+		} else if (extensionIs(filename, ".rgb", ".rgb.gz")) {
+			loadedList.add(Animation.buildAnimationFromFile(filename, AnimationType.RGB));
 		} else if (extensionIs(filename, ".dump", ".dump.gz")) {
 			loadedList.add(Animation.buildAnimationFromFile(filename, AnimationType.PINDUMP, shell));
 		} else if (extensionIs(filename, ".gif")) {
