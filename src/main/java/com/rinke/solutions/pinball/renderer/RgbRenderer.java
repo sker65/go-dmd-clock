@@ -49,7 +49,20 @@ public class RgbRenderer extends Renderer {
 							new FileInputStream(new File(filename))));
 			
 			Frame res = createFrame(dmd);
-
+			byte[] header = new byte[4];
+			stream.read(header);
+			// 0x52 0x47 0x42 0x00
+			if( header[0] != 0x52 || header[1] != 0x47 || header[2] != 0x42 || header[3] != 0x00 ) 
+				throw new RuntimeException("missing fileheader");
+			int version = stream.read();
+			if( version > 1 )
+				throw new RuntimeException("unsupported version");
+			int w = stream.read();
+			int h = stream.read();
+			if( w != dmd.getWidth() || h != dmd.getHeight() ) {
+				throw new RuntimeException("reinit project with fitting dmd size: "+w+"x"+h);
+			}
+			
 			while ( true ) {
 				byte[] ts = new byte[4];
 				stream.read(ts);
@@ -108,14 +121,5 @@ public class RgbRenderer extends Renderer {
 		if( ch >= 'a' && ch <= 'f') return ch -'a' + 10;
 		return 0;
 	}
-
-	/*private void inc(Map<Integer, Integer> map, int v) {
-		if( map.containsKey(v)) {
-			map.put(v, map.get(v)+1);
-		} else {
-			map.put(v, 1);
-		}
-		
-	}*/
 
 }
