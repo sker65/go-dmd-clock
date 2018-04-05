@@ -398,6 +398,10 @@ public class EditorView implements MainView {
 		MenuItem mntmSaveSingleAnimation = new MenuItem(menu_2, SWT.NONE);
 		mntmSaveSingleAnimation.setText("Save single Animation");
 		mntmSaveSingleAnimation.addListener(SWT.Selection, e -> dispatchCmd(SAVE_SINGLE_ANI_WITH_FC,1));
+		
+		MenuItem mntmQuantizeScene = new MenuItem(menu_2, SWT.NONE);
+		mntmQuantizeScene.setText("Quantize Scene");
+		mntmQuantizeScene.addListener(SWT.Selection, e -> dispatchCmd("quantizeScene"));
 
 		MenuItem mntmRecentAnimationsItem = new MenuItem(menu_2, SWT.CASCADE);
 		mntmRecentAnimationsItem.setText("Recent Animations");

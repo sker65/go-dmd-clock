@@ -6,6 +6,7 @@ import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.Bean;
 import com.rinke.solutions.beans.Value;
 import com.rinke.solutions.pinball.animation.Animation;
+import com.rinke.solutions.pinball.animation.AnimationQuantizer;
 import com.rinke.solutions.pinball.animation.Animation.EditMode;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.model.PalMapping.SwitchMode;
@@ -64,6 +65,24 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 			vm.setSceneCutEnabled(vm.cutInfo.canCut());
 		}
 	}
+
+	public void onQuantizeScene() {
+		CompiledAnimation src = vm.selectedScene;
+		if( src != null ) {
+			AnimationQuantizer quantizer = new AnimationQuantizer();
+			String name = src.getDesc()+"_q";
+			CompiledAnimation newScene = quantizer.quantize(name, src, vm.selectedPalette);
+			newScene.setDesc(name);
+			newScene.setPalIndex(vm.selectedPalette.index);
+			newScene.setProjectAnimation(true);
+			newScene.setEditMode(EditMode.COLMASK);
+					
+			vm.scenes.put(name, newScene);
+			vm.scenes.refresh();
+
+		}		
+	}
+	
 
 	public void onCutScene() {
 		// respect number of planes while cutting / copying
