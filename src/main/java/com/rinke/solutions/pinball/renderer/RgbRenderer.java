@@ -80,9 +80,9 @@ public class RgbRenderer extends Renderer {
 				if( read == frameSize ) {
 					for( int x = 0; x < dmd.getWidth(); x++ ) {
 						for( int y = 0; y < dmd.getHeight(); y++ ) {
-							int r = rgb[(x+y*dmd.getWidth())*3];
-							int g = rgb[(x+y*dmd.getWidth())*3+1];
-							int b = rgb[(x+y*dmd.getWidth())*3+2];
+							int r = rgb[(x+y*dmd.getWidth())*3] & 0xff;
+							int g = rgb[(x+y*dmd.getWidth())*3+1] & 0xff;
+							int b = rgb[(x+y*dmd.getWidth())*3+2] & 0xff;
 							int v = (r<<16) + (g<<8) + b;
 							int bit = (x % 8);
 							int mask = (0b10000000 >> bit);
