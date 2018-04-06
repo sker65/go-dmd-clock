@@ -85,6 +85,7 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 		Collection<RGB> cols = extractColorsFromFrame(vm.dmd);
 		boolean sometingWasAdded = false;
 		boolean dirty = false;
+		int formerAddIndex = addIndex;
 		if( vm.selectedPalette != null ) {
 			do {
 				sometingWasAdded = false;
@@ -98,7 +99,7 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 						break;
 					}
 				} 
-			} while( sometingWasAdded );
+			} while( sometingWasAdded && addIndex != formerAddIndex ); // to avoid loops
 			
 			if( dirty ) {
 				vm.setPaletteDirty(true);

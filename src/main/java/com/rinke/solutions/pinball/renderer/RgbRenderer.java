@@ -66,7 +66,7 @@ public class RgbRenderer extends Renderer {
 			while ( true ) {
 				byte[] ts = new byte[4];
 				stream.read(ts);
-				long newTs = (ts[3]<<24) + (ts[2] << 16) + (ts[1] << 8) + ts[0];
+				long newTs = ((ts[3]&0xff)<<24) + ((ts[2]&0xff) << 16) + ((ts[1]&0xff) << 8) + (ts[0]&0xff);
 				if (frameNo > 0 && lastTimeStamp > 0) {
 					//System.out.println(newTs+":"+(newTs - lastTimeStamp));
 					frames.get(frameNo - 1).delay = (int) (newTs - lastTimeStamp);
