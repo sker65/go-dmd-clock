@@ -1420,12 +1420,12 @@ public class EditorView implements MainView {
 	private void innerInit(ViewModel vm, BeanFactory beanFactory) {
 		
 		shell = new Shell();
+		EditorViewBinding viewBinding = null;
 		
 		if( beanFactory != null ) {
 			beanFactory.setSingleton("shell", shell);
 			config = beanFactory.getBeanByType(Config.class);
-			EditorViewBinding viewBinding = beanFactory.getBeanByType(EditorViewBinding.class);
-			viewBinding.setEditorView(this);
+			viewBinding = beanFactory.getBeanByType(EditorViewBinding.class);
 		}
 
 		this.vm = vm;
@@ -1451,7 +1451,7 @@ public class EditorView implements MainView {
 		if (splashScreen != null) {
 			splashScreen.close();
 		}
-
+		if( viewBinding != null ) viewBinding.setEditorView(this);
 	}
 	
 	private void copyLogo(DMD dmd) {

@@ -1,10 +1,10 @@
 package com.rinke.solutions.pinball;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.Arrays;
 import java.util.stream.Stream;
-
-import lombok.Setter;
 
 import org.eclipse.swt.widgets.Button;
 
@@ -14,11 +14,12 @@ import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.view.handler.AbstractCommandHandler;
 import com.rinke.solutions.pinball.view.handler.ViewBindingHandler;
 import com.rinke.solutions.pinball.view.model.ViewModel;
+import com.rinke.solutions.pinball.widget.DMDWidget.Rect;
 
 @Bean
-public class EditorViewBinding extends AbstractCommandHandler implements ViewBindingHandler {
+public class EditorViewBinding extends AbstractCommandHandler implements ViewBindingHandler, PropertyChangeListener {
 
-	@Setter private EditorView editorView;
+	private EditorView editorView;
 	
 	@Autowired private AnimationHandler animationHandler;
 
@@ -138,5 +139,17 @@ public class EditorViewBinding extends AbstractCommandHandler implements ViewBin
 	public void onDmdSizeChanged(DmdSize old, DmdSize newSize) {
 		editorView.dmdWidget.setResolution(vm.dmd);
 		editorView.previewDmd.setResolution(vm.dmd);
+	}
+
+	public void setEditorView(EditorView editorView) {
+		 this.editorView = editorView;
+		 editorView.dmdWidget.addPropertyChangeListener(this);
+	}
+
+	@Override
+	public void propertyChange(PropertyChangeEvent evt) {
+		if( evt.getPropertyName().equals("selection")) {
+			vm.setSelection((Rect) evt.getNewValue());
+		}
 	}
 }
