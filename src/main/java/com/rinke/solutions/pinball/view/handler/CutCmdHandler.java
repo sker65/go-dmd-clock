@@ -75,7 +75,7 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 			newScene.setDesc(name);
 			newScene.setPalIndex(vm.selectedPalette.index);
 			newScene.setProjectAnimation(true);
-			newScene.setEditMode(EditMode.COLMASK);
+			newScene.setEditMode(EditMode.REPLACE);
 					
 			vm.scenes.put(name, newScene);
 			vm.scenes.refresh();
