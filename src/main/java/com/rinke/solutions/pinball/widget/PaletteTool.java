@@ -26,7 +26,10 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 
+import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.pinball.model.Palette;
+import com.rinke.solutions.pinball.view.CmdDispatcher;
+import com.rinke.solutions.pinball.view.CmdDispatcher.Command;
 import com.rinke.solutions.pinball.widget.color.ColorPicker;
 import com.rinke.solutions.pinball.widget.color.ColorPicker.ColorModifiedEvent;
 import com.rinke.solutions.pinball.widget.color.ColorPicker.ColorModifiedListener;
@@ -37,6 +40,8 @@ public class PaletteTool implements ColorModifiedListener {
 	final ToolItem colBtn[] = new ToolItem[16];
 	Palette palette;
 	private Display display;
+
+	@Autowired CmdDispatcher dispatcher;
 
 	ResourceManager resManager;
 	private int selectedColor;
@@ -65,6 +70,8 @@ public class PaletteTool implements ColorModifiedListener {
 	public void addListener(ColorChangedListerner listener) {
 		colorChangedListeners.add(listener);
 	}
+	
+	// draw tools bind to this to get actual color index
 	public void addIndexListener(ColorIndexChangedListerner listener) {
 		indexChangedListeners.add(listener);
 	}
@@ -132,6 +139,7 @@ public class PaletteTool implements ColorModifiedListener {
 			colBtn[i].setImage(getSquareImage(display, toSwtRGB(pal.colors[i])));
 			colBtn[i].addListener(SWT.Selection, e -> {
 				int col = (Integer) e.widget.getData();
+				int oldCol = selectedColor;
 				selectedColor = col;
 				tmpRgb = getSelectedRGB();
 				boolean sel = ((ToolItem)e.widget).getSelection();
@@ -139,9 +147,21 @@ public class PaletteTool implements ColorModifiedListener {
 				if( sel && ( (e.stateMask & SWT.CTRL) != 0 || (e.stateMask & 4194304) != 0 )) {
 					changeColor();
 				}
+				if( sel && ( e.stateMask & SWT.SHIFT) != 0 ) {
+					// swap
+					com.rinke.solutions.pinball.model.RGB tmp = palette.colors[oldCol];
+					palette.colors[oldCol] = palette.colors[selectedColor];
+					palette.colors[selectedColor] = tmp;
+					setPalette(this.palette);
+					swapColor(oldCol,selectedColor);
+				}
 			});
 			if( i % 4 == 3 && i < colBtn.length-1) new ToolItem(toolBar, SWT.SEPARATOR);
 		}
+	}
+
+	private void swapColor(int oldCol, int newCol) {
+		dispatcher.dispatch(new Command<Object[]>(new Object[]{oldCol,newCol}, "swapColors"));
 	}
 
 	public int getSelectedColor() {

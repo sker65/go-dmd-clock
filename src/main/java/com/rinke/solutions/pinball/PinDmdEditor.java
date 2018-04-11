@@ -188,6 +188,8 @@ public class PinDmdEditor {
 
 		beanFactory.inject(this);
 		beanFactory.inject(mainView);
+		for(Object target: mainView.getInjectTargets())
+			beanFactory.inject(target);
 		
 		autoSaveHandler.setMainView(mainView);
 

@@ -6,7 +6,10 @@ import static com.rinke.solutions.pinball.Commands.*;
 import java.awt.SplashScreen;
 import java.awt.image.BufferedImage;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -1014,9 +1017,15 @@ public class EditorView implements MainView {
 		
 		paletteTool = new PaletteTool(shell, grpPal, SWT.FLAT | SWT.RIGHT, vm.selectedPalette);
 		
+		ToolBar bar = new ToolBar(grpPalettes, SWT.NONE);
+		btnPick = new ToolItem(bar, SWT.NONE);
+		btnPick.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/color-picker.png")));
+		btnPick.addListener(SWT.Selection, e->dispatchCmd("pickPalette"));
+		ToolItem btnPick2 = new ToolItem(bar, SWT.NONE);
+		btnPick2.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/color-picker2.png")));
+
 		Label lblCtrlclick = new Label(grpPalettes, SWT.NONE);
 		lblCtrlclick.setText("Ctrl-Click to edit");
-		new Label(grpPalettes, SWT.NONE);	
 	}
 
 	private void createStartStopControl(Composite parent) {
@@ -1388,6 +1397,7 @@ public class EditorView implements MainView {
 	}
 	
 	Realm realm;
+	private ToolItem btnPick;
 	@Override
 	public void init(ViewModel vm, BeanFactory beanFactory) {
 		display = Display.getDefault();
@@ -1528,5 +1538,10 @@ public class EditorView implements MainView {
 		beanFactory.setSingleton("config",new Config());
 		editor.init(new ViewModel(), beanFactory);
 		editor.open();
+	}
+
+	@Override
+	public List<Object> getInjectTargets() {
+		return Arrays.asList(paletteTool);
 	}
 }

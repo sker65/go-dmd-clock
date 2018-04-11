@@ -18,6 +18,7 @@ public class Config implements BeanFactory.PropertyProvider {
 
 	private String propertiesFilename = "pin2dmd.properties";
 	public static final String PIN2DMD_ADRESS = "pin2dmdAdress";
+	public static final String COLOR_ACCURACY = "colorAccuracy";
 	public static final String DMDSIZE = "dmdSize";
 	public static final String GODMD_ENABLED_PROP_KEY = "godmdEnabled";
 	public static final String AUTOSAVE_INTERVAL = "autosaveInterval";

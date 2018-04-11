@@ -123,7 +123,7 @@ public class DMD extends Observable {
     }
 
     public void setPixel(int x, int y, int v) {
-        if( x<0 || y<0 || x>=width || y >= height ) return;
+    	if( rangeCheck(x,y) ) return;
     	byte mask = (byte) (0b10000000 >> (x % 8));
         if( maskIsRelevant() ) {
     		if( (v & 0x01) != 0) {

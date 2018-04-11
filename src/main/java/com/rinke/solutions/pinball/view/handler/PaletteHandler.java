@@ -15,16 +15,23 @@ import org.eclipse.swt.SWT;
 
 import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.Bean;
+import com.rinke.solutions.beans.Value;
 import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.animation.Animation;
+import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.io.DMCImporter;
 import com.rinke.solutions.pinball.io.FileHelper;
 import com.rinke.solutions.pinball.io.PaletteImporter;
 import com.rinke.solutions.pinball.io.SmartDMDImporter;
+import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.PaletteType;
+import com.rinke.solutions.pinball.model.Plane;
 import com.rinke.solutions.pinball.model.RGB;
+import com.rinke.solutions.pinball.ui.ConfigDialog;
+import com.rinke.solutions.pinball.ui.PalettePicker;
+import com.rinke.solutions.pinball.util.Config;
 import com.rinke.solutions.pinball.util.FileChooserUtil;
 import com.rinke.solutions.pinball.util.MessageUtil;
 import com.rinke.solutions.pinball.view.model.ViewModel;
@@ -36,7 +43,10 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 	FileHelper fileHelper = new FileHelper();
 	@Autowired FileChooserUtil fileChooserUtil;
 	@Autowired MessageUtil messageUtil;
-	
+
+	@Value(key=Config.COLOR_ACCURACY,defaultValue="0")
+    private int colorAccuracy;
+
 	public PaletteHandler(ViewModel vm) {
 		super(vm);
 	}
@@ -77,6 +87,128 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 			log.info("new palette is {}", vm.selectedPalette);
 			vm.setSelectedPaletteType(vm.selectedPalette.type);
 		}
+	}
+	
+	public void onSwapColors(int old, int newIdx) {
+		log.info("swapping colors in palette for actual scene: {} -> {}", old, newIdx);
+		// TODO should change all scenes that use that palette
+		if( vm.selectedScene != null ) {
+			CompiledAnimation ani = vm.selectedScene;
+			for( Frame f : ani.frames ) {
+				swap(f, old, newIdx, vm.dmd.getWidth(), vm.dmd.getHeight());
+			}
+		}
+	}
+	
+	@Autowired
+	private PalettePicker palettePicker;
+	
+	public void onPickPalette() {
+		if( vm.selectedScene != null ) {
+			palettePicker.setAccuracy(colorAccuracy);
+			palettePicker.setColorListProvider(p->extractColorsFromScene(vm.selectedScene, p));
+			palettePicker.open();
+			colorAccuracy = palettePicker.getAccuracy();
+			if( palettePicker.getResult() != null && vm.selectedPalette != null ) {
+				int i = 0;
+				for( RGB c : palettePicker.getResult()) {
+					if( i < vm.selectedPalette.numberOfColors ) vm.selectedPalette.colors[i++] = c;
+				}
+				vm.setPaletteDirty(true);
+			}
+		}
+	}
+	
+	List<RGB> extractColorsFromScene(CompiledAnimation scene, int accuracy) {
+		int w = scene.width;
+		int h = scene.height;
+		List<RGB> result = new ArrayList<>();
+		for( Frame f: scene.frames) {
+			for( int x = 0; x < w; x++) {
+				for(int y=0; y < h; y++) {
+					int bytesPerRow = w / 8;
+			    	byte mask = (byte) (0b10000000 >> (x % 8));
+			    	int rgb = 0;
+			    	for(int plane = 0; plane < f.planes.size(); plane++) {
+			    		rgb += (f.planes.get(plane).data[x / 8 + y * bytesPerRow] & mask) != 0 ? (1<<plane) : 0;
+			    	}
+			    	// color
+			    	RGB col = new RGB(rgb>>16, (rgb>>8) & 0xFF, rgb & 0xFF);
+			    	if( !inList( result, col, accuracy ) ) {
+			    		result.add(col);
+			    	}
+				}
+			}
+		}
+		return result;
+	}
+	
+	/**
+	 * checks if a given color is already in the list with respect to the given accuracy
+	 * @param colors list of colors
+	 * @param col color to check
+	 * @param accuracy accuracy from 0 to 100 (100 very accurate -> exact match)
+	 * @return true if similar color is found
+	 */
+	private boolean inList(List<RGB> colors, RGB col, int accuracy) {
+		for( RGB c : colors) {
+			float d = getColorDistance(c, col); 
+			//System.out.println(d);
+			if( d < (0.001f + 2f * accuracy) ) return true; 
+		}
+		return false;
+	}
+	
+	public float getColorDistance(RGB c1, RGB c2) {
+		return (float) getColorDistance(c1.red, c1.green, c1.blue, c2.red, c2.green, c2.blue);
+	}
+
+	public double getColorDistance(int r1, int g1, int b1, int r2, int g2, int b2) {
+		return Math.sqrt(Math.pow(r2 - r1, 2) + Math.pow(g2 - g1, 2) + Math.pow(b2 - b1, 2));
+	}
+
+	// TODO sehr ähnlich funktionen gibts im Animation Quantisierer
+	/**
+	 * swap color index from old to new
+	 * @param f 
+	 * @param o old color index
+	 * @param n new color index
+	 */
+	public void swap(Frame f, int o, int n, int w, int h) {
+		List<Plane> np = new ArrayList<>();
+		// copy planes
+		for(int plane = 0; plane < f.planes.size(); plane++) {
+			np.add( new Plane(f.planes.get(plane)));
+		}
+		// transform (swap) planes
+		for( int x = 0; x < w; x++) {
+			for(int y=0; y < h; y++) {
+				int bytesPerRow = w / 8;
+		    	byte mask = (byte) (0b10000000 >> (x % 8));
+		    	int v = 0;
+		    	int nv = 0;
+		    	for(int plane = 0; plane < f.planes.size(); plane++) {
+		    		v += (f.planes.get(plane).data[x / 8 + y * bytesPerRow] & mask) != 0 ? (1<<plane) : 0;
+		    	}
+		    	// swap
+		    	if( v == o ) nv = n;
+		    	else if( v == n ) nv = o;
+		    	else nv = v;
+		    	
+		    	for(int plane = 0; plane < np.size(); plane++) {
+		    		if( ((1<<plane)) != 0) {
+		        		if( (nv & 0x01) != 0) {
+		        			np.get(plane).data[y*bytesPerRow+x/8] |= mask;
+		        		} else {
+		        			np.get(plane).data[y*bytesPerRow+x/8] &= ~mask;
+		        		}
+		    		}
+		    		nv >>= 1;
+		    	}		    	
+			} // y
+		} // x
+		// replace it
+		f.planes = np;
 	}
 	
 	int addIndex = 0;
