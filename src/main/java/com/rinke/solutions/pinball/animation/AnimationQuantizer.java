@@ -10,7 +10,12 @@ public class AnimationQuantizer {
 	public CompiledAnimation quantize(String name, CompiledAnimation in, Palette pal) {
 		CompiledAnimation result = new CompiledAnimation(AnimationType.COMPILED, name,in.start, in.end,in.skip, 0, 0);
 		for( Frame inFrame : in.frames ) {
-			result.addFrame(quantizeFrame(inFrame, pal, in.width, in.height));
+			Frame qFrame = quantizeFrame(inFrame, pal, in.width, in.height);
+			qFrame.delay = inFrame.delay;
+			qFrame.timecode = inFrame.timecode;
+			qFrame.crc32 = inFrame.crc32;
+			qFrame.mask = new Plane(inFrame.mask);
+			result.addFrame(qFrame);
 		}
 		return result;
 	}
