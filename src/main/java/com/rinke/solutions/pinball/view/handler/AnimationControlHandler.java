@@ -86,6 +86,7 @@ public class AnimationControlHandler extends AbstractCommandHandler implements V
 			selectHash(vm.selectedScene);
 		}
 		vm.setSelection(null);
+		//if( vm.selectedScene != null ) System.out.println(vm.selectedScene.actFrame);
 	}
 	
 	byte[] saveGetHash(int idx) {
@@ -104,6 +105,7 @@ public class AnimationControlHandler extends AbstractCommandHandler implements V
 			selectHash(vm.selectedScene);
 		}
 		vm.setSelection(null);
+		//if( vm.selectedScene != null ) System.out.println(vm.selectedScene.actFrame);
 	}
 	
 	private void selectHash(CompiledAnimation ani) {
