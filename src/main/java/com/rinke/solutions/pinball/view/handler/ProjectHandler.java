@@ -293,7 +293,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 				if( vm.scenes.containsKey(p.frameSeqName) ) {
 					FrameSeq frameSeq = new FrameSeq(p.frameSeqName);
 					if (p.switchMode.masking ) {
-						frameSeq.mask = 0b11111100;
+						frameSeq.mask = 0b11111111111111111111100;
 					}
 					frameSeqMap.put(p.frameSeqName, frameSeq);
 				} else {
@@ -366,6 +366,11 @@ public class ProjectHandler extends AbstractCommandHandler {
 							iter.remove();
 						}
 						pl++;
+					}
+					if( frame.planes.size() == 24 ) { // reduce 8 bit per color to 5 bit per color
+						frame.planes.remove(5); frame.planes.remove(5); frame.planes.remove(5);
+						frame.planes.remove(10); frame.planes.remove(10); frame.planes.remove(10);
+						frame.planes.remove(15); frame.planes.remove(15); frame.planes.remove(15);
 					}
 					p.frames.add(frame);
 				}
