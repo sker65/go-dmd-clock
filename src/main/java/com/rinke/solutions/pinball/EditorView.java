@@ -1021,8 +1021,10 @@ public class EditorView implements MainView {
 		btnPick = new ToolItem(bar, SWT.NONE);
 		btnPick.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/color-picker.png")));
 		btnPick.addListener(SWT.Selection, e->dispatchCmd("pickPalette"));
+		
 		ToolItem btnPick2 = new ToolItem(bar, SWT.NONE);
 		btnPick2.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/color-picker2.png")));
+		btnPick2.addListener(SWT.Selection, e->dispatchCmd("extractPalColorsFromFrame"));
 
 		Label lblCtrlclick = new Label(grpPalettes, SWT.NONE);
 		lblCtrlclick.setText("Ctrl-Click to edit");

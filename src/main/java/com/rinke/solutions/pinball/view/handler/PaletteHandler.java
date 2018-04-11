@@ -211,52 +211,32 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 		f.planes = np;
 	}
 	
-	int addIndex = 0;
-	
 	public void onExtractPalColorsFromFrame() {
-		Collection<RGB> cols = extractColorsFromFrame(vm.dmd);
-		boolean sometingWasAdded = false;
-		boolean dirty = false;
-		int formerAddIndex = addIndex;
-		if( vm.selectedPalette != null ) {
-			do {
-				sometingWasAdded = false;
-				for(RGB c : cols) {
-					if( !containsCol(vm.selectedPalette, c) ) {
-						// add to palette
-						sometingWasAdded = true;
-						dirty = true;
-						vm.selectedPalette.colors[addIndex++] = new RGB( c.red, c.green, c.blue);
-						if( addIndex >= vm.selectedPalette.colors.length ) addIndex = 0;
-						break;
-					}
-				} 
-			} while( sometingWasAdded && addIndex != formerAddIndex ); // to avoid loops
-			
-			if( dirty ) {
-				vm.setPaletteDirty(true);
+		palettePicker.setAccuracy(colorAccuracy);
+		palettePicker.setColorListProvider(p->extractColorsFromFrame(vm.dmd, p));
+		palettePicker.open();
+		colorAccuracy = palettePicker.getAccuracy();
+		if( palettePicker.getResult() != null && vm.selectedPalette != null ) {
+			int i = 0;
+			for( RGB c : palettePicker.getResult()) {
+				if( i < vm.selectedPalette.numberOfColors ) vm.selectedPalette.colors[i++] = c;
 			}
+			vm.setPaletteDirty(true);
 		}
-	}
-	
-	private boolean containsCol(Palette pal, RGB c) {
-		for(RGB c1 : pal.colors) {
-			if( c1.equals(c) ) return true;
-		}
-		return false;
 	}
 
-	private Collection<RGB> extractColorsFromFrame(DMD dmd) {
-		Map<Integer,RGB> res = new HashMap<Integer, RGB>();
+	List<RGB> extractColorsFromFrame(DMD dmd, int accuracy) {
+		List<RGB> res = new ArrayList<>();
 		for( int x = 0; x < dmd.getWidth(); x++) {
 			for(int y = 0; y < dmd.getHeight(); y++) {
 				int rgb = dmd.getPixelWithoutMask(x, y);
-				if( !res.containsKey(rgb) ) {
-					res.put(rgb, new RGB(rgb>>16, (rgb>>8) & 0xFF, rgb & 0xFF));
+				RGB col = new RGB(rgb>>16, (rgb>>8) & 0xFF, rgb & 0xFF);
+				if( !inList(res, col, accuracy) ) {
+					res.add(col);
 				}
 			}
 		}
-		return res.values();
+		return res;
 	}
 
 	private boolean isNewPaletteName(String text) {
