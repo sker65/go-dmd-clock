@@ -10,33 +10,27 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.resource.LocalResourceManager;
 import org.eclipse.jface.resource.ResourceManager;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Scale;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Scale;
-import org.eclipse.swt.widgets.Label;
-import org.junit.experimental.max.MaxCore;
 
 import com.rinke.solutions.beans.Bean;
-import com.rinke.solutions.beans.Scope;
-import com.rinke.solutions.beans.Value;
 import com.rinke.solutions.pinball.model.RGB;
-import com.rinke.solutions.pinball.util.Config;
 import com.rinke.solutions.pinball.view.View;
 
 //@Slf4j
