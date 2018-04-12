@@ -98,4 +98,19 @@ public class KeyframeHandlerTest extends HandlerTest {
 		uut.onAddKeyFrame(SwitchMode.REPLACE);
 	}
 
+	@Test
+	public void testUpdateKeyFrameButtons() throws Exception {
+		uut.updateKeyFrameButtons(getScene(""), getScene(""), 0);
+	}
+
+	@Test
+	public void testOnSelectedSpinnerEventIdChanged() throws Exception {
+		uut.onSelectedSpinnerEventIdChanged(0, 1);
+	}
+
+	@Test
+	public void testOnSelectedSpinnerDeviceIdChanged() throws Exception {
+		uut.onSelectedSpinnerDeviceIdChanged(0, 1);
+	}
+
 }

@@ -66,6 +66,16 @@ public class AnimationActionHandlerTest extends HandlerTest{
 	}
 
 	@Test
+	public void testLoadAniWithDump() throws Exception {
+		uut.loadAni("./src/test/resources/drwho-dump.txt.gz", false, false);
+	}
+
+	@Test
+	public void testLoadAniWithRgb() throws Exception {
+		uut.loadAni("./src/test/resources/term32.rgb.gz", false, false);
+	}
+
+	@Test
 	public void testPopulateAni() throws Exception {
 		Map<String, CompiledAnimation> anis = new HashMap<>();
 		uut.populateAni(getScene("foo"), anis );
