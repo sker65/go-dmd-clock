@@ -1,5 +1,7 @@
 package com.rinke.solutions.pinball.animation;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.List;
 
 import org.junit.Before;
@@ -32,7 +34,9 @@ public class AnimationQuantizerTest {
 		Animation ani = handler.loadAni("./src/test/resources/term32.rgb.gz", false, false).get(0);
 		CompiledAnimation scene = ani.cutScene(0, 1, 24);
 		Palette pal = Palette.getDefaultPalettes().get(0);
-		uut.quantize("foo", scene, pal );
+		CompiledAnimation qAni = uut.quantize("foo", scene, pal );
+		assertEquals(scene.frames.get(0).delay, qAni.frames.get(0).delay);
+		assertEquals(scene.frames.get(0).timecode, qAni.frames.get(0).timecode);
 	}
 
 	@Test
