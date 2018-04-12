@@ -91,4 +91,16 @@ public class DrawCmdHandlerTest extends HandlerTest {
 		uut.notifyAni(evt );
 	}
 
+	@Test
+	public void testOnAddFrame() throws Exception {
+		vm.selectedScene = getScene("foo");
+		uut.onAddFrame();
+	}
+
+	@Test
+	public void testOnRemoveFrame() throws Exception {
+		vm.selectedScene = getScene("foo");
+		uut.onRemoveFrame();
+	}
+
 }

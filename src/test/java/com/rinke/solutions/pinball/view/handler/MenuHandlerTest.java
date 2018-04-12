@@ -7,7 +7,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.pinball.AnimationHandler;
 import com.rinke.solutions.pinball.DmdSize;
 import com.rinke.solutions.pinball.ui.GifExporter;
