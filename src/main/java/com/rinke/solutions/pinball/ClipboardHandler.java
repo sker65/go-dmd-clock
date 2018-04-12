@@ -24,7 +24,6 @@ import com.rinke.solutions.pinball.widget.PasteTool;
  * @author Stefan Rinke
  */
 @Slf4j
-// TODO introduce interface to decouple the imaging types as well: Image / ImageData / RGB / PaletteData / Display
 public class ClipboardHandler implements Runnable {
 	
 	// introduce an interface that eliminates the direct dependencies from SWT clipboard
