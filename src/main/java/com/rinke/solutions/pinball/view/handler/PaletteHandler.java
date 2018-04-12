@@ -43,7 +43,8 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 	FileHelper fileHelper = new FileHelper();
 	@Autowired FileChooserUtil fileChooserUtil;
 	@Autowired MessageUtil messageUtil;
-
+	@Autowired PalettePicker palettePicker;
+	
 	@Value(key=Config.COLOR_ACCURACY,defaultValue="0")
     private int colorAccuracy;
 
@@ -99,9 +100,6 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 			}
 		}
 	}
-	
-	@Autowired
-	private PalettePicker palettePicker;
 	
 	public void onPickPalette() {
 		if( vm.selectedScene != null ) {

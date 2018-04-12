@@ -16,20 +16,32 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.runners.MockitoJUnitRunner;
 
-
+import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.PaletteType;
 import com.rinke.solutions.pinball.model.RGB;
+import com.rinke.solutions.pinball.ui.PalettePicker;
 import com.rinke.solutions.pinball.util.FileChooserUtil;
 import com.rinke.solutions.pinball.util.MessageUtil;
+import com.rinke.solutions.pinball.util.ObservableMap;
 import com.rinke.solutions.pinball.view.handler.PaletteHandler;
 import com.rinke.solutions.pinball.view.model.ViewModel;
 
+@RunWith(MockitoJUnitRunner.class)
 public class PaletteHandlerTest extends HandlerTest  {
 
-	PaletteHandler uut;
+	@Mock MessageUtil messageUtil;
+	@Mock FileChooserUtil fileChooserUtil;
+	@Mock PalettePicker palettePicker;
+	
+	@InjectMocks
+	PaletteHandler uut = new PaletteHandler(vm);
 	
 	@Rule
 	public TemporaryFolder tmpFolder = new TemporaryFolder();
@@ -41,14 +53,8 @@ public class PaletteHandlerTest extends HandlerTest  {
 			new RGB(12,0,0), new RGB(13,1,1), new RGB(14,2,2), new RGB(15,3,3),
 			};
 
-	private FileChooserUtil fileChooserUtil;
-
 	@Before
 	public void setUp() throws Exception {
-		uut = new PaletteHandler(vm);
-		uut.messageUtil = Mockito.mock(MessageUtil.class);
-		this.fileChooserUtil = Mockito.mock(FileChooserUtil.class);
-		uut.fileChooserUtil = fileChooserUtil;
 	}
 
 	@Test
@@ -144,5 +150,33 @@ public class PaletteHandlerTest extends HandlerTest  {
 		vm.setSelectedPalette(pal1);
 		vm.paletteMap.put(pal1.index, pal1);
 		uut.onDeletePalette();
+	}
+
+	@Test
+	public void testOnPickPalette() throws Exception {
+		vm.selectedScene = getScene("foo");
+		uut.onPickPalette();
+	}
+
+	@Test
+	public void testExtractColorsFromScene() throws Exception {
+		uut.extractColorsFromScene(getScene("f"), 20);
+	}
+
+	@Test
+	public void testExtractColorsFromFrame() throws Exception {
+		uut.extractColorsFromFrame(vm.dmd, 20);
+	}
+
+	@Test
+	public void testOnExtractPalColorsFromFrame() throws Exception {
+		uut.onExtractPalColorsFromFrame();
+	}
+
+	@Test
+	public void testSwap() throws Exception {
+		int planeSize = vm.dmdSize.planeSize;
+		Frame frame = new Frame(new byte[planeSize], new byte[planeSize]);
+		uut.swap(frame, 0, 1, vm.dmdSize.width, vm.dmdSize.height);
 	}
 }
