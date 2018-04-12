@@ -98,14 +98,5 @@ public class ImageIORenderer extends Renderer {
 		return p>0?name.substring(p+1):name;
 	}
 
-	public static void main(String[] args) {
-		Renderer renderer = new ImageIORenderer(null);
-		String base = "/Users/stefanri/Downloads/";
-		DMD dmd = new DMD(PinDmdEditor.DMD_WIDTH, PinDmdEditor.DMD_HEIGHT);
-		renderer.convert(base + "pin", dmd, 0);
-	}
-
-
-
 
 }

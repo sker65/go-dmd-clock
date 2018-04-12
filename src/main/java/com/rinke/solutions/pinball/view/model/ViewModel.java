@@ -201,6 +201,7 @@ public class ViewModel extends AbstractModel {
 	
 	@ViewBinding public Palette selectedPalette = Palette.getDefaultPalettes().get(0);
 	@ViewBinding public ObservableMap<Integer,Palette> paletteMap = new ObservableMap<>(new LinkedHashMap<>());
+	@ViewBinding public int selectedColor;
 	
 	public void setDmdSize(DmdSize dmdSize) {
 		firePropertyChange("dmdSize", this.dmdSize, this.dmdSize = dmdSize);
@@ -593,6 +594,10 @@ public class ViewModel extends AbstractModel {
 
 	public void setPaletteDirty(boolean paletteDirty) {
 		firePropertyChange("paletteDirty", this.paletteDirty, this.paletteDirty = paletteDirty);
+	}
+
+	public void setSelectedColor(int selectedColor) {
+		firePropertyChange("selectedColor", this.selectedColor, this.selectedColor = selectedColor);
 	}
 
 }

@@ -30,12 +30,13 @@ import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.view.CmdDispatcher;
 import com.rinke.solutions.pinball.view.CmdDispatcher.Command;
+import com.rinke.solutions.pinball.view.model.AbstractModel;
 import com.rinke.solutions.pinball.widget.color.ColorPicker;
 import com.rinke.solutions.pinball.widget.color.ColorPicker.ColorModifiedEvent;
 import com.rinke.solutions.pinball.widget.color.ColorPicker.ColorModifiedListener;
 
 @Slf4j
-public class PaletteTool implements ColorModifiedListener {
+public class PaletteTool extends AbstractModel implements ColorModifiedListener {
 	
 	final ToolItem colBtn[] = new ToolItem[16];
 	Palette palette;
@@ -135,12 +136,13 @@ public class PaletteTool implements ColorModifiedListener {
 	private void createColorButtons(ToolBar toolBar, Palette pal) {
 		for (int i = 0; i < colBtn.length; i++) {
 			colBtn[i] = new ToolItem(toolBar, SWT.RADIO);
+			colBtn[i].setSelection(i==0);
 			colBtn[i].setData(Integer.valueOf(i));
 			colBtn[i].setImage(getSquareImage(display, toSwtRGB(pal.colors[i])));
 			colBtn[i].addListener(SWT.Selection, e -> {
 				int col = (Integer) e.widget.getData();
 				int oldCol = selectedColor;
-				selectedColor = col;
+				setSelectedColor(col);
 				tmpRgb = getSelectedRGB();
 				boolean sel = ((ToolItem)e.widget).getSelection();
 				indexChangedListeners.forEach(l -> l.indexChanged(selectedColor));
@@ -213,6 +215,10 @@ public class PaletteTool implements ColorModifiedListener {
 	}
 	public Palette getPalette() {
 		return palette;
+	}
+
+	public void setSelectedColor(int selectedColor) {
+		firePropertyChange("selectedColor", this.selectedColor, this.selectedColor = selectedColor);
 	}
 
 }

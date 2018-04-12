@@ -1,6 +1,11 @@
 package com.rinke.solutions.databinding;
 
+import java.beans.BeanDescriptor;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -165,7 +170,11 @@ public class DataBinder {
 		b.f.setAccessible(true);
 		try {
 			Object viewPojo = b.f.get(view);
-			observer = PojoProperties.value(b.src).observe(viewPojo);
+			if( propertyChangeSupported( viewPojo ) ) {
+				observer = BeanProperties.value(b.src).observe(viewPojo);
+			} else {
+				observer = PojoProperties.value(b.src).observe(viewPojo);
+			}
 		} catch (IllegalArgumentException | IllegalAccessException e) {
 			log.error("error accessing view field {}", b, e);
 		}
@@ -175,6 +184,15 @@ public class DataBinder {
 			log.info("creating binding for {} <-> {}.{}", b, model.getClass().getSimpleName(), f.getName());
 			bindingContext.bindValue(observer, observedValue, null, null );
 		}
+	}
+
+	private boolean propertyChangeSupported(Object pojo) {
+		try {
+			Method m = pojo.getClass().getMethod("addPropertyChangeListener", PropertyChangeListener.class);
+			if( Modifier.isPublic(m.getModifiers()) ) return true;
+		} catch (NoSuchMethodException | SecurityException e) {
+		}
+		return false;
 	}
 
 	private void createBinding(WidgetBinding widgetBinding, Field f, Object view, Object model) {

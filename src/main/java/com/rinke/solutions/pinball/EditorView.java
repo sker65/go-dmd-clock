@@ -91,6 +91,7 @@ import com.rinke.solutions.pinball.widget.DMDWidget;
 import com.rinke.solutions.pinball.widget.DrawTool;
 import com.rinke.solutions.pinball.widget.FloodFillTool;
 import com.rinke.solutions.pinball.widget.LineTool;
+import com.rinke.solutions.pinball.widget.PalettePickerTool;
 import com.rinke.solutions.pinball.widget.PaletteTool;
 import com.rinke.solutions.pinball.widget.RectTool;
 import com.rinke.solutions.pinball.widget.SelectTool;
@@ -197,7 +198,7 @@ public class EditorView implements MainView {
 	@PojoBinding(src="palette", target="previewDmdPalette") 
 	DMDWidget previewDmd;
 
-	@PojoBinding(srcs={"numberOfPlanes", "palette"}, targets={"paletteToolPlanes", "selectedPalette"}) 
+	@PojoBinding(srcs={"numberOfPlanes", "palette", "selectedColor"}, targets={"paletteToolPlanes", "selectedPalette", "selectedColor"}) 
 	PaletteTool paletteTool;
 
 	@GuiBinding( prop=TEXT, propName="numberOfPlanes" ) Text lblPlanesVal;
@@ -831,7 +832,8 @@ public class EditorView implements MainView {
 		drawTools.put("line", new LineTool(paletteTool.getSelectedColor()));
 		drawTools.put("circle", new CircleTool(paletteTool.getSelectedColor(), false));
 		drawTools.put("filledCircle", new CircleTool(paletteTool.getSelectedColor(), true));
-		
+		palettePickerTool = new PalettePickerTool(0);
+		drawTools.put("picker",palettePickerTool);
 		selectTool = new SelectTool(paletteTool.getSelectedColor());
 		selectTool.setDMD(vm.dmd);
 		
@@ -883,6 +885,10 @@ public class EditorView implements MainView {
 		ToolItem tltmMark = new ToolItem(drawToolBar, SWT.RADIO);
 		tltmMark.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/select.png")));
 		tltmMark.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("select")));
+
+		ToolItem tltmPicker = new ToolItem(drawToolBar, SWT.RADIO);
+		tltmPicker.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/color-picker.png")));
+		tltmPicker.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("picker")));
 		
 		editModeViewer = new ComboViewer(grpDrawing, SWT.READ_ONLY);
 		Combo combo_2 = editModeViewer.getCombo();
@@ -1400,6 +1406,7 @@ public class EditorView implements MainView {
 	
 	Realm realm;
 	private ToolItem btnPick;
+	private PalettePickerTool palettePickerTool;
 	@Override
 	public void init(ViewModel vm, BeanFactory beanFactory) {
 		display = Display.getDefault();
@@ -1544,6 +1551,6 @@ public class EditorView implements MainView {
 
 	@Override
 	public List<Object> getInjectTargets() {
-		return Arrays.asList(paletteTool);
+		return Arrays.asList(paletteTool, palettePickerTool);
 	}
 }

@@ -30,11 +30,12 @@ import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 
 import com.rinke.solutions.beans.Bean;
+import com.rinke.solutions.beans.Scope;
 import com.rinke.solutions.pinball.model.RGB;
 import com.rinke.solutions.pinball.view.View;
 
 //@Slf4j
-@Bean(name="palettePicker")
+@Bean(name="palettePicker", scope=Scope.PROTOTYPE)
 public class PalettePicker extends Dialog implements View {
 
 	protected Collection<RGB> result;

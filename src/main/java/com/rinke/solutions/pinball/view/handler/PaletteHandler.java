@@ -82,6 +82,13 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 			log.warn("onSelectedPaletteTypeChanged but no palette selected");
 		}
 	}
+	
+	public void onPickColor(int rgb) {
+		if( vm.selectedPalette != null && vm.numberOfPlanes >= 15) {
+			vm.selectedPalette.colors[vm.selectedColor] = RGB.fromInt(rgb);
+		}
+		vm.setPaletteDirty(true);
+	}
 
 	public void onSelectedPaletteChanged(Palette o, Palette newPalette) {
 		if( newPalette != null) {
@@ -131,7 +138,7 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 			    		rgb += (f.planes.get(plane).data[x / 8 + y * bytesPerRow] & mask) != 0 ? (1<<plane) : 0;
 			    	}
 			    	// color
-			    	RGB col = new RGB(rgb>>16, (rgb>>8) & 0xFF, rgb & 0xFF);
+			    	RGB col = RGB.fromInt(rgb);
 			    	if( !inList( result, col, accuracy ) ) {
 			    		result.add(col);
 			    	}
@@ -228,7 +235,7 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 		for( int x = 0; x < dmd.getWidth(); x++) {
 			for(int y = 0; y < dmd.getHeight(); y++) {
 				int rgb = dmd.getPixelWithoutMask(x, y);
-				RGB col = new RGB(rgb>>16, (rgb>>8) & 0xFF, rgb & 0xFF);
+				RGB col = RGB.fromInt(rgb);
 				if( !inList(res, col, accuracy) ) {
 					res.add(col);
 				}
