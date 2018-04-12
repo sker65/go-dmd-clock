@@ -14,7 +14,7 @@ public class AnimationQuantizer {
 			qFrame.delay = inFrame.delay;
 			qFrame.timecode = inFrame.timecode;
 			qFrame.crc32 = inFrame.crc32;
-			qFrame.mask = new Plane(inFrame.mask);
+			if( inFrame.mask != null ) qFrame.mask = new Plane(inFrame.mask);
 			result.addFrame(qFrame);
 		}
 		return result;
