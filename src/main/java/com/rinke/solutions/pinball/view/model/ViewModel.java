@@ -160,8 +160,8 @@ public class ViewModel extends AbstractModel {
 	@ViewBinding public boolean mntmUploadPalettesEnabled;
 	@ViewBinding public boolean mntmUploadProjectEnabled;
 	
-	@ViewBinding public boolean cutEnabled;
-	@ViewBinding public boolean copyEnabled;
+	@ViewBinding public boolean cutEnabled = true;
+	@ViewBinding public boolean copyEnabled = true;
 	
 	@ViewBinding public ObservableList<EditMode> availableEditModes = new ObservableList<>(new ArrayList<>());
 	public EditMode selectedEditMode;

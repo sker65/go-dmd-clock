@@ -153,6 +153,8 @@ public class ClipboardHandler implements Runnable {
 		onCopy(pal);
 		dmd.addUndoBuffer();
 		Rect sel = dmdWidget.getSelection();
+		// Convenience
+		if( sel == null ) sel = new Rect(0, 0, width, height);
 		// draw black over area (cut)
 		for( int x= 0; x < width; x++) {
 			for( int y = 0; y < height; y++) {
@@ -166,6 +168,8 @@ public class ClipboardHandler implements Runnable {
 
 	public void onCopy(Palette activePalette) {
 		Rect sel = dmdWidget.getSelection();
+		// Convenience
+		if( sel == null ) sel = new Rect(0, 0, width, height);
 		clipboard.setContents(
 			new Object[] { 
 					buildImageData(dmd, dmdWidget.isShowMask(), activePalette, sel), 

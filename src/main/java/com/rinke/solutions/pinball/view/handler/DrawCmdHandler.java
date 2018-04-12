@@ -92,8 +92,8 @@ public class DrawCmdHandler extends AbstractCommandHandler implements EventHandl
 	}
 	
 	public void onSelectionChanged( Rect o, Rect n) {
-		vm.setCutEnabled(n!=null);
-		vm.setCopyEnabled(n!=null);
+		vm.setCutEnabled(true);
+		vm.setCopyEnabled(true);
 	}
 	
 	public void onDrawingEnabledChanged(boolean o, boolean n) {
