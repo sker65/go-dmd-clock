@@ -167,7 +167,7 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 		return loadedList;
 	}
 	
-	private <T extends Animation> void populateAni( T ani, Map<String, T> anis) {
+	<T extends Animation> void populateAni( T ani, Map<String, T> anis) {
 		if (anis.containsKey(ani.getDesc())) {
 			int i = 0;
 			String desc = ani.getDesc();
@@ -183,7 +183,7 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 		anis.put(ani.getDesc(), ani);
 	}
 
-	private void populatePalette(Animation ani, Map<Integer,Palette> palettes) {
+	void populatePalette(Animation ani, Map<Integer,Palette> palettes) {
 		if (ani.getAniColors() != null) {
 			// if loaded colors with animations propagate as palette
 			boolean colorsMatch = false;

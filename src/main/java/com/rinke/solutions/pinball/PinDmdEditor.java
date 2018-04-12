@@ -73,7 +73,7 @@ public class PinDmdEditor {
 	private List<String> loadedPlugins = new ArrayList<>();
 
 	ChangeHandlerHelper<ViewBindingHandler> viewModelChangeHandler;
-	private BeanFactory beanFactory;
+	BeanFactory beanFactory;
 
 	@Autowired private AnimationActionHandler aniAction;
 	@Autowired private AutosaveHandler autoSaveHandler;
@@ -100,6 +100,7 @@ public class PinDmdEditor {
 		checkForPlugins();
 
 		mainView = new EditorView(numberOfHashes, !nodirty);
+		beanFactory = new SimpleBeanFactory();
 	}
 	
 	static File logFile;
@@ -124,7 +125,7 @@ public class PinDmdEditor {
 		}			
 	}
 
-	private void checkForPlugins() {
+	void checkForPlugins() {
 		Path currentRelativePath = Paths.get("");
 		pluginsPath = currentRelativePath.toAbsolutePath().toString()+File.separator+"plugins";
 		String[] fileList = new File(pluginsPath).list((dir, name) -> name.endsWith(".jar"));
@@ -166,7 +167,6 @@ public class PinDmdEditor {
 
 	public void open(String[] args) {
 		
-		beanFactory = new SimpleBeanFactory();
 		Config config = new Config();
 		config.load();
 		beanFactory.setValueProvider(config);
@@ -232,7 +232,7 @@ public class PinDmdEditor {
 		}
 	}
 
-	private void processCmdLine() {
+	void processCmdLine() {
 		// cmd line processing
 		if (loadFile != null) {
 			projectHandler.onLoadProject(loadFile);
@@ -259,7 +259,7 @@ public class PinDmdEditor {
 		}
 	}
 	
-	private void viewModelChanged(PropertyChangeEvent e) {
+	void viewModelChanged(PropertyChangeEvent e) {
 		String propName = e.getPropertyName();
 		Object nv = e.getNewValue();
 		Object ov = e.getOldValue();
