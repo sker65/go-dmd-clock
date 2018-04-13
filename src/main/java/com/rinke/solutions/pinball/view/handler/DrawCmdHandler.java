@@ -212,9 +212,10 @@ public class DrawCmdHandler extends AbstractCommandHandler implements EventHandl
 			if( ani.actFrame >= ani.end ) {
 				animationHandler.setPos(ani.end);
 				vm.setSelectedFrame(ani.end);
+			} else {
+				animationHandler.setPos(ani.actFrame);
 			}
 			animationHandler.updateScale(ani);
-			vm.setDmdDirty(true);
 			vm.setDirty(true);
 		}
 		vm.setBtnDelFrameEnabled(ani.frames.size()>1);
