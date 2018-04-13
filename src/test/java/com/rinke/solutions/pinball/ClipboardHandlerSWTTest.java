@@ -54,9 +54,16 @@ public class ClipboardHandlerSWTTest {
 		clipboardHandler.onPasteHoover();
 	}
 	
+	org.eclipse.swt.graphics.RGB[] getColors() {
+		org.eclipse.swt.graphics.RGB[] cols = new org.eclipse.swt.graphics.RGB[2];
+		cols[0] = new org.eclipse.swt.graphics.RGB(0,0,0);
+		cols[0] = new org.eclipse.swt.graphics.RGB(255,0,0);
+		return cols;
+	}
+	
 	@Test
 	public void testOnPasteHooverWithImageTransfer() throws Exception {
-		PaletteData palette = new PaletteData(new org.eclipse.swt.graphics.RGB(0,0,0));
+		PaletteData palette = new PaletteData(getColors());
 		ImageData imageData = new ImageData(128, 32, 8, palette);
 		when(clipboardMock.getContents(eq("ImageTransfer"))).thenReturn(imageData);
 		
@@ -66,7 +73,7 @@ public class ClipboardHandlerSWTTest {
 	
 	@Test
 	public void testOnPasteHooverWithImageTransferMorePlane() throws Exception {
-		PaletteData palette = new PaletteData(new org.eclipse.swt.graphics.RGB(0,0,0));
+		PaletteData palette = new PaletteData(getColors());
 		ImageData imageData = new ImageData(128, 32, 8, palette);
 		when(clipboardMock.getContents(eq("ImageTransfer"))).thenReturn(imageData);
 		
@@ -132,7 +139,7 @@ public class ClipboardHandlerSWTTest {
 
 	@Test
 	public void testOnPasteWithImageTransfer() throws Exception {
-		PaletteData palette = new PaletteData(new org.eclipse.swt.graphics.RGB(0,0,0));
+		PaletteData palette = new PaletteData(getColors());
 		ImageData imageData = new ImageData(128, 32, 8, palette);
 		when(clipboardMock.getContents(eq("ImageTransfer"))).thenReturn(imageData);
 		when(clipboardMock.getAvailableTypeNames()).thenReturn(new String[]{"foo"});
