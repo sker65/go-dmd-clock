@@ -19,7 +19,7 @@ import com.rinke.solutions.pinball.view.handler.HandlerTest;
 import com.rinke.solutions.pinball.widget.DMDWidget;
 
 @RunWith(MockitoJUnitRunner.class)
-public class EditorViewBindingTest extends HandlerTest {
+public class EditorViewBindingSWTTest extends HandlerTest {
 	
 	@Mock AnimationHandler animationHandler;
 	@Mock ClipboardHandler clipboardHandler;
