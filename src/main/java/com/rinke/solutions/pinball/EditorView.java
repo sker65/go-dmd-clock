@@ -851,7 +851,6 @@ public class EditorView implements MainView {
 				
 		drawToolBar = new ToolBar(grpDrawing, SWT.FLAT | SWT.RIGHT);
 		GridData gd_drawToolBar = new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1);
-		gd_drawToolBar.widthHint = 184;
 		drawToolBar.setLayoutData(gd_drawToolBar);
 						
 		ToolItem tltmPen = new ToolItem(drawToolBar, SWT.RADIO);
