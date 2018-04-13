@@ -21,7 +21,7 @@ public class EditorViewBinding extends AbstractCommandHandler implements ViewBin
 
 	private EditorView editorView;
 	
-	@Autowired private AnimationHandler animationHandler;
+	@Autowired AnimationHandler animationHandler;
 
 	private String frameTextPrefix = "Pin2dmd Editor ";
 	private String internalName;
@@ -31,23 +31,23 @@ public class EditorViewBinding extends AbstractCommandHandler implements ViewBin
 	}
 	
 	public void onCut(Palette pal) {
-		editorView.clipboardHandler.onCut(pal);
+		editorView.getClipboardHandler().onCut(pal);
 	}
 	
 	public void onCopy(Palette pal) {
-		editorView.clipboardHandler.onCopy(pal);
+		editorView.getClipboardHandler().onCopy(pal);
 	}
 	
 	public void onPaste() {
-		editorView.clipboardHandler.onPaste();
+		editorView.getClipboardHandler().onPaste();
 	}
 
 	public void onPasteHoover() {
-		editorView.clipboardHandler.onPasteHoover();
+		editorView.getClipboardHandler().onPasteHoover();
 	}
 	
 	private void updateTitle(String t, boolean dirty) {
-		editorView.shell.setText(frameTextPrefix + " - " + (dirty?"* ":"") + (t==null?"":t));
+		editorView.getShell().setText(frameTextPrefix + " - " + (dirty?"* ":"") + (t==null?"":t));
 	}
 
 	public void onDirtyChanged( boolean ov, boolean nv) {
@@ -86,7 +86,7 @@ public class EditorViewBinding extends AbstractCommandHandler implements ViewBin
 	
 	// bind recent managers for menues
 	public void onRecentAnimationsChanged(String o, String filename) {
-		if( filename != null ) editorView.recentAnimationsMenuManager.populateRecent(filename);
+		if( filename != null ) editorView.getRecentAnimationsMenuManager().populateRecent(filename);
 		vm.recentAnimations = null;
 	}
 
@@ -103,7 +103,7 @@ public class EditorViewBinding extends AbstractCommandHandler implements ViewBin
 	@Override
 	public void viewModelChanged(String propName, Object ov, Object nv) {
 		// TODO das muss in den View selber
-		Stream<Button> btns = Arrays.stream(editorView.btnHash);
+		Stream<Button> btns = Arrays.stream(editorView.getBtnHash());
 		if( propName.equals("selectedHashIndex")) {
 			for (int i = 0; i < vm.hashButtonSelected.length; i++) {
 				vm.hashButtonSelected[i] = (i == (Integer)nv);
@@ -143,7 +143,7 @@ public class EditorViewBinding extends AbstractCommandHandler implements ViewBin
 
 	public void setEditorView(EditorView editorView) {
 		 this.editorView = editorView;
-		 editorView.dmdWidget.addPropertyChangeListener(this);
+		 editorView.getDmdWidget().addPropertyChangeListener(this);
 	}
 
 	@Override

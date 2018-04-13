@@ -22,6 +22,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
@@ -77,14 +78,20 @@ public class GifExporter extends Dialog {
      */
     public GifExporter() {
         super(new Shell(), SWT.CLOSE | SWT.TITLE | SWT.BORDER | SWT.OK | SWT.APPLICATION_MODAL);
-        //setText("Device Config");
     }
     
+    protected DMDWidget getDmdWidget(Composite parent, int style, DMD dmd, boolean scrollable) {
+    	return new DMDWidget(shell, style, dmd, scrollable);
+    }
 
     public void exportAni(String filename) {
+    	exportAni( filename, false, Integer.MAX_VALUE);
+    }
+    
+    public void exportAni(String filename, final boolean yield, int maxFrame) {
 		DMD dmd = new DMD(ani.width, ani.height);
 		
-		DMDWidget dmdWidget = new DMDWidget(shell, 0, dmd, false);
+		DMDWidget dmdWidget = getDmdWidget(shell, 0, dmd, false);
 		dmdWidget.setPalette(palette);
 		int pitch = comboSize.getSelectionIndex() + 2;
 		int width = dmd.getWidth() * pitch +20;
@@ -108,10 +115,10 @@ public class GifExporter extends Dialog {
 			gifWriter = new GifSequenceWriter(outputStream,
 					BufferedImage.TYPE_INT_ARGB, 1000, false);
 
-			writer = new Thread(()->{
+			Runnable r = ()->{
 				try {
 					while (true) {
-						Thread.yield();
+						if( yield ) Thread.yield();
 						dmd.clear();
 						Frame res = ani.render(dmd, false);
 						dmd.writeOr(res);
@@ -124,7 +131,7 @@ public class GifExporter extends Dialog {
 						});
 	
 						log.info("exporting frame {} to {}", ani.actFrame, filename);
-						if (abort || ani.hasEnded())
+						if (ani.actFrame >= maxFrame || abort || ani.hasEnded())
 							break;
 					}
 				} catch( IOException /*| InterruptedException*/ e) {
@@ -137,9 +144,13 @@ public class GifExporter extends Dialog {
 					} catch (IOException e) {
 					}
 				}
-			});
-			
-			writer.start();
+			};
+			if( yield ) {
+				writer = new Thread(r);
+				writer.start();
+			} else { // for testing
+				r.run();
+			}
 
 		} catch (IOException e) {
 			log.error("error exporting to {}", filename);

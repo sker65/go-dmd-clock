@@ -248,7 +248,7 @@ public class SimpleBeanFactory extends DefaultHandler implements BeanFactory {
 		return def;
 	}
 
-	private Object getValueForField(Field f) {
+	Object getValueForField(Field f) {
 		Value valAnno = f.getAnnotation(Value.class);
 		Object res = null;
 		String key = f.getName();

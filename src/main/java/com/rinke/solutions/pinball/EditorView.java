@@ -15,6 +15,8 @@ import java.util.regex.Pattern;
 
 import javax.imageio.ImageIO;
 
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -1551,5 +1553,27 @@ public class EditorView implements MainView {
 	@Override
 	public List<Object> getInjectTargets() {
 		return Arrays.asList(paletteTool, palettePickerTool);
+	}
+	
+	// Getter to overide for mocks in tests
+	
+	public DMDWidget getDmdWidget() {
+		return dmdWidget;
+	}
+
+	public ClipboardHandler getClipboardHandler() {
+		return clipboardHandler;
+	}
+
+	public Button[] getBtnHash() {
+		return btnHash;
+	}
+
+	public Shell getShell() {
+		return shell;
+	}
+
+	public RecentMenuManager getRecentAnimationsMenuManager() {
+		return recentAnimationsMenuManager;
 	}
 }
