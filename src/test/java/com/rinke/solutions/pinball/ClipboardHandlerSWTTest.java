@@ -1,7 +1,5 @@
 package com.rinke.solutions.pinball;
 
-import org.eclipse.swt.dnd.Clipboard;
-import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.PaletteData;
 import org.junit.Before;
