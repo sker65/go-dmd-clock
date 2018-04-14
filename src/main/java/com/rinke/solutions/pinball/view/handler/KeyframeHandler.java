@@ -65,7 +65,7 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 			palMapping.durationInMillis = vm.selectedSpinnerDeviceId<<8 + vm.selectedSpinnerEventId;
 		}
 		palMapping.switchMode = switchMode;
-		if (vm.useGlobalMask) {
+		if (vm.showMask) {
 			palMapping.withMask = true;
 			palMapping.maskNumber = vm.selectedMask;
 			vm.masks.get(vm.selectedMask).locked = true;

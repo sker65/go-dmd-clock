@@ -1,7 +1,6 @@
 package com.rinke.solutions.pinball.view.handler;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 import org.junit.Before;
@@ -82,7 +81,7 @@ public class KeyframeHandlerTest extends HandlerTest {
 
 	@Test
 	public void testOnAddFrameSeqWithSelectedKeyframe() throws Exception {
-		CompiledAnimation ani = new CompiledAnimation(AnimationType.COMPILED, "foo", 0, 0, 0, 0, 0);
+		CompiledAnimation ani = getScene("foo");
 		vm.setSelectedRecording(ani);
 		vm.setSelectedFrameSeq(ani);
 		vm.setSelectedHashIndex(0);
@@ -92,10 +91,21 @@ public class KeyframeHandlerTest extends HandlerTest {
 
 	@Test
 	public void testOnAddKeyFrame() throws Exception {
-		CompiledAnimation ani = new CompiledAnimation(AnimationType.COMPILED, "foo", 0, 0, 0, 0, 0);
-		vm.setSelectedRecording(ani);
+		vm.setSelectedRecording(getScene("foo"));
 		vm.hashes.add( new byte[]{0,1,2,3});
 		uut.onAddKeyFrame(SwitchMode.REPLACE);
+		assertEquals(1, vm.keyframes.size());
+	}
+
+	@Test
+	public void testOnAddKeyFrameWithMask() throws Exception {
+		vm.setSelectedRecording(getScene("foo"));
+		vm.hashes.add( new byte[]{0,1,2,3});
+		vm.showMask = true;
+		uut.onAddKeyFrame(SwitchMode.ADD);
+		assertEquals(1, vm.keyframes.size());
+		PalMapping keyframe = vm.keyframes.values().iterator().next();
+		assertEquals(true, keyframe.withMask);
 	}
 
 	@Test
