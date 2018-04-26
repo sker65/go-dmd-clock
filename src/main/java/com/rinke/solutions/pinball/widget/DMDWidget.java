@@ -1,9 +1,16 @@
 package com.rinke.solutions.pinball.widget;
 
+import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import javax.imageio.ImageIO;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +35,7 @@ import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Mask;
 import com.rinke.solutions.pinball.model.Palette;
+import com.rinke.solutions.pinball.renderer.ImageUtil;
 import com.rinke.solutions.pinball.widget.PaletteTool.ColorChangedListerner;
 
 import static com.rinke.solutions.pinball.widget.SWTUtil.toSwtRGB;
@@ -281,18 +289,37 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
         GC gcImage = new GC(image);
         gcImage.setBackground(bg);
         gcImage.fillRectangle(0, 0, w, h);
-        long startDrawing = System.currentTimeMillis();
+        if( this.scrollable ) dmd.dumpHistogram();
+        
+        //long startDrawing = System.currentTimeMillis();
         drawDMD(gcImage, dmd.getFrame(), numberOfSubframes, useColorIndex, cols);
         //System.out.println("draw time: "+(System.currentTimeMillis()-startDrawing));
+		//if( this.scrollable ) writeTmp(ImageUtil.convert(image));
         if( showMask && dmd.getFrame().mask != null) {
             drawMask(display, cols, image, gcImage);
         }
         if( isSelectionSet() && !isShowMask() ) {
             drawSelection(display, image, gcImage);
         }
-		
+		//if( this.scrollable ) writeTmp(ImageUtil.convert(image));
+        if( this.scrollable ) {
+        	log.debug("numberOfSubframes: {}", numberOfSubframes);
+        	dmd.dumpHistogram();
+        }
         gcImage.dispose();
         return image;
+	}
+	
+	int imgSeq;
+
+	private void writeTmp(BufferedImage img) {
+		String name = "/tmp/pinball/dmd-"+this.hashCode()+"-"+(imgSeq++)+".png";
+		log.debug("writing {}", name);
+		try {
+			ImageIO.write(img, "png", new File(name));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	private void drawMask(Display display, Color[] cols, Image image, GC gcImage) {
@@ -347,9 +374,9 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
                 byte mask = (byte) (0b10000000 >> (col % 8));
                 int v = 0;
                 for(int i = 0; i < numberOfSubframes;i++) {
-                	if( col / 8 + row * bytesPerRow < frame.getPlane(i).length) {
+                	//if( col / 8 + row * bytesPerRow < frame.getPlane(i).length) {
             			v += (frame.getPlane(i)[col / 8 + row * bytesPerRow] & mask) != 0 ? (1<<i) : 0;
-                	}
+                	//}
                 }
                 if( useColorIndex ) {
                 	gcImage.setBackground(cols[v]);

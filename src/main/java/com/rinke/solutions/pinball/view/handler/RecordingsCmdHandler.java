@@ -67,6 +67,7 @@ public class RecordingsCmdHandler extends AbstractListCmdHandler implements View
 				setEnableHashButtons(true);
 
 				setPlayingAni(a, recordingsPosMap.getOrDefault(a.getDesc(), 0));
+				vm.setDmdDirty(true);
 
 				int numberOfPlanes = a.getRenderer().getNumberOfPlanes();
 				if( numberOfPlanes == 5) {

@@ -1446,6 +1446,7 @@ public class EditorView implements MainView {
 			beanFactory.setSingleton("shell", shell);
 			config = beanFactory.getBeanByType(Config.class);
 			viewBinding = beanFactory.getBeanByType(EditorViewBinding.class);
+			viewBinding.setDisplay(display);
 		}
 
 		this.vm = vm;

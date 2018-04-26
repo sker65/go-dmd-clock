@@ -102,6 +102,7 @@ public class AnimationHandler implements Runnable {
 				    else
 				        clock.renderTime(dmd,false);
 				}
+				log.debug("rendering ani: {}@{}", ani.getDesc(), ani.getActFrame());
 				Frame res = ani.render(dmd,stop);
                 //vm.setSelectedFrame(ani.actFrame);
                 eventHandler.notifyAni(new AniEvent(Type.ANI, ani, res ));
@@ -124,7 +125,9 @@ public class AnimationHandler implements Runnable {
                         clock.renderTime(tmp,true); // mask out time
                         dmd.writeOr(tmp.getFrame());
                     } else {
+                    	log.debug("writing to dmd: {}", dmd);
                         dmd.writeOr(res);
+                        dmd.dumpHistogram();
                     }
                 }
                 if( maskToPopulate != null ) {
@@ -212,6 +215,7 @@ public class AnimationHandler implements Runnable {
 	public void setPos(int pos) {
 		if( index <0 || index >= anis.size() ) return;
 	    anis.get(index).setPos(pos);
+	    log.debug("setpos {} @ {}", pos, anis.get(index).getDesc());
 	    forceRerender = true;
 	    this.maskToPopulate = null;
         run();
@@ -222,6 +226,7 @@ public class AnimationHandler implements Runnable {
 	}
 
 	public void setAnimations(java.util.List<Animation> anisToSet) {
+		log.debug("setAnimations {}", anisToSet.stream().map(a->a.getDesc()));
 		this.anis = anisToSet;
 		setClockActive(false);
 		index = 0;

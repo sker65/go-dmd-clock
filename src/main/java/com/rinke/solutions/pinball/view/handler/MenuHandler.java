@@ -11,6 +11,7 @@ import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.Bean;
 import com.rinke.solutions.beans.Value;
 import com.rinke.solutions.pinball.AnimationHandler;
+import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.DmdSize;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.model.Mask;
@@ -132,6 +133,10 @@ public class MenuHandler extends AbstractCommandHandler implements ViewBindingHa
 		// TODO modell class to decouple
 		if( configDialog.okPressed ) {
 			vm.setPin2dmdAdress(configDialog.getPin2DmdHost());
+			// check changed size
+			if( vm.dmdSize != configDialog.getDmdSize() ) {
+				vm.dmd = new DMD(configDialog.getDmdSize().width, configDialog.getDmdSize().height);
+			}
 			vm.setDmdSize(configDialog.getDmdSize());
 		}
 	}

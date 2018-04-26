@@ -6,7 +6,11 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Display;
 
 import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.Bean;
@@ -16,13 +20,16 @@ import com.rinke.solutions.pinball.view.handler.ViewBindingHandler;
 import com.rinke.solutions.pinball.view.model.ViewModel;
 import com.rinke.solutions.pinball.widget.DMDWidget.Rect;
 
+@Slf4j
 @Bean
 public class EditorViewBinding extends AbstractCommandHandler implements ViewBindingHandler, PropertyChangeListener {
 
 	private EditorView editorView;
 	
 	@Autowired AnimationHandler animationHandler;
-
+    //@Autowired 
+    @Setter Display display;
+	
 	private String frameTextPrefix = "Pin2dmd Editor ";
 	private String internalName;
 	
@@ -123,9 +130,18 @@ public class EditorViewBinding extends AbstractCommandHandler implements ViewBin
 		}
 	}
 	
+	boolean redrawRequested = false;
+	
 	// trigger redraw
 	public void onDmdDirtyChanged(boolean o, boolean n) {
-		editorView.dmdRedraw();
+		if( !redrawRequested && n) {
+			redrawRequested = true;
+			display.asyncExec(()->{
+				log.debug("dmd redraw");
+				editorView.dmdRedraw();
+				redrawRequested = false;
+			});
+		}
 		vm.dmdDirty = false;
 	}
 	

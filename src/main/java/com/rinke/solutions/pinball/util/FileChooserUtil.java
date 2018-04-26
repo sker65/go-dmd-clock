@@ -28,7 +28,13 @@ public class FileChooserUtil {
 	public List<String> chooseMulti(int type, String filename, String[] exts, String[] desc) {
 		FileChooser fileChooser = createFileChooser(shell, type);
 		fileChooser.setOverwrite(true);
-		fileChooser.setFileName(filename);
+		if( filename != null && filename.contains(File.separator) ) {
+			lastPath = filename.substring(0, filename.lastIndexOf(File.separator));
+			fileChooser.setFileName(basename(filename));
+		} else {
+			fileChooser.setFileName(filename);
+		}
+		
 		if (lastPath != null)
 			fileChooser.setFilterPath(lastPath);
 		fileChooser.setFilterExtensions(exts);
@@ -49,6 +55,11 @@ public class FileChooserUtil {
 		return files;
 	}
 	
+	String basename(String filename) {
+		int i = filename.lastIndexOf(File.separator);
+		return i==-1?filename:filename.substring(i+1);
+	}
+
 	public String choose(int type, String filename, String[] exts, String[] desc) {
 		List<String> files = chooseMulti(type, filename, exts, desc);
 		return files.size()>0?files.get(0):null;

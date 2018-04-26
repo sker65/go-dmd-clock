@@ -17,12 +17,14 @@ public class DMD extends Observable {
     private int height;
     private int drawMask = (byte)0xFFFF; // limits drawing (setPixel) to planes, that are not masked
     private int bytesPerRow;
+
+    Map<Integer,Integer> colHist = new HashMap<>();
     
     private Frame frame = new Frame();
     
     public Map<Integer,Frame> buffers = new HashMap<>();
     
-    int numberOfPlanes = 2;
+    int numberOfPlanes = 0;
     int actualBuffer = 0;
 
     private int planeSizeInByte;
@@ -54,13 +56,14 @@ public class DMD extends Observable {
     public void copyLastBuffer() {
     	if( actualBuffer>0) {
         	//Frame target = buffers.get(actualBuffer);
-    		log.trace("copy buffer {} -> {}, max: {}", actualBuffer-1, actualBuffer, buffers.size());
+    		log.trace("copyLastBuffer buffer {} -> {}, max: {}", actualBuffer-1, actualBuffer, buffers.size());
         	frame = new Frame(buffers.get(actualBuffer-1));
         	buffers.put(actualBuffer, frame);
     	}
     }
     
     public void addUndoBuffer() {
+    	log.trace("addUndoBuffer()");
     	Frame newframe = new Frame(frame);
     	actualBuffer++;
     	log.trace("add undo: {}, max: {}", actualBuffer, buffers.size());
@@ -114,12 +117,18 @@ public class DMD extends Observable {
     }
     
     public void setNumberOfSubframes(int n) {
-        frame.planes.clear();
-    	for(int i = 0; i < n; i++) {
-    		frame.planes.add( new Plane((byte)i,new byte[planeSizeInByte]));
-        }
-        numberOfPlanes = n;
-        log.trace("dmd setNumberOfSubframes {}", n);
+    	if( n < numberOfPlanes ) {
+            frame.planes.clear();
+            log.trace("dmd setNumberOfSubframes {} -> clear", n);
+            numberOfPlanes = 0;
+    	}
+    	if( n > numberOfPlanes ) {
+            log.trace("dmd setNumberOfSubframes {} -> adding: {}", n, n - numberOfPlanes);
+	    	for(int i = numberOfPlanes; i < n; i++) {
+	    		frame.planes.add( new Plane((byte)i,new byte[planeSizeInByte]));
+	        }
+	        numberOfPlanes = n;
+    	}
     }
 
     public void setPixel(int x, int y, int v) {
@@ -183,6 +192,7 @@ public class DMD extends Observable {
     public void clear() {
     	updateActualBuffer(0);
     	removeMask();
+    	log.trace("DMD.clear()");
         for (Plane p : frame.planes) {
 			Arrays.fill(p.data, (byte)0);
 		}
@@ -242,6 +252,7 @@ public class DMD extends Observable {
     
     // wird nur zum rendern der Zeit verwendet -> TODO refactor
     public void copy(int yoffset, int xoffset, DMD src, boolean low, boolean mask) {
+    	log.trace("DMD.copy()");
     	byte[] frame1 = frame.getPlane(0);
     	byte[] frame2 = frame.getPlane(1);
     	
@@ -278,8 +289,17 @@ public class DMD extends Observable {
             (byte) 0b00000100, (byte) 0b00000010, (byte) 0b00000001, };
 
     public Frame getFrame() {
+    	log.trace("getFrame()");
         return frame;
     }
+
+    public void setFrame(Frame frame) {
+    	log.trace("setFrame(Frame@{})", Integer.toHexString(frame.hashCode()));
+		this.frame = frame;
+		buffers.put(actualBuffer, frame);
+		setChanged();
+    	notifyObservers();
+	}
 
 	public void updateActualBuffer(int i) {
 		this.actualBuffer = i;
@@ -292,10 +312,48 @@ public class DMD extends Observable {
 	/*public List<byte[]> getActualBuffers() {
 		return buffers.get(actualBuffer);
 	}*/
+	
+	public void dumpHistogram() {
+		colHist.clear();
+		for (int row = 0; row < height; row++) {
+			for (int col = 0; col < width; col++) {
+				byte mask = (byte) (0b10000000 >> (col % 8));
+				int v = 0;
+				for (int i = 0; i < this.numberOfPlanes; i++) {
+					// if( col / 8 + row * bytesPerRow <
+					// frame.getPlane(i).length) {
+					v += (frame.getPlane(i)[col / 8 + row * bytesPerRow] & mask) != 0 ? (1 << i) : 0;
+					// }
+				}
+				stat(v);
+			}
+		}
+		log.trace("DMD@{} with Frame@{} hist: {}, {}", 
+				Integer.toHexString(hashCode()), 
+				Integer.toHexString(frame.hashCode()), 
+				this.dumpHist(), this.toString());
+	}
+	
+	private String dumpHist() {
+		StringBuilder sb = new StringBuilder();
+		for(int v: colHist.keySet()) {
+			sb.append("v: "+v+ " -> "+colHist.get(v)+" ");
+		}
+		return sb.toString();
+	}
+
+	private void stat(int v) {
+		Integer count = colHist.get(v);
+		if( count == null ) {
+			colHist.put(v, new Integer(1));
+		} else {
+			colHist.put(v, new Integer(count+1));
+		}
+	}
 
 	@Override
 	public String toString() {
-		return "DMD [width=" + width + ", height=" + height
+		return "DMD@"+Integer.toHexString(hashCode())+" [width=" + width + ", height=" + height
 				+ ", numberOfPlanes=" + numberOfPlanes
 				+ ", actualBuffer=" + actualBuffer + "]";
 	}
@@ -315,16 +373,9 @@ public class DMD extends Observable {
 	 */
 	public void setDrawMask(int drawMask) {
 		 this.drawMask = drawMask;
-		 log.debug("setting draw mask to {}", Integer.toBinaryString(drawMask));
+		 log.trace("setting draw mask to {}", Integer.toBinaryString(drawMask));
 	}
 
-	public void setFrame(Frame frame) {
-		this.frame = frame;
-		buffers.put(actualBuffer, frame);
-		setChanged();
-    	notifyObservers();
-	}
-	
 	public boolean hasMask() {
 		return frame.hasMask();
 	}
@@ -351,6 +402,7 @@ public class DMD extends Observable {
 	}
 
 	public void fill(byte val) {
+		log.trace("fill({})", val);
 		if( (drawMask & 1) != 0 && frame.hasMask() ) {
 			Arrays.fill( frame.mask.data, val );
 		}
