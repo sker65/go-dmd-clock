@@ -113,11 +113,6 @@ public class KeyframeHandlerTest extends HandlerTest {
 	}
 
 	@Test
-	public void testUpdateKeyFrameButtons() throws Exception {
-		uut.updateKeyFrameButtons(getScene(""), getScene(""), 0);
-	}
-
-	@Test
 	public void testOnSelectedSpinnerEventIdChanged() throws Exception {
 		uut.onSelectedSpinnerEventIdChanged(0, 1);
 	}

@@ -49,12 +49,6 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 		}
 	}
 	
-	public void updateKeyFrameButtons( Animation selectedRecording, Animation selectedFrameSeq, int selectedHashIndex) {
-		vm.setBtnAddKeyframeEnabled(selectedRecording != null && selectedHashIndex != -1);
-		vm.setBtnAddFrameSeqEnabled(selectedRecording != null && selectedFrameSeq != null && selectedHashIndex != -1);
-		vm.setBtnAddEventEnabled(selectedRecording != null && selectedHashIndex != -1);
-	}
-
 	public void onAddKeyFrame(SwitchMode switchMode) {
 		PalMapping palMapping = new PalMapping(vm.selectedPalette.index, "KeyFrame " + (vm.keyframes.size() + 1));
 		if (vm.selectedHashIndex != -1) {

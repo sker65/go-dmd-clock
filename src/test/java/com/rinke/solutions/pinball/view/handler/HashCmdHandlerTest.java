@@ -71,4 +71,9 @@ public class HashCmdHandlerTest extends HandlerTest {
 		assertEquals("B2AA7578",uut.getEmptyHash());
 	}
 
+	@Test
+	public void testUpdateKeyFrameButtons() throws Exception {
+		uut.updateKeyFrameButtons(getScene(""), getScene(""), 0);
+	}
+
 }

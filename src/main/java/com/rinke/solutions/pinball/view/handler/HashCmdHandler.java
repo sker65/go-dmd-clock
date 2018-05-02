@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.Bean;
 import com.rinke.solutions.pinball.DmdSize;
+import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.view.model.ViewModel;
@@ -15,8 +16,6 @@ import com.rinke.solutions.pinball.view.model.ViewModel;
 @Bean
 @Slf4j
 public class HashCmdHandler extends AbstractCommandHandler implements ViewBindingHandler {
-
-	@Autowired private KeyframeHandler keyframeHandler;
 
 	public HashCmdHandler(ViewModel vm) {
 		super(vm);
@@ -36,9 +35,15 @@ public class HashCmdHandler extends AbstractCommandHandler implements ViewBindin
 			vm.setSelectedHashIndex(-1);
 		}
 	}
-	
+
+	public void updateKeyFrameButtons( Animation selectedRecording, Animation selectedFrameSeq, int selectedHashIndex) {
+		vm.setBtnAddKeyframeEnabled(selectedRecording != null && selectedHashIndex != -1);
+		vm.setBtnAddFrameSeqEnabled(selectedRecording != null && selectedFrameSeq != null && selectedHashIndex != -1);
+		vm.setBtnAddEventEnabled(selectedRecording != null && selectedHashIndex != -1);
+	}
+
 	public void onSelectedHashIndexChanged(int old, int n) {
-		keyframeHandler.updateKeyFrameButtons(vm.selectedRecording, vm.selectedFrameSeq, n);
+		updateKeyFrameButtons(vm.selectedRecording, vm.selectedFrameSeq, n);
 	}
 	
 	public String getPrintableHashes(byte[] p) {
@@ -56,6 +61,7 @@ public class HashCmdHandler extends AbstractCommandHandler implements ViewBindin
 			}
 		}
 	}
+	
 	public void updateHashes(Frame frame) {
 		updateHashes(frame, false, 0);
 	}

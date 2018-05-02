@@ -26,7 +26,7 @@ import com.rinke.solutions.pinball.view.model.ViewModel;
 public class RecordingsCmdHandler extends AbstractListCmdHandler implements ViewBindingHandler {
 
 	@Autowired private MessageUtil messageUtil;
-	@Autowired private KeyframeHandler keyframeHandler;
+	@Autowired private HashCmdHandler hashCmdHandler;
 
 	Map<String,Integer> recordingsPosMap = new HashMap<String, Integer>();
 
@@ -102,7 +102,7 @@ public class RecordingsCmdHandler extends AbstractListCmdHandler implements View
 			vm.setBtnNewBookmarkEnabled(a!=null);
 			vm.setDeleteRecordingEnabled(a!=null);
 			
-			keyframeHandler.updateKeyFrameButtons(a, vm.selectedFrameSeq, vm.selectedHashIndex);
+			hashCmdHandler.updateKeyFrameButtons(a, vm.selectedFrameSeq, vm.selectedHashIndex);
 	}
 	
 	public void onDeleteRecording() {
