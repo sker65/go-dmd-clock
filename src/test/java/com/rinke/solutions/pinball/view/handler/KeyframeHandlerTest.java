@@ -6,6 +6,7 @@ import static org.mockito.Mockito.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
@@ -20,14 +21,17 @@ import com.rinke.solutions.pinball.util.MessageUtil;
 @RunWith(MockitoJUnitRunner.class)
 public class KeyframeHandlerTest extends HandlerTest {
 	
-	KeyframeHandler uut;
 	@Mock
 	MessageUtil messageUtil;
 	
+	@Mock
+	HashCmdHandler hashCmdHandler;
+	
+	@InjectMocks
+	KeyframeHandler uut = new KeyframeHandler(vm);
+	
 	@Before
 	public void setup() {
-		uut = new KeyframeHandler(vm);
-		uut.messageUtil = messageUtil;
 	}
 
 	@Test

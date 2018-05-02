@@ -35,6 +35,9 @@ public class MenuHandler extends AbstractCommandHandler implements ViewBindingHa
 	@Autowired
 	private GifExporter gifExporter;
 	@Autowired
+	private ExportGoDmd exportGoDdmd;
+	
+	@Autowired
 	private ConfigDialog configDialog;
 	@Autowired Config config;
 	
@@ -61,7 +64,6 @@ public class MenuHandler extends AbstractCommandHandler implements ViewBindingHa
 	}
 
 	public void onExportGoDmd() {
-		ExportGoDmd exportGoDdmd = new ExportGoDmd(0);
 		Pair<String,Integer> res = exportGoDdmd.open();
 		if( res != null ) {
 			exportForGoDMD( res.getLeft(), res.getRight() );
@@ -69,6 +71,9 @@ public class MenuHandler extends AbstractCommandHandler implements ViewBindingHa
 	}
 
 	void exportForGoDMD(String path, int version) {
+		// version could be 1 or 4
+		// 1. decide on what to store
+		
 	}
 
 	/**

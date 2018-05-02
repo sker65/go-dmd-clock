@@ -31,6 +31,7 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 
 	@Autowired
 	MessageUtil messageUtil;
+	@Autowired HashCmdHandler hashCmdHandler;
 
 	public KeyframeHandler(ViewModel vm) {
 		super(vm);
@@ -238,17 +239,23 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 			vm.setSelectedFrame(nk.frameIndex);
 
 			vm.setDetectionMaskActive(nk.withMask);
+			
+			hashCmdHandler.updateHashes(vm.dmd.getFrame(), nk.withMask, nk.maskNumber);
+			
+			vm.setMaskSpinnerEnabled(nk.withMask);
+			
 			if(nk.withMask) {
-				vm.setMaskSpinnerEnabled(true);
 				vm.setSelectedMask(nk.maskNumber);
-
+			}
+			
+			/* work pushed into updateHashes method above
 				String[] lbls = Arrays.copyOf(vm.hashLbl, vm.hashLbl.length);
 				if( vm.selectedHashIndex != -1) {
 					String txt = lbls[vm.selectedHashIndex];
 					if( !txt.startsWith("M")) lbls[vm.selectedHashIndex] = "M" + nk.maskNumber + " " + txt;
 				}
 				vm.setHashLbl(lbls);
-			}
+			*/
 			
 			if( vm.selectedRecording!=null )
 				vm.saveTimeCode = (int) vm.selectedRecording.getTimeCode(nk.frameIndex);

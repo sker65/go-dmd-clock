@@ -17,6 +17,8 @@ import com.rinke.solutions.pinball.DmdSize;
 @RunWith(MockitoJUnitRunner.class)
 public class HashCmdHandlerTest extends HandlerTest {
 	
+	private static final String PRINT_HASH = "16212C37";
+
 	@Mock KeyframeHandler keyframeHandler;
 	
 	@InjectMocks
@@ -44,14 +46,23 @@ public class HashCmdHandlerTest extends HandlerTest {
 	@Test
 	public void testGetPrintableHashes() throws Exception {
 		String hashes = uut.getPrintableHashes(new byte[]{22,33,44,55});
-		assertEquals("16212C37", hashes);
+		assertEquals(PRINT_HASH, hashes);
 	}
 
 	@Test
 	public void testRefreshHashButtons() throws Exception {
 		List<byte[]> hashes = new ArrayList<>();
 		hashes.add(new byte[]{22,33,44,55});
-		uut.refreshHashButtons(hashes );
+		uut.refreshHashButtons(hashes, false, 0);
+		assertEquals(PRINT_HASH, vm.hashLbl[0]);
+	}
+
+	@Test
+	public void testRefreshHashButtonsWithMask() throws Exception {
+		List<byte[]> hashes = new ArrayList<>();
+		hashes.add(new byte[]{22,33,44,55});
+		uut.refreshHashButtons(hashes, true, 1);
+		assertEquals("M1 "+PRINT_HASH, vm.hashLbl[0]);
 	}
 
 	@Test

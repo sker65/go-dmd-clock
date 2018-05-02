@@ -56,8 +56,11 @@ public class HashCmdHandler extends AbstractCommandHandler implements ViewBindin
 			}
 		}
 	}
-
 	public void updateHashes(Frame frame) {
+		updateHashes(frame, false, 0);
+	}
+
+	public void updateHashes(Frame frame, boolean withMask, int maskNumber) {
 		if( frame == null ) return;
 		Frame f = new Frame(frame);
 
@@ -67,11 +70,11 @@ public class HashCmdHandler extends AbstractCommandHandler implements ViewBindin
 //		}
 
 		List<byte[]> hashes = f.getHashes();
-		refreshHashButtons(hashes);
+		refreshHashButtons(hashes, withMask, maskNumber);
 		saveHashes(hashes);
 	}
 
-	void refreshHashButtons(List<byte[]> hashes) {
+	void refreshHashButtons(List<byte[]> hashes, boolean withMask, int maskNumber) {
 		//if( v.btnHash[0] == null ) return; // avoid NPE if not initialized
 		int i = 0;
 		String[] lbls = Arrays.copyOf(vm.hashLbl, vm.numberOfHashButtons);
@@ -84,7 +87,11 @@ public class HashCmdHandler extends AbstractCommandHandler implements ViewBindin
 				enabled[i]=false;
 				if( vm.selectedHashIndex == i ) vm.setSelectedHashIndex(-1);
 			} else {
-				lbls[i]=hash;
+				if( withMask ) {
+					lbls[i]=String.format("M%d %s", maskNumber, hash);
+				} else {
+					lbls[i]=hash;
+				}
 				enabled[i]=true;//btnHashEnabled[i]; // wird nie gesetzt
 			}
 			i++;

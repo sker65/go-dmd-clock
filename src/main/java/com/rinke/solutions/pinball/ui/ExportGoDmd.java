@@ -23,6 +23,7 @@ public class ExportGoDmd extends Dialog {
 	protected Shell shlExportForGodmd;
 	private Text text;
 	private Combo versionCombo;
+	
 	@Autowired private Config config;
 
 	/**
@@ -30,7 +31,7 @@ public class ExportGoDmd extends Dialog {
 	 * @param parent
 	 * @param style
 	 */
-	public ExportGoDmd( int style) {
+	public ExportGoDmd() {
 		super(new Shell(), SWT.CLOSE | SWT.TITLE | SWT.BORDER | SWT.OK | SWT.APPLICATION_MODAL);
 		setText("Export for goDMD");
 	}
@@ -81,7 +82,7 @@ public class ExportGoDmd extends Dialog {
 		
 		versionCombo = new Combo(shlExportForGodmd, SWT.READ_ONLY);
 		versionCombo.setBounds(68, 34, 122, 22);
-		String items[] = { "RG Version 1", "RGB Version 2" };
+		String items[] = { "RGB Version 1", "RGB Version 2" };
 		versionCombo.setItems(items);
 		versionCombo.select(config.getInteger(GODMD_EXPORT_VERSION, 0));
 		
