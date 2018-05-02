@@ -15,7 +15,10 @@ import com.thoughtworks.xstream.converters.UnmarshallingContext;
 import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 
-//@Bean
+/** utility class to stream view model to xml.
+ * 
+ * @author stefanri
+ */
 public class XStreamUtil {
 	
 	private XStream xStream;

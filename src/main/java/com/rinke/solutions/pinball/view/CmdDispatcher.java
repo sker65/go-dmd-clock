@@ -61,5 +61,4 @@ public interface CmdDispatcher {
 	
 	public List<CommandHandler> getCommandHandlers();
 	
-	public void checkChangeHandlers(Object viewModel);
 }
