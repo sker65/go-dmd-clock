@@ -21,7 +21,7 @@ import com.rinke.solutions.pinball.view.model.ViewModel;
 public class RecordingsCmdHandlerTest extends HandlerTest {
 	
 	@Mock AnimationHandler animationHandler;
-	@Mock KeyframeHandler keyframeHandler;
+	@Mock HashCmdHandler hashCmdHandler;
 	@Mock MessageUtil messageUtil;
 	
 	@InjectMocks
