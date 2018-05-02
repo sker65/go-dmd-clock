@@ -1,18 +1,13 @@
 package com.rinke.solutions.databinding;
 
-import java.beans.BeanDescriptor;
 import java.beans.PropertyChangeListener;
-import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +16,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.databinding.DataBindingContext;
 import org.eclipse.core.databinding.beans.BeanProperties;
 import org.eclipse.core.databinding.beans.PojoProperties;
-import org.eclipse.core.databinding.observable.Realm;
 import org.eclipse.core.databinding.observable.value.IObservableValue;
 import org.eclipse.jface.databinding.swt.WidgetProperties;
 import org.eclipse.jface.databinding.viewers.ViewerProperties;
@@ -29,8 +23,6 @@ import org.eclipse.jface.viewers.AbstractListViewer;
 import org.eclipse.jface.viewers.AbstractTableViewer;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Widget;
 
 import com.rinke.solutions.pinball.util.ObservableCollection;
