@@ -442,7 +442,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 	public void populateVmToProject(ViewModel vm, Project p) {
 		// populate everything
 		p.inputFiles.addAll(vm.inputFiles);
-		if( vm.projectFilename != null ) p.name = new File(vm.projectFilename).getName();
+		if( vm.projectFilename != null ) p.name = bareName(vm.projectFilename);
 		p.bookmarksMap.putAll(vm.bookmarksMap);
 		if( vm.mask != null ) p.mask = vm.mask.data;
 		p.palMappings.addAll(vm.keyframes.values());

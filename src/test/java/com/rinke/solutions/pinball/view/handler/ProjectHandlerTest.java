@@ -1,6 +1,7 @@
 package com.rinke.solutions.pinball.view.handler;
 
 // if one imports * it will conflict with hamcrest
+import static junit.framework.Assert.fail;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.hamcrest.MatcherAssert.*;
@@ -9,8 +10,13 @@ import static org.hamcrest.Matchers.nullValue;
 //import static org.hamcrest.Matchers.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
+import static org.custommonkey.xmlunit.XMLAssert.*;
 
 import java.io.File;
+import java.io.FileReader;
+
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.custommonkey.xmlunit.XMLUnit;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -22,7 +28,10 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import com.rinke.solutions.pinball.AnimationActionHandler;
+import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.DmdSize;
+import com.rinke.solutions.pinball.PinDmdEditor;
+import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.AnimationType;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.api.LicenseManager;
@@ -226,6 +235,42 @@ public class ProjectHandlerTest extends HandlerTest {
 		String filename = testFolder.newFile("test.xml").getAbsolutePath();
 		uut.backup = true;
 		uut.saveProject(filename );
+	}
+
+	@Test
+	public final void testLoadAndSaveProject() throws Exception {
+		String tempFile = testFolder.newFile("ex1.xml").getPath();
+		uut.onLoadProject("./src/test/resources/ex1.xml");
+		uut.saveProject(tempFile);
+		XMLUnit.setIgnoreWhitespace(true);
+		assertXMLEqual(new FileReader("./src/test/resources/ex1.xml"), new FileReader(tempFile));
+		Animation ani = CompiledAnimation.read(testFolder.getRoot()+"/ex1.ani").get(0);
+		Animation ani2 = CompiledAnimation.read("./src/test/resources/ex1.ani").get(0);
+		compare(ani,ani2);
+		assertNull(Util.isBinaryIdentical(testFolder.getRoot()+"/ex1.ani", "./src/test/resources/ex1.ani"));
+	}
+
+	@SuppressWarnings("deprecation")
+	private void compare(Animation ani, Animation ani2) {
+		int i = ani.getStart();
+		ani.restart(); ani2.restart();
+		DMD dmd = new DMD(PinDmdEditor.DMD_WIDTH, PinDmdEditor.DMD_HEIGHT);
+		while( i < ani.end ) {
+			Frame f = ani.render(dmd, false);
+			Frame f2 = ani2.render(dmd, false);
+			if( !EqualsBuilder.reflectionEquals(f, f2, false) ) fail("frame different @ "+i);
+			if( ani.getRefreshDelay() != ani2.getRefreshDelay() ) fail( "delay at "+i);
+			i++;
+		}
+		if( ani.getAniColors() != null && ani2.getAniColors() == null ) fail("different colors set");
+		if( ani2.getAniColors() != null && ani.getAniColors() == null ) fail("different colors set");
+		
+		if( ani.getAniColors().length != ani2.getAniColors().length ) fail("different number of colors");
+		for (int j = 0; j < ani.getAniColors().length; j++) {
+			if( !ani.getAniColors()[j].equals(ani2.getAniColors()[j])) fail("different color @"+j);
+		}
+		boolean eq = EqualsBuilder.reflectionEquals(ani, ani2, "basePath", "name", "frames", "renderer");
+		if( !eq ) fail( "not equal");
 	}
 
 
