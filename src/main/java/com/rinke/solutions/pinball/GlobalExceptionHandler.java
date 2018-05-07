@@ -121,6 +121,7 @@ public class GlobalExceptionHandler {
     }
     
     public void showError(Exception e) {
+    	if( !display.isDisposed() )
         display.asyncExec(new Runnable() {
             
             @Override
@@ -180,7 +181,9 @@ public class GlobalExceptionHandler {
 					e1.printStackTrace();
 				}
 			}
-        });
+        }); else {
+        	log.error("unexpected exception {}",e);
+        }
     }
     
     private static MultiStatus createMultiStatus(String msg, Throwable t) {
