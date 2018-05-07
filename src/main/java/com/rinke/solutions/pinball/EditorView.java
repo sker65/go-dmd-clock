@@ -1153,7 +1153,7 @@ public class EditorView implements MainView {
 		btnAddKeyframe.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, false, false, 1, 1));
 		btnAddKeyframe.setText("Palette");
 		btnAddKeyframe.setEnabled(false);
-		btnAddKeyframe.addListener(SWT.Selection, e -> dispatchCmd(ADD_KEY_FRAME,SwitchMode.PALETTE));
+		btnAddKeyframe.addListener(SWT.Selection, e -> dispatchCmd(ADD_KEYFRAME,SwitchMode.PALETTE));
 		
 		Label lblScene = new Label(grpKeyframe, SWT.NONE);
 		lblScene.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
@@ -1176,7 +1176,7 @@ public class EditorView implements MainView {
 		btnAddFrameSeq.setToolTipText("Adds a keyframe that triggers playback of a scene");
 		// bound btnAddFrameSeq.setText("ColorScene");
 		// add switch mode depend on ani scene
-		btnAddFrameSeq.addListener(SWT.Selection, e -> dispatchCmd(ADD_FRAME_SEQ, vm.selectedFrameSeq.getEditMode()));
+		btnAddFrameSeq.addListener(SWT.Selection, e -> dispatchCmd(ADD_KEYFRAME));
 		btnAddFrameSeq.setEnabled(false);
 		
 		Label lblDuration = new Label(grpKeyframe, SWT.NONE);
@@ -1254,7 +1254,7 @@ public class EditorView implements MainView {
 		btnAddEvent = new Button(grpKeyframe, SWT.NONE);
 		btnAddEvent.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
 		btnAddEvent.setText("Event");
-		btnAddEvent.addListener(SWT.Selection, e->dispatchCmd(ADD_KEY_FRAME,SwitchMode.EVENT));
+		btnAddEvent.addListener(SWT.Selection, e->dispatchCmd(ADD_KEYFRAME,SwitchMode.EVENT));
 		
 		CTabItem tbtmGodmd = new CTabItem(tabFolder, SWT.NONE);
 		tbtmGodmd.setText(TabMode.GODMD.label);

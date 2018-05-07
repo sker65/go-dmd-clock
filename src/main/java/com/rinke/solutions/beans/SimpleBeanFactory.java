@@ -215,7 +215,7 @@ public class SimpleBeanFactory extends DefaultHandler implements BeanFactory {
 		return def;
 	}
 
-	private String getBeannameFromMethodName(String name) {
+	String getBeannameFromMethodName(String name) {
 		if( name.startsWith("get") ) name = name.substring(3);
 		if( name.startsWith("create") ) name = name.substring(6);
 		return StringUtils.uncapitalize(name);

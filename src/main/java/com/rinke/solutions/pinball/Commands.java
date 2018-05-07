@@ -36,8 +36,7 @@ public class Commands {
 	public static final String INVERT_MASK = "invertMask";
 	public static final String REMOVE_SELECTION = "removeSelection";
 	public static final String DELETE_AUTOSAVE_FILES = "deleteAutosaveFiles";
-	public static final String ADD_FRAME_SEQ = "addFrameSeq";
-	public static final String ADD_KEY_FRAME = "addKeyFrame";
+	public static final String ADD_KEYFRAME = "addKeyframe";
 	public static final String HASH_SELECTED = "hashSelected";
 	public static final String DEL_BOOKMARK = "delBookmark";
 	public static final String NEW_BOOKMARK = "newBookmark";

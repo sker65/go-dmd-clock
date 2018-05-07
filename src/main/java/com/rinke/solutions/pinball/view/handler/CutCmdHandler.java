@@ -131,7 +131,7 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 		vm.setSelectedFrameSeq(cutScene);
 
 		if( autoKeyframeWhenCut ) {
-			if( vm.selectedRecording!=null ) keyframeHandler.onAddKeyFrame(SwitchMode.REPLACE);
+			if( vm.selectedRecording!=null ) keyframeHandler.onAddKeyframe(SwitchMode.REPLACE);
 		}
 
 		vm.setSelectedScene(cutScene);

@@ -63,7 +63,11 @@ public class HashCmdHandler extends AbstractCommandHandler implements ViewBindin
 	}
 	
 	public void updateHashes(Frame frame) {
-		updateHashes(frame, false, 0);
+		if( vm.selectedKeyFrame != null ) {
+			updateHashes(frame, vm.selectedKeyFrame.withMask, vm.selectedKeyFrame.maskNumber);
+		} else {
+			updateHashes(frame, false, 0);
+		}
 	}
 
 	public void updateHashes(Frame frame, boolean withMask, int maskNumber) {
@@ -93,7 +97,7 @@ public class HashCmdHandler extends AbstractCommandHandler implements ViewBindin
 				enabled[i]=false;
 				if( vm.selectedHashIndex == i ) vm.setSelectedHashIndex(-1);
 			} else {
-				if( withMask ) {
+				if( withMask && i == vm.selectedHashIndex) {
 					lbls[i]=String.format("M%d %s", maskNumber, hash);
 				} else {
 					lbls[i]=hash;

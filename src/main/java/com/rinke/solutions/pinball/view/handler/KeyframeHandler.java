@@ -32,6 +32,7 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 	@Autowired
 	MessageUtil messageUtil;
 	@Autowired HashCmdHandler hashCmdHandler;
+	@Autowired MaskHandler maskHandler;
 
 	public KeyframeHandler(ViewModel vm) {
 		super(vm);
@@ -49,34 +50,82 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 		}
 	}
 	
-	public void onAddKeyFrame(SwitchMode switchMode) {
-		PalMapping palMapping = new PalMapping(vm.selectedPalette.index, "KeyFrame " + (vm.keyframes.size() + 1));
-		if (vm.selectedHashIndex != -1) {
-			palMapping.setDigest(vm.hashes.get(vm.selectedHashIndex));
+	public void onAddKeyframe() {
+		onAddKeyframe(null);
+	}
+	
+	public void onAddKeyframe(SwitchMode switchMode) {
+		// retrieve switch mode from selected scene edit mode!!
+		Animation ani = vm.selectedFrameSeq;
+		EditMode editMode = ani==null?null:ani.getEditMode();
+		if( switchMode == null ) switchMode = getSwitchModeFromEditMode(editMode);
+
+		PalMapping palMapping = new PalMapping(0, getName(switchMode, ani) );
+		palMapping.setDigest(vm.hashes.get(vm.selectedHashIndex));
+	
+		if( ani != null ) {
+			palMapping.palIndex = ani.getPalIndex();
+			palMapping.frameSeqName = ani.getDesc();
+		} else {
+			palMapping.palIndex = vm.selectedPalette.index;
 		}
+		
 		palMapping.animationName = vm.selectedRecording.getDesc();
+		palMapping.switchMode = switchMode;
 		palMapping.frameIndex = vm.selectedRecording.actFrame;
+		palMapping.hashIndex = vm.selectedHashIndex;
+		
 		if( switchMode.equals(SwitchMode.EVENT)) {
 			palMapping.durationInMillis = vm.selectedSpinnerDeviceId<<8 + vm.selectedSpinnerEventId;
+		} else {
+			palMapping.durationInMillis = vm.duration;
 		}
-		palMapping.switchMode = switchMode;
 		if (vm.showMask) {
+			maskHandler.commitMaskIfNeeded();
 			palMapping.withMask = true;
 			palMapping.maskNumber = vm.selectedMask;
-			vm.masks.get(vm.selectedMask).locked = true;
+			if( !vm.masks.get(vm.selectedMask).locked ) {
+				vm.masks.get(vm.selectedMask).locked = true;
+				vm.setMask(null);
+				vm.setMask(vm.masks.get(vm.selectedMask));
+				vm.setDmdDirty(true);
+			}
 			vm.setDetectionMaskActive(true);
+		} 
+		else if( editMode != null && editMode.useLayerMask && vm.selectedScene != null ) {
+			palMapping.withMask = true;
+			palMapping.maskNumber = vm.selectedMask;
+			vm.selectedScene.getMask(vm.selectedMask).locked = true;
+			//vm.setDetectionMaskActive(false);
+			palMapping.targetFrameIndex = 0; // how will this look like
 		}
-
 		if (!checkForDuplicateKeyFrames(palMapping)) {
 			vm.keyframes.put(palMapping.name,palMapping);
-			vm.saveTimeCode = vm.lastTimeCode;
-			vm.setDirty(true);
 		} else {
-			messageUtil.warn("Hash is already used", "The selected hash is already used by another key frame");
+			messageUtil.warn("duplicate hash", "There is already another Keyframe that uses the same hash");
 		}
 	}
+	
+	/**
+	 * creates unique name
+	 * @param switchMode 
+	 * @param ani selected switch scene 
+	 * @return name
+	 */
+	 String getName(SwitchMode switchMode, Animation ani) {
+		String name = "KeyFrame " + ( ani!=null 
+				&&  !switchMode.equals(SwitchMode.PALETTE) 
+				&& !switchMode.equals(SwitchMode.EVENT) ? ani.getDesc():Integer.toString(vm.keyframes.size()+1) );
+		int i = 0;
+		String res = name;
+		while( vm.keyframes.containsKey(res)) {
+			i++;
+			res = name + " " + Integer.toString(i);
+		}
+		return res;
+	}
 
-	public void onAddFrameSeq(EditMode editMode) {
+	private SwitchMode getSwitchModeFromEditMode(EditMode editMode) {
 		SwitchMode switchMode = SwitchMode.PALETTE;
 		switch(editMode) {
 			case COLMASK: switchMode = SwitchMode.ADD; break;
@@ -85,63 +134,9 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 			case LAYEREDCOL: switchMode = SwitchMode.LAYEREDCOL; break;
 			default: break;
 		}
-		// retrieve switch mode from selected scene edit mode!!
-		if (vm.selectedFrameSeq != null) {
-			if (vm.selectedHashIndex != -1) {
-			// these if's are actually preconditions for enabled state on the button and should	
-			// always be true
-				Animation ani = vm.selectedFrameSeq;
-				//  add index, add ref to framesSeq
-				if( !switchMode.equals(SwitchMode.PALETTE)) {
-					switch(ani.getEditMode()) {
-					case REPLACE:
-						switchMode = SwitchMode.REPLACE;
-						break;
-					case COLMASK:
-						switchMode = SwitchMode.ADD;
-						break;
-					case FOLLOW:
-						switchMode = SwitchMode.FOLLOW;
-						break;
-					case LAYEREDCOL:
-						switchMode = SwitchMode.LAYEREDCOL;
-						break;
-					default:
-						switchMode = SwitchMode.EVENT;
-					}
-				}
-				PalMapping palMapping = new PalMapping(0, "KeyFrame " + ani.getDesc());
-				palMapping.setDigest(vm.hashes.get(vm.selectedHashIndex));
-				palMapping.palIndex = ani.getPalIndex();
-				palMapping.frameSeqName = ani.getDesc();
-				palMapping.animationName = vm.selectedRecording.getDesc();
-				palMapping.switchMode = switchMode;
-				palMapping.frameIndex = vm.selectedRecording.actFrame;
-				if (editMode.useGlobalMask) {
-					palMapping.withMask = true;
-					palMapping.maskNumber = vm.selectedMask;
-					vm.masks.get(vm.selectedMask).locked = true;
-					vm.setDetectionMaskActive(true);
-				} else if( editMode.useLayerMask && vm.selectedScene != null ) {
-					palMapping.withMask = true;
-					palMapping.maskNumber = vm.selectedMask;
-					vm.selectedScene.getMask(vm.selectedMask).locked = true;
-					//vm.setDetectionMaskActive(false);
-					palMapping.targetFrameIndex = 0; // how will this look like
-				}
-				if (!checkForDuplicateKeyFrames(palMapping)) {
-					vm.keyframes.put(palMapping.name,palMapping);
-				} else {
-					messageUtil.warn("duplicate hash", "There is already another Keyframe that uses the same hash");
-				}
-			} else {
-				messageUtil.warn("no hash selected", "in order to create a key frame mapping, you must select a hash");
-			}
-		} else {
-			messageUtil.warn("no scene selected", "in order to create a key frame mapping, you must select a scene");
-		}
+		return switchMode;
 	}
-	
+
 	boolean checkForDuplicateKeyFrames(PalMapping palMapping) {
 		for (PalMapping p : vm.keyframes.values()) {
 			if (Arrays.equals(p.crc32, palMapping.crc32))
@@ -149,13 +144,10 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 		}
 		return false;
 	}
-		
 
 	public void onDeleteKeyframe() {
-		if (vm.selectedKeyFrame != null) {
-			vm.keyframes.remove(vm.selectedKeyFrame.name);
-			checkReleaseMask();
-		}
+		vm.keyframes.remove(vm.selectedKeyFrame.name);
+		checkReleaseMask();
 	}
 	/**
 	 * checks all pal mappings and releases masks if not used anymore
@@ -168,6 +160,12 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 			}
 		}
 		for (int i = 0; i < vm.masks.size(); i++) {
+			if( vm.masks.get(i).locked && !useMasks.contains(i) && vm.selectedMask == i && vm.showMask ) {
+				vm.setMask(null);
+				vm.masks.get(i).locked = useMasks.contains(i);
+				vm.setMask(vm.masks.get(vm.selectedMask));
+				vm.setDmdDirty(true);
+			}
 			vm.masks.get(i).locked = useMasks.contains(i);
 		}
 		vm.setDetectionMaskActive(vm.useGlobalMask);
@@ -231,8 +229,8 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 				vm.setSelectedFrameSeq(vm.scenes.get(nk.frameSeqName));
 
 			vm.setSelectedFrame(nk.frameIndex);
-
 			vm.setDetectionMaskActive(nk.withMask);
+			vm.setSelectedHashIndex(nk.hashIndex);
 			
 			hashCmdHandler.updateHashes(vm.dmd.getFrame(), nk.withMask, nk.maskNumber);
 			
@@ -241,15 +239,6 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 			if(nk.withMask) {
 				vm.setSelectedMask(nk.maskNumber);
 			}
-			
-			/* work pushed into updateHashes method above
-				String[] lbls = Arrays.copyOf(vm.hashLbl, vm.hashLbl.length);
-				if( vm.selectedHashIndex != -1) {
-					String txt = lbls[vm.selectedHashIndex];
-					if( !txt.startsWith("M")) lbls[vm.selectedHashIndex] = "M" + nk.maskNumber + " " + txt;
-				}
-				vm.setHashLbl(lbls);
-			*/
 			
 			if( vm.selectedRecording!=null )
 				vm.saveTimeCode = (int) vm.selectedRecording.getTimeCode(nk.frameIndex);
