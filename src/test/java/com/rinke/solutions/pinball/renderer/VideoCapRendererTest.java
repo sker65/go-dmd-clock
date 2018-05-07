@@ -4,6 +4,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import com.rinke.solutions.pinball.DMD;
+import com.rinke.solutions.pinball.DmdSize;
 import com.rinke.solutions.pinball.PinDmdEditor;
 
 public class VideoCapRendererTest {
@@ -13,7 +14,7 @@ public class VideoCapRendererTest {
 	@Test
 	@Ignore
 	public void testConvert() throws Exception {
-		DMD dmd = new DMD(PinDmdEditor.DMD_WIDTH, PinDmdEditor.DMD_HEIGHT);
+		DMD dmd = new DMD(DmdSize.Size128x32);
 		String name = "/Users/stefanri/Downloads/roadrunner.mp4";
 		uut.convert(name , dmd , 0);
 	}

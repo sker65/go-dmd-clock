@@ -6,6 +6,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.rinke.solutions.pinball.DMD;
+import com.rinke.solutions.pinball.DmdSize;
 import com.rinke.solutions.pinball.PinDmdEditor;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Plane;
@@ -14,11 +15,11 @@ import com.rinke.solutions.pinball.model.Plane;
 public class CompiledAnimationTest {
 
 	CompiledAnimation uut = null;
-	
+	DmdSize size = DmdSize.Size128x32;
 	@Before
 	public void setup() {
 		Animation ani = Animation.buildAnimationFromFile("./src/test/resources/drwho-dump.txt.gz", AnimationType.MAME);
-		DMD dmd = new DMD(PinDmdEditor.DMD_WIDTH, PinDmdEditor.DMD_HEIGHT);
+		DMD dmd = new DMD(size);
 		dmd.setNumberOfSubframes(4);
 		ani.render(dmd, false);
 		uut = (CompiledAnimation) ani.cutScene(30, 200, 4);
@@ -27,7 +28,7 @@ public class CompiledAnimationTest {
 	
 	@Test
 	public void testCommitDMDchanges() throws Exception {
-		DMD dmd = new DMD(PinDmdEditor.DMD_WIDTH, PinDmdEditor.DMD_HEIGHT);
+		DMD dmd = new DMD(size);
 		dmd.setNumberOfSubframes(4);
 		Frame frame = uut.render(dmd , true);
 		byte sum=0;

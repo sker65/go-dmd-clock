@@ -44,11 +44,12 @@ public class PcapRenderer extends Renderer {
     			byte[] data = new byte[p.incLen];
     			stream.read(data);
     			int offset = findPinDmdMagicOffset(data);
+    			int planeSize = dmd.getPlaneSizeInByte();
     			Frame res = new Frame( 
-    					Frame.transform(data, offset+4, dmd.getPlaneSizeInByte()),
-    					Frame.transform(data, offset+4+PinDmdEditor.PLANE_SIZE, dmd.getPlaneSizeInByte()),
-    					Frame.transform(data, offset+4+PinDmdEditor.PLANE_SIZE*2, dmd.getPlaneSizeInByte()),
-    					Frame.transform(data, offset+4+PinDmdEditor.PLANE_SIZE*3, dmd.getPlaneSizeInByte())
+    					Frame.transform(data, offset+4, planeSize),
+    					Frame.transform(data, offset+4+planeSize, planeSize),
+    					Frame.transform(data, offset+4+planeSize*2, planeSize),
+    					Frame.transform(data, offset+4+planeSize*3, planeSize)
     					);
     			
     			//res = buildSummarizedFrame(dmd.getWidth(), dmd.getHeight(),data, offset+4);
@@ -113,14 +114,5 @@ public class PcapRenderer extends Renderer {
     public long getTimeCode(int actFrame) {
         return actFrame< frames.size() ? frames.get(actFrame).timecode:0;
     }
-	
-	public static void main(String[] args) {
-		Renderer renderer = new PcapRenderer();
-		String base = "./";
-		DMD dmd = new DMD(PinDmdEditor.DMD_WIDTH, PinDmdEditor.DMD_HEIGHT);
-		renderer.convert(base + "t2.pcap", dmd, 0);
-	}
-
-
 
 }

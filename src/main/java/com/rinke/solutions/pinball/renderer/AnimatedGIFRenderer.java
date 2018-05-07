@@ -24,6 +24,7 @@ import org.w3c.dom.NodeList;
 
 import com.google.common.collect.Sets;
 import com.rinke.solutions.pinball.DMD;
+import com.rinke.solutions.pinball.DmdSize;
 import com.rinke.solutions.pinball.PinDmdEditor;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Palette;
@@ -44,7 +45,9 @@ public class AnimatedGIFRenderer extends Renderer {
                 "imageWidth",
                 "imageHeight"
             };
-
+		
+		DmdSize size = Integer.parseInt(props.getProperty("width", "128"))==128 ? DmdSize.Size128x32 : DmdSize.Size192x64;
+		
 		try {
 			ImageReader reader = null;//(ImageReader) ImageIO.getImageReadersByFormatName("gif").next();
 
@@ -125,8 +128,8 @@ public class AnimatedGIFRenderer extends Renderer {
 	            }
 	            
 	            // resize on demand
-	            if( toScan.getWidth() > PinDmdEditor.DMD_WIDTH || toScan.getHeight() > PinDmdEditor.DMD_HEIGHT ) {
-	            	toScan = resize(toScan, PinDmdEditor.DMD_WIDTH,PinDmdEditor.DMD_HEIGHT);
+	            if( toScan.getWidth() > size.width || toScan.getHeight() > size.height ) {
+	            	toScan = resize(toScan, size.width,size.height);
 	            }
 	            
 /*				for (int x = 0; x < 128; x++) {

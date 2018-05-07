@@ -59,7 +59,7 @@ public class PinDumpRenderer extends Renderer {
 				numberOfFrames = 3;
 				break;
 			}
-			int buflen = PinDmdEditor.PLANE_SIZE * numberOfFrames;
+			int buflen = dmd.getPlaneSizeInByte() * numberOfFrames;
 			while (stream.available() > 0) {
 				stream.read(tcBuffer);
 				tc = (((int)tcBuffer[3]&0xFF) << 24) + (((int)tcBuffer[2]&0xFF) << 16) 
@@ -74,11 +74,11 @@ public class PinDumpRenderer extends Renderer {
 				// TODO for Gottlieb and WPC do an additive aggregation
 				if( deviceMode.equals(DeviceMode.WPC) ||
 						deviceMode.equals(DeviceMode.Gottlieb) ) {
-					res = transformPlanes(data, deviceMode);
+					res = transformPlanes(data, deviceMode, dmd.getPlaneSizeInByte());
 				} else {
 					res = new Frame();
 					for(int i = 0; i < numberOfFrames; i++) {
-						res.planes.add(new Plane((byte)i, Frame.transform(data, i*PinDmdEditor.PLANE_SIZE, dmd.getPlaneSizeInByte())));
+						res.planes.add(new Plane((byte)i, Frame.transform(data, i*dmd.getPlaneSizeInByte(), dmd.getPlaneSizeInByte())));
 					}
 				}
 
@@ -117,14 +117,14 @@ public class PinDumpRenderer extends Renderer {
 		return crc.getValue();
 	}
 
-	private Frame transformPlanes(byte[] data, DeviceMode deviceMode) {
-		byte[] plane1 = new byte[PinDmdEditor.PLANE_SIZE];
-		byte[] plane2 = new byte[PinDmdEditor.PLANE_SIZE];
+	private Frame transformPlanes(byte[] data, DeviceMode deviceMode, int size) {
+		byte[] plane1 = new byte[size];
+		byte[] plane2 = new byte[size];
 		
-		for( int i = 0; i <PinDmdEditor.PLANE_SIZE ; i++) {
+		for( int i = 0; i <size ; i++) {
 			byte v0 = data[i];
-			byte v1 = data[i+PinDmdEditor.PLANE_SIZE];
-			byte v2 = data[i+PinDmdEditor.PLANE_SIZE*2];
+			byte v1 = data[i+size];
+			byte v2 = data[i+size*2];
 			for( int j = 0; j < 8; j++) {				
 				int sum = v0&1 + v1&1 + v2&1;
 				if( (sum&1) != 0) {

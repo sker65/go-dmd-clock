@@ -52,7 +52,7 @@ public class MaskDmdObserverTest {
 
 	@Test
 	public void testUpdate() throws Exception {
-		DMD mask = new DMD(PinDmdEditor.DMD_WIDTH, PinDmdEditor.DMD_HEIGHT);
+		DMD mask = new DMD(DmdSize.Size128x32);
 		uut.setMask(mask);
 		mask.notifyObservers();
 		assertFalse(uut.hasChanged());

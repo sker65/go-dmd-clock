@@ -3,22 +3,21 @@ package com.rinke.solutions.pinball.renderer;
 import java.io.File;
 
 import org.eclipse.swt.widgets.Shell;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import ar.com.hjg.pngj.ImageLineInt;
 import ar.com.hjg.pngj.PngReader;
 
 import com.rinke.solutions.pinball.DMD;
-import com.rinke.solutions.pinball.PinDmdEditor;
+import com.rinke.solutions.pinball.DmdSize;
 import com.rinke.solutions.pinball.model.Frame;
 
 public class PngRenderer extends Renderer {
     
-    private static Logger LOG = LoggerFactory.getLogger(PngRenderer.class); 
-	
 	private String pattern = "Image-0x%04X";
-	
+	DmdSize size = DmdSize.Size128x32;
+	private boolean autoMerge = false;
+	private boolean override;
+
 	public boolean isAutoMerge() {
 		return autoMerge;
 	}
@@ -26,9 +25,6 @@ public class PngRenderer extends Renderer {
 	public void setPattern(String pattern) {
 		this.pattern = pattern;
 	}
-
-	private boolean autoMerge = false;
-	private boolean override;
 
 	public void setAutoMerge(boolean autoMerge) {
 		this.autoMerge = autoMerge;
@@ -46,7 +42,7 @@ public class PngRenderer extends Renderer {
 	public Frame convert(String filename, DMD dmd, int frameNo, Shell shell) {
 		return convert(filename, dmd, frameNo);
 	}
-
+	
 	// TODO use color
 	public Frame convert(String name, DMD dmd, int frameNo) {
 
@@ -88,12 +84,12 @@ public class PngRenderer extends Renderer {
 							scanlineMerge[j * channels + 3] > 0	) {
 						int v = scanline[j * channels + 0] + scanlineMerge[j * channels + 0]*2;
 						if( v == 255 ) {
-							f1[rowOffset + j / 8] |= (PinDmdEditor.DMD_WIDTH >> (j % 8));
+							f1[rowOffset + j / 8] |= (size.width >> (j % 8));
 						} else if( v == 510 ) {
-							f2[rowOffset + j / 8] |= (PinDmdEditor.DMD_WIDTH >> (j % 8));
+							f2[rowOffset + j / 8] |= (size.width >> (j % 8));
 						} else {
-							f1[rowOffset + j / 8] |= (PinDmdEditor.DMD_WIDTH >> (j % 8));
-							f2[rowOffset + j / 8] |= (PinDmdEditor.DMD_WIDTH >> (j % 8));
+							f1[rowOffset + j / 8] |= (size.width >> (j % 8));
+							f2[rowOffset + j / 8] |= (size.width >> (j % 8));
 						}
 					}
 				} else {
@@ -106,12 +102,12 @@ public class PngRenderer extends Renderer {
 						
 						if (x > lowThreshold && x < midThreshold) {
 							// set f1
-							f1[rowOffset + j / 8] |= (PinDmdEditor.DMD_WIDTH >> (j % 8));
+							f1[rowOffset + j / 8] |= (size.width >> (j % 8));
 						} else if (x >= midThreshold && x < highThreshold) {
-							f2[rowOffset + j / 8] |= (PinDmdEditor.DMD_WIDTH >> (j % 8));
+							f2[rowOffset + j / 8] |= (size.width >> (j % 8));
 						} else if (x > highThreshold) {
-							f1[rowOffset + j / 8] |= (PinDmdEditor.DMD_WIDTH >> (j % 8));
-							f2[rowOffset + j / 8] |= (PinDmdEditor.DMD_WIDTH >> (j % 8));
+							f1[rowOffset + j / 8] |= (size.width >> (j % 8));
+							f2[rowOffset + j / 8] |= (size.width >> (j % 8));
 						}
 						
 					}

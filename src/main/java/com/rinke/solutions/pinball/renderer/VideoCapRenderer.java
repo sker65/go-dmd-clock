@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.rinke.solutions.pinball.DMD;
+import com.rinke.solutions.pinball.DmdSize;
 import com.rinke.solutions.pinball.PinDmdEditor;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Plane;
@@ -29,7 +30,8 @@ public class VideoCapRenderer extends Renderer {
 	private int skip = 0;
 	String name;
 	DMD dmd;
-
+	DmdSize size = DmdSize.Size128x32;
+	
 	protected void readImage(String name, DMD dmd, Shell shell) {
 		this.name = name;
 		this.dmd = dmd;
@@ -51,6 +53,9 @@ public class VideoCapRenderer extends Renderer {
 
 	protected void doReadImage() {
 		notify(0, "init grabber");
+		
+		size = getInt("width", 128) == 128 ? DmdSize.Size128x32 : DmdSize.Size192x64;
+		
 		Java2DFrameConverter converter = new Java2DFrameConverter();
 		FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(name);
 		int w = dmd.getWidth();
@@ -90,7 +95,7 @@ public class VideoCapRenderer extends Renderer {
 						h, BufferedImage.TYPE_INT_RGB);
 
 				Graphics graphics = dmdImage.createGraphics();
-				graphics.drawImage(image.getSubimage(getInt("clipx",0), getInt("clipy",0), getInt("clipw",PinDmdEditor.DMD_WIDTH), getInt("cliph",PinDmdEditor.DMD_HEIGHT)), 0, 0, w,
+				graphics.drawImage(image.getSubimage(getInt("clipx",0), getInt("clipy",0), getInt("clipw",size.width), getInt("cliph",size.height)), 0, 0, w,
 						h, null);
 				graphics.dispose();
 				

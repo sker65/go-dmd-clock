@@ -42,10 +42,6 @@ import com.rinke.solutions.pinball.view.model.ViewModel;
 //@Slf4j
 public class PinDmdEditor {
 
-	public static int DMD_WIDTH = 128;
-	public static int DMD_HEIGHT = 32;
-	public static int PLANE_SIZE = 128/8*32;
-
 	@Option(name = "-ani", usage = "animation file to load", required = false)
 	private String aniToLoad;
 

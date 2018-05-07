@@ -15,7 +15,7 @@ public class HandlerTest {
 	}
 
 	protected ViewModel vm = new ViewModel();
-	protected DMD dmd = new DMD(128,32);
+	protected DMD dmd = new DMD(DmdSize.Size128x32);
 	protected CompiledAnimation ani = new CompiledAnimation(AnimationType.COMPILED, "foo",0,0,0,0,0);
 
 	protected CompiledAnimation getScene(String name) {

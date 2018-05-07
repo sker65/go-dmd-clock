@@ -5,8 +5,6 @@ import java.util.Observable;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.eclipse.swt.SWT;
-
 import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.Bean;
 import com.rinke.solutions.pinball.AnimationHandler;
@@ -14,7 +12,6 @@ import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.Dispatcher;
 import com.rinke.solutions.pinball.MaskDmdObserver;
 import com.rinke.solutions.pinball.ObserverManager;
-import com.rinke.solutions.pinball.PinDmdEditor;
 import com.rinke.solutions.pinball.animation.AniEvent;
 import com.rinke.solutions.pinball.animation.EventHandler;
 import com.rinke.solutions.pinball.animation.AniEvent.Type;

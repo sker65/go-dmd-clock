@@ -19,6 +19,8 @@ import static java.lang.Math.*;
 @Slf4j
 public abstract class Pin2DmdConnector {
 
+	private static final int USB_BUFFER_SIZE = 512;
+
 	public static enum UsbCmd {
 		RESET(0), SAVE_CONFIG(1), SWITCH_DEVICEMODE(2), SWITCH_PALETTE(3),  UPLOAD_PALETTE(4), UPLOAD_MAPPING(5),
 		UPLOAD_SMARTDMD_SIG(6), RESET_SETTINGS(7), SET_DISPLAY_TIMING(8), WRITE_FILE(9), WRITE_FILE_EX(10), SEND_SETTINGS(16),
@@ -146,7 +148,7 @@ public abstract class Pin2DmdConnector {
         try {
         	send(data, usb);
         	doHandShake(usb);
-        	byte[] buffer = new byte[PinDmdEditor.PLANE_SIZE];
+        	byte[] buffer = new byte[USB_BUFFER_SIZE];
         	int read;
         	while( (read = is.read(buffer)) > 0 ){
         		data = buildBuffer(UsbCmd.WRITE_FILE_EX);

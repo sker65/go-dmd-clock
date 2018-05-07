@@ -254,7 +254,7 @@ public class ProjectHandlerTest extends HandlerTest {
 	private void compare(Animation ani, Animation ani2) {
 		int i = ani.getStart();
 		ani.restart(); ani2.restart();
-		DMD dmd = new DMD(PinDmdEditor.DMD_WIDTH, PinDmdEditor.DMD_HEIGHT);
+		DMD dmd = new DMD(DmdSize.Size128x32);
 		while( i < ani.end ) {
 			Frame f = ani.render(dmd, false);
 			Frame f2 = ani2.render(dmd, false);

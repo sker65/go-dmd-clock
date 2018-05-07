@@ -24,7 +24,7 @@ import com.rinke.solutions.pinball.widget.PasteTool;
  * @author Stefan Rinke
  */
 @Slf4j
-public class ClipboardHandler implements Runnable {
+public class ClipboardHandler {
 	
 	// introduce an interface that eliminates the direct dependencies from SWT clipboard
 	ClipboardFacade clipboard; 
@@ -242,22 +242,6 @@ public class ClipboardHandler implements Runnable {
 		}
 	}
 	
-	long nextCheck = 0;
-
-	@Override
-	public void run() {
-		long now = System.currentTimeMillis();
-		if( now > nextCheck ) {
-			nextCheck = now + 10000;
-			checkClipboard();
-		}
-		//display.asyncExec(this);
-	}
-
-	private void checkClipboard() {
-		log.trace("check clipboard");
-		// could be used to disable / enable paste menu
-	}
 }
 
 
