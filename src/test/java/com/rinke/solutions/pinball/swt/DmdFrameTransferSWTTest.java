@@ -10,7 +10,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import com.rinke.solutions.pinball.model.Frame;
 
 @RunWith(MockitoJUnitRunner.class)
-public class DmdFrameTransferTest {
+public class DmdFrameTransferSWTTest {
 	
 	@InjectMocks
 	private DmdFrameTransfer uut;
