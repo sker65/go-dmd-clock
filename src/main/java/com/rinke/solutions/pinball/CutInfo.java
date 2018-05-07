@@ -2,21 +2,24 @@ package com.rinke.solutions.pinball;
 
 import java.util.Observable;
 
+import com.rinke.solutions.beans.Bean;
+
 /**
  * simple dto for holding cut marks (start & end). Implements observable which is used from UI
  * @author stefanri
  */
+@Bean
 public class CutInfo extends Observable {
     
     public CutInfo() {
         super();
     }
 
-    private int start;
-    private int end;
+    private Integer start;
+    private Integer end;
     
     public int getStart() {
-        return start;
+        return start==null?0:start;
     }
     
     public void setStart(int start) {
@@ -26,7 +29,7 @@ public class CutInfo extends Observable {
     }
 
     public int getEnd() {
-        return end;
+        return end==null?0:end;
     }
     public void setEnd(int end) {
         this.end = end;
@@ -35,8 +38,8 @@ public class CutInfo extends Observable {
     }
     
     public void reset() {
-        start=0;
-        end=0;
+        start=null;
+        end=null;
         setChanged();
         notifyObservers();
     }
@@ -45,5 +48,13 @@ public class CutInfo extends Observable {
     public String toString() {
         return "CutInfo [start=" + start + ", end=" + end + "]";
     }
+
+	public boolean canCut() {
+		return end!=null && start != null && end>=start;
+	}
+
+	public boolean canMarkEnd(int actFrame) {
+		return start!=null&&actFrame>=start;
+	}
 
 }

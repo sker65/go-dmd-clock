@@ -10,7 +10,7 @@ public class FloodFillTool extends DrawTool {
 
 	@Override
 	public boolean mouseUp(int x, int y) {
-		int oldColor = dmd.getPixel(x, y);
+		int oldColor = dmd.getPixelWithoutMask(x, y);
 		if( oldColor != actualColor ) {
 			dmd.addUndoBuffer();
 			depth = 0;
@@ -22,12 +22,12 @@ public class FloodFillTool extends DrawTool {
 
 	private void fill(int oldColor, int x, int y) {
 		depth++;
-		if( depth > 4000 ) {
+		if( depth > 10000 ) {
 			throw new RuntimeException("fill to deep");
 		}
-		if( dmd.getPixel(x,y) == oldColor ) {
+		if( dmd.getPixelWithoutMask(x,y) == oldColor ) {
 			dmd.setPixel(x, y, this.actualColor);
-			if( dmd.getPixel(x,y) != oldColor ) { // double check because of col masking, only decend if its really changing color
+			if( dmd.getPixelWithoutMask(x,y) != oldColor ) { // double check because of col masking, only decend if its really changing color
 				if( x>0 ) fill( oldColor, x-1, y);
 				if( x<dmd.getWidth()-1) fill(oldColor, x+1,y);
 				if( y> 0 ) fill(oldColor,x,y-1);

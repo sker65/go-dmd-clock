@@ -15,6 +15,7 @@ import org.apache.commons.io.IOUtils;
 import com.rinke.solutions.io.HeatShrinkDecoder;
 import com.rinke.solutions.pinball.animation.Animation.EditMode;
 import com.rinke.solutions.pinball.model.Frame;
+import com.rinke.solutions.pinball.model.Mask;
 import com.rinke.solutions.pinball.model.Plane;
 import com.rinke.solutions.pinball.model.RGB;
 
@@ -33,7 +34,10 @@ public class AniReader {
 		try {
 			is = new DataInputStream(new FileInputStream(filename));
 			byte[] magic = new byte[4];
-			is.read(magic); //
+			is.read(magic);
+			if( !AniWriter.ANIM.equals(new String(magic, "UTF-8")) ) {
+				throw new RuntimeException("bad file format: " + filename);
+			}
 			version = is.readShort(); // version
 			log.info("version is {}",version);
 			int numberOfAnimations = is.readShort();
@@ -54,6 +58,22 @@ public class AniReader {
 				if( version >= 3 ) {
 					byte editMode = is.readByte();
 					a.setEditMode(EditMode.fromOrdinal(editMode));
+				}
+				if( version >= 4 ) {
+					int width = is.readShort();
+					int height = is.readShort();
+					a.setDimension(width, height);
+				}
+				if( version >= 5 ) {
+					int noOfMasks = is.readShort();
+					List<Mask> masks = a.getMasks();
+					for( int i = 0; i < noOfMasks; i++) {
+						boolean locked = is.readBoolean();
+						int length = is.readShort();
+						byte[] data = new byte[length];
+						is.read(data);
+						masks.add(new Mask(data,locked));
+					}
 				}
 				readFrames( is, a, frames, version );
 				numberOfAnimations--;
@@ -88,7 +108,7 @@ public class AniReader {
 		int fsk = is.readByte();
 		
 		// read complied animations
-		CompiledAnimation a = new CompiledAnimation(AnimationType.COMPILED, name, 0, 0, 1, cycles, holdCycles);
+		CompiledAnimation a = new CompiledAnimation(AnimationType.COMPILED, name, 0, 0, 1, cycles, holdCycles, 128, 32);
 		a.setRefreshDelay(refreshDelay);
 		a.setClockFrom(clockFrom);
 		a.setClockSmall(clockSmall);
@@ -127,9 +147,14 @@ public class AniReader {
 		while(frames>0) {
 			int size = is.readShort(); // framesize in byte
 			int delay = is.readShort();
+			byte[] crc32 = new byte[4];
+			if(version >= 4 ) {
+				is.read(crc32);
+			}
 			int numberOfPlanes = is.readByte();
 			Frame f = new Frame();
 			f.delay = delay;
+			f.setHash(crc32);
 			a.addFrame(f);
 			boolean foundMask = false;
 			if( version >= 3 ) {
@@ -143,12 +168,12 @@ public class AniReader {
 					HeatShrinkDecoder dec = new HeatShrinkDecoder(10,5,1024);
 					dec.decode(bis, b2);
 					DataInputStream is2 = new DataInputStream(new ByteArrayInputStream(b2.toByteArray()));
-					foundMask = readPlanes(f, numberOfPlanes, size, is2);
+					foundMask = readPlanes(f, numberOfPlanes, size, is2, version);
 				} else {
-					foundMask = readPlanes(f, numberOfPlanes, size, is);
+					foundMask = readPlanes(f, numberOfPlanes, size, is, version);
 				}
 			} else {
-				foundMask = readPlanes(f, numberOfPlanes, size, is);
+				foundMask = readPlanes(f, numberOfPlanes, size, is, version);
 			}
 			if( foundMask && a.getTransitionFrom()==0) a.setTransitionFrom(i);
 			i++;
@@ -156,9 +181,17 @@ public class AniReader {
 		}
 	}
 
-
-	private static boolean readPlanes(Frame f, int numberOfPlanes, int size, DataInputStream is) throws IOException {
-		Plane mask = null;
+	/**
+	 * read planes
+	 * @param f
+	 * @param numberOfPlanes
+	 * @param size
+	 * @param is
+	 * @param version
+	 * @return true if mask was found
+	 * @throws IOException
+	 */
+	private static boolean readPlanes(Frame f, int numberOfPlanes, int size, DataInputStream is, int version) throws IOException {
 		int np = numberOfPlanes;
 		while( np>0) {
 			byte[] f1 = new byte[size];
@@ -166,15 +199,11 @@ public class AniReader {
 			is.readFully(f1);
 			Plane p = new Plane(marker, f1);
 			if( marker < numberOfPlanes ) f.planes.add( p );
-			else mask = p;
+			else f.mask = p;
 			np--;
 		}
-		// mask plane is the last in list but first in file
-		if( mask != null ) {
-		    f.planes.add( mask );
-		    return true;
-		}
-		return false;
+		// mask plane is always the first in the list
+		return f.hasMask();
 	}
 
 

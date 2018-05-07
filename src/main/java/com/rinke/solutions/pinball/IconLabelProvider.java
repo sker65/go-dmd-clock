@@ -10,28 +10,28 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 
-public class IconLabelProvider extends OwnerDrawLabelProvider {
+public class IconLabelProvider<T> extends OwnerDrawLabelProvider {
 
     private LocalResourceManager resManager;
-	private IconResolver resolver;
+	private IconResolver<T> resolver;
     
     @FunctionalInterface
-    public interface IconResolver {
-    	public Pair<String,String> resolve(Object o);
+    public interface IconResolver<T> {
+    	public Pair<String,String> resolve(T o);
     }
 
-	public IconLabelProvider(Composite parent, IconResolver resolver) {
+	public IconLabelProvider(Composite parent, IconResolver<T> resolver) {
 		super();
 		this.resolver = resolver;
 		resManager = new LocalResourceManager(JFaceResources.getResources(),
 				parent);	}
 
     public String getText(Object o) {
-        return resolver.resolve(o).getRight();
+        return resolver.resolve((T) o).getRight();
     }
 
 	public Image getImage(Object o) {
-		String icon = "/icons/"+resolver.resolve(o).getLeft()+".png";
+		String icon = "/icons/"+resolver.resolve((T) o).getLeft()+".png";
 		return resManager.createImage(
 				ImageDescriptor.createFromFile(IconLabelProvider.class, icon));
 	}

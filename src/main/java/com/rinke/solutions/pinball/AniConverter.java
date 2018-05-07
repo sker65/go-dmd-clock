@@ -2,6 +2,7 @@ package com.rinke.solutions.pinball;
 
 import java.io.File;
 import java.util.List;
+import java.util.Map;
 
 import lombok.extern.java.Log;
 
@@ -26,11 +27,11 @@ public class AniConverter {
 		converter.loadProject(args[0]);
 	}
 	
-	private void populatePalette(Animation ani, List<Palette> palettes) {
+	private void populatePalette(Animation ani, Map<Integer,Palette> palettes) {
 		if (ani.getAniColors() != null) {
 			// if loaded colors with animations propagate as palette
 			boolean colorsMatch = false;
-			for (Palette p : palettes) {
+			for (Palette p : palettes.values()) {
 				if (p.sameColors(ani.getAniColors())) {
 					colorsMatch = true;
 					log.info("palette match "+ani.getDesc());
@@ -40,13 +41,13 @@ public class AniConverter {
 			}
 			if (!colorsMatch) {
 				Palette aniPalette = new Palette(ani.getAniColors(), palettes.size(), ani.getDesc());
-				palettes.add(aniPalette);
+				palettes.put(aniPalette.index,aniPalette);
 			}
 		}
 	}
 
 	
-	public void convert(String src, String dest, List<Palette> palettes) {
+	public void convert(String src, String dest, Map<Integer,Palette> palettes) {
 		List<Animation> anis = AniReader.readFromFile(src);
 		
 		anis.stream().forEach(a->a.setProjectAnimation(true));
@@ -57,7 +58,7 @@ public class AniConverter {
 			
 			populatePalette(a, palettes);
 			
-			DMD tmp = new DMD(128, 32);
+			DMD tmp = new DMD(PinDmdEditor.DMD_WIDTH, PinDmdEditor.DMD_HEIGHT);
 			for (int i = 0; i <= a.end; i++) {
 				Frame frame = new Frame( a.render(tmp, false) ); // copy frames to not remove in org
 				Plane plane1 = frame.planes.get(1);
@@ -76,7 +77,7 @@ public class AniConverter {
 			//while( a.get)
 		}
 		
-		for( Palette pal : palettes ) {
+		for( Palette pal : palettes.values() ) {
 			switchColors(pal);
 		}
 	
@@ -99,12 +100,14 @@ public class AniConverter {
 		//log.info("load project from {}", filename);
 		Project project = (Project) fileHelper.loadObject(filename);
 		
+		// TODO populate palette Map
+		
 		if (project != null) {
 
 			// if inputFiles contain project filename remove it
 			String aniFilename = replaceExtensionTo("ani", filename);
 			
-			convert(aniFilename, aniFilename+".cnv", project.palettes);
+			convert(aniFilename, aniFilename+".cnv", project.paletteMap);
 
 			fileHelper.storeObject(project, filename+".cnv.xml");
 			

@@ -7,6 +7,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -14,8 +15,10 @@ import org.apache.commons.io.IOUtils;
 
 import com.rinke.solutions.io.HeatShrinkEncoder;
 import com.rinke.solutions.pinball.DMD;
+import com.rinke.solutions.pinball.PinDmdEditor;
 import com.rinke.solutions.pinball.Worker;
 import com.rinke.solutions.pinball.model.Frame;
+import com.rinke.solutions.pinball.model.Mask;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.Plane;
 import com.rinke.solutions.pinball.model.RGB;
@@ -25,16 +28,15 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AniWriter extends Worker {
 	
-	private List<Palette> palettes;
+	public static final String ANIM = "ANIM";
+	private Map<Integer,Palette> palettes;
 	private int version;
 	private String filename;
 	private List<Animation> anis;
 	private Map<String,Integer> offsetMap;
-	private String header = "ANIM";
+	private String header = ANIM;
 	
-	private static final int MASK_MARKER = 0x6D;
-	
-	public AniWriter(List<Animation> anis, String filename, int version, List<Palette> palettes, ProgressEventListener progressEvt) {
+	public AniWriter(List<Animation> anis, String filename, int version, Map<Integer,Palette> palettes, ProgressEventListener progressEvt) {
 		this.anis = anis;
 		this.filename = filename;
 		this.version = version;
@@ -42,7 +44,7 @@ public class AniWriter extends Worker {
 		setProgressEvt(progressEvt);
 	}
 
-	public static void writeToFile(List<Animation> anis, String filename, int version, List<Palette> palettes) {
+	public static void writeToFile(List<Animation> anis, String filename, int version, Map<Integer,Palette> palettes) {
 		new AniWriter(anis,filename,version,palettes, null).run();
 	}
 
@@ -66,14 +68,15 @@ public class AniWriter extends Worker {
 			}
 			int aniIndex = 0;
 			int aniOffset[] = new int[anis.size()];
-			offsetMap = new HashMap<>();
+			offsetMap = new HashMap<>(anis.size());
 			int aniProgressInc = 100 / anis.size();
+			boolean atLeastOneCompressed = false;
 			for (Animation a : anis) {
 				aniOffset[aniIndex] = os.size();
 				offsetMap.put(a.getDesc(), os.size());
 			    writeAnimation(os, a);
 
-				DMD dmd = new DMD(128, 32);
+				DMD dmd = new DMD(a.width,a.height);
 				
 				int numberOfFrames = a.getFrameCount(dmd);
 				os.writeShort(numberOfFrames);
@@ -84,31 +87,52 @@ public class AniWriter extends Worker {
 				if( version >= 3 ) {
 					os.writeByte(a.getEditMode().ordinal());
 				}
+				if( version >= 4 ) {
+					os.writeShort(a.width);
+					os.writeShort(a.height);
+				}
+				if( version >= 5 ) {
+					// write layered masks
+					List<Mask> masks = a.getMasks();
+					int noOfMasks = masks!=null ? masks.size() : 0;
+					os.writeShort(noOfMasks);
+					for( int i = 0; i < noOfMasks; i++) {
+						os.writeBoolean(masks.get(i).locked);
+						os.writeShort( masks.get(i).data.length);
+						os.write( masks.get(i).data);
+					}
+				}
+
 				int preserveAct = a.getActFrame();
 				a.restart();
+				
 				// write frames
 				log.info("writing {} frames", numberOfFrames);
 				for(int i = 0; i<numberOfFrames;i++) {
-					dmd = new DMD(128, 32);
-					os.writeShort(dmd.getFrameSizeInByte());
+					dmd = new DMD(a.width,a.height);
+					os.writeShort(dmd.getPlaneSizeInByte());
 					notify(aniIndex*aniProgressInc + (int)((float)i/numberOfFrames * aniProgressInc), "writing animation "+a.getDesc());
 					Frame frame =  a.render(dmd,false);
 
 					// delay is set per frame, equal delay is just one possibility
 					os.writeShort(frame.delay);
-					os.writeByte(frame.planes.size());
+					if(version >= 4 ) {
+						os.write(frame.crc32);
+					}
+					os.writeByte(frame.hasMask()?frame.planes.size()+1:frame.planes.size());
 					
 					if( version < 3 ) {
 						writePlanes(os, frame);
 					} else {
 						// for version 3 add optional compression
-						boolean compress = ( frame.planes.size() > 4 );
+						boolean compress = ( frame.planes.size() > 5 ); // 4 planes and mask will not compressed
 						os.writeBoolean(compress);
 						if( !compress ) {
 							int size = writePlanes(os, frame);
 							planesCompressed += size;
 							planesRaw += size;
 						} else {
+							atLeastOneCompressed = true;
 							ByteArrayOutputStream bos = new ByteArrayOutputStream();
 							DataOutputStream dos = new DataOutputStream(bos);
 							writePlanes(dos, frame);
@@ -134,7 +158,7 @@ public class AniWriter extends Worker {
 			}
 			if( version >= 2 ) rewriteIndex(aniOffset, os, fos, startOfIndex);
 			os.close();
-			log.info("frame compression {}/{} = {}", planesRaw,planesCompressed, (float)planesCompressed/(float)planesRaw);
+			if( atLeastOneCompressed ) log.info("frame compression {}/{} = {}", planesRaw,planesCompressed, (float)planesCompressed/(float)planesRaw);
 			log.info("done");
 		} catch (IOException e) {
 			log.error("problems when wrinting file {}", filename);
@@ -150,7 +174,7 @@ public class AniWriter extends Worker {
 			os.writeShort(a.getPalIndex()); // standard palette is always 0 for now
 			os.writeShort(0); // number of colors on custom palette is also 0
 		} else {
-			os.writeShort(Short.MAX_VALUE); // as custom pallette use index short max 
+			os.writeShort(a.getPalIndex()); // as custom pallette use index short max 
 			log.info("writing pal index: {}",Short.MAX_VALUE);
 			if( a.getPalIndex() < palettes.size() ) {
 				Palette pal = palettes.get(a.getPalIndex());
@@ -191,26 +215,15 @@ public class AniWriter extends Worker {
 	private int writePlanes(DataOutputStream os, Frame r) throws IOException {
 		// ensure that if mask plane is contained, it is written first
 		int start = os.size();
-		int maskPlane = searchMaskPlane(r.planes);
-		if( maskPlane >= 0) {
-			os.writeByte(MASK_MARKER);
-		    os.write(r.planes.get(maskPlane).plane);
+		if( r.hasMask()) {
+			os.writeByte(Plane.xMASK);
+		    os.write(r.mask.data);
 		}
 		for(int j = 0; j < r.planes.size(); j++) {
-		    // plane type (normal bit depth)
-			if( j != maskPlane) {
-			    os.writeByte(j);
-			    os.write(r.planes.get(j).plane);
-			}
+		    os.writeByte(j);
+		    os.write(r.planes.get(j).data);
 		}
 		return os.size()-start;
-	}
-
-	private int searchMaskPlane(List<Plane> planes) {
-		for (int i = 0; i < planes.size(); i++) {
-			if( planes.get(i).marker == MASK_MARKER ) return i;
-		}
-		return -1;
 	}
 
 	private void rewriteIndex(int[] aniOffset, DataOutputStream os,

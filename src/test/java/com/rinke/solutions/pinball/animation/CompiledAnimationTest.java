@@ -6,6 +6,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.rinke.solutions.pinball.DMD;
+import com.rinke.solutions.pinball.PinDmdEditor;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Plane;
 
@@ -17,7 +18,7 @@ public class CompiledAnimationTest {
 	@Before
 	public void setup() {
 		Animation ani = Animation.buildAnimationFromFile("./src/test/resources/drwho-dump.txt.gz", AnimationType.MAME);
-		DMD dmd = new DMD(128, 32);
+		DMD dmd = new DMD(PinDmdEditor.DMD_WIDTH, PinDmdEditor.DMD_HEIGHT);
 		dmd.setNumberOfSubframes(4);
 		ani.render(dmd, false);
 		uut = (CompiledAnimation) ani.cutScene(30, 200, 4);
@@ -26,24 +27,25 @@ public class CompiledAnimationTest {
 	
 	@Test
 	public void testCommitDMDchanges() throws Exception {
-		DMD dmd = new DMD(128, 32);
+		DMD dmd = new DMD(PinDmdEditor.DMD_WIDTH, PinDmdEditor.DMD_HEIGHT);
 		dmd.setNumberOfSubframes(4);
 		Frame frame = uut.render(dmd , true);
 		byte sum=0;
 		for (Plane p : frame.planes) {
-			for(byte b : p.plane) sum +=b;
+			for(byte b : p.data) sum +=b;
 		}
 		assertEquals(-2,sum);
 		
+		dmd.addUndoBuffer();
 		dmd.setPixel(0, 0, 1);
 		
-		uut.commitDMDchanges(dmd);
+		uut.commitDMDchanges(dmd, null);
 		dmd.clear();
 		
 		frame = uut.render(dmd , true);
 		sum=0;
 		for (Plane p : frame.planes) {
-			for(byte b : p.plane) sum +=b;
+			for(byte b : p.data) sum +=b;
 		}
 
 		assertEquals(-128,sum);

@@ -19,47 +19,34 @@ import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Scale;
 import org.eclipse.swt.widgets.Shell;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import com.rinke.solutions.pinball.PinDmdEditor;
-import com.rinke.solutions.pinball.io.ConnectorFactory;
-import com.rinke.solutions.pinball.io.IpConnector;
-import com.rinke.solutions.pinball.io.Pin2DmdConnector;
-import com.rinke.solutions.pinball.io.Pin2DmdConnector.ConnectionHandle;
+import com.rinke.solutions.beans.Bean;
+import com.rinke.solutions.beans.Scope;
 import com.rinke.solutions.pinball.model.DefaultPalette;
 import com.rinke.solutions.pinball.model.DeviceMode;
-
-import org.eclipse.swt.widgets.Text;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.widgets.Scale;
+import com.rinke.solutions.pinball.view.View;
 
 @Slf4j
-public class DeviceConfig extends Dialog {
+@Bean(name="deviceConfig", scope=Scope.PROTOTYPE)
+public class DeviceConfig extends Dialog implements View {
     
-    protected Object result;
     protected Shell shell;
     private String lastPath;
     private ComboViewer deviceModecomboViewer;
     private ComboViewer comboViewerDefaultPalette;
     private Combo deviceModeCombo;
     private Combo comboDefaultPalette;
-    private Text pin2dmdHost;
     
-    public String getPin2DmdHost() {
-    	return address;
-    }
-
-    /**
+   /**
      * Create the dialog.
      * @param parent
      * @param style
      */
     public DeviceConfig(Shell parent) {
         super(parent, SWT.CLOSE | SWT.TITLE | SWT.BORDER | SWT.OK | SWT.APPLICATION_MODAL);
-        setText("Device Config");
+        setText("Configuration");
     }
 
     // testability overridden by tests
@@ -102,19 +89,27 @@ public class DeviceConfig extends Dialog {
         }
     }
     
-    private String address;
 	private Button btnInvertClock;
 	private Scale scBrightness;
+	private Group grpConfig;
+	private FormData fd_grpConfig;
 
     /**
      * Open the dialog.
      * @return the result
      */
-    public Object open(String address) {
+    public void open() {
         createContents();
-        this.address = address;
         
-        pin2dmdHost.setText(address!=null?address:"");
+        Button btnOk = new Button(shell, SWT.NONE);
+        fd_grpConfig.bottom = new FormAttachment(100, -47);
+        FormData fd_btnOk = new FormData();
+        fd_btnOk.top = new FormAttachment(grpConfig, 9);
+        fd_btnOk.right = new FormAttachment(grpConfig, 0, SWT.RIGHT);
+        fd_btnOk.left = new FormAttachment(0, 405);
+        btnOk.setLayoutData(fd_btnOk);
+        btnOk.setText("Ok");
+        btnOk.addListener(SWT.Selection, e->shell.close());
         
         shell.open();
         shell.layout();
@@ -124,7 +119,6 @@ public class DeviceConfig extends Dialog {
                 display.sleep();
             }
         }
-        return result;
     }
 
     /**
@@ -132,12 +126,12 @@ public class DeviceConfig extends Dialog {
      */
     void createContents() {
         shell = new Shell(getParent(), getStyle());
-        shell.setSize(480, 360);
+        shell.setSize(480, 242);
         shell.setText("Device Configuration");
         shell.setLayout(new FormLayout());
         
-        Group grpConfig = new Group(shell, SWT.NONE);
-        FormData fd_grpConfig = new FormData();
+        grpConfig = new Group(shell, SWT.NONE);
+        fd_grpConfig = new FormData();
         fd_grpConfig.top = new FormAttachment(0, 10);
         fd_grpConfig.left = new FormAttachment(0, 10);
         fd_grpConfig.right = new FormAttachment(0, 470);
@@ -177,9 +171,6 @@ public class DeviceConfig extends Dialog {
         btnCancel.setText("Cancel");
         btnCancel.addListener(SWT.Selection, e->shell.close());
         
-        Group grpWifi = new Group(shell, SWT.NONE);
-        fd_grpConfig.bottom = new FormAttachment(grpWifi, -56);
-        
         Label lblInvertClock = new Label(grpConfig, SWT.NONE);
         lblInvertClock.setText("Enhancer");
         
@@ -198,44 +189,6 @@ public class DeviceConfig extends Dialog {
         scBrightness.setIncrement(1);
         
         new Label(grpConfig, SWT.NONE);
-        grpWifi.setText("WiFi");
-        grpWifi.setLayout(new GridLayout(3, false));
-        FormData fd_grpWifi = new FormData();
-        fd_grpWifi.left = new FormAttachment(0, 10);
-        fd_grpWifi.right = new FormAttachment(100, -8);
-        fd_grpWifi.bottom = new FormAttachment(100, -10);
-        fd_grpWifi.top = new FormAttachment(0, 244);
-        grpWifi.setLayoutData(fd_grpWifi);
-        
-        Label lblAdress = new Label(grpWifi, SWT.NONE);
-        GridData gd_lblAdress = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
-        gd_lblAdress.widthHint = 83;
-        lblAdress.setLayoutData(gd_lblAdress);
-        lblAdress.setText("Adress");
-        
-        pin2dmdHost = new Text(grpWifi, SWT.BORDER);
-        GridData gd_text = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
-        gd_text.widthHint = 267;
-        pin2dmdHost.setLayoutData(gd_text);
-        
-        Button btnConnectBtn = new Button(grpWifi, SWT.NONE);
-        btnConnectBtn.addListener(SWT.Selection, e->testConnect(pin2dmdHost.getText()));
-        btnConnectBtn.setText("Connect");
-        
-        Label lblEnterIpAddress = new Label(grpWifi, SWT.NONE);
-        lblEnterIpAddress.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 2, 1));
-        lblEnterIpAddress.setText("Enter IP address or hostname for WiFi (default port is "
-        		+IpConnector.DEFAULT_PORT+")");
-        new Label(grpWifi, SWT.NONE);
-        new Label(grpWifi, SWT.NONE);
-        new Label(grpWifi, SWT.NONE);
-        new Label(grpWifi, SWT.NONE);
     }
 
-	private void testConnect(String address) {
-		Pin2DmdConnector connector = ConnectorFactory.create(address);
-		ConnectionHandle handle = connector.connect(address);
-		connector.release(handle);
-		this.address = address;
-	}
 }

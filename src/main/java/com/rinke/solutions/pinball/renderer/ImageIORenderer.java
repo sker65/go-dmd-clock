@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.rinke.solutions.pinball.DMD;
+import com.rinke.solutions.pinball.PinDmdEditor;
 import com.rinke.solutions.pinball.model.Frame;
 
 public class ImageIORenderer extends Renderer {
@@ -73,9 +74,9 @@ public class ImageIORenderer extends Renderer {
             int planes = getInt("planes", 2);
             
             if( planes == 2 ) {
-    			return convertTo4Color(master, dmd);
+    			return ImageUtil.convertTo4Color(master, dmd.getWidth(), dmd.getHeight());
             } else {
-            	return convertToFrame(master, dmd);
+            	return ImageUtil.convertToFrame(master, dmd.getWidth(), dmd.getHeight());
             }
             
 
@@ -83,49 +84,6 @@ public class ImageIORenderer extends Renderer {
 			e.printStackTrace();
 		}
 		return null;
-	}
-
-	private Frame convertTo4Color(BufferedImage master, DMD dmd) {
-		Map<Integer, Integer> grayCounts = new HashMap<>();
-		
-		byte[] f1 = new byte[dmd.getFrameSizeInByte()];
-		byte[] f2 = new byte[dmd.getFrameSizeInByte()];
-
-		Frame res = new Frame(f1, f2);
-
-		for (int x = 0; x < 128; x++) {
-			for (int y = 0; y < 32; y++) {
-				int rgb = master.getRGB(x, y);
-				int gray = (int) ((0.299f * (rgb >> 24)) + 0.587f
-						* ((rgb >> 16) & 0xFF) + 0.114f * ((rgb >> 8) & 0xFF));
-				// < 20 -> schwarz
-				// >= 20 && < 100 ->low						
-				// > 100 <180 - mid
-				// > 180 - high
-				// ironman 20,100,125
-				// WCS 20,50,100
-				if (gray > lowThreshold && gray < midThreshold) {
-					// set f1
-					f1[y*dmd.getBytesPerRow() + x / 8] |= (128 >> (x % 8));
-				} else if (gray >= midThreshold && gray < highThreshold) {
-					f2[y*dmd.getBytesPerRow() + x / 8] |= (128 >> (x % 8));
-				} else if (gray >= highThreshold ) {
-					f1[y*dmd.getBytesPerRow() + x / 8] |= (128 >> (x % 8));
-					f2[y*dmd.getBytesPerRow() + x / 8] |= (128 >> (x % 8));
-				}
-				if (!grayCounts.containsKey(gray)) {
-					grayCounts.put(gray, 0);
-				}
-
-				grayCounts.put(gray, grayCounts.get(gray) + 1);
-			}
-		}
-		LOG.debug("----");
-		for (int v : grayCounts.keySet()) {
-			LOG.debug("Grauwert " + v + " = "
-					+ grayCounts.get(v));
-		}
-		return res;
 	}
 	
 	private int getInt(String propName, int defVal) {
@@ -139,15 +97,6 @@ public class ImageIORenderer extends Renderer {
 		int p = name.lastIndexOf(".");
 		return p>0?name.substring(p+1):name;
 	}
-
-	public static void main(String[] args) {
-		Renderer renderer = new ImageIORenderer(null);
-		String base = "/Users/stefanri/Downloads/";
-		DMD dmd = new DMD(128, 32);
-		renderer.convert(base + "pin", dmd, 0);
-	}
-
-
 
 
 }

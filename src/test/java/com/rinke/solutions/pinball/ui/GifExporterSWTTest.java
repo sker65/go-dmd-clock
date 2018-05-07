@@ -1,19 +1,18 @@
 package com.rinke.solutions.pinball.ui;
 
 
-import static org.junit.Assert.assertEquals;
+import java.util.List;
 
-import java.awt.image.BufferedImage;
-
-import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.widgets.Display;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.Mockito;
 
 import com.fappel.swt.DisplayHelper;
+import com.rinke.solutions.pinball.animation.AniReader;
 import com.rinke.solutions.pinball.animation.Animation;
-import com.rinke.solutions.pinball.animation.AnimationFactory;
 import com.rinke.solutions.pinball.animation.AnimationType;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.model.Palette;
@@ -32,23 +31,19 @@ public class GifExporterSWTTest {
 
 	@Before
 	public void setUp() throws Exception {
-		Animation ani = CompiledAnimation.buildAnimationFromFile("./src/test/resources/ex1.ani", AnimationType.COMPILED);
-		gifExporter = new GifExporter(displayHelper.createShell(), palette, ani );
+		List<Animation> anis = AniReader.readFromFile("./src/test/resources/ex1.ani");
+		gifExporter = new GifExporter();
+		gifExporter.setAni(anis.get(0));
+		gifExporter.setPalette(palette);
 		gifExporter.createContents();
+		gifExporter.display = displayHelper.getDisplay();
 	}
 
 	@Test
 	public void testExportAni() throws Exception {
 		String filename = testFolder.newFile("1.ani").getPath();
-		gifExporter.exportAni(filename);
+		gifExporter.exportAni(filename, false, 20);
 	}
 	
-	@Test
-	public void testConvert() throws Exception {
-		Image srcImage = new Image(displayHelper.getDisplay(), 200, 100);
-		BufferedImage bufferedImage = gifExporter.convert(srcImage );
-		assertEquals(200, bufferedImage.getWidth());
-	}
-
 
 }

@@ -63,7 +63,10 @@ public class AnimationFactory {
 					getInt(conf,animationName+".end"),
 					getInt(conf, animationName+".step",1),
 					cycles,
-					getInt(conf,animationName+".hold",1));
+					getInt(conf,animationName+".hold",1),
+					getInt(conf,animationName+".width",128),
+					getInt(conf,animationName+".height",32)
+					);
 			
 			animation.setDesc(animationName);
 			animation.setBasePath(basePath);
@@ -103,7 +106,7 @@ public class AnimationFactory {
 				animation.setPattern(conf.getProperty(animationName+".pattern"));
 			}	
 			
-			if( conf.containsKey(animationName+".thresholds") ) {
+			if( conf.containsKey(animationName+".thresholds.0") ) {
 				List<Integer> thresholds = getIntList(conf,animationName+".thresholds");
 				Renderer r =  animation.getRenderer();
 				r.setLowThreshold(thresholds.get(0));

@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.io.LittleEndianDataInputStream;
 import com.rinke.solutions.pinball.DMD;
+import com.rinke.solutions.pinball.PinDmdEditor;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.renderer.Pcap.Header;
 import com.rinke.solutions.pinball.renderer.Pcap.Paket;
@@ -35,7 +36,7 @@ public class PcapRenderer extends Renderer {
     		
     		Pcap pcap = new Pcap(stream);
     		Header header = pcap.readHeader();
-    		System.out.println(header);
+    		//System.out.println(header);
     		Paket p;
     		int lastTimestamp = 0;
     		int tc = 0;
@@ -44,10 +45,10 @@ public class PcapRenderer extends Renderer {
     			stream.read(data);
     			int offset = findPinDmdMagicOffset(data);
     			Frame res = new Frame( 
-    					Frame.transform(data, offset+4, dmd.getFrameSizeInByte()),
-    					Frame.transform(data, offset+4+512, dmd.getFrameSizeInByte()),
-    					Frame.transform(data, offset+4+1024, dmd.getFrameSizeInByte()),
-    					Frame.transform(data, offset+4+1536, dmd.getFrameSizeInByte())
+    					Frame.transform(data, offset+4, dmd.getPlaneSizeInByte()),
+    					Frame.transform(data, offset+4+PinDmdEditor.PLANE_SIZE, dmd.getPlaneSizeInByte()),
+    					Frame.transform(data, offset+4+PinDmdEditor.PLANE_SIZE*2, dmd.getPlaneSizeInByte()),
+    					Frame.transform(data, offset+4+PinDmdEditor.PLANE_SIZE*3, dmd.getPlaneSizeInByte())
     					);
     			
     			//res = buildSummarizedFrame(dmd.getWidth(), dmd.getHeight(),data, offset+4);
@@ -116,7 +117,7 @@ public class PcapRenderer extends Renderer {
 	public static void main(String[] args) {
 		Renderer renderer = new PcapRenderer();
 		String base = "./";
-		DMD dmd = new DMD(128, 32);
+		DMD dmd = new DMD(PinDmdEditor.DMD_WIDTH, PinDmdEditor.DMD_HEIGHT);
 		renderer.convert(base + "t2.pcap", dmd, 0);
 	}
 

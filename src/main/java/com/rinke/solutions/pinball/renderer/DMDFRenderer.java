@@ -5,6 +5,7 @@ import java.io.IOException;
 
 import com.google.common.io.LittleEndianDataInputStream;
 import com.rinke.solutions.pinball.DMD;
+import com.rinke.solutions.pinball.PinDmdEditor;
 import com.rinke.solutions.pinball.model.Frame;
 
 public class DMDFRenderer extends Renderer {
@@ -26,19 +27,19 @@ public class DMDFRenderer extends Renderer {
 
 			int w = is.readShort();
 			if( w == width ) {
-				byte[] f1 = new byte[dmd.getFrameSizeInByte()];
-				byte[] f2 = new byte[dmd.getFrameSizeInByte()];
+				byte[] f1 = new byte[dmd.getPlaneSizeInByte()];
+				byte[] f2 = new byte[dmd.getPlaneSizeInByte()];
 				byte[] buf = new byte[width*height];
 				is.read(buf);
 				for( int y = 0; y<height; y++) {
 					for( int x = 0; x<width; x++) {
 						if( buf[y*width+x] == 1 ) {
-							f1[y*dmd.getBytesPerRow() + x / 8] |= (128 >> (x % 8));
+							f1[y*dmd.getBytesPerRow() + x / 8] |= (PinDmdEditor.DMD_WIDTH >> (x % 8));
 						} else if( buf[y*width+x] == 2 ) {
-							f2[y*dmd.getBytesPerRow() + x / 8] |= (128 >> (x % 8));
+							f2[y*dmd.getBytesPerRow() + x / 8] |= (PinDmdEditor.DMD_WIDTH >> (x % 8));
 						} else if( buf[y*width+x] == 4 ) {
-							f1[y*dmd.getBytesPerRow() + x / 8] |= (128 >> (x % 8));
-							f2[y*dmd.getBytesPerRow() + x / 8] |= (128 >> (x % 8));
+							f1[y*dmd.getBytesPerRow() + x / 8] |= (PinDmdEditor.DMD_WIDTH >> (x % 8));
+							f2[y*dmd.getBytesPerRow() + x / 8] |= (PinDmdEditor.DMD_WIDTH >> (x % 8));
 						}
 					}
 				}
@@ -58,8 +59,5 @@ public class DMDFRenderer extends Renderer {
 		return null;
 	}
 
-	public static void main(String[] args) {
-
-	}
 
 }

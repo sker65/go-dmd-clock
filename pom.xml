@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.rinke.solutions.pinball</groupId>
 	<artifactId>go-dmd-clock</artifactId>
-	<version>1.0.25.0</version>
+	<version>2.4.0.1</version>
 	<repositories>
 		<repository>
     	    <id>maven-eclipse-repo</id>
@@ -89,10 +89,9 @@
 		                <artifactId>maven-surefire-plugin</artifactId>
 		                <version>2.19</version>
 		                <configuration>
-		                    <includes>
-		                        <include>**/*Test.java</include>
-                                <include>**/*SWTTest.java</include>
-		                    </includes>
+                            <excludes>
+                                <exclude>**/*SWxxTTest.java</exclude>
+                            </excludes>
 		                </configuration>
 		            </plugin>
 				</plugins>
@@ -371,6 +370,21 @@
 
 	<dependencies>
 		<dependency>
+		    <groupId>org.reflections</groupId>
+		    <artifactId>reflections</artifactId>
+		    <version>0.9.10</version>
+		</dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpmime</artifactId>
+            <version>4.5.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.5.3</version>
+        </dependency>
+		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 			<version>${lombok.version}</version>
@@ -442,6 +456,13 @@
 			<version>4.12</version>
 			<scope>test</scope>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.github.almondtools/conmatch -->
+		<dependency>
+		    <groupId>com.github.almondtools</groupId>
+		    <artifactId>conmatch</artifactId>
+		    <version>0.1.12</version>
+		    <scope>test</scope>
+		</dependency>
 		<dependency>
 		    <groupId>xmlunit</groupId>
 		    <artifactId>xmlunit</artifactId>
@@ -457,7 +478,7 @@
 
 		<!-- For using usb4java with javax-usb -->
 		<dependency>
-			<groupId>org.usb4java</groupId>
+	 		<groupId>org.usb4java</groupId>
 			<artifactId>usb4java-javax</artifactId>
 			<version>1.2.0</version>
 		</dependency>
@@ -530,12 +551,12 @@
 		<dependency>
 	       <groupId>com.rinke.solutions.pinball</groupId>
     	    <artifactId>license-api</artifactId>
-        	<version>0.1.12-SNAPSHOT</version>
+        	<version>0.1.32</version>
 		</dependency>
 		<dependency>
 	       <groupId>com.rinke.solutions.pinball</groupId>
     	    <artifactId>pin2dmd-tools</artifactId>
-        	<version>0.0.4</version>
+        	<version>0.0.10</version>
 		</dependency>
 	</dependencies>
 	<build>

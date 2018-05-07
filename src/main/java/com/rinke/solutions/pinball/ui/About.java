@@ -1,24 +1,36 @@
 package com.rinke.solutions.pinball.ui;
 
-import java.net.URL;
 import java.util.List;
-import java.util.jar.Attributes;
-import java.util.jar.Manifest;
 
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.resource.LocalResourceManager;
 import org.eclipse.jface.resource.ResourceManager;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Link;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 
-public class About extends Dialog {
+import com.rinke.solutions.beans.Autowired;
+import com.rinke.solutions.beans.Bean;
+import com.rinke.solutions.beans.Scope;
+import com.rinke.solutions.pinball.util.VersionUtil;
+import com.rinke.solutions.pinball.view.View;
 
+@Bean(name="about", scope=Scope.PROTOTYPE)
+public class About extends Dialog implements View {
+
+	@Autowired
+	String pluginsPath;
+	@Autowired
+	List<String> plugins;
+	
 	protected Shell shlAboutPindmdEditor;
 
 	/**
@@ -36,7 +48,7 @@ public class About extends Dialog {
 	 * @param pluginsPath 
 	 * @return the result
 	 */
-	public void open(String pluginsPath, List<String> plugins) {
+	public void open() {
 		createContents(pluginsPath, plugins);
 		shlAboutPindmdEditor.open();
 		shlAboutPindmdEditor.layout();
@@ -63,9 +75,23 @@ public class About extends Dialog {
 		ResourceManager resManager = 
                 new LocalResourceManager(JFaceResources.getResources(),shlAboutPindmdEditor);
 		
-		Label logo = new Label(shlAboutPindmdEditor, SWT.NONE);
+		Label logo = new Label(shlAboutPindmdEditor, SWT.PUSH);
 		logo.setImage(resManager.createImage(ImageDescriptor.createFromFile(About.class, "/logo.png")));
 		logo.setBounds(10, 10, 195, 114);
+		logo.addMouseListener(new MouseListener() {
+			@Override
+			public void mouseUp(MouseEvent e) {
+				if( e.x > 100 && e.x < 108 && e.y > 66 && e.y < 78 ) {
+					MessageBox b = new MessageBox(shlAboutPindmdEditor, SWT.OK);
+					b.setText("Credits");
+					b.setMessage("Thanks to all my supporters. Especially Elke.");
+					b.open();				
+				}
+			}
+			
+			@Override public void mouseDown(MouseEvent e) {}
+			@Override public void mouseDoubleClick(MouseEvent e) {}
+		});
 		
 		Button btnOk = new Button(shlAboutPindmdEditor, SWT.NONE);
 		btnOk.addListener(SWT.Selection, e->shlAboutPindmdEditor.close());
@@ -74,58 +100,16 @@ public class About extends Dialog {
 		
 		Link lblBySteve = new Link(shlAboutPindmdEditor, SWT.NONE);
 		lblBySteve.setBounds(211, 22, 144, 103);
-		lblBySteve.setText("by Steve\n(C) 2016/2017\n\n\n<a href=\"https://github.com/sker65/go-dmd-clock\">https://github.com/sker65/go-dmd-clock</a>");
+		lblBySteve.setText("by Steve\n(C) 2016-2018\n\n\n<a href=\"https://github.com/sker65/go-dmd-clock\">https://github.com/sker65/go-dmd-clock</a>");
 		
 		Label lblVersion = new Label(shlAboutPindmdEditor, SWT.NONE);
 		lblVersion.setBounds(72, 126, 283, 67);
-		String lbl = getVersion()+"\nPluginPath: "+pluginsPath+"\nLoaded Plugins:";
+		String lbl = VersionUtil.getVersion()+"\nPluginPath: "+pluginsPath+"\nLoaded Plugins:";
 		for( String p : plugins ) {
 			lbl += "\n"+p;
 		}
 		lblVersion.setText(lbl);
 		
 	}
-	
-	public synchronized String getVersion() {
-		
-		String className = this.getClass().getSimpleName() + ".class";
-		String classPath = this.getClass().getResource(className).toString();
-		if (!classPath.startsWith("jar")) {
-		  // Class not from JAR
-		  return "";
-		}
-		String version = "";
-		
-		String manifestPath = classPath.substring(0, classPath.lastIndexOf("!") + 1) + 
-		    "/META-INF/MANIFEST.MF";
-		
-	    // try to load from maven properties first
-	    try {
-			Manifest manifest = new Manifest(new URL(manifestPath).openStream());
-			Attributes attr = manifest.getMainAttributes();
-	            version = "Version: " + attr.getValue("version");
-	            version += "\nat: " + attr.getValue("buildNumber");
-	            version += "\nBuild: " + attr.getValue("drone");
-	    } catch (Exception e) {
-	        // ignore
-	    }
 
-	    // fallback to using Java API
-	    if (version == null) {
-	        Package aPackage = getClass().getPackage();
-	        if (aPackage != null) {
-	            version = aPackage.getImplementationVersion();
-	            if (version == null) {
-	                version = aPackage.getSpecificationVersion();
-	            }
-	        }
-	    }
-
-	    if (version == null) {
-	        // we could not compute the version so use a blank
-	        version = "";
-	    }
-
-	    return version;
-	} 
 }

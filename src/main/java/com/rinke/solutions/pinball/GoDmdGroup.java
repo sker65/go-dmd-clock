@@ -16,27 +16,25 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Text;
 
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.AnimationModel;
-import com.rinke.solutions.pinball.util.ApplicationProperties;
 
 @Slf4j
 public class GoDmdGroup {
 	
 	
 	public GoDmdGroup(Composite parent) {
-		grpGoDMDCrtls = new Group(parent, SWT.NONE);
+		
+		grpGoDMDCrtls = new Composite(parent, SWT.NONE);
 		grpGoDMDCrtls.setLayout(new GridLayout(4, false));
 		GridData gd_grpTest = new GridData(SWT.FILL, SWT.TOP, false, false, 1, 1);
 		grpGoDMDCrtls.setLayoutData(gd_grpTest);
-		grpGoDMDCrtls.setText("goDMD Animation");
-		grpGoDMDCrtls.setVisible(ApplicationProperties.getBoolean(ApplicationProperties.GODMD_ENABLED_PROP_KEY, false));
+		//grpGoDMDCrtls.setText("goDMD Animation");
+		//grpGoDMDCrtls.setVisible(ApplicationProperties.getBoolean(ApplicationProperties.GODMD_ENABLED_PROP_KEY, false));
 
 
 		Label lblCycle = new Label(grpGoDMDCrtls, SWT.NONE);
@@ -80,7 +78,7 @@ public class GoDmdGroup {
 		transitionCombo.setItems(new String[]{" - ", "generic"});
 		
 		transitionFrom = new Text(grpGoDMDCrtls, SWT.BORDER);
-		transitionFrom.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		transitionFrom.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
 		new Label(grpGoDMDCrtls, SWT.NONE);
 
 		Label lblClockfrom = new Label(grpGoDMDCrtls, SWT.NONE);
@@ -103,10 +101,10 @@ public class GoDmdGroup {
 		lblClockpos.setText("ClockPos:");
 		
 		clockPosX = new Text(grpGoDMDCrtls, SWT.BORDER);
-		clockPosX.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		clockPosX.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
 		
 		clockPosY = new Text(grpGoDMDCrtls, SWT.BORDER);
-		clockPosY.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		clockPosY.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
 		
 		btnFront = new Button(grpGoDMDCrtls, SWT.CHECK);
 		btnFront.setText("front");
@@ -192,6 +190,10 @@ public class GoDmdGroup {
 	private Button btnFront;
 
 	Combo transitionCombo;
-	Group grpGoDMDCrtls;
+	Composite grpGoDMDCrtls;
+	
+	public Composite getGrpGoDMDCrtls() {
+		return grpGoDMDCrtls;
+	}
 
 }

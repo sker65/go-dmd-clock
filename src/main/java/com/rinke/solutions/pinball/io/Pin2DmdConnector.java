@@ -8,14 +8,13 @@ import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.apache.commons.lang3.tuple.Pair;
-import org.usb4java.Context;
-import org.usb4java.DeviceHandle;
-
+import com.rinke.solutions.pinball.DmdSize;
+import com.rinke.solutions.pinball.PinDmdEditor;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.Plane;
+import static java.lang.Math.*;
 
 @Slf4j
 public abstract class Pin2DmdConnector {
@@ -36,6 +35,7 @@ public abstract class Pin2DmdConnector {
 	}
 	
 	protected String address;
+	protected DmdSize dmdSize = DmdSize.Size128x32;
 	
     public Pin2DmdConnector(String address) {
 		super();
@@ -52,12 +52,12 @@ public abstract class Pin2DmdConnector {
         return res;
     }
 
-    protected byte[] buildFrameBuffer() {
-        byte[] res = new byte[2052];
+    protected byte[] buildFrameBuffer(int size, int headerByte, int sizeByte) {
+        byte[] res = new byte[size+4]; // add header size
         res[0] = (byte)0x81;
         res[1] = (byte)0xc3;
-        res[2] = (byte)0xe7;
-        res[3] = (byte)0x00;
+        res[2] = (byte)headerByte;
+        res[3] = (byte)sizeByte;
         return res;
     }
 
@@ -146,7 +146,7 @@ public abstract class Pin2DmdConnector {
         try {
         	send(data, usb);
         	doHandShake(usb);
-        	byte[] buffer = new byte[512];
+        	byte[] buffer = new byte[PinDmdEditor.PLANE_SIZE];
         	int read;
         	while( (read = is.read(buffer)) > 0 ){
         		data = buildBuffer(UsbCmd.WRITE_FILE_EX);
@@ -198,29 +198,44 @@ public abstract class Pin2DmdConnector {
 	 */
     public void sendFrame( Frame frame, ConnectionHandle usb ) {
     	//LOG.info("sending frame to device: {}", frame);
-    	byte[] buffer = buildFrameBuffer();
     	int i = 0;
-    	if( frame.planes.size() == 2 ) {
-//    		byte[] planeOr = new byte[512];
-    		byte[] planeAnd = new byte[512];
-    		byte[] plane0 = frame.planes.get(0).plane;
-    		byte[] plane1 = frame.planes.get(1).plane;
-    		
-    		for (int j = 0; j < plane0.length; j++) {
-//				planeOr[j] =  (byte) (plane0[j] | plane1[j]);
-				planeAnd[j] =  (byte) (plane0[j] & plane1[j]);
-			}
-    		System.arraycopy(Frame.transform(plane0), 0, buffer, 4+0*512, 512);
-    		System.arraycopy(Frame.transform(plane1), 0, buffer, 4+2*512, 512);
-    		System.arraycopy(Frame.transform(planeAnd), 0, buffer, 4+1*512, 512);
-    		System.arraycopy(Frame.transform(planeAnd), 0, buffer, 4+3*512, 512);
-    	} else {
-        	for( Plane p : frame.planes) {
-        		System.arraycopy(Frame.transform(p.plane), 0, buffer, 4+i*512, 512);
-        		if( i++ > 3 ) break;
+    	int headerSize = 4;
+    	int planeSize = dmdSize.planeSize;
+    	int bufferSize = min(4,frame.planes.size()) * planeSize;
+
+    	// XL dmd is handled different: use E8 framing with size byte
+    	if( dmdSize.equals(DmdSize.Size192x64) ) {
+        	byte[] buffer = buildFrameBuffer( bufferSize, 0xE8, bufferSize/512 );
+    		for( Plane p : frame.planes) {
+        		System.arraycopy(Frame.transform(p.data), 0, buffer, headerSize+i*planeSize, planeSize);
+        		if( i++ > 3 ) break; // max 4 planes
         	}
+           	send(buffer, usb);
+    	} else {
+    		if( bufferSize / planeSize == 2 ) {
+    			bufferSize *= 2;				// double buffer size for 4 plane output
+    		}
+        	byte[] buffer = buildFrameBuffer(bufferSize, 0xE7, 0);
+        	if( frame.planes.size() == 2 ) {
+        		byte[] planeAnd = new byte[planeSize];
+        		byte[] plane0 = frame.planes.get(0).data;
+        		byte[] plane1 = frame.planes.get(1).data;
+        		
+        		for (int j = 0; j < plane0.length; j++) {
+    				planeAnd[j] =  (byte) (plane0[j] & plane1[j]);
+    			}
+        		System.arraycopy(Frame.transform(plane0), 0, buffer, headerSize+0*planeSize, planeSize);
+        		System.arraycopy(Frame.transform(plane1), 0, buffer, headerSize+2*planeSize, planeSize);
+        		System.arraycopy(Frame.transform(planeAnd), 0, buffer, headerSize+1*planeSize, planeSize);
+        		System.arraycopy(Frame.transform(planeAnd), 0, buffer, headerSize+3*planeSize, planeSize);
+        	} else {
+            	for( Plane p : frame.planes) {
+            		System.arraycopy(Frame.transform(p.data), 0, buffer, headerSize+i*planeSize, planeSize);
+            		if( i++ > 3 ) break;
+            	}
+        	}
+           	send(buffer, usb);
     	}
-    	send(buffer, usb);
     }
     
     /* (non-Javadoc)
@@ -248,8 +263,6 @@ public abstract class Pin2DmdConnector {
 	    	send(res, handle);
 	    }
     }
-    
-
 
 	public abstract ConnectionHandle connect(String address);
 	
@@ -280,6 +293,10 @@ public abstract class Pin2DmdConnector {
 	    	send(bytes, handle);
 	    }
 		
+	}
+
+	public void setDmdSize(DmdSize dmdSize) {
+		this.dmdSize = dmdSize;
 	}
 
 }

@@ -95,13 +95,5 @@
   </palettes>
   <palMappings/>
   <scenes/>
-  <frameSeqMap>
-    <entry>
-      <string>foo</string>
-      <frameSeq>
-        <name>foo</name>
-      </frameSeq>
-    </entry>
-  </frameSeqMap>
   <dirty>true</dirty>
 </project>

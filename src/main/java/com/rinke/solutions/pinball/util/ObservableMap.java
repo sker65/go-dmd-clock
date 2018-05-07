@@ -39,24 +39,24 @@ public class ObservableMap<K,V> extends Observable implements Map<K,V> {
 
 	public V put(K key, V value) {
 		V r = delegate.put(key, value);
-		setChanged(); notifyObservers();
+		refresh();
 		return r;
 	}
 
 	public V remove(Object key) {
 		V r = delegate.remove(key);
-		setChanged(); notifyObservers();
+		refresh();
 		return r;
 	}
 
 	public void putAll(Map<? extends K, ? extends V> m) {
 		delegate.putAll(m);
-		setChanged(); notifyObservers();
+		refresh();
 	}
 
 	public void clear() {
 		delegate.clear();
-		setChanged(); notifyObservers();
+		refresh();
 	}
 
 	public Set<K> keySet() {
@@ -90,30 +90,30 @@ public class ObservableMap<K,V> extends Observable implements Map<K,V> {
 	public void replaceAll(
 			BiFunction<? super K, ? super V, ? extends V> function) {
 		delegate.replaceAll(function);
-		setChanged(); notifyObservers();
+		refresh();
 	}
 
 	public V putIfAbsent(K key, V value) {
 		V r = delegate.putIfAbsent(key, value);
-		setChanged(); notifyObservers();
+		refresh();
 		return r;
 	}
 
 	public boolean remove(Object key, Object value) {
 		boolean r = delegate.remove(key, value);
-		setChanged(); notifyObservers();
+		refresh();
 		return r;
 	}
 
 	public boolean replace(K key, V oldValue, V newValue) {
 		boolean r = delegate.replace(key, oldValue, newValue);
-		setChanged(); notifyObservers();
+		refresh();
 		return r;
 	}
 
 	public V replace(K key, V value) {
 		V r = delegate.replace(key, value);
-		setChanged(); notifyObservers();
+		refresh();
 		return r;
 	}
 
@@ -141,4 +141,8 @@ public class ObservableMap<K,V> extends Observable implements Map<K,V> {
     public String toString() {
         return "ObservableMap [delegate=" + delegate + "]";
     }
+
+	public void refresh() {
+		setChanged(); notifyObservers();
+	}
 }

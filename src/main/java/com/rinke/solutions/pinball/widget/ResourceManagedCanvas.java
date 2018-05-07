@@ -16,19 +16,9 @@ public abstract class ResourceManagedCanvas extends Canvas {
 
 	public ResourceManagedCanvas(Composite parent, int style) {
 		super(parent, style);
-		// The LocalResourceManager attaches the DisposeHandler to the Canvas
-		// for you
-		resourceManager = new LocalResourceManager(
-				JFaceResources.getResources(), this);
-		
-	    addPaintListener(new PaintListener() {
-
-	        @Override
-	        public void paintControl(PaintEvent e) {
-	          paintWidget(e);
-	        }
-	      });
-
+		// The LocalResourceManager attaches the DisposeHandler to the Canvas for you
+		resourceManager = new LocalResourceManager( JFaceResources.getResources(), this);
+	    addPaintListener(e->paintWidget(e));
 	}
 
 	protected abstract void paintWidget(PaintEvent e);

@@ -1,22 +1,52 @@
 package com.rinke.solutions.pinball.animation;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import org.bouncycastle.util.Arrays;
 
 import com.rinke.solutions.pinball.DMD;
+import com.rinke.solutions.pinball.PinDmdEditor;
 import com.rinke.solutions.pinball.model.Frame;
+import com.rinke.solutions.pinball.model.Mask;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.Plane;
 
 public class CompiledAnimation extends Animation {
 
 	public List<Frame> frames;
+	private List<Mask> masks = new ArrayList<>();	// for layered coloring
 	
 	public CompiledAnimation(AnimationType type, String name, int start,
 			int end, int skip, int cycles, int holdCycles) {
-		super(type, name, start, end, skip, cycles, holdCycles);
+		this(type, name, start, end, skip, cycles, holdCycles, 128, 32);
+	}
+	
+	public CompiledAnimation(AnimationType type, String name, int start,
+			int end, int skip, int cycles, int holdCycles, int w, int h) {
+		super(type, name, start, end, skip, cycles, holdCycles, w, h);
 		init();
 		setMutable(true);
 		frames = renderer.getFrames();
+	}
+	
+	@Override
+	public List<Mask> getMasks() {
+		return masks;
+	}
+
+	public Mask getMask(int i) {
+		while( i+1 > masks.size()) {
+			Mask mask = new Mask(width/8 * height);
+			masks.add( mask );
+		}
+		return masks.get(i);
+	}
+	
+	public int getNumberOfMasks() {
+		return masks.size();
 	}
 
 	@Override
@@ -29,9 +59,19 @@ public class CompiledAnimation extends Animation {
 
 	public void addFrame(Frame f) {
 		frames.add(f);
-		this.end = frames.size()-1;
+		end = frames.size()-1;
 	}
 
+	public void addFrame(int pos, Frame f) {
+		frames.add(pos,f);
+		end = frames.size()-1;
+	}
+
+	public void removeFrame(int pos) {
+		frames.remove(pos);
+		end = frames.size()-1;
+	}
+	
 	@Override
 	public int getRefreshDelay() {
 	    int frameNo = actFrame -1;
@@ -51,33 +91,74 @@ public class CompiledAnimation extends Animation {
         return in;
     }
 
+    public Mask getCurrentMask() {
+		Mask maskToUse;
+		// build mask from current frame		
+		Frame frame = frames.get(actFrame);
+		if( !frame.hasMask() ) {
+			byte[] emptyMask = new byte[this.width*this.height/8];
+			Arrays.fill(emptyMask, (byte)0xFF);
+			frame.setMask(emptyMask);
+		}
+		maskToUse = new Mask(frame.mask.data, false);
+		return maskToUse;
+    }
+
+    // looks like there is a chance that commit gets called on an new (already switched) animation, while dmd
+    // content still has the content of the old (that was displayed before)
 	@Override
-	public void commitDMDchanges(DMD dmd) {
-		if( clockWasAdded ) {		// never commit a frame were clock was rendered
+	public void commitDMDchanges(DMD dmd, byte[] hash) {
+		if( clockWasAdded ) {		// never commit a frame were clock was rendered, this is savety check only
 			clockWasAdded = false;
 			return;
 		}
-	    if( actFrame >= 0 && actFrame < frames.size()) {
-	        List<Plane> planes = frames.get(actFrame).planes;
-	        Frame frame = dmd.getFrame();
-	        for(int i=0; i<planes.size(); i++) {
-	        	byte[] planeBytes = frame.getPlaneBytes(i);
-	            int len = min(planeBytes.length,planes.get(i).plane.length);
-	            System.arraycopy(planeBytes, 0, planes.get(i).plane, 0, len );
-	        }
-	        setDirty(true);
+	    if( actFrame >= 0 && actFrame < frames.size() ) {
+	    	Frame aniFrame = frames.get(actFrame);
+	    	if( dmd.canUndo() ) {
+		        Frame dmdFrame = dmd.getFrame();
+		        // if target has no mask, don't create one
+		        dmdFrame.copyToWithMask(aniFrame, aniFrame.hasMask() ? -1 : (-1<<1) );
+		        setDirty(true);
+	    	}
+	    	if( hash!=null && !Arrays.areEqual(hash, aniFrame.crc32)) {
+		        aniFrame.setHash(hash);
+	    	}
 	    }
-	}
-
-	private int min(int l, int l2) {
-		return l<l2?l:l2;
 	}
 
 	public static List<Animation> read(String file) {
 		return AniReader.readFromFile(file);
 	}
 
-	public static void write(List<Animation> anis, String filename, int version, List<Palette> palettes) {
+	public static void write(List<Animation> anis, String filename, int version, Map<Integer,Palette> palettes) {
 		AniWriter.writeToFile(anis, filename, version, palettes);
 	}
+
+	/**
+	 * ensure every frame in this animation has a mask plane
+	 * TODO not ok from goDMD / transitions
+	 */
+	public void ensureMask() {
+		for(Frame frame : frames) {
+			if(!frame.hasMask()) {
+				byte[] data = new byte[frame.getPlane(0).length];
+				Arrays.fill(data, (byte)0xFF);
+				frame.setMask(data);
+			}
+		}
+	}
+
+	@Override
+	public void setDimension(int width, int height) {
+		super.setDimension(width, height);
+		if( !frames.isEmpty() ) throw new RuntimeException("cannot set dimension, when already allocates frames");
+	}
+	
+	public int getNumberOfPlanes() {
+		return frames != null ? frames.stream().mapToInt(f->f.planes.size()).max().orElse(0) : 0;
+	}
+
+
+
+
 }

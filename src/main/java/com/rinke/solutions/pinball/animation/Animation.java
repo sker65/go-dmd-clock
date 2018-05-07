@@ -11,8 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.rinke.solutions.pinball.DMD;
-import com.rinke.solutions.pinball.Worker;
 import com.rinke.solutions.pinball.model.Frame;
+import com.rinke.solutions.pinball.model.Mask;
 import com.rinke.solutions.pinball.model.Plane;
 import com.rinke.solutions.pinball.model.RGB;
 import com.rinke.solutions.pinball.renderer.AnimatedGIFRenderer;
@@ -23,6 +23,7 @@ import com.rinke.solutions.pinball.renderer.PcapRenderer;
 import com.rinke.solutions.pinball.renderer.PinDumpRenderer;
 import com.rinke.solutions.pinball.renderer.PngRenderer;
 import com.rinke.solutions.pinball.renderer.Renderer;
+import com.rinke.solutions.pinball.renderer.RgbRenderer;
 import com.rinke.solutions.pinball.renderer.VPinMameRenderer;
 import com.rinke.solutions.pinball.renderer.VideoCapRenderer;
 
@@ -68,9 +69,34 @@ public class Animation {
 	
 	private boolean trueColor;
 	protected boolean clockWasAdded;
-	
+	public int width;
+	public int height;
+
 	public enum EditMode {
-		REPLACE, MASK, FIXED;
+		REPLACE("Replace",				false, false, false, true,  false), 
+		COLMASK("Color Mask",			false, true,  false, false, false), 
+		FIXED("Fixed", 					false, false, true,  true,  false), 
+		FOLLOW("Color Mask Seq.", 		true,  true,  true,  false, false),
+		LAYEREDCOL("Layered ColMask", 	false,  true,  true, false, true);
+
+		// label to display
+		public final String label;
+		// uses masks in scene
+		public final boolean useLocalMask;
+		public final boolean enableColorMaskDrawing;  // draw only on upper planes
+		public final boolean enableMaskDrawing;       // draw on mask planes
+		public final boolean useGlobalMask;
+		public final boolean useLayerMask;
+
+		private EditMode(String label, boolean useLocalMask, boolean colMaskDraw, 
+				boolean enableMaskDrawing, boolean useGlobalMask, boolean layerMask) {
+			this.label = label;
+			this.useLocalMask = useLocalMask;
+			this.enableMaskDrawing = enableMaskDrawing;
+			this.enableColorMaskDrawing = colMaskDraw;
+			this.useGlobalMask = useGlobalMask;
+			this.useLayerMask = layerMask;
+		}
 
 		public static EditMode fromOrdinal(byte emo) {
 			for (EditMode em : values()) {
@@ -78,6 +104,11 @@ public class Animation {
 			}
 			return null;
 		}
+
+	}
+	
+	public List<Mask> getMasks() {
+		return null;
 	}
 	
 	private EditMode editMode = EditMode.FIXED;
@@ -116,14 +147,14 @@ public class Animation {
 
 	private Shell shell;
 	
-	public Animation cutScene( int start, int end, int actualNumberOfPlanes) {
+	public CompiledAnimation cutScene( int start, int end, int actualNumberOfPlanes) {
 		// create a copy of the animation
-		DMD tmp = new DMD(128,32);
+		DMD tmp = new DMD(width,height);
 		CompiledAnimation dest = new CompiledAnimation(
 				AnimationType.COMPILED, this.getName(),
-				0, end-start, this.skip, 1, 0);
+				0, end-start, this.skip, 1, 0, width, height);
 		dest.setMutable(true);
-		dest.setDirty(true);
+		//dest.setDirty(true);
 		dest.setClockFrom(Short.MAX_VALUE);
 		// rerender and thereby copy all frames
 		this.actFrame = start;
@@ -135,9 +166,9 @@ public class Animation {
 			Frame targetFrame = new Frame(frame);
             targetFrame.timecode -= tcOffset;
             int marker = targetFrame.planes.size();
+            byte[] emptyPlane = new byte[frame.getPlane(0).length];
 			while( targetFrame.planes.size() < actualNumberOfPlanes ) {
-				// dont copy plane 0
-				targetFrame.planes.add(new Plane((byte)marker++, new byte[512]));
+				targetFrame.planes.add(new Plane((byte)marker++, emptyPlane));
 			}
 			LOG.debug("target frame {}",targetFrame);
 			dest.frames.add(targetFrame);
@@ -238,9 +269,13 @@ public class Animation {
 	public void setRefreshDelay(int refreshDelay) {
 		this.refreshDelay = refreshDelay;
 	}
-
 	public Animation(AnimationType type, String name, int start, int end, int skip,
 			int cycles, int holdCycles) {
+		this(type, name, start, end, skip,cycles, holdCycles,128, 32);
+	}
+	
+	public Animation(AnimationType type, String name, int start, int end, int skip,
+			int cycles, int holdCycles, int w, int h) {
 		this.start = start;
 		this.actFrame = start;
 		this.end = end;
@@ -252,6 +287,8 @@ public class Animation {
 		this.type = type;
 		this.clockFrom = Integer.MAX_VALUE;
 		this.editMode = EditMode.FIXED;
+		this.width = w;
+		this.height = h;
 	}
 
 	Renderer renderer = null;
@@ -279,12 +316,13 @@ public class Animation {
 	}
 	
 	public void init(DMD dmd) {
+		if( renderer != null ) return;
 		if( transitionName != null && transitions.isEmpty() ) {
 			initTransition(dmd);
 		}
 
 		if( renderer == null ) init();
-		
+		setDimension(dmd.getWidth(),dmd.getHeight());
 		// just to trigger image read
 		renderer.getMaxFrame(basePath+name, dmd);
 		if( renderer.getPalette() != null ) {
@@ -292,6 +330,12 @@ public class Animation {
 		}
 
 	}
+	
+	public void setDimension(int width, int height) {
+		this.width = width;
+		this.height = height;
+	}
+
 	
 	public Frame render(DMD dmd, boolean stop) {
 		init(dmd);
@@ -303,7 +347,7 @@ public class Animation {
 		if (actFrame <= end) {
 			ended = false;
 			last = renderFrame(basePath+name, dmd, actFrame);
-			if( !stop) actFrame += skip;
+			if( !stop && actFrame < end ) actFrame += skip;
 		} else if (++actCycle < cycles) {
 			actFrame = start;
 		} else {
@@ -312,6 +356,7 @@ public class Animation {
 			}
 			actCycle = 0;
 		}
+		if( actFrame == end ) ended = true;
 		frame = last;
 		if( transitionFrom != 0 // it has a transition
 		    && actFrame > transitionFrom  // it has started
@@ -325,9 +370,8 @@ public class Animation {
 	
 	protected Frame addTransitionFrame(Frame in) {
         Frame tframe = transitions.get(transitionCount < transitions.size() ? transitionCount : transitions.size() - 1);
-        Frame r = new Frame(in.planes.get(0).plane, in.planes.get(1).plane);//
-        r.delay = in.delay;
-        r.planes.add(tframe.planes.get(0));
+        Frame r = new Frame(in);
+        r.setMask(tframe.mask.data);
         return r;
     }
 
@@ -381,6 +425,9 @@ public class Animation {
 			break;
 		case IMGIO:
 			renderer = new ImageIORenderer(pattern);
+			break;
+		case RGB:
+			renderer = new RgbRenderer();
 			break;
 		default:
 			break;
@@ -506,19 +553,19 @@ public class Animation {
     
     public Pair<String,String> getIconAndText() {
     	if( !isMutable() ) return Pair.of("fixed", desc);
-    	return Pair.of(editMode == EditMode.MASK?"add":"replace", desc);
+    	return Pair.of(editMode.name().toLowerCase(), desc);
     }
 
     @Override
     public String toString() {
-        return "Animation [start=" + start + ", end=" + end + ", skip=" + skip + ", cycles=" + cycles + ", name=" + name
+        return "Animation [width="+width+", height="+height+", start=" + start + ", end=" + end + ", skip=" + skip + ", cycles=" + cycles + ", name=" + name
                 + ", holdCycles=" + holdCycles + ", type=" + type + ", refreshDelay=" + refreshDelay + ", clockFrom="
                 + clockFrom + ", clockSmall=" + clockSmall + ", clockXOffset=" + clockXOffset + ", clockYOffset="
                 + clockYOffset + ", clockInFront=" + clockInFront + ", fsk=" + fsk + ", transitionFrom=" + transitionFrom
                 + ", transitionName=" + transitionName + ", transitionDelay=" + transitionDelay + ", desc=" + desc + "]";
     }
 
-	public void commitDMDchanges(DMD dmd) {
+	public void commitDMDchanges(DMD dmd, byte[] hash) {
 	}
 
 	public boolean isMutable() {
@@ -588,5 +635,5 @@ public class Animation {
 	public void setProjectAnimation(boolean projectAnimation) {
 		this.projectAnimation = projectAnimation;
 	}
-
+	
 }

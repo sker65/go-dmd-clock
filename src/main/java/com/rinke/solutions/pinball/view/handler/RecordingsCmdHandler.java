@@ -1,0 +1,146 @@
+package com.rinke.solutions.pinball.view.handler;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import lombok.extern.slf4j.Slf4j;
+
+import org.apache.commons.lang3.StringUtils;
+
+import com.rinke.solutions.beans.Autowired;
+import com.rinke.solutions.beans.Bean;
+import com.rinke.solutions.pinball.PinDmdEditor;
+import com.rinke.solutions.pinball.animation.Animation;
+import com.rinke.solutions.pinball.animation.Animation.EditMode;
+import com.rinke.solutions.pinball.model.Bookmark;
+import com.rinke.solutions.pinball.model.PalMapping;
+import com.rinke.solutions.pinball.util.MessageUtil;
+import com.rinke.solutions.pinball.view.model.ViewModel;
+
+@Bean
+@Slf4j
+public class RecordingsCmdHandler extends AbstractListCmdHandler implements ViewBindingHandler {
+
+	@Autowired private MessageUtil messageUtil;
+	@Autowired private HashCmdHandler hashCmdHandler;
+
+	Map<String,Integer> recordingsPosMap = new HashMap<String, Integer>();
+
+	public RecordingsCmdHandler(ViewModel vm) {
+		super(vm);
+	}
+	
+	private List<EditMode> immutable = Arrays.asList( EditMode.FIXED );
+
+	public void onSelectedRecordingChanged(Animation o, Animation a) {
+			log.info("onRecordingSelectionChanged: {}", a);
+			//Animation current = o;
+			if( o == null && a == null ) return;
+			if(a!= null && o != null && a.getDesc().equals(o.getDesc())) return;
+			if( o != null ) recordingsPosMap.put(o.getDesc(), o.actFrame);
+			if( a != null) {
+				vm.cutInfo.reset();
+				vm.setSelection(null);;
+				
+				vm.setSelectedScene(null);
+				
+				// sani check for recordings edit mode
+				if( !EditMode.FIXED.equals(a.getEditMode()) ) a.setEditMode(EditMode.FIXED);
+
+				if( o == null ) {
+					vm.availableEditModes.replaceAll(immutable);
+				}
+
+				// for recordings we use global masks
+				vm.setLayerMaskActive(false);
+				vm.setLayerMaskEnabled(false);
+				vm.setDetectionMaskEnabled(true);
+				vm.setMaskSpinnerEnabled(true);
+				
+				vm.setSuggestedEditMode(EditMode.FIXED);
+				vm.setSelectedEditMode(EditMode.FIXED);
+				
+				setEnableHashButtons(true);
+
+				setPlayingAni(a, recordingsPosMap.getOrDefault(a.getDesc(), 0));
+				vm.setDmdDirty(true);
+
+				int numberOfPlanes = a.getRenderer().getNumberOfPlanes();
+				if( numberOfPlanes == 5) {
+					numberOfPlanes = 4;
+				}
+				if (numberOfPlanes == 3) {
+					numberOfPlanes = 2;
+					//TODO v.goDmdGroup.transitionCombo.select(1);
+				} else {
+					//TODO v.goDmdGroup.transitionCombo.select(0);
+				}
+				
+				//onColorMaskChecked(a.getEditMode()==EditMode.COLMASK);// doesnt fire event?????
+				vm.dmd.setNumberOfSubframes(numberOfPlanes);
+				
+				vm.setNumberOfPlanes(vm.useGlobalMask?1:numberOfPlanes);
+
+				Set<Bookmark> set = vm.bookmarksMap.get(a.getDesc());
+				vm.bookmarks.clear();
+				if( set != null ) {
+					vm.bookmarks.addAll(set);
+				}
+				vm.setBookmarkComboEnabled(true);
+			} else {
+				vm.bookmarks.clear();
+				vm.setBookmarkComboEnabled(false);
+			}
+			
+			//TODO v.goDmdGroup.updateAniModel(a);
+			
+			vm.setBtnDelBookmarkEnabled(a!=null);
+			vm.setBtnNewBookmarkEnabled(a!=null);
+			vm.setDeleteRecordingEnabled(a!=null);
+			
+			hashCmdHandler.updateKeyFrameButtons(a, vm.selectedFrameSeq, vm.selectedHashIndex);
+	}
+	
+	public void onDeleteRecording() {
+		Animation a = vm.selectedRecording;
+		ArrayList<String> res = new ArrayList<>();
+		if( a!=null) {
+			for( PalMapping pm : vm.keyframes.values()) {
+				if( a.getDesc().equals(pm.animationName) ) {
+					res.add( pm.name );
+				}
+			}
+		}
+		if( res.isEmpty() ) {
+			vm.bookmarksMap.remove(vm.selectedRecording.getDesc());
+			onRemove(vm.selectedRecording, vm.recordings);
+		} else {
+			messageUtil.warn("Recording cannot be deleted", "It is used by "+res);
+		}
+	}
+
+	public void onSortRecording() {
+		onSortAnimations(vm.recordings);
+	}
+	
+	void updatePalMappingsRecordingNames(String oldKey, String newKey) {
+		if( StringUtils.equals(oldKey, newKey) ) return;
+		vm.keyframes.values().forEach(p->{
+			if( p.animationName != null && p.animationName.equals(oldKey)) {
+				p.animationName = newKey;
+			}
+		});
+	}
+
+	public void onRenameRecording(String oldName, String newName){
+		updateAnimationMapKey(oldName, newName, vm.recordings);
+		updatePalMappingsRecordingNames(oldName, newName);
+		vm.recordingNameMap.put(oldName, newName);
+		vm.setDirty(true);
+	}
+	
+}

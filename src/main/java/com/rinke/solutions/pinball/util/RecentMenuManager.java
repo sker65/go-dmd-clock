@@ -1,19 +1,20 @@
 package com.rinke.solutions.pinball.util;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 
-import com.rinke.solutions.pinball.util.ApplicationProperties;
+import com.rinke.solutions.beans.Autowired;
+import com.rinke.solutions.beans.Bean;
 
 public class RecentMenuManager {
 	
-	private int nrecent = 4;
+	private int nrecent = 8;
 
 	private Menu menu;
 
@@ -21,19 +22,22 @@ public class RecentMenuManager {
 
 	private String prefix;
 	
-	public RecentMenuManager(String prefix, int nrecent, Menu menu, Listener l) {
+	Config config;
+	
+	public RecentMenuManager(String prefix, int nrecent, Menu menu, Listener l, Config c) {
 		super();
 		this.prefix = prefix;
 		this.nrecent = nrecent;
 		this.menu = menu;
 		this.listener = l;
+		this.config = c;
 	}
 
 	List<String> recentMenuItems = new ArrayList<>();
 	
 	public void loadRecent() {
 		for( int i = 0; i < nrecent; i++) {
-			String project = ApplicationProperties.get(prefix+i);
+			String project = config.get(prefix+i);
 			if( project != null ) {
 				recentMenuItems.add(project);
 			}
@@ -43,16 +47,18 @@ public class RecentMenuManager {
 	
 	private void saveRecent() {
 		for( int i = 0; i < Math.min(nrecent, recentMenuItems.size()); i++) {
-			ApplicationProperties.put(prefix+i, recentMenuItems.get(i));
+			config.put(prefix+i, recentMenuItems.get(i));
 		}
 	}
 
 	public void populateRecent(String file) {
 		// repopulate remove oldest
-		for (String recentItem : recentMenuItems) {
+		Iterator<String> i = recentMenuItems.iterator();
+		while( i.hasNext() ) {
+			String recentItem = i.next();
 			if( recentItem.equals(file)) {
-				// reorder and return
-				return;	
+				i.remove();
+				break;
 			}
 		}
 		// add and remove oldest
@@ -74,6 +80,10 @@ public class RecentMenuManager {
 			item.setEnabled(true);
 			item.addListener(SWT.Selection, listener);
 		}
+	}
+
+	public void setConfig(Config config) {
+		this.config = config;
 	}
 
 

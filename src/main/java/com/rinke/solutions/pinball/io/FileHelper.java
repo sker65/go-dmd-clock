@@ -9,7 +9,8 @@ import java.lang.reflect.Constructor;
 
 import lombok.extern.slf4j.Slf4j;
 
-
+import com.rinke.solutions.beans.Bean;
+import com.rinke.solutions.pinball.model.Bookmark;
 import com.rinke.solutions.pinball.model.Format;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.FrameSeq;
@@ -31,6 +32,7 @@ import com.thoughtworks.xstream.io.json.JettisonMappedXmlDriver;
 import com.thoughtworks.xstream.mapper.Mapper;
 
 @Slf4j
+@Bean
 public class FileHelper {
 	
     private XStream xstream;
@@ -96,6 +98,8 @@ public class FileHelper {
         xstream.alias("scene", Scene.class);
         xstream.alias("frameSeq", FrameSeq.class);
         xstream.alias("frame", Frame.class);
+        xstream.alias("bookmark", Bookmark.class);
+        xstream.omitField(Project.class, "planeSize");
         
         xstream.setMode(XStream.NO_REFERENCES);
         jstream.alias("rgb", RGB.class);
@@ -105,6 +109,7 @@ public class FileHelper {
         jstream.alias("scene", Scene.class);
         jstream.alias("frameSeq", FrameSeq.class);
         jstream.alias("frame", Frame.class);
+        jstream.alias("bookmark", Bookmark.class);
         
         jstream.setMode(XStream.NO_REFERENCES);
     }

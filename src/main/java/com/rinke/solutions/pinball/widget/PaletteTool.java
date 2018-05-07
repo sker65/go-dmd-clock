@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -19,24 +20,29 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.RGB;
-import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 
+import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.pinball.model.Palette;
+import com.rinke.solutions.pinball.view.CmdDispatcher;
+import com.rinke.solutions.pinball.view.CmdDispatcher.Command;
+import com.rinke.solutions.pinball.view.model.AbstractModel;
 import com.rinke.solutions.pinball.widget.color.ColorPicker;
 import com.rinke.solutions.pinball.widget.color.ColorPicker.ColorModifiedEvent;
 import com.rinke.solutions.pinball.widget.color.ColorPicker.ColorModifiedListener;
 
 @Slf4j
-public class PaletteTool implements ColorModifiedListener {
+public class PaletteTool extends AbstractModel implements ColorModifiedListener {
 	
 	final ToolItem colBtn[] = new ToolItem[16];
 	Palette palette;
 	private Display display;
+
+	@Autowired CmdDispatcher dispatcher;
 
 	ResourceManager resManager;
 	private int selectedColor;
@@ -49,6 +55,8 @@ public class PaletteTool implements ColorModifiedListener {
 	List<ColorChangedListerner> colorChangedListeners = new ArrayList<>();
 	List<ColorIndexChangedListerner> indexChangedListeners = new ArrayList<>();
 	ColorPicker colorPicker = new ColorPicker(Display.getDefault(), null);
+	// just for the sake of POJO spec
+	@Getter private int numberOfPlanes;
 
 	@FunctionalInterface
 	public static interface ColorChangedListerner {
@@ -63,6 +71,8 @@ public class PaletteTool implements ColorModifiedListener {
 	public void addListener(ColorChangedListerner listener) {
 		colorChangedListeners.add(listener);
 	}
+	
+	// draw tools bind to this to get actual color index
 	public void addIndexListener(ColorIndexChangedListerner listener) {
 		indexChangedListeners.add(listener);
 	}
@@ -84,6 +94,7 @@ public class PaletteTool implements ColorModifiedListener {
 	}
 
 	public void setNumberOfPlanes(int planes) {
+		this.numberOfPlanes = planes;
 		log.info("setting number of planes: {}",planes);
 		switch (planes) {
 		case 1:
@@ -125,20 +136,34 @@ public class PaletteTool implements ColorModifiedListener {
 	private void createColorButtons(ToolBar toolBar, Palette pal) {
 		for (int i = 0; i < colBtn.length; i++) {
 			colBtn[i] = new ToolItem(toolBar, SWT.RADIO);
+			colBtn[i].setSelection(i==0);
 			colBtn[i].setData(Integer.valueOf(i));
 			colBtn[i].setImage(getSquareImage(display, toSwtRGB(pal.colors[i])));
 			colBtn[i].addListener(SWT.Selection, e -> {
 				int col = (Integer) e.widget.getData();
-				selectedColor = col;
+				int oldCol = selectedColor;
+				setSelectedColor(col);
 				tmpRgb = getSelectedRGB();
 				boolean sel = ((ToolItem)e.widget).getSelection();
 				indexChangedListeners.forEach(l -> l.indexChanged(selectedColor));
 				if( sel && ( (e.stateMask & SWT.CTRL) != 0 || (e.stateMask & 4194304) != 0 )) {
 					changeColor();
 				}
+				if( sel && ( e.stateMask & SWT.SHIFT) != 0 ) {
+					// swap
+					com.rinke.solutions.pinball.model.RGB tmp = palette.colors[oldCol];
+					palette.colors[oldCol] = palette.colors[selectedColor];
+					palette.colors[selectedColor] = tmp;
+					setPalette(this.palette);
+					swapColor(oldCol,selectedColor);
+				}
 			});
 			if( i % 4 == 3 && i < colBtn.length-1) new ToolItem(toolBar, SWT.SEPARATOR);
 		}
+	}
+
+	private void swapColor(int oldCol, int newCol) {
+		dispatcher.dispatch(new Command<Object[]>(new Object[]{oldCol,newCol}, "swapColors"));
 	}
 
 	public int getSelectedColor() {
@@ -187,6 +212,13 @@ public class PaletteTool implements ColorModifiedListener {
 			updateSelectedColor(evt.rgb);
 			break;
 		}
+	}
+	public Palette getPalette() {
+		return palette;
+	}
+
+	public void setSelectedColor(int selectedColor) {
+		firePropertyChange("selectedColor", this.selectedColor, this.selectedColor = selectedColor);
 	}
 
 }
