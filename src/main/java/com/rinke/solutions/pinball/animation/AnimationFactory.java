@@ -106,7 +106,7 @@ public class AnimationFactory {
 				animation.setPattern(conf.getProperty(animationName+".pattern"));
 			}	
 			
-			if( conf.containsKey(animationName+".thresholds") ) {
+			if( conf.containsKey(animationName+".thresholds.0") ) {
 				List<Integer> thresholds = getIntList(conf,animationName+".thresholds");
 				Renderer r =  animation.getRenderer();
 				r.setLowThreshold(thresholds.get(0));
