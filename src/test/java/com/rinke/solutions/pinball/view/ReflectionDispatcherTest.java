@@ -26,6 +26,14 @@ public class ReflectionDispatcherTest {
 		public void onBar(String foo) {
 			System.out.println("hello "+foo);
 		}
+
+		public void onBar2(String foo) {
+			System.out.println("hello "+foo);
+		}
+
+		public void onBar3(String foo, String doo) {
+			System.out.println("hello "+foo);
+		}
 		
 		public void onFoo() {
 			System.out.println("foo");
@@ -50,6 +58,10 @@ public class ReflectionDispatcherTest {
 		uut.registerHandler(new TestHandler() );
 		uut.dispatch(new CmdDispatcher.Command<String>("foo", "bar"));
 		uut.dispatch(new CmdDispatcher.Command<String>("foo", "bar2"));
+		uut.dispatch(new CmdDispatcher.Command<String>("foo", "bar2"));
+		uut.dispatch(new CmdDispatcher.Command<String[]>(new String[]{"foo", "doo"}, "bar3"));
+		// check cache
+		uut.dispatch(new CmdDispatcher.Command<String[]>(new String[]{"foo", "doo"}, "bar3"));
 		uut.dispatch(new CmdDispatcher.Command<Object>(null, "foo"));
 	}
 
