@@ -459,7 +459,8 @@ public class ProjectHandler extends AbstractCommandHandler {
 		for(String file: filenames) {
 			log.info("creating backup of file '{}'", file);
 			try {
-				Files.copy( Paths.get(file), Paths.get(file+".bak"));
+				if( new File(file).exists() )
+					Files.copy( Paths.get(file), Paths.get(file+".bak"));
 			} catch (IOException e) {
 				log.warn("backup of {} failed", file, e);
 			}

@@ -227,7 +227,7 @@ public class ProjectHandlerTest extends HandlerTest {
 	@Test
 	public void testSaveProject() throws Exception {
 		String filename = testFolder.newFile("test.xml").getAbsolutePath();
-		uut.saveProject(filename );
+		uut.saveProject(filename);
 	}
 
 	@Test
