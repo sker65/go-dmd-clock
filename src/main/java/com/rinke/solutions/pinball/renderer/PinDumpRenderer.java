@@ -144,28 +144,4 @@ public class PinDumpRenderer extends Renderer {
 		return actFrame < frames.size() ? frames.get(actFrame).timecode : 0;
 	}
 
-	public static void main(String[] args) {
-		PinDumpRenderer renderer = new PinDumpRenderer();
-		String base = "/Users/stefanri/Documents/";
-		DMD dmd = new DMD(PinDmdEditor.DMD_WIDTH, PinDmdEditor.DMD_HEIGHT);
-		renderer.convert(base + "250216_224617_pin2dmd.dump.gz", dmd, 0);
-		List<Frame> frames = renderer.getFrames();
-		try {
-			int i = 0;
-			FileOutputStream stream = new FileOutputStream("/tmp/test.dat");
-			System.out.println(frames.size());
-			for (Frame frame : frames) {
-				for (Plane plane : frame.planes) {
-					byte[] line = new byte[16];
-					System.arraycopy(plane.data, 20*16, line, 0, 16);
-					if( i++<3) stream.write(line);
-					if( i == 5 ) i = 0;
-				}
-			}
-			stream.close();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
 }
