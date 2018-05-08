@@ -122,7 +122,13 @@ public class DMD extends Observable {
 	}
 
 	public void setNumberOfSubframes(int n) {
-		if( n != numberOfPlanes ) log.trace("dmd setNumberOfSubframes {}", n );
+		if( n == numberOfPlanes ) return;
+		if( numberOfPlanes != frame.planes.size() ) {
+			log.warn("number of planes <-> numberOfSubframes", frame.planes.size(), numberOfPlanes);
+			frame.planes.clear();
+			numberOfPlanes = 0;
+		}
+		log.trace("dmd setNumberOfSubframes {}", n );
     	while( n < numberOfPlanes ) {
             numberOfPlanes--;
     		log.trace("removing plane {}", numberOfPlanes);
@@ -133,6 +139,7 @@ public class DMD extends Observable {
     		frame.planes.add( new Plane((byte)numberOfPlanes,new byte[planeSizeInByte]));
 	        numberOfPlanes ++;
     	}
+    	log.trace("final plane no: {} <-> noOfSubf: {}", frame.planes.size(), numberOfPlanes);
     }
 
     public void setPixel(int x, int y, int v) {

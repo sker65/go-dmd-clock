@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.bouncycastle.util.Arrays;
 
 import com.rinke.solutions.pinball.DMD;
@@ -14,6 +16,7 @@ import com.rinke.solutions.pinball.model.Mask;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.Plane;
 
+@Slf4j
 public class CompiledAnimation extends Animation {
 
 	public List<Frame> frames;
@@ -117,7 +120,9 @@ public class CompiledAnimation extends Animation {
 	    	if( dmd.canUndo() ) {
 		        Frame dmdFrame = dmd.getFrame();
 		        // if target has no mask, don't create one
-		        dmdFrame.copyToWithMask(aniFrame, aniFrame.hasMask() ? -1 : (-1<<1) );
+		        int copyMask = aniFrame.hasMask() ? -1 : (-1<<1);
+		        log.debug("commitDMDchanges -> planes: {}, copyMask: {}", dmdFrame.planes.size(), Integer.toBinaryString(copyMask & 0xFFFF));
+		        dmdFrame.copyToWithMask(aniFrame, copyMask );
 		        setDirty(true);
 	    	}
 	    	if( hash!=null && !Arrays.areEqual(hash, aniFrame.crc32)) {
