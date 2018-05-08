@@ -1,6 +1,6 @@
 # go-dmd-clock
 
-Tools project for goDMD clock and pin2dmd project. [![Build Status](https://jenkins.rinke-solutions.de/buildStatus/icon?job=go-dmd-clock)](https://jenkins.rinke-solutions.de/job/go-dmd-clock) [![Coverage Status](https://coveralls.io/repos/github/sker65/go-dmd-clock/badge.svg?branch=master)](https://coveralls.io/github/sker65/go-dmd-clock?branch=master)
+Tools project for goDMD clock and pin2dmd project. [![Build Status](https://jenkins.rinke-solutions.de/job/go-dmd-clock-editor-linux-v2/badge/icon)](https://jenkins.rinke-solutions.de/job/go-dmd-clock-editor-linux-v2/)  [![Coverage Status](https://coveralls.io/repos/github/sker65/go-dmd-clock/badge.svg?branch=master)](https://coveralls.io/github/sker65/go-dmd-clock?branch=master)
 
 Firmware see https://github.com/sker65/goDMD
 
