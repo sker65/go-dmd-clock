@@ -59,7 +59,7 @@ public class DrawCmdHandler extends AbstractCommandHandler implements EventHandl
 
 			hashCmdHandler.updateHashes(evt.frame);
 			
-			vm.lastTimeCode = evt.frame.timecode;
+			vm.setLastTimeCode( evt.frame.timecode );
 			
 			if (vm.livePreviewActive && evt.frame != null) {
 				livePreviewHandler.sendFrame(evt.frame);

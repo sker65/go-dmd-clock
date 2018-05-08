@@ -10,6 +10,7 @@ import com.rinke.solutions.beans.Bean;
 import com.rinke.solutions.pinball.DmdSize;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.model.Frame;
+import com.rinke.solutions.pinball.model.Mask;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.view.model.ViewModel;
 
@@ -64,27 +65,23 @@ public class HashCmdHandler extends AbstractCommandHandler implements ViewBindin
 	
 	public void updateHashes(Frame frame) {
 		if( vm.selectedKeyFrame != null ) {
-			updateHashes(frame, vm.selectedKeyFrame.withMask, vm.selectedKeyFrame.maskNumber);
+			updateHashes(frame, vm.selectedKeyFrame.withMask ? vm.masks.get(vm.selectedKeyFrame.maskNumber) : null, vm.selectedKeyFrame.maskNumber);
 		} else {
-			updateHashes(frame, false, 0);
+			updateHashes(frame, vm.showMask ? vm.mask : null, 0);
 		}
 	}
 
-	public void updateHashes(Frame frame, boolean withMask, int maskNumber) {
+	public void updateHashes(Frame frame, Mask mask, int maskNumber) {
 		if( frame == null ) return;
 		Frame f = new Frame(frame);
-
-//		Mask currentMask = getCurrentMask();
-//		if( v.dmdWidget.isShowMask() && currentMask != null) {
-//			f.setMask(getCurrentMask().data);
-//		}
+		if( mask != null ) f.setMask(mask.data);
 
 		List<byte[]> hashes = f.getHashes();
-		refreshHashButtons(hashes, withMask, maskNumber);
+		refreshHashButtons(hashes, mask, maskNumber);
 		saveHashes(hashes);
 	}
 
-	void refreshHashButtons(List<byte[]> hashes, boolean withMask, int maskNumber) {
+	void refreshHashButtons(List<byte[]> hashes, Mask mask, int maskNumber) {
 		//if( v.btnHash[0] == null ) return; // avoid NPE if not initialized
 		int i = 0;
 		String[] lbls = Arrays.copyOf(vm.hashLbl, vm.numberOfHashButtons);
@@ -97,7 +94,7 @@ public class HashCmdHandler extends AbstractCommandHandler implements ViewBindin
 				enabled[i]=false;
 				if( vm.selectedHashIndex == i ) vm.setSelectedHashIndex(-1);
 			} else {
-				if( withMask && i == vm.selectedHashIndex) {
+				if( mask!=null && i == vm.selectedHashIndex) {
 					lbls[i]=String.format("M%d %s", maskNumber, hash);
 				} else {
 					lbls[i]=hash;
