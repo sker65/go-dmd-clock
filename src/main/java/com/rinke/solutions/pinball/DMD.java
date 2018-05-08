@@ -103,6 +103,7 @@ public class DMD extends Observable {
             bytesPerRow++;
         planeSizeInByte = bytesPerRow * height;
         frame = new Frame();
+        numberOfPlanes = 0;
         setNumberOfSubframes(2);
         actualBuffer=0;
         buffers.clear();
@@ -312,10 +313,6 @@ public class DMD extends Observable {
     	notifyObservers();
 	}
 
-	/*public List<byte[]> getActualBuffers() {
-		return buffers.get(actualBuffer);
-	}*/
-	
 	public void dumpHistogram() {
 		colHist.clear();
 		for (int row = 0; row < height; row++) {
@@ -392,7 +389,7 @@ public class DMD extends Observable {
 	public void invertMask() {
 		if( hasMask() ) { // TODO check why this is called sometimes without mask
 			addUndoBuffer();
-			byte[] data = getFrame().mask.data;
+			byte[] data = frame.mask.data;
 			for( int i = 0; i < data.length; i++) {
 				data[i] = (byte) ~data[i];
 			}
