@@ -126,7 +126,7 @@ public class KeyframeHandlerTest extends HandlerTest {
 		vm.masks.get(1).locked = true;
 		
 		vm.showMask = true;
-		vm.selectedMask = 0;
+		vm.selectedMaskNumber = 0;
 		
 		uut.checkReleaseMask();
 		assertFalse(vm.masks.get(0).locked);

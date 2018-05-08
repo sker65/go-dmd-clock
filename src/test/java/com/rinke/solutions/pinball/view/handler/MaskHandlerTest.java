@@ -58,14 +58,14 @@ public class MaskHandlerTest extends HandlerTest  {
 	@Test
 	public void testOnSelectedMaskChanged() throws Exception {
 		vm.setSelectedEditMode(EditMode.REPLACE);
-		uut.onSelectedMaskChanged(0, 1);
+		uut.onSelectedMaskNumberChanged(0, 1);
 	}
 
 	@Test
 	public void testOnSelectedMaskChangedLayered() throws Exception {
 		vm.setSelectedScene(getScene("foo"));
 		vm.setSelectedEditMode(EditMode.LAYEREDCOL);
-		uut.onSelectedMaskChanged(0, 1);
+		uut.onSelectedMaskNumberChanged(0, 1);
 	}
 
 	@Test

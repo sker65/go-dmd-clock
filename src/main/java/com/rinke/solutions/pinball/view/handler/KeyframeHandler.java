@@ -83,19 +83,19 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 		if (vm.showMask) {
 			maskHandler.commitMaskIfNeeded();
 			palMapping.withMask = true;
-			palMapping.maskNumber = vm.selectedMask;
-			if( !vm.masks.get(vm.selectedMask).locked ) {
-				vm.masks.get(vm.selectedMask).locked = true;
+			palMapping.maskNumber = vm.selectedMaskNumber;
+			if( !vm.masks.get(vm.selectedMaskNumber).locked ) {
+				vm.masks.get(vm.selectedMaskNumber).locked = true;
 				vm.setMask(null);
-				vm.setMask(vm.masks.get(vm.selectedMask));
+				vm.setMask(vm.masks.get(vm.selectedMaskNumber));
 				vm.setDmdDirty(true);
 			}
 			vm.setDetectionMaskActive(true);
 		} 
 		else if( editMode != null && editMode.useLayerMask && vm.selectedScene != null ) {
 			palMapping.withMask = true;
-			palMapping.maskNumber = vm.selectedMask;
-			vm.selectedScene.getMask(vm.selectedMask).locked = true;
+			palMapping.maskNumber = vm.selectedMaskNumber;
+			vm.selectedScene.getMask(vm.selectedMaskNumber).locked = true;
 			//vm.setDetectionMaskActive(false);
 			palMapping.targetFrameIndex = 0; // how will this look like
 		}
@@ -160,10 +160,10 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 			}
 		}
 		for (int i = 0; i < vm.masks.size(); i++) {
-			if( vm.masks.get(i).locked && !useMasks.contains(i) && vm.selectedMask == i && vm.showMask ) {
+			if( vm.masks.get(i).locked && !useMasks.contains(i) && vm.selectedMaskNumber == i && vm.showMask ) {
 				vm.setMask(null);
 				vm.masks.get(i).locked = useMasks.contains(i);
-				vm.setMask(vm.masks.get(vm.selectedMask));
+				vm.setMask(vm.masks.get(vm.selectedMaskNumber));
 				vm.setDmdDirty(true);
 			}
 			vm.masks.get(i).locked = useMasks.contains(i);
@@ -237,7 +237,7 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 			vm.setMaskSpinnerEnabled(nk.withMask);
 			
 			if(nk.withMask) {
-				vm.setSelectedMask(nk.maskNumber);
+				vm.setSelectedMaskNumber(nk.maskNumber);
 			}
 			
 			if( vm.selectedRecording!=null )

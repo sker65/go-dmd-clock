@@ -109,7 +109,7 @@ public class ViewModel extends AbstractModel {
 	public int lastTimeCode;
 	public int saveTimeCode;
 	
-	@ViewBinding public int selectedMask;
+	@ViewBinding public int selectedMaskNumber;
 	@ViewBinding public boolean detectionMaskEnabled;
 	@ViewBinding public boolean layerMaskEnabled;
 	@ViewBinding public boolean detectionMaskActive;
@@ -431,8 +431,8 @@ public class ViewModel extends AbstractModel {
 		firePropertyChange("previewDmdPalette", this.previewDmdPalette, this.previewDmdPalette = previewDmdPalette);
 	}
 
-	public void setSelectedMask(int selectedMask) {
-		firePropertyChange("selectedMask", this.selectedMask, this.selectedMask = selectedMask);
+	public void setSelectedMaskNumber(int selectedMaskNumber) {
+		firePropertyChange("selectedMaskNumber", this.selectedMaskNumber, this.selectedMaskNumber = selectedMaskNumber);
 	}
 
 	public void setMask(Mask mask) {

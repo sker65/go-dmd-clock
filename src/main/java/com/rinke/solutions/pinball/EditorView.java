@@ -224,7 +224,7 @@ public class EditorView implements MainView {
 	private MenuItem cut;
 	
 
-	@GuiBinding(props={ENABLED,SELECTION,MAX}, propNames={"maskSpinnerEnabled","selectedMask", "maxNumberOfMasks"}) 
+	@GuiBinding(props={ENABLED,SELECTION,MAX}, propNames={"maskSpinnerEnabled","selectedMaskNumber", "maxNumberOfMasks"}) 
 	Spinner maskSpinner;
 
 	GoDmdGroup goDmdGroup;
