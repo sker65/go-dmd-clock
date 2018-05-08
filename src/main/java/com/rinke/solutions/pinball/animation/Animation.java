@@ -5,10 +5,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.swt.widgets.Shell;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.model.Frame;
@@ -27,10 +27,9 @@ import com.rinke.solutions.pinball.renderer.RgbRenderer;
 import com.rinke.solutions.pinball.renderer.VPinMameRenderer;
 import com.rinke.solutions.pinball.renderer.VideoCapRenderer;
 
+@Slf4j
 public class Animation {
     
-    private static Logger LOG = LoggerFactory.getLogger(Animation.class); 
-
 	protected String basePath = "./";
 	protected String transitionsPath = "./";
 	
@@ -161,7 +160,7 @@ public class Animation {
         int tcOffset = 0;
 		for (int i = start; i <= end; i++) {
 			Frame frame = this.render(tmp, false);
-            LOG.debug("source frame {}",frame);
+            log.debug("source frame {}",frame);
 			if( i == start ) tcOffset = frame.timecode;
 			Frame targetFrame = new Frame(frame);
             targetFrame.timecode -= tcOffset;
@@ -170,11 +169,11 @@ public class Animation {
 			while( targetFrame.planes.size() < actualNumberOfPlanes ) {
 				targetFrame.planes.add(new Plane((byte)marker++, emptyPlane));
 			}
-			LOG.debug("target frame {}",targetFrame);
+			log.debug("target frame {}",targetFrame);
 			dest.frames.add(targetFrame);
 		}
-		LOG.debug("copied {} frames",dest.frames.size());
-		LOG.debug("target ani {}",dest);
+		log.debug("copied {} frames",dest.frames.size());
+		log.debug("target ani {}",dest);
 		return dest;
 	}
 
@@ -376,7 +375,7 @@ public class Animation {
     }
 
     public void initTransition(DMD dmd) {
-	    LOG.debug("init transition: "+transitionName);
+	    log.debug("init transition: "+transitionName);
 	    transitions.clear();
 	    transitionCount=1;
 		while(true) {
@@ -386,7 +385,7 @@ public class Animation {
 				frame.planes.forEach( p -> p.marker = 0x6a);
 				transitions.add(frame);
 			} catch( RuntimeException e) {
-			    LOG.info(e.getMessage());
+			    log.info(e.getMessage());
 				break;
 			}
 		}

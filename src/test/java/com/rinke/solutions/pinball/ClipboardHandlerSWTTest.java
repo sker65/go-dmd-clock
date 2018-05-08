@@ -77,7 +77,7 @@ public class ClipboardHandlerSWTTest {
 		ImageData imageData = new ImageData(128, 32, 8, palette);
 		when(clipboardMock.getContents(eq("ImageTransfer"))).thenReturn(imageData);
 		
-		dmd.setNumberOfSubframes(15);
+		dmd.setNumberOfPlanes(15);
 		
 		clipboardHandler.palette = Palette.getDefaultPalettes().get(0);
 		clipboardHandler.onPasteHoover();
@@ -114,7 +114,7 @@ public class ClipboardHandlerSWTTest {
 	public void testOnCopyWithHiColor() throws Exception {
 		Palette activePalette = getPalette();
 		when(dmdWidget.isShowMask()).thenReturn(false);
-		dmd.setNumberOfSubframes(15);
+		dmd.setNumberOfPlanes(15);
 		clipboardHandler.onCopy(activePalette );
 		//verify(clipboardMock).setContents(any(Object[].class), any(Transfer[].class));
 	}
@@ -124,7 +124,7 @@ public class ClipboardHandlerSWTTest {
 		Palette activePalette = getPalette();
 		when(dmdWidget.isShowMask()).thenReturn(false);
 		when(dmdWidget.getSelection()).thenReturn(new Rect(0, 0, 100, 20));
-		dmd.setNumberOfSubframes(15);
+		dmd.setNumberOfPlanes(15);
 		clipboardHandler.onCopy(activePalette );
 		//verify(clipboardMock).setContents(any(Object[].class), any(Transfer[].class));
 	}

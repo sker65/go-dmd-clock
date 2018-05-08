@@ -197,7 +197,7 @@ public class EditorView implements MainView {
 	@GuiBinding(prop=ENABLED) Button cutScene;
 	@GuiBinding( props= { ENABLED, LABEL } ) private Button startStop;
 	@GuiBinding(props={ENABLED,LABEL}) Button btnAddFrameSeq;
-	@PojoBinding(src="palette", target="previewDmdPalette") 
+	@PojoBinding(srcs={"mask","maskOut","palette"}, targets={"mask","showMask","previewDmdPalette"}) 
 	DMDWidget previewDmd;
 
 	@PojoBinding(srcs={"numberOfPlanes", "palette", "selectedColor"}, targets={"paletteToolPlanes", "selectedPalette", "selectedColor"}) 
@@ -1481,10 +1481,8 @@ public class EditorView implements MainView {
 			URL resource = getClass().getResource("/init-dmd-"+dmd.getWidth()+".png");
 			master = ImageIO.read(resource);
 			Frame f = ImageUtil.convertToFrame(master, dmd.getWidth(), dmd.getHeight());
-			dmd.setNumberOfSubframes(15);
-			for( int i = 0; i<15; i++) {
-				dmd.getFrame().planes.set(i, new Plane(f.planes.get(i)));
-			}
+			dmd.setNumberOfPlanes(15);
+			dmd.writeOr(f);
 		} catch (Exception e) {
 		}
 	}

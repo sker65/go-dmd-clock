@@ -106,7 +106,7 @@ public class GifExporter extends Dialog {
 	
 		if( ani instanceof CompiledAnimation ) {
 			CompiledAnimation cani = (CompiledAnimation)ani;
-			dmd.setNumberOfSubframes(cani.frames.get(0).planes.size());
+			dmd.setNumberOfPlanes(cani.frames.get(0).planes.size());
 		}
 		
 		ImageOutputStream outputStream;

@@ -97,7 +97,7 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 			
 			drawCmdHandler.setDrawMaskByEditMode(m);
 
-			vm.dmd.setNumberOfSubframes(numberOfPlanes);
+			vm.dmd.setNumberOfPlanes(numberOfPlanes);
 			vm.setPaletteToolPlanes(vm.layerMaskActive||vm.detectionMaskActive?1:numberOfPlanes);
 
 			setPlayingAni(nextScene, vm.scenesPosMap.getOrDefault(nextScene.getDesc(), 0));

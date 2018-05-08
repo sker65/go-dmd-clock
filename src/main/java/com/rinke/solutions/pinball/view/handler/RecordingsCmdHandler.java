@@ -66,6 +66,9 @@ public class RecordingsCmdHandler extends AbstractListCmdHandler implements View
 				
 				setEnableHashButtons(true);
 
+				setPlayingAni(a, recordingsPosMap.getOrDefault(a.getDesc(), 0));
+				vm.setDmdDirty(true);
+
 				int numberOfPlanes = a.getRenderer().getNumberOfPlanes();
 				if( numberOfPlanes == 5) {
 					numberOfPlanes = 4;
@@ -77,12 +80,8 @@ public class RecordingsCmdHandler extends AbstractListCmdHandler implements View
 					//TODO v.goDmdGroup.transitionCombo.select(0);
 				}
 
-				vm.dmd.setNumberOfSubframes(numberOfPlanes);
+				vm.dmd.setNumberOfPlanes(numberOfPlanes);
 				vm.setNumberOfPlanes(vm.useGlobalMask?1:numberOfPlanes);
-
-				setPlayingAni(a, recordingsPosMap.getOrDefault(a.getDesc(), 0));
-				vm.setDmdDirty(true);
-
 
 				Set<Bookmark> set = vm.bookmarksMap.get(a.getDesc());
 				vm.bookmarks.clear();

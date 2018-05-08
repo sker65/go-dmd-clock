@@ -617,4 +617,10 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 		return margin;
 	}
 
+	@Override
+	public String toString() {
+		return String.format("DMDWidget [dmd=%s, showMask=%s, resolutionX=%s, resolutionY=%s, pitch=%s, drawingEnabled=%s, width=%s, height=%s, maskOut=%s]",
+				dmd, showMask, resolutionX, resolutionY, pitch, drawingEnabled, width, height, maskOut);
+	}
+
 }
