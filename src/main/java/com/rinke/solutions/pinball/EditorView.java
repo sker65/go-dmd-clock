@@ -275,7 +275,7 @@ public class EditorView implements MainView {
 	/**
 	 * creates the top level menu
 	 */
-	private void createMenu(Shell shell) {
+	void createMenu(Shell shell) {
 		Menu menu = new Menu(shell, SWT.BAR);
 		shell.setMenuBar(menu);
 
