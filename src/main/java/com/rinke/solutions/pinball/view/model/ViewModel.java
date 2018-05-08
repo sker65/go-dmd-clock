@@ -78,8 +78,8 @@ public class ViewModel extends AbstractModel {
 		setMaxNumberOfMasks(noOfMasks);
 		setSelectedPalette(paletteMap.values().iterator().next());
 		resetMask(ds, noOfMasks);
-		mask = new Mask(ds.planeSize);
-		Arrays.fill(mask.data, (byte)0xFF);
+		selectedMask = new Mask(ds.planeSize);
+		Arrays.fill(selectedMask.data, (byte)0xFF);
 		//availableEditModes.replaceAll(immutable);
 		//setSelectedEditMode(EditMode.FIXED); // if initialized to FIXED fire propchange is suppressed
 	}
@@ -120,7 +120,7 @@ public class ViewModel extends AbstractModel {
 	@ViewBinding public int maxNumberOfMasks;
 	
 
-	@ViewBinding public Mask mask;
+	@ViewBinding public Mask selectedMask;
 	public ObservableList<Mask> masks = new ObservableList<>(new ArrayList<>());
 	
 	public boolean dmdDirty;
@@ -435,8 +435,8 @@ public class ViewModel extends AbstractModel {
 		firePropertyChange("selectedMaskNumber", this.selectedMaskNumber, this.selectedMaskNumber = selectedMaskNumber);
 	}
 
-	public void setMask(Mask mask) {
-		firePropertyChange("mask", this.mask, this.mask = mask);
+	public void setSelectedMask(Mask mask) {
+		firePropertyChange("selectedMask", this.selectedMask, this.selectedMask = mask);
 	}
 
 	public void setBtnInvertEnabled(boolean btnInvertEnabled) {

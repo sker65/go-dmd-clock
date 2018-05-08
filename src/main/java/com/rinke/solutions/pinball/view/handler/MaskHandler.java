@@ -46,13 +46,13 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 		// or we use global masks on recordings
 		if (useMask) {
 			vm.setPaletteToolPlanes(1);
-			vm.setMask(getCurrentMask());
+			vm.setSelectedMask(getCurrentMask());
 			// if edit mode requires use mask of the scene, turn off global masks
 			vm.setUseGlobalMask(vm.selectedEditMode.useGlobalMask);
 		} else {
 			vm.setPaletteToolPlanes(vm.dmd.getNumberOfPlanes());
 			commitMaskIfNeeded();
-			vm.setMask(null);
+			vm.setSelectedMask(null);
 			vm.dmd.removeMask();
 		}
 		vm.setBtnInvertEnabled(useMask);
@@ -69,12 +69,12 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 			while( vm.masks.size()-1 < newMaskNumber ) {
 				vm.masks.add(new Mask(vm.dmdSize.planeSize));
 			}
-			vm.setMask(vm.masks.get(newMaskNumber));
+			vm.setSelectedMask(vm.masks.get(newMaskNumber));
 			updateDrawingEnabled();
 		}
 		if( vm.selectedEditMode.useLayerMask ) {
 			if( vm.selectedScene != null) {
-				vm.setMask(vm.selectedScene.getMask(newMaskNumber));
+				vm.setSelectedMask(vm.selectedScene.getMask(newMaskNumber));
 				updateDrawingEnabled();
 			}
 		}

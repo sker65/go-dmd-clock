@@ -86,8 +86,8 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 			palMapping.maskNumber = vm.selectedMaskNumber;
 			if( !vm.masks.get(vm.selectedMaskNumber).locked ) {
 				vm.masks.get(vm.selectedMaskNumber).locked = true;
-				vm.setMask(null);
-				vm.setMask(vm.masks.get(vm.selectedMaskNumber));
+				vm.setSelectedMask(null);
+				vm.setSelectedMask(vm.masks.get(vm.selectedMaskNumber));
 				vm.setDmdDirty(true);
 			}
 			vm.setDetectionMaskActive(true);
@@ -161,9 +161,9 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 		}
 		for (int i = 0; i < vm.masks.size(); i++) {
 			if( vm.masks.get(i).locked && !useMasks.contains(i) && vm.selectedMaskNumber == i && vm.showMask ) {
-				vm.setMask(null);
+				vm.setSelectedMask(null);
 				vm.masks.get(i).locked = useMasks.contains(i);
-				vm.setMask(vm.masks.get(vm.selectedMaskNumber));
+				vm.setSelectedMask(vm.masks.get(vm.selectedMaskNumber));
 				vm.setDmdDirty(true);
 			}
 			vm.masks.get(i).locked = useMasks.contains(i);

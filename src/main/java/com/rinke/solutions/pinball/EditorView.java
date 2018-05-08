@@ -177,7 +177,7 @@ public class EditorView implements MainView {
 	ComboViewer paletteTypeComboViewer;
 	
 	@PojoBinding(srcs={"mask", "showMask", "palette", "drawingEnabled" }, 
-			targets={"mask","showMask", "selectedPalette", "drawingEnabled" }) 
+			targets={"selectedMask","showMask", "selectedPalette", "drawingEnabled" }) 
 	DMDWidget dmdWidget;
 	
 	@PojoBinding(src="selection", target="selection") 
@@ -197,7 +197,7 @@ public class EditorView implements MainView {
 	@GuiBinding(prop=ENABLED) Button cutScene;
 	@GuiBinding( props= { ENABLED, LABEL } ) private Button startStop;
 	@GuiBinding(props={ENABLED,LABEL}) Button btnAddFrameSeq;
-	@PojoBinding(srcs={"mask","maskOut","palette"}, targets={"mask","showMask","previewDmdPalette"}) 
+	@PojoBinding(srcs={"mask","maskOut","palette"}, targets={"selectedMask","showMask","previewDmdPalette"}) 
 	DMDWidget previewDmd;
 
 	@PojoBinding(srcs={"numberOfPlanes", "palette", "selectedColor"}, targets={"paletteToolPlanes", "selectedPalette", "selectedColor"}) 

@@ -159,8 +159,8 @@ public class ProjectHandler extends AbstractCommandHandler {
 			vm.masks.clear();
 			vm.masks.addAll(p.masks);
 			log.info("loaded {} masks", vm.masks.size());
-			if( p.mask != null ) vm.mask = new Mask(p.mask, false);
-			else vm.mask = new Mask(vm.dmdSize.planeSize);
+			if( p.mask != null ) vm.setSelectedMask( new Mask(p.mask, false) );
+			else vm.setSelectedMask( new Mask(vm.dmdSize.planeSize) );
 			
 			// if inputFiles contain project filename remove it
 			String aniFilename = replaceExtensionTo("ani", filename);
@@ -444,7 +444,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 		p.inputFiles.addAll(vm.inputFiles);
 		if( vm.projectFilename != null ) p.name = bareName(vm.projectFilename);
 		p.bookmarksMap.putAll(vm.bookmarksMap);
-		if( vm.mask != null ) p.mask = vm.mask.data;
+		if( vm.selectedMask != null ) p.mask = vm.selectedMask.data;
 		p.palMappings.addAll(vm.keyframes.values());
 		p.height = vm.dmdSize.height;
 		p.width = vm.dmdSize.width;

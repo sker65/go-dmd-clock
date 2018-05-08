@@ -102,7 +102,7 @@ public class MenuHandler extends AbstractCommandHandler implements ViewBindingHa
 		vm.setSelectedPalette(vm.paletteMap.get(0));
 
 		// init masks
-		vm.mask = new Mask(vm.dmdSize.planeSize);
+		vm.setSelectedMask( new Mask(vm.dmdSize.planeSize));
 		vm.masks.clear();
 		for(int i = 0; i < vm.maxNumberOfMasks; i++) {
 			vm.masks.add( new Mask(vm.dmdSize.planeSize) );

@@ -67,7 +67,7 @@ public class HashCmdHandler extends AbstractCommandHandler implements ViewBindin
 		if( vm.selectedKeyFrame != null ) {
 			updateHashes(frame, vm.selectedKeyFrame.withMask ? vm.masks.get(vm.selectedKeyFrame.maskNumber) : null, vm.selectedKeyFrame.maskNumber);
 		} else {
-			updateHashes(frame, vm.showMask ? vm.mask : null, 0);
+			updateHashes(frame, vm.showMask ? vm.selectedMask : null, 0);
 		}
 	}
 
