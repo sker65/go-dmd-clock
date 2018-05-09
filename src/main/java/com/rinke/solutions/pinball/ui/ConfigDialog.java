@@ -63,6 +63,8 @@ public class ConfigDialog extends Dialog implements View {
     private String address;
 	
 	@Autowired Config config;
+	private Button btnNoExportWarnings;
+	private Button btnNoQuitWarning;
     
     /**
      * Create the dialog.
@@ -108,7 +110,8 @@ public class ConfigDialog extends Dialog implements View {
         btnCreatePaletteAfter.setSelection(config.getBoolean(Config.ADDPALWHENCUT, false));
         btnCreateBookmarkAfter.setSelection(config.getBoolean(Config.CREATEBOOKCUT, false));
         btnBackupOnSave.setSelection(config.getBoolean(Config.BACKUP, false));
-        
+        btnNoExportWarnings.setSelection(config.getBoolean(Config.NO_EXPORT_WARNING, false));
+        btnNoQuitWarning.setSelection(config.getBoolean(Config.NO_QUIT_WARNING, false));
         shell.open();
         shell.layout();
         Display display = getParent().getDisplay();
@@ -246,9 +249,8 @@ public class ConfigDialog extends Dialog implements View {
         Group grpCutting = new Group(grpFoo, SWT.NONE);
         grpCutting.setText("Cutting");
         FormData fd_grpCutting = new FormData();
-        fd_grpCutting.top = new FormAttachment(0);
         fd_grpCutting.left = new FormAttachment(0);
-        fd_grpCutting.bottom = new FormAttachment(100, -42);
+        fd_grpCutting.top = new FormAttachment(0);
         fd_grpCutting.right = new FormAttachment(100, -228);
         grpCutting.setLayoutData(fd_grpCutting);
         
@@ -276,15 +278,33 @@ public class ConfigDialog extends Dialog implements View {
         Group grpExport = new Group(grpFoo, SWT.NONE);
         grpExport.setText("Export");
         FormData fd_grpExport = new FormData();
-        fd_grpExport.bottom = new FormAttachment(grpCutting, 0, SWT.BOTTOM);
-        fd_grpExport.top = new FormAttachment(0);
         fd_grpExport.right = new FormAttachment(100, -10);
         fd_grpExport.left = new FormAttachment(grpCutting, 6);
+        fd_grpExport.top = new FormAttachment(0);
         grpExport.setLayoutData(fd_grpExport);
         
         btnUseOldExport = new Button(grpExport, SWT.CHECK);
         btnUseOldExport.setBounds(10, 10, 188, 18);
         btnUseOldExport.setText("use old export format");
+        
+        Group grpGeneral = new Group(grpFoo, SWT.NONE);
+        fd_grpCutting.bottom = new FormAttachment(grpGeneral, 0, SWT.BOTTOM);
+        fd_grpExport.bottom = new FormAttachment(100, -123);
+        grpGeneral.setText("General");
+        FormData fd_grpGeneral = new FormData();
+        fd_grpGeneral.right = new FormAttachment(100, -10);
+        fd_grpGeneral.left = new FormAttachment(grpCutting, 6);
+        fd_grpGeneral.bottom = new FormAttachment(grpExport, 97, SWT.BOTTOM);
+        fd_grpGeneral.top = new FormAttachment(grpExport, 6);
+        grpGeneral.setLayoutData(fd_grpGeneral);
+        
+        btnNoQuitWarning = new Button(grpGeneral, SWT.CHECK);
+        btnNoQuitWarning.setBounds(10, 10, 131, 18);
+        btnNoQuitWarning.setText("no quit warning");
+        
+        btnNoExportWarnings = new Button(grpGeneral, SWT.CHECK);
+        btnNoExportWarnings.setBounds(10, 34, 149, 18);
+        btnNoExportWarnings.setText("no export warnings");
         
         FormData fd_grpConfig = new FormData();
         fd_grpConfig.bottom = new FormAttachment(100, -292);
@@ -308,6 +328,8 @@ public class ConfigDialog extends Dialog implements View {
         config.put(Config.ADDPALWHENCUT, btnCreatePaletteAfter.getSelection());
         config.put(Config.CREATEBOOKCUT, btnCreateBookmarkAfter.getSelection());
         config.put(Config.BACKUP, btnBackupOnSave.getSelection());
+        config.put(Config.NO_QUIT_WARNING, btnNoQuitWarning.getSelection());
+        config.put(Config.NO_EXPORT_WARNING, btnNoExportWarnings.getSelection());
 		shell.close();
 	}
 }

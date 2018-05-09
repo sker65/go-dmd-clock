@@ -16,7 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 @Bean
 public class Config implements BeanFactory.PropertyProvider {
 
-	private String propertiesFilename = "pin2dmd.properties";
+	private String propertiesFilename;
 	public static final String PIN2DMD_ADRESS = "pin2dmdAdress";
 	public static final String COLOR_ACCURACY = "colorAccuracy";
 	public static final String DMDSIZE = "dmdSize";
@@ -30,6 +30,8 @@ public class Config implements BeanFactory.PropertyProvider {
 	public static final String CREATEBOOKCUT= "createBookmarkAfterCut";
 	public static final String BACKUP = "backup";
 	public static final String GODMD_EXPORT_PATH = "goDmdExportPath";
+	public static final String NO_QUIT_WARNING = "noQuitWarning";
+	public static final String NO_EXPORT_WARNING = "noExportWarning";
 
 	public Config() {
 		super();
@@ -43,9 +45,10 @@ public class Config implements BeanFactory.PropertyProvider {
 	private Properties props = new Properties();
 
 	String getFilename() {
+		if( propertiesFilename != null ) return propertiesFilename;
 		String homeDir = System.getProperty("user.home");
-		String filename = homeDir + File.separator + propertiesFilename;
-		return filename;
+		String propertiesFilename = homeDir + File.separator + "pin2dmd.properties";
+		return propertiesFilename;
 	}
 	
 	public void init() {
