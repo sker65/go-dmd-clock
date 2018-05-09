@@ -64,6 +64,9 @@ public class ProjectHandler extends AbstractCommandHandler {
 	@Value(key=Config.OLDEXPORT)
 	boolean useOldExport;
 	
+	@Value(key=Config.NO_EXPORT_WARNING)
+	boolean noExportWarning;
+	
 	@Value
 	boolean backup;
 	
@@ -239,10 +242,10 @@ public class ProjectHandler extends AbstractCommandHandler {
 		licenseManager.requireOneOf( Capability.REALPIN, Capability.GODMD, Capability.XXL_DISPLAY);
 		String filename = fileChooserUtil.choose(SWT.SAVE, bareName(vm.projectFilename), new String[] { "*.pal" }, new String[] { "Export pal" });
 		if (filename != null) {
-			messageUtil.warn("Warning", "Please don´t publish projects with copyrighted material / frames");
+			if(!noExportWarning ) messageUtil.warn("Warning", "Please don´t publish projects with copyrighted material / frames");
 			onExportProject(filename, f -> new FileOutputStream(f), true);
 			if( !filename.endsWith("pin2dmd.pal")) {
-				messageUtil.warn("Hint", "Remember to rename your export file to pin2dmd.pal if you want to use it" + " in a real pinballs sdcard of pin2dmd.");
+				if(!noExportWarning ) messageUtil.warn("Hint", "Remember to rename your export file to pin2dmd.pal if you want to use it" + " in a real pinballs sdcard of pin2dmd.");
 			}
 		}
 	}
@@ -251,7 +254,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 //		licManager.requireOneOf(Capability.VPIN, Capability.GODMD);
 		String filename = fileChooserUtil.choose(SWT.SAVE, bareName(vm.projectFilename), new String[] { "*.pal" }, new String[] { "Export pal" });
 		if (filename != null) {
-			messageUtil.warn("Warning", "Please don´t publish projects with copyrighted material / frames");
+			if(!noExportWarning ) messageUtil.warn("Warning", "Please don´t publish projects with copyrighted material / frames");
 			onExportProject(filename, f -> new FileOutputStream(f), false);
 		}
 	}
@@ -312,7 +315,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 				CompiledAnimation cani = ani.cutScene(ani.start, ani.end, 0);
 				cani.actFrame = 0;
 				cani.setDesc(ani.getDesc());
-				DMD tmp = new DMD(vm.dmdSize.width, vm.dmdSize.height);
+				DMD tmp = new DMD(vm.dmdSize);
 				for (int i = cani.start; i <= cani.end; i++) {
 					cani.getCurrentMask();
 					Frame f = cani.render(tmp, false);
