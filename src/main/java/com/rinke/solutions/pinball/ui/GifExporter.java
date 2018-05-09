@@ -45,6 +45,7 @@ import com.rinke.solutions.pinball.util.FileChooserUtil;
 import com.rinke.solutions.pinball.widget.DMDWidget;
 
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Text;
 
 @Bean
 @Slf4j
@@ -70,6 +71,12 @@ public class GifExporter extends Dialog {
 
 	private Combo comboSize;
 	private Label lblPitch;
+	private Label lblMargin;
+	private Text marginTxt;
+	private Label lblMaxFrame;
+	private Text maxFrameTxt;
+	private int margin;
+	private int maxFrame;
 
     /**
      * Create the dialog.
@@ -91,14 +98,15 @@ public class GifExporter extends Dialog {
     public void exportAni(String filename, final boolean yield, int maxFrame) {
 		DMD dmd = new DMD(ani.width, ani.height);
 		
-		DMDWidget dmdWidget = getDmdWidget(shell, 0, dmd, false);
-		dmdWidget.setPalette(palette);
+		DMDWidget widget = getDmdWidget(shell, 0, dmd, false);
+		widget.setPalette(palette);
 		int pitch = comboSize.getSelectionIndex() + 2;
-		int width = dmd.getWidth() * pitch +20;
-		int height = dmd.getHeight() * pitch +20;;
-		dmdWidget.setBounds(0, 0, width, height);
-		dmdWidget.setPitch(pitch);
-		dmdWidget.setVisible(false);
+		widget.setMargin(margin);
+		int width = (dmd.getWidth()+0) * pitch + widget.getMargin();
+		int height = (dmd.getHeight()+0) * pitch + widget.getMargin();
+		widget.setBounds(0, 0, width, height);
+		widget.setVisible(false);
+		widget.setPitch(pitch);
 		int saveActframe = ani.actFrame;
 		ani.actFrame = 0;
 		progressBar.setMinimum(0);
@@ -122,7 +130,7 @@ public class GifExporter extends Dialog {
 						dmd.clear();
 						Frame res = ani.render(dmd, false);
 						dmd.writeOr(res);
-						Image swtImage = dmdWidget.drawImage(display, width, height);
+						Image swtImage = widget.drawImage(display, width, height);
 						
 						gifWriter.writeToSequence(ImageUtil.convert(swtImage), ani.getRefreshDelay());
 						
@@ -162,12 +170,21 @@ public class GifExporter extends Dialog {
     protected void save() {
     	filename = fileChooserUtil.choose(SWT.SAVE, lastPath, new String[] { "*.gif" }, new String[] {  "animated gif" });
         if (filename != null) {
-            exportAni(filename);
+        	margin = saveParseInt(marginTxt.getText());
+        	maxFrame = saveParseInt(maxFrameTxt.getText());
+            exportAni(filename, true, maxFrame==0 ? Integer.MAX_VALUE:maxFrame);
         }
     }
 
+    private int saveParseInt(String text) {
+		try {
+			return Integer.parseInt(text);
+		} catch ( NumberFormatException e) {
+			return 0;
+		}
+	}
 
-    /**
+	/**
      * Open the dialog.
      * @return the result
      */
@@ -182,15 +199,18 @@ public class GifExporter extends Dialog {
             }
             if( writer != null && !writer.isAlive() ) shell.close();
         }
+        // delete Thread
+        writer = null;
         return result;
     }
 
     /**
+ 	 * @wbp.parser.entryPoint
      * Create contents of the dialog.
      */
     void createContents() {
         shell = new Shell(getParent(), getStyle());
-        shell.setSize(448, 162);
+        shell.setSize(448, 203);
         shell.setText("Export to animated Gif");
         shell.setLayout(new FormLayout());
         
@@ -198,7 +218,7 @@ public class GifExporter extends Dialog {
         FormData fd_grpConfig = new FormData();
         fd_grpConfig.top = new FormAttachment(0, 10);
         fd_grpConfig.left = new FormAttachment(0, 10);
-        fd_grpConfig.bottom = new FormAttachment(0, 129);
+        fd_grpConfig.bottom = new FormAttachment(0, 193);
         fd_grpConfig.right = new FormAttachment(0, 440);
         grpConfig.setLayoutData(fd_grpConfig);
         grpConfig.setText("Export Settings");
@@ -220,15 +240,31 @@ public class GifExporter extends Dialog {
         btnSave.setText("Save");
         btnSave.addListener(SWT.Selection, e->save());
         
-        progressBar = new ProgressBar(grpConfig, SWT.NONE);
-        GridData gd_progressBar = new GridData(SWT.FILL, SWT.CENTER, false, false, 2, 1);
-        gd_progressBar.widthHint = 111;
-        progressBar.setLayoutData(gd_progressBar);
+        lblMargin = new Label(grpConfig, SWT.NONE);
+        lblMargin.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+        lblMargin.setText("Margin:");
+        
+        marginTxt = new Text(grpConfig, SWT.BORDER);
+        marginTxt.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1));
         
         Button btnCancel = new Button(grpConfig, SWT.NONE);
         btnCancel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
         btnCancel.setText("Cancel");
         btnCancel.addListener(SWT.Selection, e->abort());
+        
+        lblMaxFrame = new Label(grpConfig, SWT.NONE);
+        lblMaxFrame.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+        lblMaxFrame.setText("Max Frame:");
+        
+        maxFrameTxt = new Text(grpConfig, SWT.BORDER);
+        maxFrameTxt.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1));
+        new Label(grpConfig, SWT.NONE);
+        
+        progressBar = new ProgressBar(grpConfig, SWT.NONE);
+        GridData gd_progressBar = new GridData(SWT.FILL, SWT.CENTER, false, false, 2, 1);
+        gd_progressBar.widthHint = 111;
+        progressBar.setLayoutData(gd_progressBar);
+        new Label(grpConfig, SWT.NONE);
     }
 
 
