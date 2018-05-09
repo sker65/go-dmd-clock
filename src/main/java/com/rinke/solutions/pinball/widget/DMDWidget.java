@@ -530,6 +530,10 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 		 this.maskOut = maskOut;
 	}
 
+	public boolean isMaskOut() {
+		return maskOut;
+	}
+
 	public boolean isMouseOnAreaMark() {
 		return mouseOnAreaMark;
 	}
@@ -621,6 +625,10 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 	public String toString() {
 		return String.format("DMDWidget [dmd=%s, showMask=%s, resolutionX=%s, resolutionY=%s, pitch=%s, drawingEnabled=%s, width=%s, height=%s, maskOut=%s]",
 				dmd, showMask, resolutionX, resolutionY, pitch, drawingEnabled, width, height, maskOut);
+	}
+
+	public void setMargin(int margin) {
+		  this.margin = margin;
 	}
 
 }
