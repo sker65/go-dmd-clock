@@ -105,7 +105,6 @@ public class AnimationHandler implements Runnable {
 				log.debug("rendering ani: {}@{}", ani.getDesc(), ani.getActFrame());
 				Frame res = ani.render(dmd,stop);
                 //vm.setSelectedFrame(ani.actFrame);
-                eventHandler.notifyAni(new AniEvent(Type.ANI, ani, res ));
                 
                 lastRenderedFrame = ani.actFrame;
                 
@@ -133,7 +132,10 @@ public class AnimationHandler implements Runnable {
                 if( maskToPopulate != null ) {
                 	dmd.setMask(maskToPopulate.data);
                 }
-				if( ani.hasEnded() ) {
+                
+                eventHandler.notifyAni(new AniEvent(Type.ANI, ani, dmd.getFrame()));
+
+                if( ani.hasEnded() ) {
 					if( !ani.isMutable() ){
 						ani.restart();
 						if( showClock) setClockActive(true);

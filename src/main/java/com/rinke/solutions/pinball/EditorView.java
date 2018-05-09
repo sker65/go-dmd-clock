@@ -1538,17 +1538,6 @@ public class EditorView implements MainView {
 		Realm.runWithDefault(realm, () -> createBindingsInternal());
 	}
 	
-	/**
-	 * @wfffbp.parser.entryPoint
-	 */
-	public static void main(String[] args) {
-		EditorView editor = new EditorView(4,true);
-		BeanFactory beanFactory = new SimpleBeanFactory();
-		beanFactory.setSingleton("config",new Config());
-		editor.init(new ViewModel(), beanFactory);
-		editor.open();
-	}
-
 	@Override
 	public List<Object> getInjectTargets() {
 		return Arrays.asList(paletteTool, palettePickerTool);
