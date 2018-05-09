@@ -108,12 +108,10 @@ public class EditorView implements MainView {
 		btnHash = new Button[numberOfHashes];
 		this.numberOfHashes = numberOfHashes;
 		this.checkDirty = checkDirty;
-		//this.shell = new Shell();
 	}
 
 	private static final String HELP_URL = "http://pin2dmd.com/editor/";
 	private static final int FRAME_RATE = 40;
-	
 
 	@Autowired CmdDispatcher dispatcher;
 	@Autowired ViewModel vm;

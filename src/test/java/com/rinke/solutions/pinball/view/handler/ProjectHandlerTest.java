@@ -17,7 +17,6 @@ import java.io.FileReader;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.custommonkey.xmlunit.XMLUnit;
-
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -31,6 +30,7 @@ import com.rinke.solutions.pinball.AnimationActionHandler;
 import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.DmdSize;
 import com.rinke.solutions.pinball.PinDmdEditor;
+import com.rinke.solutions.pinball.animation.AniReader;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.AnimationType;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
@@ -215,7 +215,22 @@ public class ProjectHandlerTest extends HandlerTest {
 		.thenReturn(tempFile.getAbsolutePath());
 		
 		vm.setProjectFilename("foo"); 
+		uut.onExportVirtualPinProject();
+	}
 
+	@Test
+	public void testOnExportVirtualPinProjectWithData() throws Exception {
+		File tempFile = testFolder.newFile("test.dat");
+		when(fileChooserUtil.choose(anyInt(), anyString(), any(String[].class), any(String[].class)))
+		.thenReturn(tempFile.getAbsolutePath());
+		
+		vm.setProjectFilename("foo"); 
+		List<Animation> anis = AniReader.readFromFile("src/test/resources/ex1.ani");
+		vm.scenes.put("sc1", (CompiledAnimation) anis.get(0));
+		PalMapping k = new PalMapping(1, "foo");
+		k.switchMode = SwitchMode.ADD;
+		k.frameSeqName = "sc1";
+		vm.keyframes.put("kf1", k );
 		uut.onExportVirtualPinProject();
 	}
 
