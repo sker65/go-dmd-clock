@@ -42,10 +42,10 @@ public class VPinMameRenderer extends Renderer {
 							new FileInputStream(new File(filename)))));
 			String line = stream.readLine();
 			Frame res = new Frame(
-					new byte[dmd.getPlaneSizeInByte()],
-					new byte[dmd.getPlaneSizeInByte()],
-					new byte[dmd.getPlaneSizeInByte()],
-					new byte[dmd.getPlaneSizeInByte()]);
+					new byte[dmd.getPlaneSize()],
+					new byte[dmd.getPlaneSize()],
+					new byte[dmd.getPlaneSize()],
+					new byte[dmd.getPlaneSize()]);
 
 			int j = 0;
 			int vmax = 0;
@@ -69,15 +69,15 @@ public class VPinMameRenderer extends Renderer {
 					// check for number of rows
 					int noOfRows = j / dmd.getBytesPerRow();
 					if( noOfRows == 16 && dmd.getHeight() == 32 ) {
-						res = centerRows( res, dmd.getPlaneSizeInByte(), dmd.getBytesPerRow() );
+						res = centerRows( res, dmd.getPlaneSize(), dmd.getBytesPerRow() );
 					}
 					frames.add(res);
 					frameNo++;
 					res = new Frame(
-							new byte[dmd.getPlaneSizeInByte()],
-							new byte[dmd.getPlaneSizeInByte()],
-							new byte[dmd.getPlaneSizeInByte()],
-							new byte[dmd.getPlaneSizeInByte()]
+							new byte[dmd.getPlaneSize()],
+							new byte[dmd.getPlaneSize()],
+							new byte[dmd.getPlaneSize()],
+							new byte[dmd.getPlaneSize()]
 							);
 					log.trace("reading frame: " + frameNo);
 					j = 0;

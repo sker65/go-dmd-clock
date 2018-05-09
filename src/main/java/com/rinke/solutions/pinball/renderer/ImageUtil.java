@@ -182,13 +182,13 @@ public class ImageUtil {
 		while( palette.numberOfColors > (1<<noOfPlanes)) noOfPlanes++;
 		
 		for( int j = 0; j < noOfPlanes ; j++) {
-			res.planes.add(new Plane((byte)j, new byte[dmd.getPlaneSizeInByte()]));
+			res.planes.add(new Plane((byte)j, new byte[dmd.getPlaneSize()]));
 		}
 		boolean hasAlpha = dmdImage.getColorModel().hasAlpha();
 		
 		// TODO if has alpha also create a mask
 		if( hasAlpha ) {
-			res.setMask(new byte[dmd.getPlaneSizeInByte()]);
+			res.setMask(new byte[dmd.getPlaneSize()]);
 		}
 		
 		Map<Integer,Integer> alphaDist = new HashMap<>();

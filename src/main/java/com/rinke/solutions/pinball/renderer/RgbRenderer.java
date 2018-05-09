@@ -35,7 +35,7 @@ public class RgbRenderer extends Renderer {
 		Frame res = new Frame();
 		// for true color create 24 planes
 		for( int i = 0; i<24; i++)
-			res.planes.add(new Plane((byte)i, new byte[dmd.getPlaneSizeInByte()]));
+			res.planes.add(new Plane((byte)i, new byte[dmd.getPlaneSize()]));
 		return res;
 	}
 

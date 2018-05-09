@@ -59,7 +59,7 @@ public class PinDumpRenderer extends Renderer {
 				numberOfFrames = 3;
 				break;
 			}
-			int buflen = dmd.getPlaneSizeInByte() * numberOfFrames;
+			int buflen = dmd.getPlaneSize() * numberOfFrames;
 			while (stream.available() > 0) {
 				stream.read(tcBuffer);
 				tc = (((int)tcBuffer[3]&0xFF) << 24) + (((int)tcBuffer[2]&0xFF) << 16) 
@@ -74,11 +74,11 @@ public class PinDumpRenderer extends Renderer {
 				// TODO for Gottlieb and WPC do an additive aggregation
 				if( deviceMode.equals(DeviceMode.WPC) ||
 						deviceMode.equals(DeviceMode.Gottlieb) ) {
-					res = transformPlanes(data, deviceMode, dmd.getPlaneSizeInByte());
+					res = transformPlanes(data, deviceMode, dmd.getPlaneSize());
 				} else {
 					res = new Frame();
 					for(int i = 0; i < numberOfFrames; i++) {
-						res.planes.add(new Plane((byte)i, Frame.transform(data, i*dmd.getPlaneSizeInByte(), dmd.getPlaneSizeInByte())));
+						res.planes.add(new Plane((byte)i, Frame.transform(data, i*dmd.getPlaneSize(), dmd.getPlaneSize())));
 					}
 				}
 

@@ -4,7 +4,6 @@ import org.eclipse.jface.resource.ColorDescriptor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
@@ -18,11 +17,8 @@ import com.rinke.solutions.pinball.widget.ResourceManagedCanvas;
 
 public class ColorCanvas extends ResourceManagedCanvas {
 
-	private ColorPicker cp;
-
 	public ColorCanvas(Composite parent, int style, ColorPicker cp) {
 		super(parent, style);
-		this.cp = cp;
 		if( cp != null ) this.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseDown(MouseEvent e) {

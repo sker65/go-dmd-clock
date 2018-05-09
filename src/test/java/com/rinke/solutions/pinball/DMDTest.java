@@ -29,7 +29,7 @@ public class DMDTest implements Observer {
 	public void setup() {
 		Random rand = new Random();
 		dmd = new DMD(width,height);
-		plane = new byte[dmd.getPlaneSizeInByte()];
+		plane = new byte[dmd.getPlaneSize()];
 		framePlane0 = new byte[512];
 		rand.nextBytes(framePlane0);
 		framePlane1 = new byte[512];
@@ -108,7 +108,7 @@ public class DMDTest implements Observer {
 
 	@Test
 	public void testFill() throws Exception {
-		byte[] target = new byte[dmd.getPlaneSizeInByte()];
+		byte[] target = new byte[dmd.getPlaneSize()];
 		Arrays.fill(target, (byte)1);
 		dmd.fill((byte) 1);
 		assertThat(dmd.getFrame().planes.get(0).data, byteArrayContaining(target));
@@ -148,7 +148,7 @@ public class DMDTest implements Observer {
 	@Test
 	public void testClear() throws Exception {
 		dmd.clear();
-		assertThat(dmd.getFrame().planes.get(0).data, byteArrayContaining(new byte[dmd.getPlaneSizeInByte()]));
+		assertThat(dmd.getFrame().planes.get(0).data, byteArrayContaining(new byte[dmd.getPlaneSize()]));
 	}
 
 }

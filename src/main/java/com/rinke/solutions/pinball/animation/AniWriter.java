@@ -110,7 +110,7 @@ public class AniWriter extends Worker {
 				log.info("writing {} frames", numberOfFrames);
 				for(int i = 0; i<numberOfFrames;i++) {
 					dmd = new DMD(a.width,a.height);
-					os.writeShort(dmd.getPlaneSizeInByte());
+					os.writeShort(dmd.getPlaneSize());
 					notify(aniIndex*aniProgressInc + (int)((float)i/numberOfFrames * aniProgressInc), "writing animation "+a.getDesc());
 					Frame frame =  a.render(dmd,false);
 

@@ -174,7 +174,7 @@ public class DMDClock {
 			DMD dmd = charMap.get(Character.valueOf(c));//.writeTo(os);
 			os.writeByte(dmd.getWidth());
 			os.writeByte(dmd.getHeight());
-			os.writeShort(dmd.getPlaneSizeInByte());
+			os.writeShort(dmd.getPlaneSize());
 			//os.write(dmd.transformFrame1(dmd.frame1));
 			os.write(dmd.getFrame().planes.get(0).data);
 		}

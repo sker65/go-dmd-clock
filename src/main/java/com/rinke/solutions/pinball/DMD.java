@@ -13,41 +13,39 @@ import com.rinke.solutions.pinball.model.Plane;
 @Slf4j
 public class DMD extends Observable {
 
-    private int width;
-    private int height;
-    private int drawMask = (byte)0xFFFF; // limits drawing (setPixel) to planes, that are not masked
-    private int bytesPerRow;
+	// geometrie
+	private int width;
+	private int height;
+	private int bytesPerRow;
+	private int planeSize;
+	
+    // limits drawing (setPixel) to planes, that are not masked
+    private int drawMask = 0x7FFFF;
 
+    // optinal for debugging purpose: a histogram of color values
     Map<Integer,Integer> colHist = new HashMap<>();
 
+    // the frame that holds image data
     private Frame frame = new Frame();
+    // a map of frame for undo / redo
     public Map<Integer,Frame> buffers = new HashMap<>();
-    
+    // "pointer" into the map of frame buffers
     int actualBuffer = 0;
-    private int planeSizeInByte;
-
+    
     public int getWidth() {
-        return width;
-    }
-
-    public void setWidth(int width) {
-        this.width = width;
+        return this.width;
     }
 
     public int getHeight() {
-        return height;
+        return this.height;
     }
 
-    public void setHeight(int height) {
-        this.height = height;
-    }
-
-    public int getPlaneSizeInByte() {
-        return planeSizeInByte;
+    public int getPlaneSize() {
+        return this.planeSize;
     }
 
     public int getBytesPerRow() {
-        return bytesPerRow;
+        return this.bytesPerRow;
     }
 
     public void copyLastBuffer() {
@@ -92,19 +90,20 @@ public class DMD extends Observable {
     	return  actualBuffer>0;
     }
     
-    public void setSize(int w, int h) {
-        this.width = w;
-        this.height = h;
-        bytesPerRow = width / 8;
-        if (width % 8 > 0)
-            bytesPerRow++;
-        planeSizeInByte = bytesPerRow * height;
-        frame = new Frame();
-        setNumberOfPlanes(2);
-        actualBuffer=0;
-        buffers.clear();
-        buffers.put(actualBuffer, frame);
-    }
+	public void setSize(int w, int h) {
+		this.width = w;
+		this.height = h;
+		bytesPerRow = width / 8;
+		if (width % 8 > 0)
+			bytesPerRow++;
+		planeSize = bytesPerRow * height;
+		
+		frame = new Frame();
+		setNumberOfPlanes(2);
+		actualBuffer = 0;
+		buffers.clear();
+		buffers.put(actualBuffer, frame);
+	}
 
     public DMD(int w, int h) {
     	setSize(w, h);
@@ -126,7 +125,7 @@ public class DMD extends Observable {
     	}
     	while( n > frame.planes.size() ) {
     		log.trace("adding plane {}", frame.planes.size());
-    		frame.planes.add( new Plane((byte)frame.planes.size(),new byte[planeSizeInByte]));
+    		frame.planes.add( new Plane((byte)frame.planes.size(),new byte[this.planeSize]));
     	}
     	log.trace("final plane no: {} ", frame.planes.size());
     }
@@ -136,9 +135,9 @@ public class DMD extends Observable {
     	byte mask = (byte) (0b10000000 >> (x % 8));
         if( maskIsRelevant() ) {
     		if( (v & 0x01) != 0) {
-    			frame.mask.data[y*bytesPerRow+x/8] |= mask;
+    			frame.mask.data[y*this.bytesPerRow+x/8] |= mask;
     		} else {
-    			frame.mask.data[y*bytesPerRow+x/8] &= ~mask;
+    			frame.mask.data[y*this.bytesPerRow+x/8] &= ~mask;
     		}
         }
         int drawMask1 = drawMask >> 1;
@@ -146,9 +145,9 @@ public class DMD extends Observable {
     	for(int plane = 0; plane < numberOfPlanes; plane++) {
     		if( ((1<<plane) & drawMask1) != 0) {
         		if( (v & 0x01) != 0) {
-        			frame.planes.get(plane).data[y*bytesPerRow+x/8] |= mask;
+        			frame.planes.get(plane).data[y*this.bytesPerRow+x/8] |= mask;
         		} else {
-        			frame.planes.get(plane).data[y*bytesPerRow+x/8] &= ~mask;
+        			frame.planes.get(plane).data[y*this.bytesPerRow+x/8] &= ~mask;
         		}
     		}
     		v >>= 1;
@@ -160,13 +159,13 @@ public class DMD extends Observable {
     	byte mask = (byte) (0b10000000 >> (x % 8));
     	int v = 0;
     	for(int plane = 0; plane < frame.planes.size(); plane++) {
-    		v += (frame.planes.get(plane).data[x / 8 + y * bytesPerRow] & mask) != 0 ? (1<<plane) : 0;
+    		v += (frame.planes.get(plane).data[x / 8 + y * this.bytesPerRow] & mask) != 0 ? (1<<plane) : 0;
     	}
     	return v;
     }
     
     private boolean rangeCheck(int x, int y) {
-		return ( x<0 || y <0 || x >= width || y >= height );
+		return ( x<0 || y <0 || x >= this.width || y >= this.height );
 	}
 
 	private boolean maskIsRelevant() {
@@ -178,12 +177,12 @@ public class DMD extends Observable {
     	byte mask = (byte) (0b10000000 >> (x % 8));
     	int v = 0;
     	if( maskIsRelevant() ) {
-    		v += (frame.mask.data[x / 8 + y * bytesPerRow] & mask) != 0 ? 1 : 0;
+    		v += (frame.mask.data[x / 8 + y * this.bytesPerRow] & mask) != 0 ? 1 : 0;
     	}
     	int drawMask1 = drawMask >> 1;
     	for(int plane = 0; plane < frame.planes.size(); plane++) {
     		if( ((1<<plane) & drawMask1) != 0) {
-    			v += (frame.planes.get(plane).data[x / 8 + y * bytesPerRow] & mask) != 0 ? (1<<plane) : 0;
+    			v += (frame.planes.get(plane).data[x / 8 + y * this.bytesPerRow] & mask) != 0 ? (1<<plane) : 0;
     		}
     	}
     	return v;
@@ -206,7 +205,7 @@ public class DMD extends Observable {
         		}
         		int i = 0;
         		while( frame.planes.size() < src.planes.size() ) {
-        			frame.planes.add(new Plane(src.planes.get(i++).marker,new byte[bytesPerRow*height]));
+        			frame.planes.add(new Plane(src.planes.get(i++).marker,new byte[this.planeSize]));
         		}
         		for ( i = 0; i < src.planes.size(); i++) {
 					copyOr(frame.planes.get(i).data,src.planes.get(i).data);
@@ -310,14 +309,14 @@ public class DMD extends Observable {
 
 	public void dumpHistogram() {
 		colHist.clear();
-		for (int row = 0; row < height; row++) {
-			for (int col = 0; col < width; col++) {
+		for (int row = 0; row < this.height; row++) {
+			for (int col = 0; col < this.width; col++) {
 				byte mask = (byte) (0b10000000 >> (col % 8));
 				int v = 0;
 				for (int i = 0; i < frame.planes.size(); i++) {
 					// if( col / 8 + row * bytesPerRow <
 					// frame.getPlane(i).length) {
-					v += (frame.getPlane(i)[col / 8 + row * bytesPerRow] & mask) != 0 ? (1 << i) : 0;
+					v += (frame.getPlane(i)[col / 8 + row * this.bytesPerRow] & mask) != 0 ? (1 << i) : 0;
 					// }
 				}
 				stat(v);
@@ -344,13 +343,6 @@ public class DMD extends Observable {
 		} else {
 			colHist.put(v, new Integer(count+1));
 		}
-	}
-
-	@Override
-	public String toString() {
-		return "DMD@"+Integer.toHexString(hashCode())+" [width=" + width + ", height=" + height
-				+ ", numberOfPlanes=" + frame.planes.size()
-				+ ", actualBuffer=" + actualBuffer + "]";
 	}
 
     public int getNumberOfPlanes() {
@@ -414,6 +406,12 @@ public class DMD extends Observable {
 		drawMask = 1;
 		setPixel(x, y, b?1:0);
 		drawMask = save;
+	}
+
+	@Override
+	public String toString() {
+		return String.format("DMD [width=%s, height=%s, bytesPerRow=%s, planeSize=%s, drawMask=%s, frame=%s, actualBuffer=%s, mask=%s]", width, height,
+				bytesPerRow, planeSize, drawMask, frame, actualBuffer, Arrays.toString(mask));
 	}
 
 

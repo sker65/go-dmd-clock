@@ -44,7 +44,7 @@ public class PcapRenderer extends Renderer {
     			byte[] data = new byte[p.incLen];
     			stream.read(data);
     			int offset = findPinDmdMagicOffset(data);
-    			int planeSize = dmd.getPlaneSizeInByte();
+    			int planeSize = dmd.getPlaneSize();
     			Frame res = new Frame( 
     					Frame.transform(data, offset+4, planeSize),
     					Frame.transform(data, offset+4+planeSize, planeSize),

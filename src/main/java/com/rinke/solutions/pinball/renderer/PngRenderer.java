@@ -61,8 +61,8 @@ public class PngRenderer extends Renderer {
 			throw new RuntimeException("This method is for RGB8/RGBA8 images");
 		boolean hasAlpha = pngr.imgInfo.alpha;
 
-		byte[] f1 = new byte[dmd.getPlaneSizeInByte()];
-		byte[] f2 = new byte[dmd.getPlaneSizeInByte()];
+		byte[] f1 = new byte[dmd.getPlaneSize()];
+		byte[] f2 = new byte[dmd.getPlaneSize()];
 
 		for (int row = 0; row < pngr.imgInfo.rows; row++) { // also:
 			ImageLineInt imageLine = (ImageLineInt) pngr.readRow();
