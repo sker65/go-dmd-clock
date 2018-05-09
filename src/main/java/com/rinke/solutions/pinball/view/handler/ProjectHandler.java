@@ -293,7 +293,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 				if( vm.scenes.containsKey(p.frameSeqName) ) {
 					FrameSeq frameSeq = new FrameSeq(p.frameSeqName);
 					if (p.switchMode.masking ) {
-						frameSeq.mask = 0b11111111111111111111100;
+						frameSeq.mask = 0b11111111111111111111111111111100;
 					}
 					frameSeqMap.put(p.frameSeqName, frameSeq);
 				} else {
@@ -340,12 +340,6 @@ public class ProjectHandler extends AbstractCommandHandler {
 				} catch (IOException e) {
 					throw new RuntimeException("error writing " + filename, e);
 				}
-				/*XStream xStream = new XStream();
-				try {
-					xStream.toXML(anis, new FileWriter("/Users/stefanri/ani.aml"));
-				} catch (IOException e) {
-					e.printStackTrace();
-				}*/
 			}
 			
 		} else {
@@ -354,7 +348,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 			for (FrameSeq p : frameSeqMap.values()) {
 				CompiledAnimation ani = vm.scenes.get(p.name);			
 				ani.actFrame = 0;
-				DMD tmp = new DMD(vm.dmdSize.width, vm.dmdSize.height);
+				DMD tmp = new DMD(vm.dmdSize);
 				for (int i = 0; i <= ani.end; i++) {
 					ani.getCurrentMask();
 					Frame frame = new Frame( ani.render(tmp, false) ); // copy frames to not remove in org
@@ -368,6 +362,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 						pl++;
 					}
 					if( frame.planes.size() == 24 ) { // reduce 8 bit per color to 5 bit per color
+						log.debug("24 bit scene will reduced to 15 bit on export: {}", ani.getDesc());
 						frame.planes.remove(5); frame.planes.remove(5); frame.planes.remove(5);
 						frame.planes.remove(10); frame.planes.remove(10); frame.planes.remove(10);
 						frame.planes.remove(15); frame.planes.remove(15); frame.planes.remove(15);
