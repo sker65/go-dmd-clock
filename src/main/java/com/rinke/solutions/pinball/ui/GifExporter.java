@@ -77,6 +77,7 @@ public class GifExporter extends Dialog {
 	private Text maxFrameTxt;
 	private int margin;
 	private int maxFrame;
+	private int pitch = 2;
 
     /**
      * Create the dialog.
@@ -105,12 +106,15 @@ public class GifExporter extends Dialog {
 		int width = (dmd.getWidth()+0) * pitch + widget.getMargin();
 		int height = (dmd.getHeight()+0) * pitch + widget.getMargin();
 		widget.setBounds(0, 0, width, height);
+		// override margin
+		widget.setMargin(margin);
 		widget.setVisible(false);
 		widget.setPitch(pitch);
 		int saveActframe = ani.actFrame;
 		ani.actFrame = 0;
 		progressBar.setMinimum(0);
-		progressBar.setMaximum(ani.getFrameCount(dmd));
+		int maximum = maxFrame<ani.getFrameCount(dmd)?maxFrame:ani.getFrameCount(dmd);
+		progressBar.setMaximum(maximum);
 	
 		if( ani instanceof CompiledAnimation ) {
 			CompiledAnimation cani = (CompiledAnimation)ani;
@@ -135,7 +139,7 @@ public class GifExporter extends Dialog {
 						gifWriter.writeToSequence(ImageUtil.convert(swtImage), ani.getRefreshDelay());
 						
 						display.asyncExec(()->{
-							if( !progressBar.isDisposed()) progressBar.setSelection(ani.actFrame);	
+							if( ani.actFrame>0 && !progressBar.isDisposed()) progressBar.setSelection(ani.actFrame);	
 						});
 	
 						log.info("exporting frame {} to {}", ani.actFrame, filename);
@@ -189,9 +193,11 @@ public class GifExporter extends Dialog {
      * @return the result
      */
     public Object open() {
-        createContents();
+    	createContents();
         shell.open();
         shell.layout();
+        marginTxt.setText(String.valueOf(margin));
+        maxFrameTxt.setText(String.valueOf(maxFrame));
         display = getParent().getDisplay();
         while (!shell.isDisposed()) {
             if (!display.readAndDispatch()) {
@@ -232,7 +238,7 @@ public class GifExporter extends Dialog {
         GridData gd_comboSize = new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1);
         gd_comboSize.widthHint = 99;
         comboSize.setLayoutData(gd_comboSize);
-        comboSize.setItems(new String[] {"2","3","4","6","8"});
+        comboSize.setItems(new String[] {"1","2","3","4","6","8","10"});
         comboSize.select(0);
         
         Button btnSave = new Button(grpConfig, SWT.NONE);
@@ -272,4 +278,5 @@ public class GifExporter extends Dialog {
 		abort = true;
 		shell.close();
 	}
+
 }
