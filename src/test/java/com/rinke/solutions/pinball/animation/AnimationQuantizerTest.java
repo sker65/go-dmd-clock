@@ -37,6 +37,8 @@ public class AnimationQuantizerTest {
 		CompiledAnimation qAni = uut.quantize("foo", scene, pal );
 		assertEquals(scene.frames.get(0).delay, qAni.frames.get(0).delay);
 		assertEquals(scene.frames.get(0).timecode, qAni.frames.get(0).timecode);
+		assertEquals(scene.width, qAni.width);
+		assertEquals(scene.height, qAni.height);
 	}
 
 	@Test
