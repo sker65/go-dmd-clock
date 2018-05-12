@@ -8,9 +8,8 @@ import com.rinke.solutions.pinball.model.RGB;
 public class AnimationQuantizer {
 
 	public CompiledAnimation quantize(String name, CompiledAnimation in, Palette pal) {
-		CompiledAnimation result = new CompiledAnimation(AnimationType.COMPILED, name,in.start, in.end,in.skip, 0, 0);
-		result.width = in.width;
-		result.height = in.height;
+		CompiledAnimation result = new CompiledAnimation(AnimationType.COMPILED, name, 
+				in.start, in.end,in.skip, 0, 0, in.width, in.height);
 		for( Frame inFrame : in.frames ) {
 			Frame qFrame = quantizeFrame(inFrame, pal, in.width, in.height);
 			qFrame.delay = inFrame.delay;
