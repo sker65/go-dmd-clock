@@ -1,5 +1,7 @@
 package com.rinke.solutions.pinball.view.handler;
 
+import java.util.Set;
+
 import lombok.extern.slf4j.Slf4j;
 
 import com.rinke.solutions.beans.Autowired;
@@ -70,7 +72,7 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 		CompiledAnimation src = vm.selectedScene;
 		if( src != null ) {
 			AnimationQuantizer quantizer = new AnimationQuantizer();
-			String name = src.getDesc()+"_q";
+			String name = getUniqueName(src.getDesc()+"_q",vm.scenes.keySet());
 			CompiledAnimation newScene = quantizer.quantize(name, src, vm.selectedPalette);
 			newScene.setDesc(name);
 			newScene.setPalIndex(vm.selectedPalette.index);
@@ -82,7 +84,16 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 
 		}		
 	}
-	
+
+	String getUniqueName(String name, Set<String> set) {
+		String res = name;
+		int i=0;
+		while( set.contains(res) ) {
+			res = name + "_" + i;
+			i++;
+		}
+		return res;
+	}
 
 	public void onCutScene() {
 		// respect number of planes while cutting / copying
