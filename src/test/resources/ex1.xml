@@ -1,5 +1,5 @@
 <project>
-  <version>1</version>
+  <version>2</version>
   <inputFiles>
     <string>drwho-dump.txt.gz</string>
   </inputFiles>

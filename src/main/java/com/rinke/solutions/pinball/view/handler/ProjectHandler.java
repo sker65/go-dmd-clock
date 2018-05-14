@@ -436,7 +436,6 @@ public class ProjectHandler extends AbstractCommandHandler {
 			backupFiles(filename, aniFilename);
 		}
 		Project p = new Project();
-		p.version = 2;
 		populateVmToProject(vm, p);
 		
 		String baseName = new File(aniFilename).getName();
@@ -488,7 +487,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 		p.palMappings.addAll(vm.keyframes.values());
 		p.height = vm.dmdSize.height;
 		p.width = vm.dmdSize.width;
-		p.version = 1; // default
+		p.version = 2;
 		p.paletteMap.putAll(vm.paletteMap);
 		p.masks.clear();
 		p.masks.addAll(vm.masks);
