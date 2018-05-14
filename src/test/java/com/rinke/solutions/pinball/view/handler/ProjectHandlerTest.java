@@ -45,6 +45,7 @@ import com.rinke.solutions.pinball.util.MessageUtil;
 import com.rinke.solutions.pinball.view.model.ViewModel;
 
 import java.io.FileOutputStream;
+import java.util.Arrays;
 import java.util.List;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -286,6 +287,12 @@ public class ProjectHandlerTest extends HandlerTest {
 		}
 		boolean eq = EqualsBuilder.reflectionEquals(ani, ani2, "basePath", "name", "frames", "renderer");
 		if( !eq ) fail( "not equal");
+	}
+
+	@Test
+	public void testGetUniqueName() throws Exception {
+		assertEquals("foo",uut.getUniqueName("foo", Arrays.asList("xxx")));
+		assertEquals("foo_1",uut.getUniqueName("foo", Arrays.asList("foo")));
 	}
 
 

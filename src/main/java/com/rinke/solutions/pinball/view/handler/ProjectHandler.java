@@ -9,12 +9,14 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
@@ -192,7 +194,11 @@ public class ProjectHandler extends AbstractCommandHandler {
 			
 			// populate keyframes
 			vm.keyframes.clear();
-			p.palMappings.stream().forEach(pm->vm.keyframes.put(pm.name, pm));
+			p.palMappings.stream().forEach(pm->{
+				String name = getUniqueName( pm.name, vm.keyframes.keySet());
+				pm.name = name;
+				vm.keyframes.put(name, pm);
+			});
 			
 			vm.bookmarksMap.putAll(p.bookmarksMap);
 			
@@ -207,6 +213,16 @@ public class ProjectHandler extends AbstractCommandHandler {
 			}
 		}
 
+	}
+
+	String getUniqueName(String name, Collection<String> set) {
+		String res = name;
+		int i = 1;
+		while( set.contains(res)) {
+			res = name + "_" + i;
+			i++;
+		}
+		return res;
 	}
 
 	private <T> T firstFromMap(Map<?, T> map) {
