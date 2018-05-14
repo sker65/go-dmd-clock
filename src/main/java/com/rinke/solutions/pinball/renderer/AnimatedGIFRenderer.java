@@ -47,6 +47,7 @@ public class AnimatedGIFRenderer extends Renderer {
             };
 		
 		DmdSize size = Integer.parseInt(props.getProperty("width", "128"))==128 ? DmdSize.Size128x32 : DmdSize.Size192x64;
+		boolean sizeSetFromImage = false;
 		
 		try {
 			ImageReader reader = null;//(ImageReader) ImageIO.getImageReadersByFormatName("gif").next();
@@ -77,6 +78,10 @@ public class AnimatedGIFRenderer extends Renderer {
 				IIOMetadata metadata;
 				try {
 					image = reader.read(frameNo);
+					if( !sizeSetFromImage ) {
+						sizeSetFromImage = true;
+						size = setSizeFromImage( image.getWidth(), image.getHeight());
+					}
 					metadata = reader.getImageMetadata(frameNo);
 					
 				} catch( RuntimeException e) {
@@ -181,6 +186,12 @@ public class AnimatedGIFRenderer extends Renderer {
 		
 	}
 	
+	DmdSize setSizeFromImage(int width, int height) {
+		DmdSize res = DmdSize.Size128x32; // default
+		if( width % 192 == 0) res = DmdSize.Size192x64;
+		return res;
+	}
+
 	private Palette buildPaletteFromNodes(NodeList snodes) {
 		List<RGB> rgbs = new ArrayList<>();
 		for (int j = 0; j < snodes.getLength(); j++) {
