@@ -71,11 +71,13 @@ public class CustomMessageBox extends Dialog {
 	 */
 	private void createContents() {
 		shell = new Shell(getParent(), getStyle());
+		shell.setMinimumSize(new Point(69, 12));
+		shell.setSize(260, 118);
 		//shell.setSize(450, 300);
 		shell.setText(getText());
 		
 		GridLayout gl_shell = new GridLayout(3, true);
-		gl_shell.marginTop = 20;
+		gl_shell.marginTop = 5;
 		gl_shell.marginRight = 5;
 		gl_shell.marginLeft = 5;
 		gl_shell.marginBottom = 15;

@@ -142,8 +142,20 @@ public class ProjectHandler extends AbstractCommandHandler {
 		Project p = (Project) fileHelper.loadObject(filename);
 		if (p != null) {
 			if( p.version < 2 ) {
-				messageUtil.warn("Older project file", "This project was written with an older version of the editor. Saving the project"
-						+ " will convert it to the new format, that may not work with the older verision");
+				int res = messageUtil.warn(0, "Warning",
+						"Older project file", 
+						"This project was written with an older version of the editor.\nSaving the project"
+								+ " will convert it to the new format,\nthat may not work with the older version.",
+						new String[]{"", "Cancel", "Proceed"},2);
+				if( res != 2 ) return;
+			}
+			if( p.version > 2 ) {
+				int res = messageUtil.warn(0, "Warning",
+						"Newer project file", 
+						"This project was written with an newer version of the editor.\nSaving the project"
+								+ " will may destroy some of the newer data structures.\nSo please dont override project file w/o backup.",
+						new String[]{"", "Cancel", "Got it"},2);
+				if( res != 2 ) return;
 			}
 			// populate palettes
 			vm.paletteMap.clear();
