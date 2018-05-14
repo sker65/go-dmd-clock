@@ -2,6 +2,7 @@ package com.rinke.solutions.pinball.widget;
 
 import static org.junit.Assert.*;
 
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Shell;
 import org.junit.Before;
 import org.junit.Rule;
@@ -108,5 +109,18 @@ public class DMDWidgetSWTTest {
 		dmdWidget.setMaskOut(true);
 		dmdWidget.setMaskLocked(true);
 		dmdWidget.drawImage(displayHelper.getDisplay(), size.width, size.height);
+	}
+
+	@Test
+	public void testHandleMouse() throws Exception {
+		Event e = new Event();
+		dmdWidget.handleMouse(e );
+	}
+
+	@Test
+	public void testHandleMouseWithSelection() throws Exception {
+		Event e = new Event();
+		dmdWidget.setSelection(0, 0, 100, 30);
+		dmdWidget.handleMouse(e );
 	}
 }

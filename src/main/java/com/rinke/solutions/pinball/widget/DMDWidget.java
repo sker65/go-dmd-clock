@@ -149,7 +149,7 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 		redraw();
 	}
 	
-	private void handleMouse(Event e) {
+	void handleMouse(Event e) {
 		// calc dmd coords
 		int x = (e.x-margin)/pitch + hScroll;
 		int y = (e.y-margin)/pitch + vScroll;
