@@ -82,17 +82,17 @@ public class MenuHandler extends AbstractCommandHandler implements ViewBindingHa
 	 */
 	public void onDmdSizeChanged(DmdSize old, DmdSize newSize) {
 		// reallocate some objects
-		byte[] emptyMask = new byte[vm.dmdSize.planeSize];
+		byte[] emptyMask = new byte[newSize.planeSize];
 		Arrays.fill(emptyMask, (byte) 0xFF);
 		vm.setEmptyMask(emptyMask);
 		// dmd, dmdWidget, previewWidget
-		vm.dmd.setSize(vm.dmdSize.width, vm.dmdSize.height);
+		vm.dmd.setSize(newSize.width, newSize.height);
 		
 		vm.setDmdDirty(true);
 		onNewProject();
 		// bindings
 		log.info("dmd size changed to {}", newSize.label);
-		config.put(Config.DMDSIZE, vm.dmdSize.ordinal());
+		config.put(Config.DMDSIZE, newSize.ordinal());
 	}
 
 	public void onNewProject() {
@@ -139,8 +139,9 @@ public class MenuHandler extends AbstractCommandHandler implements ViewBindingHa
 		if( configDialog.okPressed ) {
 			vm.setPin2dmdAdress(configDialog.getPin2DmdHost());
 			// check changed size
-			if( vm.dmdSize != configDialog.getDmdSize() ) {
-				vm.dmd = new DMD(configDialog.getDmdSize().width, configDialog.getDmdSize().height);
+			if( !vm.dmdSize.equals(configDialog.getDmdSize()) ) {
+				vm.setSelectedMask(null);
+				vm.dmd = new DMD(configDialog.getDmdSize());
 			}
 			vm.setDmdSize(configDialog.getDmdSize());
 		}
