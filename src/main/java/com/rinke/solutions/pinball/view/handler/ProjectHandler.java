@@ -43,6 +43,7 @@ import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.FrameSeq;
 import com.rinke.solutions.pinball.model.Mask;
 import com.rinke.solutions.pinball.model.PalMapping;
+import com.rinke.solutions.pinball.model.PalMapping.SwitchMode;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.PaletteType;
 import com.rinke.solutions.pinball.model.Plane;
@@ -140,6 +141,10 @@ public class ProjectHandler extends AbstractCommandHandler {
 		// TODO clear view model
 		Project p = (Project) fileHelper.loadObject(filename);
 		if (p != null) {
+			if( p.version < 2 ) {
+				messageUtil.warn("Older project file", "This project was written with an older version of the editor. Saving the project"
+						+ " will convert it to the new format, that may not work with the older verision");
+			}
 			// populate palettes
 			vm.paletteMap.clear();
 			vm.paletteMap.putAll(p.paletteMap);
@@ -419,6 +424,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 			backupFiles(filename, aniFilename);
 		}
 		Project p = new Project();
+		p.version = 2;
 		populateVmToProject(vm, p);
 		
 		String baseName = new File(aniFilename).getName();
@@ -448,7 +454,15 @@ public class ProjectHandler extends AbstractCommandHandler {
 		}
 		
 		storeOrDeleteProjectAnimations(aniFilename);
-		fileHelper.storeObject(p, filename);
+		boolean isUsingLayeredColMask = false;
+		for( PalMapping pm : vm.keyframes.values()) {
+			if( pm.switchMode.equals(SwitchMode.LAYEREDCOL)) {
+				isUsingLayeredColMask = true;
+				break;
+			}
+		}
+		// if layer col is not used so far we suppress writing exension attributes for backwards comp
+		fileHelper.storeObject(p, filename, !isUsingLayeredColMask);
 		
 		vm.setDirty(false);
 	}

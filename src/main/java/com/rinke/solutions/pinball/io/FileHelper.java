@@ -36,6 +36,7 @@ import com.thoughtworks.xstream.mapper.Mapper;
 public class FileHelper {
 	
     private XStream xstream;
+    private XStream xstream2; // used for backwards compability save
     private XStream jstream;
     private XStream bstream;
     BinaryStreamDriver driver;
@@ -76,6 +77,10 @@ public class FileHelper {
         xstream = new XStream();
         xstream.registerConverter(new DefaultConstructorConverter(xstream.getMapper(),
         		xstream.getReflectionProvider()));
+        xstream2 = new XStream();
+        xstream2.registerConverter(new DefaultConstructorConverter(xstream2.getMapper(),
+        		xstream2.getReflectionProvider()));
+
         jstream = new XStream(new JettisonMappedXmlDriver());
         jstream = new XStream(new JettisonMappedXmlDriver());
         
@@ -100,8 +105,22 @@ public class FileHelper {
         xstream.alias("frame", Frame.class);
         xstream.alias("bookmark", Bookmark.class);
         xstream.omitField(Project.class, "planeSize");
-        
+        xstream.ignoreUnknownElements();        
         xstream.setMode(XStream.NO_REFERENCES);
+        
+        xstream2.alias("rgb", RGB.class);
+        xstream2.alias("palette", Palette.class);
+        xstream2.alias("project", Project.class);
+        xstream2.alias("palMapping", PalMapping.class);
+        xstream2.alias("scene", Scene.class);
+        xstream2.alias("frameSeq", FrameSeq.class);
+        xstream2.alias("frame", Frame.class);
+        xstream2.alias("bookmark", Bookmark.class);
+        xstream2.omitField(Project.class, "planeSize");
+        xstream2.omitField(PalMapping.class, "targetFrameIndex");
+        xstream2.ignoreUnknownElements();        
+        xstream2.setMode(XStream.NO_REFERENCES);
+
         jstream.alias("rgb", RGB.class);
         jstream.alias("palette", Palette.class);
         jstream.alias("project", Project.class);
@@ -116,7 +135,17 @@ public class FileHelper {
     
     public void storeObject(Model obj,  String filename) {
     	try( OutputStream out = new FileOutputStream(filename)) {
-    		storeObject(obj, out, Format.byFilename(filename));
+    		storeObject(obj, out, Format.byFilename(filename), false);
+    		out.close();
+    	} catch( IOException e) {
+    	    log.error("error on storing "+filename, e);
+    	    throw new RuntimeException("error on storing "+filename,e);
+    	}
+    }
+
+    public void storeObject(Model obj,  String filename, boolean alternativeWriter) {
+    	try( OutputStream out = new FileOutputStream(filename)) {
+    		storeObject(obj, out, Format.byFilename(filename), alternativeWriter);
     		out.close();
     	} catch( IOException e) {
     	    log.error("error on storing "+filename, e);
@@ -124,11 +153,12 @@ public class FileHelper {
     	}
     }
     
-    public void storeObject(Model obj,  OutputStream out, Format format) throws IOException {
+    public void storeObject(Model obj,  OutputStream out, Format format, boolean alternativeWriter) throws IOException {
             HierarchicalStreamWriter writer = null;
             switch (format) {
             case XML:
-                xstream.toXML(obj, out);
+                if( alternativeWriter ) xstream2.toXML(obj, out);
+                else xstream.toXML(obj, out);
                 break;
             case JSON:
                 jstream.toXML(obj, out);
