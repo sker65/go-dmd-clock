@@ -9,6 +9,13 @@ import java.io.InputStream;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.rinke.solutions.pinball.DmdSize;
+import com.rinke.solutions.pinball.io.Pin2DmdConnector.ConnectionHandle;
+import com.rinke.solutions.pinball.model.Frame;
+import com.rinke.solutions.pinball.model.PalMapping;
+import com.rinke.solutions.pinball.model.Palette;
+import com.rinke.solutions.pinball.model.Plane;
+
 public class Pin2DmdConnectorTest {
 
 	public static class Pin2DmdTestConnector extends Pin2DmdConnector {
@@ -66,6 +73,62 @@ public class Pin2DmdConnectorTest {
 	public void testTransferFile() throws Exception {
 		InputStream is = new FileInputStream("src/test/resources/defaultPalettes.dat");
 		uut.transferFile("foo", is );
+	}
+
+	@Test
+	public void testBuildFrameBuffer() throws Exception {
+		uut.buildFrameBuffer(1536, 1, 2);
+	}
+
+	@Test
+	public void testFromMapping() throws Exception {
+		PalMapping k = new PalMapping(1, "foo");
+		k.digest = new byte[]{1,2,3,4};
+		uut.fromMapping(k);
+	}
+
+	@Test
+	public void testFromPalette() throws Exception {
+		Palette palette = Palette.getDefaultPalettes().get(0);
+		uut.fromPalette(palette );
+	}
+
+	@Test
+	public void testInstallLicense() throws Exception {
+		uut.installLicense("src/test/resources/#3E002400164732.key");
+	}
+
+	@Test
+	public void testUploadPalette() throws Exception {
+		Palette palette = Palette.getDefaultPalettes().get(0);
+		uut.upload(palette);
+	}
+
+	@Test
+	public void testSendFrame() throws Exception {
+		Frame frame = new Frame();
+		frame.planes.add(new Plane((byte) 1, new byte[512]));
+		frame.planes.add(new Plane((byte) 2, new byte[512]));
+		uut.sendFrame(frame, null);
+	}
+
+	@Test
+	public void testSendFrameWithBigFrame() throws Exception {
+		Frame frame = new Frame();
+		frame.planes.add(new Plane((byte) 1, new byte[1536]));
+		frame.planes.add(new Plane((byte) 2, new byte[1536]));
+		uut.setDmdSize(DmdSize.Size192x64);
+		uut.sendFrame(frame, null);
+	}
+
+	@Test
+	public void testSwitchToPal() throws Exception {
+		uut.switchToPal(1, null);
+	}
+
+	@Test
+	public void testSwitchToMode() throws Exception {
+		uut.switchToMode(0, null);
 	}
 
 }

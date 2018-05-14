@@ -54,7 +54,7 @@ public abstract class Pin2DmdConnector {
         return res;
     }
 
-    protected byte[] buildFrameBuffer(int size, int headerByte, int sizeByte) {
+    byte[] buildFrameBuffer(int size, int headerByte, int sizeByte) {
         byte[] res = new byte[size+4]; // add header size
         res[0] = (byte)0x81;
         res[1] = (byte)0xc3;
@@ -63,7 +63,7 @@ public abstract class Pin2DmdConnector {
         return res;
     }
 
-    protected byte[] fromMapping(PalMapping palMapping) {
+    byte[] fromMapping(PalMapping palMapping) {
     	byte[] res = buildBuffer(UsbCmd.UPLOAD_MAPPING);
         int j = 5;
         for(int i = 0; i < palMapping.digest.length; i++)
@@ -74,7 +74,7 @@ public abstract class Pin2DmdConnector {
         return res;
     }
 
-    protected byte[] fromPalette(Palette palette) {
+    byte[] fromPalette(Palette palette) {
     	byte[] res = buildBuffer(UsbCmd.UPLOAD_PALETTE);
         //palette.writeTo(os);
         res[5] = (byte) palette.index;
