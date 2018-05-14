@@ -72,18 +72,11 @@ public class HashCmdHandler extends AbstractCommandHandler implements ViewBindin
 	}
 	
 	public void updateHashes(Frame frame) {
-//		if( vm.selectedKeyFrame != null ) {
-//			updateHashes(frame, vm.selectedKeyFrame.withMask ? vm.masks.get(vm.selectedKeyFrame.maskNumber) : null, vm.selectedKeyFrame.maskNumber);
-//		} else {
-//			updateHashes(frame, vm.selectedMask, vm.selectedMaskNumber);
-//		}
-//	}
-//
-//	public void updateHashes(Frame frame, Mask mask, int maskNumber) {
 		if( frame == null ) return;
 		Frame f = new Frame(frame);
 		if( vm.selectedMask != null ) f.setMask(vm.selectedMask.data);
-
+		else f.setMask(null);
+		
 		List<byte[]> hashes = f.getHashes();
 		refreshHashButtons(hashes, vm.selectedMask, vm.selectedMaskNumber);
 		saveHashes(hashes);

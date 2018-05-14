@@ -3,6 +3,7 @@ package com.rinke.solutions.pinball.view.handler;
 import static org.junit.Assert.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Before;
@@ -13,7 +14,9 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import com.rinke.solutions.pinball.DmdSize;
+import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Mask;
+import com.rinke.solutions.pinball.model.Plane;
 
 @RunWith(MockitoJUnitRunner.class)
 public class HashCmdHandlerTest extends HandlerTest {
@@ -75,6 +78,16 @@ public class HashCmdHandlerTest extends HandlerTest {
 	@Test
 	public void testUpdateKeyFrameButtons() throws Exception {
 		uut.updateKeyFrameButtons(getScene(""), getScene(""), 0);
+	}
+
+	@Test
+	public void testUpdateHashes() throws Exception {
+		Frame frame = new Frame();
+		for(int i = 0; i < 4; i++) {
+			frame.planes.add(new Plane((byte)i, new byte[vm.dmdSize.planeSize]));
+		}
+		uut.updateHashes(frame);
+		assertTrue( Arrays.equals(new byte[]{-78, -86, 117, 120}, vm.hashes.get(0)));
 	}
 
 }
