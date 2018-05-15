@@ -310,6 +310,7 @@ public class ColorPicker {
 			shell.layout();
 		} else {
 			shell.open();
+			shell.setFocus();
 		}
 		setRGB(rgb.red, rgb.green, rgb.blue);
 		while (!shell.isDisposed() && !closed ) {

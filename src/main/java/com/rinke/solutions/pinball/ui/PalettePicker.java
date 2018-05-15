@@ -77,7 +77,7 @@ public class PalettePicker extends Dialog implements View {
 	public void open() {
 		// for the sake of window builder
 		//create();
-		if( toolBar == null ) create();
+		if( toolBar == null || shell.isDisposed() ) create();
 		else updateColorButtons();
 		open = true;
 		shell.setVisible(true);
