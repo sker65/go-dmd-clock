@@ -132,8 +132,10 @@ public class AnimationHandler implements Runnable {
                 if( maskToPopulate != null ) {
                 	dmd.setMask(maskToPopulate.data);
                 }
-                
-                eventHandler.notifyAni(new AniEvent(Type.ANI, ani, dmd.getFrame()));
+                Frame f = dmd.getFrame();
+                f.delay = res.delay;
+                f.timecode = res.timecode;
+                eventHandler.notifyAni(new AniEvent(Type.ANI, ani, f));
 
                 if( ani.hasEnded() ) {
 					if( !ani.isMutable() ){
