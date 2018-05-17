@@ -304,7 +304,7 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 		}
 	}
 
-	public void loadPalette() {
+	public void onLoadPalette() {
 		String filename = fileChooserUtil.choose(SWT.OPEN, null, new String[] { "*.xml", "*.json,", "*.txt", "*.dmc" }, new String[] { "Palette XML",
 				"Palette JSON", "smartdmd", "DMC" });
 		if (filename != null)
