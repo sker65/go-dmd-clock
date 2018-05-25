@@ -141,11 +141,8 @@ public class Animation {
 	boolean ended = false;
 	private int actCycle;
 	int holdCount = 0;
-	
 	private String desc;
 
-	private Shell shell;
-	
 	public CompiledAnimation cutScene( int start, int end, int actualNumberOfPlanes) {
 		// create a copy of the animation
 		DMD tmp = new DMD(width,height);
@@ -177,7 +174,7 @@ public class Animation {
 		return dest;
 	}
 
-    public static Animation buildAnimationFromFile(String filename, AnimationType type, Shell shell) {
+    public static Animation buildAnimationFromFile(String filename, AnimationType type) {
         File file = new File(filename);
         if( !file.canRead() ) {
             throw new RuntimeException("Could not read '"+filename+"' to load animation");
@@ -187,16 +184,9 @@ public class Animation {
         ani.setBasePath(file.getParent() + "/");
         ani.setDesc(base.substring(0, base.indexOf('.')));
         ani.setMutable(type.equals(AnimationType.COMPILED)||type.equals(AnimationType.VIDEO));
-        ani.shell = shell;
         return ani;
     }
    
-
-	public static Animation buildAnimationFromFile(String filename, AnimationType type) {
-		return buildAnimationFromFile(filename,type,null);
-	}
-
-
 	public String getDesc() {
 		return desc;
 	}
@@ -295,9 +285,10 @@ public class Animation {
 	Frame last;
 	Renderer transitionRenderer = null;
 	List<Frame> transitions = new ArrayList<>();
+	protected ProgressEventListener progressEventListener;
 	
 	protected Frame renderFrame(String name, DMD dmd, int act) {	
-		Frame f = renderer.convert(name, dmd, act, shell);
+		Frame f = renderer.convert(name, dmd, act);
 		int noFrames = renderer.getFrames().size();
 		if( start == 0 && end > noFrames ) {
 			end = noFrames-1;
@@ -306,7 +297,7 @@ public class Animation {
 	}
 	
 	public Renderer getRenderer() {
-		if( renderer == null ) init();
+		if( renderer == null ) init(this.progressEventListener);
 		return renderer;
 	}
 	
@@ -320,7 +311,7 @@ public class Animation {
 			initTransition(dmd);
 		}
 
-		if( renderer == null ) init();
+		if( renderer == null ) init(this.progressEventListener);
 		setDimension(dmd.getWidth(),dmd.getHeight());
 		// just to trigger image read
 		renderer.getMaxFrame(basePath+name, dmd);
@@ -396,7 +387,7 @@ public class Animation {
 		return  actFrame>clockFrom || (transitionFrom>0 && actFrame>=transitionFrom) ;
 	}
 
-	protected void init() {
+	protected void init(ProgressEventListener listener) {
 		switch (type) {
 		case PNG:
 			renderer = new PngRenderer(pattern,autoMerge);
@@ -432,6 +423,7 @@ public class Animation {
 			break;
 		}
 		renderer.setProps(props);
+		renderer.setProgressEvt(listener);
 	}
 
 	public boolean hasEnded() {
@@ -607,10 +599,6 @@ public class Animation {
 		this.editMode = editMode;
 	}
 
-	public void setShell(Shell shell) {
-		 this.shell = shell;
-	}
-
 	public boolean isClockWasAdded() {
 		return clockWasAdded;
 	}
@@ -633,6 +621,11 @@ public class Animation {
 
 	public void setProjectAnimation(boolean projectAnimation) {
 		this.projectAnimation = projectAnimation;
+	}
+
+	public void setProgressEventListener(ProgressEventListener listener) {
+		this.progressEventListener = listener;
+		
 	}
 	
 }

@@ -24,6 +24,7 @@ import com.rinke.solutions.pinball.animation.Animation.EditMode;
 import com.rinke.solutions.pinball.animation.AnimationFactory;
 import com.rinke.solutions.pinball.animation.AnimationType;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
+import com.rinke.solutions.pinball.animation.ProgressEventListener;
 import com.rinke.solutions.pinball.model.Model;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.ui.Progress;
@@ -71,7 +72,7 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 	
 	@Command
 	public void onLoadAnimation(String filename, boolean append, boolean populate) {
-		loadAni(filename, append, true);
+		loadAni(filename, append, true, null);
 	}
 
 	public void onLoadAniWithFC(boolean append) {
@@ -79,7 +80,7 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 				"properties, txt.gz, ani, mov" });
 
 		for(String filename : filenames) {
-			loadAni(filename, append, true);
+			loadAni(filename, append, true, null);
 		}
 	}
 
@@ -91,7 +92,7 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 		return false;
 	}
 
-	public java.util.List<Animation> loadAni(String filename, boolean append, boolean populateProject) {
+	public java.util.List<Animation> loadAni(String filename, boolean append, boolean populateProject, ProgressEventListener listener) {
 		java.util.List<Animation> loadedList = new ArrayList<>();
 		try {
 		if (filename.endsWith(".ani")) {
@@ -99,17 +100,17 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 		} else if (filename.endsWith(".txt.gz")) {
 			loadedList.add(Animation.buildAnimationFromFile(filename, AnimationType.MAME));
 		} else if (filename.endsWith(".properties")) {
-			loadedList.addAll(AnimationFactory.createAnimationsFromProperties(filename,shell));
+			loadedList.addAll(AnimationFactory.createAnimationsFromProperties(filename));
 		} else if (extensionIs(filename, ".pcap", ".pcap.gz")) {
 			loadedList.add(Animation.buildAnimationFromFile(filename, AnimationType.PCAP));
 		} else if (extensionIs(filename, ".rgb", ".rgb.gz")) {
 			loadedList.add(Animation.buildAnimationFromFile(filename, AnimationType.RGB));
 		} else if (extensionIs(filename, ".dump", ".dump.gz")) {
-			loadedList.add(Animation.buildAnimationFromFile(filename, AnimationType.PINDUMP, shell));
+			loadedList.add(Animation.buildAnimationFromFile(filename, AnimationType.PINDUMP));
 		} else if (extensionIs(filename, ".gif")) {
 			loadedList.add(Animation.buildAnimationFromFile(filename, AnimationType.GIF));
 		} else if (extensionIs(filename, ".mp4", ".3gp", ".avi")) {
-			loadedList.add(Animation.buildAnimationFromFile(filename, AnimationType.VIDEO, shell));
+			loadedList.add(Animation.buildAnimationFromFile(filename, AnimationType.VIDEO));
 		}
 		log.info("loaded {} animations from {}", loadedList.size(), filename);
 		} catch( IOException e) {
@@ -159,7 +160,10 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 				populateAni(ani, vm.recordings);
 			}	
 			
+			ani.setProgressEventListener(listener);
+			// should be done in background thread
 			ani.init(dmd);
+			
 			populatePalette(ani, vm.paletteMap);
 		}
 		vm.setRecentAnimations(filename);

@@ -39,11 +39,6 @@ public class ImageIORenderer extends Renderer {
 	}
 
 	@Override
-	public Frame convert(String name, DMD dmd, int frameNo, Shell shell) {
-		return readImage( name, dmd, frameNo);
-	}
-	
-	@Override
 	public Frame convert(String name, DMD dmd, int frameNo) {
 		return readImage( name, dmd, frameNo);
 	}
@@ -73,12 +68,12 @@ public class ImageIORenderer extends Renderer {
             
             int planes = getInt("planes", 2);
             
+            notify(50, "reading frame "+frameNo);
             if( planes == 2 ) {
     			return ImageUtil.convertTo4Color(master, dmd.getWidth(), dmd.getHeight());
             } else {
             	return ImageUtil.convertToFrame(master, dmd.getWidth(), dmd.getHeight());
             }
-            
 
 		} catch (IOException e) {
 			e.printStackTrace();

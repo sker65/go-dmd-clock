@@ -32,18 +32,10 @@ public class VideoCapRenderer extends Renderer {
 	DMD dmd;
 	DmdSize size = DmdSize.Size128x32;
 	
-	protected void readImage(String name, DMD dmd, Shell shell) {
+	protected void readImage(String name, DMD dmd) {
 		this.name = name;
 		this.dmd = dmd;
-		if( shell != null) {
-			Progress progress = new Progress(shell);
-			progress.setText("rendering video");
-			setProgressEvt(progress);
-			setInterval(100);
-			progress.open(this);
-		} else {
-			doReadImage();
-		}
+		doReadImage();
 	}
 
 	@Override
@@ -114,6 +106,7 @@ public class VideoCapRenderer extends Renderer {
 				Frame res = ImageUtil.convertToFrame(dmdImage, dmd.getWidth(), dmd.getHeight());
 				res.timecode = (int)( grabber.getTimestamp() / 1000 );
 				frames.add(res);
+				notify(50, "reading frame "+frames.size());
 			} // stop cap
 			grabber.stop();
 			grabber.release();
@@ -195,9 +188,9 @@ public class VideoCapRenderer extends Renderer {
 	}
 
 	@Override
-	public Frame convert(String filename, DMD dmd, int frameNo, Shell shell) {
+	public Frame convert(String filename, DMD dmd, int frameNo) {
 		if (frames.isEmpty()) {
-			readImage(filename, dmd, shell);
+			readImage(filename, dmd);
 		}
 		return frames.get(frameNo-skip);
 	}

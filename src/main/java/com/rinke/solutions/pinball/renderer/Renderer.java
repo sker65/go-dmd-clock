@@ -1,6 +1,6 @@
 package com.rinke.solutions.pinball.renderer;
 
-import java.awt.image.BufferedImage;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.OptionalInt;
@@ -9,12 +9,9 @@ import java.util.Properties;
 import org.eclipse.swt.widgets.Shell;
 
 import com.rinke.solutions.pinball.DMD;
-import com.rinke.solutions.pinball.PinDmdEditor;
 import com.rinke.solutions.pinball.Worker;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Palette;
-import com.rinke.solutions.pinball.model.Plane;
-import com.rinke.solutions.pinball.model.RGB;
 
 public abstract class Renderer extends Worker {
 
@@ -27,16 +24,19 @@ public abstract class Renderer extends Worker {
 	List<Frame> frames = new ArrayList<>();
 	protected Palette palette = null;
 	
+	protected String bareName(String filename) {
+		if( filename == null ) return null;
+		String b = new File(filename).getName();
+		int i = b.lastIndexOf('.');
+		return i==-1?b:b.substring(0, i);
+	}
+
 	public void run() {
 	}
 
 	public Frame convert(String filename, DMD dmd, int frameNo) {
-		return convert(filename, dmd, frameNo, null);
-	}
-	
-	public Frame convert(String filename, DMD dmd, int frameNo, Shell shell) {
 		if (frames.isEmpty()) {
-			readImage(filename, dmd, shell);
+			readImage(filename, dmd);
 		}
 		return frames.get(frameNo);
 	}
@@ -46,14 +46,7 @@ public abstract class Renderer extends Worker {
 		return maxFrame;
 	}
 	
-	// override if renderer wants to implement progress dialog
-	void readImage(String filename, DMD dmd, Shell shell) {
-		readImage(filename, dmd);
-	}
-	
-	void readImage(String filename, DMD dmd){
-		
-	}
+	void readImage(String filename, DMD dmd){};
 	
 	public long getTimeCode(int actFrame) {
         return 0L;

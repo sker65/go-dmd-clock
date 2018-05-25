@@ -30,7 +30,9 @@ import com.rinke.solutions.beans.Bean;
 import com.rinke.solutions.beans.Value;
 import com.rinke.solutions.pinball.AnimationActionHandler;
 import com.rinke.solutions.pinball.DMD;
+import com.rinke.solutions.pinball.Dispatcher;
 import com.rinke.solutions.pinball.DmdSize;
+import com.rinke.solutions.pinball.Worker;
 import com.rinke.solutions.pinball.animation.AniWriter;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
@@ -48,10 +50,11 @@ import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.PaletteType;
 import com.rinke.solutions.pinball.model.Plane;
 import com.rinke.solutions.pinball.model.Project;
+import com.rinke.solutions.pinball.swt.SWTDispatcher;
+import com.rinke.solutions.pinball.ui.Progress;
 import com.rinke.solutions.pinball.util.Config;
 import com.rinke.solutions.pinball.util.FileChooserUtil;
 import com.rinke.solutions.pinball.util.MessageUtil;
-import com.rinke.solutions.pinball.util.ObservableMap;
 import com.rinke.solutions.pinball.view.model.ViewModel;
 
 @Bean
@@ -61,6 +64,8 @@ public class ProjectHandler extends AbstractCommandHandler {
 	@Autowired FileChooserUtil fileChooserUtil;
 	@Autowired FileHelper fileHelper;
 	@Autowired MessageUtil messageUtil;
+	@Autowired Dispatcher dispatcher;
+	@Autowired Progress progress;
 	@Autowired AnimationActionHandler aniAction;
 	@Autowired LicenseManager licenseManager;
 
@@ -122,7 +127,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 		}
 
 		for (String inputFile : projectToImport.inputFiles) {
-			aniAction.loadAni(buildRelFilename(filename, inputFile), true, true);
+			aniAction.loadAni(buildRelFilename(filename, inputFile), true, true, progress);
 		}
 		for (PalMapping palMapping : projectToImport.palMappings) {
 			vm.keyframes.put(palMapping.name,palMapping);
@@ -135,10 +140,24 @@ public class ProjectHandler extends AbstractCommandHandler {
 			return filename.substring(0, p) + "." + newExt;
 		return filename;
 	}
-
+	
 	public void onLoadProject(String filename) {
+		Worker w = new Worker() {
+			@Override
+			public void run() {
+				onLoadProjectWithProgress(filename, this);
+			}
+		};
+		w.setProgressEvt(progress);
+		w.setInterval(100);
+		progress.setText("Loading Project");
+		progress.open(w);
+	}
+
+	public void onLoadProjectWithProgress(String filename, Worker w) {
 		log.info("load project from {}", filename);
 		// TODO clear view model
+		if( w!=null) w.notify(10, "loading project file");
 		Project p = (Project) fileHelper.loadObject(filename);
 		if (p != null) {
 			if( p.version < 2 ) {
@@ -157,77 +176,88 @@ public class ProjectHandler extends AbstractCommandHandler {
 						new String[]{"", "Cancel", "Got it"},2);
 				if( res != 2 ) return;
 			}
-			// populate palettes
-			vm.paletteMap.clear();
-			vm.paletteMap.putAll(p.paletteMap);
-			for( Palette pal : p.getPalettes() ) {
-				if( !vm.paletteMap.containsKey(pal.index) ) vm.paletteMap.put(pal.index, pal);
-				else messageUtil.warn("duplicate palette", "project file contains conflicting palette definition. Pal No "+pal.index);
-			}
-			if( p.width == 0) {
-				p.width = 128;
-				p.height = 32; // default for older projects
-			}
-			DmdSize newSize = DmdSize.fromWidthHeight(p.width, p.height);
-			vm.dmd.setSize(p.width, p.height);
-			vm.setDmdSize(newSize);
-			vm.setProjectFilename(filename);
-			vm.recordings.clear();
-			vm.scenes.clear();
-			vm.inputFiles.clear();
-			vm.inputFiles.addAll(p.inputFiles);
-			
-			// mask
-			vm.masks.clear();
-			vm.masks.addAll(p.masks);
-			log.info("loaded {} masks", vm.masks.size());
-			if( p.mask != null ) vm.setSelectedMask( new Mask(p.mask, false) );
-			else vm.setSelectedMask( new Mask(vm.dmdSize.planeSize) );
-			
+			// changes in the view model need to run in the UI thread
+			dispatcher.syncExec( () -> {
+				// populate palettes
+				vm.paletteMap.clear();
+				vm.paletteMap.putAll(p.paletteMap);
+				for( Palette pal : p.getPalettes() ) {
+					if( !vm.paletteMap.containsKey(pal.index) ) vm.paletteMap.put(pal.index, pal);
+					else messageUtil.warn("duplicate palette", "project file contains conflicting palette definition. Pal No "+pal.index);
+				}
+				if( p.width == 0) {
+					p.width = 128;
+					p.height = 32; // default for older projects
+				}
+				DmdSize newSize = DmdSize.fromWidthHeight(p.width, p.height);
+				vm.dmd.setSize(p.width, p.height);
+				vm.setDmdSize(newSize);
+				vm.setProjectFilename(filename);
+				vm.recordings.clear();
+				vm.scenes.clear();
+				vm.inputFiles.clear();
+				vm.inputFiles.addAll(p.inputFiles);
+				
+				// mask
+				vm.masks.clear();
+				vm.masks.addAll(p.masks);
+				log.info("loaded {} masks", vm.masks.size());
+				if( p.mask != null ) vm.setSelectedMask( new Mask(p.mask, false) );
+				else vm.setSelectedMask( new Mask(vm.dmdSize.planeSize) );
+			});
 			// if inputFiles contain project filename remove it
 			String aniFilename = replaceExtensionTo("ani", filename);
 			p.inputFiles.remove(aniFilename); // full name
 			p.inputFiles.remove(new File(aniFilename).getName()); // simple name
 			String msg = "";
+			int i = 1;
 			for (String file : p.inputFiles) {
-				try {
-					List<Animation> anis = aniAction.loadAni(buildRelFilename(filename, file), true, false);
-					if( !anis.isEmpty() ) {
-						Animation firstAni = anis.get(0);
-						if( p.recordingNameMap.containsKey(file)) {
-							firstAni.setDesc(p.recordingNameMap.get(file));
+				if( w!=null) w.notify(10 + i*(80/p.inputFiles.size()), "loading ani "+file);
+				dispatcher.syncExec(()->{
+					try {
+						List<Animation> anis = aniAction.loadAni(buildRelFilename(filename, file), true, false, progress);
+						if( !anis.isEmpty() ) {
+							Animation firstAni = anis.get(0);
+							if( p.recordingNameMap.containsKey(file)) {
+								firstAni.setDesc(p.recordingNameMap.get(file));
+							}
 						}
+					} catch( RuntimeException e) {
+						log.error("problem loading {}", file, e);
+						//msg +="\nProblem loading "+file+": "+e.getMessage();
 					}
-				} catch( RuntimeException e) {
-					msg +="\nProblem loading "+file+": "+e.getMessage();
-				}
+				});
 			}
-			vm.recordingNameMap.putAll(p.recordingNameMap);
+			if( w!=null) w.notify(90, "loading prject ani "+aniFilename);
+
+			dispatcher.syncExec(()->{
+				List<Animation> loadedWithProject = aniAction.loadAni(aniFilename, true, false, progress);
+				loadedWithProject.stream().forEach(a->a.setProjectAnimation(true));
+				
+				vm.recordingNameMap.putAll(p.recordingNameMap);
+				vm.setSelectedPalette(firstFromMap(vm.paletteMap));
+				
+				// populate keyframes
+				vm.keyframes.clear();
+				p.palMappings.stream().forEach(pm->{
+					String name = getUniqueName( pm.name, vm.keyframes.keySet());
+					pm.name = name;
+					vm.keyframes.put(name, pm);
+				});
+				
+				vm.bookmarksMap.putAll(p.bookmarksMap);
+				
+				vm.setDirty(false);
+				
+				ensureDefault();
+				vm.setRecentProjects(filename);
 			
-			List<Animation> loadedWithProject = aniAction.loadAni(aniFilename, true, false);
-			loadedWithProject.stream().forEach(a->a.setProjectAnimation(true));
-			
-			vm.setSelectedPalette(firstFromMap(vm.paletteMap));
-			
-			// populate keyframes
-			vm.keyframes.clear();
-			p.palMappings.stream().forEach(pm->{
-				String name = getUniqueName( pm.name, vm.keyframes.keySet());
-				pm.name = name;
-				vm.keyframes.put(name, pm);
 			});
-			
-			vm.bookmarksMap.putAll(p.bookmarksMap);
-			
-			vm.setDirty(false);
-			
-			//setupUIonProjectLoad();
-			
-			ensureDefault();
-			vm.setRecentProjects(filename);
+
 			if( !StringUtils.isEmpty(msg)) {
 				messageUtil.warn("Not all files loaded", msg);
 			}
+
 		}
 
 	}
@@ -363,19 +393,26 @@ public class ProjectHandler extends AbstractCommandHandler {
 			}
 			if( !anis.isEmpty() ) {
 				String aniFilename = replaceExtensionTo("vni", filename);
-				AniWriter aniWriter = new AniWriter(anis, aniFilename, 4, vm.paletteMap, null);
-				aniWriter.setHeader("VPIN");
-				aniWriter.run();
-				try {
-					BinaryExporter exporter = BinaryExporterFactory.getInstance();
-					DataOutputStream dos2 = new DataOutputStream(streamProvider.buildStream(filename));
-					// for vpins version is 2
-					project.version = 2;
-					exporter.writeTo(dos2, aniWriter.getOffsetMap(), project);
-					dos2.close();
-				} catch (IOException e) {
-					throw new RuntimeException("error writing " + filename, e);
-				}
+				progress.open(new Worker() {
+					@Override
+					public void run() {
+						AniWriter aniWriter = new AniWriter(anis, aniFilename, 4, vm.paletteMap, progress);
+						aniWriter.setHeader("VPIN");
+						aniWriter.run();
+						if( !cancelRequested ) {
+							notify(90, "writing binary project");
+							try {
+								BinaryExporter exporter = BinaryExporterFactory.getInstance();
+								DataOutputStream dos2 = new DataOutputStream(streamProvider.buildStream(filename));
+								// for vpins version is 2
+								project.version = 2;
+								exporter.writeTo(dos2, aniWriter.getOffsetMap(), project);
+								dos2.close();
+							} catch (IOException e) {
+								throw new RuntimeException("error writing " + filename, e);
+							}
+						}
+					}});
 			}
 			
 		} else {
@@ -436,6 +473,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 			backupFiles(filename, aniFilename);
 		}
 		Project p = new Project();
+		p.paletteMap.clear(); // TODO remove that in the CTOR
 		populateVmToProject(vm, p);
 		
 		String baseName = new File(aniFilename).getName();

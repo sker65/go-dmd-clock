@@ -30,7 +30,7 @@ public class CompiledAnimation extends Animation {
 	public CompiledAnimation(AnimationType type, String name, int start,
 			int end, int skip, int cycles, int holdCycles, int w, int h) {
 		super(type, name, start, end, skip, cycles, holdCycles, w, h);
-		init();
+		init(this.progressEventListener);
 		setMutable(true);
 		frames = renderer.getFrames();
 	}

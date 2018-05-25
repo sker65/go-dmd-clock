@@ -231,14 +231,14 @@ public class PinDmdEditor {
 	void processCmdLine() {
 		// cmd line processing
 		if (loadFile != null) {
-			projectHandler.onLoadProject(loadFile);
+			projectHandler.onLoadProjectWithProgress(loadFile, null);
 			vm.setProjectFilename(loadFile);
 		}
 		if (aniToLoad != null) {
-			aniAction.loadAni(aniToLoad, false, true);
+			aniAction.loadAni(aniToLoad, false, true, null);
 		}
 		if (playFile != null) {
-			List<Animation> anis = aniAction.loadAni(playFile, false, true);
+			List<Animation> anis = aniAction.loadAni(playFile, false, true, null);
 			vm.playingAnis.addAll(anis);
 			// start playback
 			animationControlHandler.onStartStop(true);

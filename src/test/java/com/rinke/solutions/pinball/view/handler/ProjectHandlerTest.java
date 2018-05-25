@@ -28,6 +28,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import com.rinke.solutions.pinball.AnimationActionHandler;
 import com.rinke.solutions.pinball.DMD;
+import com.rinke.solutions.pinball.Dispatcher;
 import com.rinke.solutions.pinball.DmdSize;
 import com.rinke.solutions.pinball.PinDmdEditor;
 import com.rinke.solutions.pinball.animation.AniReader;
@@ -39,7 +40,10 @@ import com.rinke.solutions.pinball.io.FileHelper;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.PalMapping.SwitchMode;
+import com.rinke.solutions.pinball.model.Project;
+import com.rinke.solutions.pinball.swt.SWTDispatcher;
 import com.rinke.solutions.pinball.test.Util;
+import com.rinke.solutions.pinball.ui.Progress;
 import com.rinke.solutions.pinball.util.FileChooserUtil;
 import com.rinke.solutions.pinball.util.MessageUtil;
 import com.rinke.solutions.pinball.view.model.ViewModel;
@@ -56,6 +60,9 @@ public class ProjectHandlerTest extends HandlerTest {
 	@Mock
 	private MessageUtil messageUtil;
 	
+	@Mock
+	private Progress progress;
+	
 	@Mock LicenseManager licenseManager;
 	
 	@InjectMocks
@@ -64,9 +71,31 @@ public class ProjectHandlerTest extends HandlerTest {
 	@Rule
 	public TemporaryFolder testFolder = new TemporaryFolder();
 	
+	Dispatcher dispatcher = new Dispatcher() {
+
+		@Override
+		public void asyncExec(Runnable runnable) {
+			runnable.run();
+		}
+
+		@Override
+		public void timerExec(int milliseconds, Runnable runnable) {
+			try {
+				Thread.sleep(milliseconds);
+			} catch (InterruptedException e) {
+			}
+			runnable.run();
+		}
+
+		@Override
+		public void syncExec(Runnable runnable) {
+			runnable.run();
+		}};
+	
 	@Before public void setup() {
 		uut.fileHelper = new FileHelper();
 		uut.aniAction = new AnimationActionHandler(vm);
+		uut.dispatcher = dispatcher;
 	}
 	
 	@Test
@@ -94,7 +123,7 @@ public class ProjectHandlerTest extends HandlerTest {
 	
 	@Test
 	public final void testLoadProject() {
-		uut.onLoadProject("src/test/resources/ex1.xml");
+		uut.onLoadProjectWithProgress("src/test/resources/ex1.xml",null);
 	}
 
 	@Test
@@ -244,6 +273,21 @@ public class ProjectHandlerTest extends HandlerTest {
 	public void testSaveProject() throws Exception {
 		String filename = testFolder.newFile("test.xml").getAbsolutePath();
 		uut.saveProject(filename);
+		// validate that there are 9 default palette
+		FileHelper fileHelper = new FileHelper();
+		Project p = (Project) fileHelper.loadObject(filename);
+		assertEquals(9,p.paletteMap.size());
+	}
+
+	@Test
+	public void testSaveProjectWihtoutDefPalette() throws Exception {
+		String filename = testFolder.newFile("test.xml").getAbsolutePath();
+		vm.paletteMap.clear();
+		uut.saveProject(filename);
+		// validate that there are no default palette
+		FileHelper fileHelper = new FileHelper();
+		Project p = (Project) fileHelper.loadObject(filename);
+		assertEquals(0,p.paletteMap.size());
 	}
 
 	@Test
@@ -256,7 +300,7 @@ public class ProjectHandlerTest extends HandlerTest {
 	@Test
 	public final void testLoadAndSaveProject() throws Exception {
 		String tempFile = testFolder.newFile("ex1.xml").getPath();
-		uut.onLoadProject("./src/test/resources/ex1.xml");
+		uut.onLoadProjectWithProgress("./src/test/resources/ex1.xml", null);
 		uut.saveProject(tempFile);
 		XMLUnit.setIgnoreWhitespace(true);
 		assertXMLEqual(new FileReader("./src/test/resources/ex1.xml"), new FileReader(tempFile));

@@ -62,17 +62,17 @@ public class AnimationActionHandlerTest extends HandlerTest{
 
 	@Test
 	public void testLoadAni() throws Exception {
-		uut.loadAni("./src/test/resources/ex1.ani", false, false);
+		uut.loadAni("./src/test/resources/ex1.ani", false, false, null);
 	}
 
 	@Test
 	public void testLoadAniWithDump() throws Exception {
-		uut.loadAni("./src/test/resources/drwho-dump.txt.gz", false, false);
+		uut.loadAni("./src/test/resources/drwho-dump.txt.gz", false, false, null);
 	}
 
 	@Test
 	public void testLoadAniWithRgb() throws Exception {
-		uut.loadAni("./src/test/resources/term32.rgb.gz", false, false);
+		uut.loadAni("./src/test/resources/term32.rgb.gz", false, false, null);
 	}
 
 	@Test

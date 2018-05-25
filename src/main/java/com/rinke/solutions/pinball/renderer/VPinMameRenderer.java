@@ -5,19 +5,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.zip.GZIPInputStream;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.rinke.solutions.pinball.DMD;
-import com.rinke.solutions.pinball.PinDmdEditor;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Plane;
 
@@ -73,6 +66,7 @@ public class VPinMameRenderer extends Renderer {
 					}
 					frames.add(res);
 					frameNo++;
+					notify(50, "reading "+bareName(filename)+"@"+frameNo);
 					res = new Frame(
 							new byte[dmd.getPlaneSize()],
 							new byte[dmd.getPlaneSize()],

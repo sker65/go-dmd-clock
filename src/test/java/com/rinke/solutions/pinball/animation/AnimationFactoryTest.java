@@ -14,7 +14,7 @@ public class AnimationFactoryTest {
 
 	@Test
 	public void testCreateAnimationsFromProperties() throws Exception {
-		AnimationFactory.createAnimationsFromProperties("./src/test/resources/renderer/animation.properties", null);
+		AnimationFactory.createAnimationsFromProperties("./src/test/resources/renderer/animation.properties");
 	}
 
 }

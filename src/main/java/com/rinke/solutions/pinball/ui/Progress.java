@@ -1,19 +1,21 @@
 package com.rinke.solutions.pinball.ui;
 
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.ProgressBar;
-import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.ProgressBar;
+import org.eclipse.swt.widgets.Shell;
 
+import com.rinke.solutions.beans.Bean;
+import com.rinke.solutions.beans.Scope;
 import com.rinke.solutions.pinball.Worker;
 import com.rinke.solutions.pinball.animation.ProgressEventListener;
 
+@Bean( name="progress", scope=Scope.PROTOTYPE)
 public class Progress extends Dialog implements ProgressEventListener {
 
-	protected Object result;
 	protected Shell shell;
 	private Display display;
 	private ProgressBar progressBar;
@@ -38,7 +40,7 @@ public class Progress extends Dialog implements ProgressEventListener {
 	 * Open the dialog.
 	 * @return the result
 	 */
-	public Object open(Worker worker) {
+	public void open(Worker worker) {
 		this.worker = worker;
 		createContents();
 		shell.open();
@@ -52,7 +54,6 @@ public class Progress extends Dialog implements ProgressEventListener {
 				display.sleep();
 			}
 		}
-		return result;
 	}
 
 	class ProcessThread extends Thread {
@@ -108,7 +109,5 @@ public class Progress extends Dialog implements ProgressEventListener {
 			lblJobLabel.setText(evt.job);
 		});
 	}
-
-
 
 }

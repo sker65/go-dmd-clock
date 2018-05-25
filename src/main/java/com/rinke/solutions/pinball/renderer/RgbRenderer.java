@@ -96,6 +96,7 @@ public class RgbRenderer extends Renderer {
 					frames.add(res);
 					frameNo++;
 					res = createFrame(dmd);
+					notify(50, "reading "+bareName(filename)+"@"+frameNo);
 				} else {
 					break;
 				}

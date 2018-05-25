@@ -19,6 +19,7 @@ public abstract class Worker implements Runnable {
 				log.info("notify progress {}/{}", progress,job);
 				progressEvt.notify(new ProgressEvent(progress, job));
 				lastUpdate = System.currentTimeMillis();
+				Thread.yield();
 			}
 		}
 	}
