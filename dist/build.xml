@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="pin2dmd" default="bundle" basedir=".">        
+<project name="pin2dmd" default="bundle" basedir=".">
 
     <taskdef name="bundleapp"
-             classname="com.oracle.appbundler.AppBundlerTask"   
+             classname="com.oracle.appbundler.AppBundlerTask"
              classpath="./appbundler-1.0.jar" />
 
     <target name="bundle">
@@ -16,8 +16,8 @@
             <classpath file="pin2dmd-splash.png" />
             <option value="-XstartOnFirstThread"/>
             <!-- option value="-splash:$APP_ROOT/Contents/Java/pin2dmd-splash.png"/ -->
-            <option value="-Dorg.slf4j.simpleLogger.logFile=pin2dmd-editor.log"/>
-            <option value="-Dorg.slf4j.simpleLogger.defaultLogLevel=debug"/>
+            <!-- option value="-Dorg.slf4j.simpleLogger.logFile=pin2dmd-editor.log"/ -->
+            <!-- option value="-Dorg.slf4j.simpleLogger.defaultLogLevel=debug"/ -->
         </bundleapp>
     </target>
 
