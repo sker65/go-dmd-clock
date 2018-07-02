@@ -1,17 +1,13 @@
 package com.rinke.solutions.pinball.view.handler;
 
-import lombok.extern.slf4j.Slf4j;
-
 import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.Bean;
-import com.rinke.solutions.pinball.PinDmdEditor;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.Animation.EditMode;
 import com.rinke.solutions.pinball.model.Mask;
 import com.rinke.solutions.pinball.view.model.ViewModel;
 
 @Bean
-@Slf4j
 public class MaskHandler extends AbstractCommandHandler implements ViewBindingHandler {
 
 	@Autowired
@@ -35,7 +31,7 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 	
 	public void commitMaskIfNeeded() {
 		Mask mask = getCurrentMask();
-		if( mask != null && vm.dmd.getFrame().mask!=null && vm.dmd.canUndo() ) {
+		if( mask != null && !mask.locked && vm.dmd.getFrame().mask!=null && vm.dmd.canUndo() ) {
 			mask.commit(vm.dmd.getFrame().mask);
 			vm.setDirty(true);
 		}
@@ -140,7 +136,5 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 		}
 		return maskToUse;
 	}
-
-
 	
 }

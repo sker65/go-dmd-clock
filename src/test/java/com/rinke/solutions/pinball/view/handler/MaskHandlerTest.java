@@ -1,7 +1,6 @@
 package com.rinke.solutions.pinball.view.handler;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 import org.junit.Before;
@@ -92,6 +91,28 @@ public class MaskHandlerTest extends HandlerTest  {
 		vm.setSelectedEditMode(EditMode.LAYEREDCOL);
 		uut.commitMaskIfNeeded();
 	}
+	
+	@Test
+	public void testCommitMaskIfNeededWithMask() throws Exception {
+		vm.setSelectedEditMode(EditMode.LAYEREDCOL);
+		vm.setSelectedScene(getScene("foo"));
+		byte[] data = new byte[512];
+		vm.dmd.setMask(data);
+		vm.dmd.addUndoBuffer();
+		uut.commitMaskIfNeeded();
+		assertTrue( vm.dirty );
+	}
 
+	@Test
+	public void testCommitMaskIfNeededWithLockedMask() throws Exception {
+		vm.setSelectedEditMode(EditMode.FIXED);
+		vm.setSelectedScene(getScene("foo"));
+		byte[] data = new byte[512];
+		vm.dmd.setMask(data);
+		vm.dmd.addUndoBuffer();
+		vm.masks.get(0).locked = true;
+		uut.commitMaskIfNeeded();
+		assertFalse( vm.dirty );
+	}
 
 }
