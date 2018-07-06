@@ -69,7 +69,7 @@ public class PaletteTool extends AbstractModel implements ColorModifiedListener 
 	}
 
 	public void addListener(ColorChangedListerner listener) {
-		colorChangedListeners.add(listener);
+		if( listener != null ) colorChangedListeners.add(listener);
 	}
 	
 	// draw tools bind to this to get actual color index
