@@ -33,7 +33,7 @@ public class AniWriter extends Worker {
 	private int version;
 	private String filename;
 	private List<Animation> anis;
-	private Map<String,Integer> offsetMap;
+	private Map<String,Integer> offsetMap = new HashMap<>();
 	private String header = ANIM;
 	
 	public AniWriter(List<Animation> anis, String filename, int version, Map<Integer,Palette> palettes, ProgressEventListener progressEvt) {
@@ -68,7 +68,6 @@ public class AniWriter extends Worker {
 			}
 			int aniIndex = 0;
 			int aniOffset[] = new int[anis.size()];
-			offsetMap = new HashMap<>(anis.size());
 			int aniProgressInc = 100 / anis.size();
 			boolean atLeastOneCompressed = false;
 			for (Animation a : anis) {

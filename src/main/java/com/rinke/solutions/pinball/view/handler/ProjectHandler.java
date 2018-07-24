@@ -84,7 +84,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 	
 	public void onDmdSizeChanged( DmdSize o, DmdSize newSize) {
 		vm.dmd.setSize(newSize.width, newSize.height);
-		vm.init(vm.dmd, newSize, vm.pin2dmdAdress, vm.numberOfHashButtons);
+		vm.init(vm.dmd, newSize, vm.pin2dmdAdress, vm.maxNumberOfMasks);
 		vm.setDmdDirty(true);
 	}
 
@@ -391,29 +391,29 @@ public class ProjectHandler extends AbstractCommandHandler {
 				}
 				anis.add(cani);
 			}
-			if( !anis.isEmpty() ) {
-				String aniFilename = replaceExtensionTo("vni", filename);
-				progress.open(new Worker() {
-					@Override
-					public void run() {
-						AniWriter aniWriter = new AniWriter(anis, aniFilename, 4, vm.paletteMap, progress);
+			String aniFilename = replaceExtensionTo("vni", filename);
+			progress.open(new Worker() {
+				@Override
+				public void run() {
+					AniWriter aniWriter = new AniWriter(anis, aniFilename, 4, vm.paletteMap, progress);
+					if( !anis.isEmpty() ) {
 						aniWriter.setHeader("VPIN");
 						aniWriter.run();
-						if( !cancelRequested ) {
-							notify(90, "writing binary project");
-							try {
-								BinaryExporter exporter = BinaryExporterFactory.getInstance();
-								DataOutputStream dos2 = new DataOutputStream(streamProvider.buildStream(filename));
-								// for vpins version is 2
-								project.version = 2;
-								exporter.writeTo(dos2, aniWriter.getOffsetMap(), project);
-								dos2.close();
-							} catch (IOException e) {
-								throw new RuntimeException("error writing " + filename, e);
-							}
+					}
+					if( !cancelRequested ) {
+						notify(90, "writing binary project");
+						try {
+							BinaryExporter exporter = BinaryExporterFactory.getInstance();
+							DataOutputStream dos2 = new DataOutputStream(streamProvider.buildStream(filename));
+							// for vpins version is 2
+							project.version = 2;
+							exporter.writeTo(dos2, aniWriter.getOffsetMap(), project);
+							dos2.close();
+						} catch (IOException e) {
+							throw new RuntimeException("error writing " + filename, e);
 						}
-					}});
-			}
+					}
+				}});
 			
 		} else {
 			// for all referenced frame mapping we must also copy the frame data as
