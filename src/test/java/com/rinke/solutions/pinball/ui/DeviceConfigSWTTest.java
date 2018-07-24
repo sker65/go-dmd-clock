@@ -62,7 +62,7 @@ public class DeviceConfigSWTTest {
 	@Test
 	public void testWriteDeviceConfig() throws Exception {
 		String newFile = testFolder.newFile().getAbsolutePath();
-		uut.writeDeviceConfig(newFile, 2, 3, true, 2);
+		uut.writeDeviceConfig(newFile, 2, 3, true, 2, 0);
 		assertNull( Util.isBinaryIdentical(newFile, "./src/test/resources/pin2dmd.dat"));
 	}
 

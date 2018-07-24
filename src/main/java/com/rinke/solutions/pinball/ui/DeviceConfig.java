@@ -66,21 +66,24 @@ public class DeviceConfig extends Dialog implements View {
         lastPath = fileChooser.getFilterPath();        
         if (filename != null) {
             writeDeviceConfig(filename, deviceModeCombo.getSelectionIndex(), comboDefaultPalette.getSelectionIndex(),
-            		btnInvertClock.getSelection(), scBrightness.getSelection());
+            		btnInvertClock.getSelection(), scBrightness.getSelection(), rgbSeqCombo.getSelectionIndex());
         }
         shell.close();
     }
 
-    void writeDeviceConfig(String filename, int mode, int defPalette, boolean invertClock, int brightness) {
+    void writeDeviceConfig(String filename, int mode, int defPalette, boolean invertClock, int brightness, int rgbSeq) {
         byte[] dummy = {
         		0x0F,0x0A,0x0F,0x0C, 0x0F,0x00,0x0F,0x0F, // dummy dmd sig
-        		0,0, 0,0,0,0, 0,0,0,0, 0};
+        		0,0, 0,0,0,0, 0,0,0,0 };
+        
+        byte[] foo = new byte[10];
         
         try(FileOutputStream 
             fos = new FileOutputStream(filename) ) {
             fos.write(mode);
             fos.write(defPalette);
             fos.write(dummy);
+            fos.write(rgbSeq);
             fos.write(invertClock?1:0);
             fos.write(brightness);
         } catch(IOException e) {
@@ -93,6 +96,8 @@ public class DeviceConfig extends Dialog implements View {
 	private Scale scBrightness;
 	private Group grpConfig;
 	private FormData fd_grpConfig;
+	private ComboViewer rgbSeqComboViewer;
+	private Combo rgbSeqCombo;
 
     /**
      * Open the dialog.
@@ -106,6 +111,19 @@ public class DeviceConfig extends Dialog implements View {
         FormData fd_btnOk = new FormData();
         fd_btnOk.top = new FormAttachment(grpConfig, 9);
         fd_btnOk.right = new FormAttachment(grpConfig, 0, SWT.RIGHT);
+        
+        Label lblRgbSeq = new Label(grpConfig, SWT.NONE);
+        lblRgbSeq.setText("RGB Seq");
+        
+        rgbSeqComboViewer = new ComboViewer(grpConfig, SWT.NONE);
+        rgbSeqCombo = rgbSeqComboViewer.getCombo();
+        rgbSeqCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+        rgbSeqComboViewer.setContentProvider(ArrayContentProvider.getInstance());
+        rgbSeqComboViewer.setInput(RgbSequence.values());
+        rgbSeqCombo.select(0);
+
+        new Label(grpConfig, SWT.NONE);
+        
         fd_btnOk.left = new FormAttachment(0, 405);
         btnOk.setLayoutData(fd_btnOk);
         btnOk.setText("Ok");
@@ -126,7 +144,7 @@ public class DeviceConfig extends Dialog implements View {
      */
     void createContents() {
         shell = new Shell(getParent(), getStyle());
-        shell.setSize(480, 242);
+        shell.setSize(480, 270);
         shell.setText("Device Configuration");
         shell.setLayout(new FormLayout());
         
@@ -190,5 +208,4 @@ public class DeviceConfig extends Dialog implements View {
         
         new Label(grpConfig, SWT.NONE);
     }
-
 }
