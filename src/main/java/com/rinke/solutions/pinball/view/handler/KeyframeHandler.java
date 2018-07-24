@@ -249,6 +249,20 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 		vm.setSetKeyFramePalEnabled(nk != null && SwitchMode.PALETTE.equals(nk.switchMode));
 		vm.setFetchDurationEnabled(nk != null);
 	}
+	
+	private static final int FRAME_RATE = 40;
+	
+	public void onFetchDuration() {
+		vm.setDuration(vm.lastTimeCode - vm.saveTimeCode);
+	}
+	
+	public void onDurationChanged(int o, int n) {
+		if (vm.selectedKeyFrame != null) {
+			log.debug("setting duration for {}", vm.selectedKeyFrame.name);
+			vm.selectedKeyFrame.durationInMillis = n;
+			vm.selectedKeyFrame.durationInFrames = (int) vm.selectedKeyFrame.durationInMillis / FRAME_RATE;
+		}
+	}
 
 	public void onSelectedFrameSeqChanged(Animation old, Animation ani) {
 		vm.setBtnAddFrameSeqEnabled(ani != null && vm.selectedRecording!=null);

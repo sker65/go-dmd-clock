@@ -111,7 +111,6 @@ public class EditorView implements MainView {
 	}
 
 	private static final String HELP_URL = "http://pin2dmd.com/editor/";
-	private static final int FRAME_RATE = 40;
 
 	@Autowired CmdDispatcher dispatcher;
 	@Autowired ViewModel vm;
@@ -1185,12 +1184,13 @@ public class EditorView implements MainView {
 		txtDuration.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
 		txtDuration.setText("0");
 		txtDuration.addListener(SWT.Verify, e -> e.doit = Pattern.matches("^[0-9]+$", e.text));
-		txtDuration.addListener(SWT.Modify, e -> {
-			if (vm.selectedKeyFrame != null) {
-				vm.selectedKeyFrame.durationInMillis = Integer.parseInt(txtDuration.getText());
-				vm.selectedKeyFrame.durationInFrames = (int) vm.selectedKeyFrame.durationInMillis / 40;
-			}
-		});
+//		txtDuration.addListener(SWT.Modify, e -> {
+//			if (vm.selectedKeyFrame != null) {
+//				System.out.println("setting "+txtDuration.getText() +" -> "+vm.selectedKeyFrame.name+" : "+vm.selectedKeyFrame.durationInMillis);
+//				vm.selectedKeyFrame.durationInMillis = Integer.parseInt(txtDuration.getText());
+//				vm.selectedKeyFrame.durationInFrames = (int) vm.selectedKeyFrame.durationInMillis / 40;
+//			}
+//		});
 		
 		return grpKeyframe;
 	}
@@ -1216,14 +1216,8 @@ public class EditorView implements MainView {
 		fetchDuration.setToolTipText("Fetches duration for palette switches by calculating the difference between actual timestamp and keyframe timestamp");
 		fetchDuration.setText("Fetch Duration");
 		fetchDuration.setEnabled(false);
-		fetchDuration.addListener(SWT.Selection, e -> {
-			if (vm.selectedKeyFrame != null) {
-				vm.selectedKeyFrame.durationInMillis = vm.lastTimeCode - vm.saveTimeCode;
-				vm.selectedKeyFrame.durationInFrames = (int) vm.selectedKeyFrame.durationInMillis / FRAME_RATE;
-				txtDuration.setText(vm.selectedKeyFrame.durationInMillis + "");
-			}
-		});
-		
+		fetchDuration.addListener( SWT.Selection, e->dispatchCmd(FETCH_DURATION));
+
 		Label lblEvent = new Label(grpKeyframe, SWT.NONE);
 		lblEvent.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
 		lblEvent.setText("Event:");

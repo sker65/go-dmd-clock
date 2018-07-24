@@ -53,6 +53,7 @@ public class Commands {
 	public static final String SET_KEYFRAME_PALETTE = "setKeyframePalette";
 	public static final String SORT_KEY_FRAMES = "sortKeyFrames";
 	public static final String DELETE_KEYFRAME = "deleteKeyframe";
+	public static final String FETCH_DURATION = "fetchDuration";
 	public static final String SET_SCENE_PALETTE = "setScenePalette";
 	public static final String SORT_SCENES = "sortScenes";
 	public static final String DELETE_SCENE = "deleteScene";

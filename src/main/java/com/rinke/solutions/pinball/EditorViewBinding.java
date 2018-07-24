@@ -78,6 +78,10 @@ public class EditorViewBinding extends AbstractCommandHandler implements ViewBin
 		}
 	};
 
+	public void onDurationChanged(int o, int n) {
+		editorView.txtDuration.setText(Integer.toString(n));
+	}
+	
 	public void onAnimationIsPlayingChanged(boolean o, boolean n) {
 		if( n ) {
 			if( vm.selectedFrame < vm.maxFrame ) {
