@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.MessageBox;
@@ -536,8 +538,14 @@ public class ProjectHandler extends AbstractCommandHandler {
 		for(String file: filenames) {
 			log.info("creating backup of file '{}'", file);
 			try {
-				if( new File(file).exists() )
-					Files.copy( Paths.get(file), Paths.get(file+".bak"));
+				if( new File(file).exists() ) {
+					Path backupName = Paths.get(file+".bak");
+					// if old backup file exists, remove it first
+					if( backupName.toFile().exists()) {
+						backupName.toFile().delete();
+					}
+					Files.copy( Paths.get(file), backupName);
+				}
 			} catch (IOException e) {
 				log.warn("backup of {} failed", file, e);
 			}
