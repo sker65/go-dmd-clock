@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
@@ -351,6 +352,8 @@ public class ProjectHandler extends AbstractCommandHandler {
 
 		Project project = new Project();
 		populateVmToProject(vm, project);
+		List<Mask> filteredMasks = project.masks.stream().filter(m->m.locked).collect(Collectors.toList());
+		project.masks = filteredMasks;
 		
 		// rebuild frame seq map	
 		HashMap <String,FrameSeq> frameSeqMap = new HashMap<>();
