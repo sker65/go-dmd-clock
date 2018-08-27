@@ -147,6 +147,29 @@ public class ProjectHandlerTest extends HandlerTest {
 	}
 
 	@Test
+	public void testOnExportProjectSelectedWithMask() throws Exception {
+
+		File tempFile = testFolder.newFile("test.dat");
+		String filename = tempFile.getAbsolutePath();
+
+		PalMapping p = new PalMapping(0, "foo");
+		p.crc32 = new byte[] { 1, 2, 3, 4 };
+		p.switchMode = SwitchMode.PALETTE;
+
+		vm.keyframes.put(p.name,p);
+		
+		vm.masks.get(0).locked = true;
+		vm.masks.get(0).data[0] = 0;
+		
+		//when(licenseManager.requireOneOf(cap))
+
+		uut.onExportProject(filename, f -> new FileOutputStream(f), true);
+
+		// create a reference file and compare against
+		assertNull(Util.isBinaryIdentical(filename, "./src/test/resources/palettesOneMask.dat"));
+	}
+
+	@Test
 	public void testOnExportProjectSelectedWithFrameMapping() throws Exception {
 
 		File tempFile = testFolder.newFile("test.dat");
