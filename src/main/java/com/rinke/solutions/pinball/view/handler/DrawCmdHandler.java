@@ -171,7 +171,7 @@ public class DrawCmdHandler extends AbstractCommandHandler implements EventHandl
 			vm.setDeleteColMaskEnabled(mode.enableColorMaskDrawing);
 			// either col mask drawing or normal drawing
 			// bit 0 ist mask plane in dmd
-			vm.dmd.setDrawMask(mode.enableColorMaskDrawing ? 0b11111000 : 0xFFFF);
+			vm.dmd.setDrawMask(mode.enableColorMaskDrawing ? 0b11111000 : 0x7FFFFF);
 		}
 	}
 	

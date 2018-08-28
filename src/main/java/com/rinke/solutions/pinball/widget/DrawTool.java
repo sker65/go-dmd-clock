@@ -2,6 +2,8 @@ package com.rinke.solutions.pinball.widget;
 
 import java.util.Observable;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Event;
 
@@ -17,7 +19,7 @@ import com.rinke.solutions.pinball.widget.PaletteTool.ColorIndexChangedListerner
  * - can only be active if animation is stopped.
  * 
  */
-
+@Slf4j
 public abstract class DrawTool extends Observable implements ColorIndexChangedListerner {
 	
 	protected int x1 = -1;
@@ -77,6 +79,7 @@ public abstract class DrawTool extends Observable implements ColorIndexChangedLi
 
 	@Override
 	public void indexChanged(int actualColor) {
+		log.info("selected color is {}", String.format("0x%06x", actualColor));
 		this.actualColor = actualColor;
 	}
 	

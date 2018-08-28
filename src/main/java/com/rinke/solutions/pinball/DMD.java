@@ -20,7 +20,7 @@ public class DMD extends Observable {
 	private int planeSize;
 	
     // limits drawing (setPixel) to planes, that are not masked
-    private int drawMask = 0x7FFFF;
+    private int drawMask = 0x7FFFFF;
 
     // optinal for debugging purpose: a histogram of color values
     Map<Integer,Integer> colHist = new HashMap<>();

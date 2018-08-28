@@ -106,6 +106,7 @@ public class PaletteTool extends AbstractModel implements ColorModifiedListener 
 				colBtn[i].setEnabled(visible[i] == 1);
 			break;
 		case 4: // 4 planes -> 16 colors
+		case 15: // 15 planes -> rgb mode
 			for (int i = 0; i < colBtn.length; i++)
 				colBtn[i].setEnabled(true);
 			break;
@@ -145,7 +146,7 @@ public class PaletteTool extends AbstractModel implements ColorModifiedListener 
 				setSelectedColor(col);
 				tmpRgb = getSelectedRGB();
 				boolean sel = ((ToolItem)e.widget).getSelection();
-				indexChangedListeners.forEach(l -> l.indexChanged(selectedColor));
+				updateColorIndex(selectedColor, tmpRgb);
 				if( sel && ( (e.stateMask & SWT.CTRL) != 0 || (e.stateMask & 4194304) != 0 )) {
 					changeColor();
 				}
@@ -160,6 +161,11 @@ public class PaletteTool extends AbstractModel implements ColorModifiedListener 
 			});
 			if( i % 4 == 3 && i < colBtn.length-1) new ToolItem(toolBar, SWT.SEPARATOR);
 		}
+	}
+
+	void updateColorIndex(int idx, RGB tmpRgb ) {
+		int v = this.numberOfPlanes < 15 ? selectedColor : ((tmpRgb.red>>3)<<10) | ((tmpRgb.green>>3)<<5) | (tmpRgb.blue>>3);
+		indexChangedListeners.forEach(l -> l.indexChanged(v));
 	}
 
 	private void swapColor(int oldCol, int newCol) {
@@ -190,6 +196,7 @@ public class PaletteTool extends AbstractModel implements ColorModifiedListener 
 		if( rgb != null) {
 			log.info("updating to new color: {}", rgb);
 			updateSelectedColor(rgb);
+			updateColorIndex(selectedColor, rgb);
 		} else {
 			log.info("restoring old color.");
 			updateSelectedColor(tmpRgb);

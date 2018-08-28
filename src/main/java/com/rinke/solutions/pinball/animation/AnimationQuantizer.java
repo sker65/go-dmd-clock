@@ -52,7 +52,7 @@ public class AnimationQuantizer {
 	}
 
 	private int rgbAsInt(RGB rgb) {
-		return (rgb.red << 16) | (rgb.green << 8) | rgb.blue;
+		return ((rgb.red>>3) << 10) | ((rgb.green>>3) << 5) | (rgb.blue>>3);
 	}
 
 	private Frame quantizeFrame(Frame in, Palette pal, int w, int h) {
