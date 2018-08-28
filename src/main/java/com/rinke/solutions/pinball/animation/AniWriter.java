@@ -48,7 +48,7 @@ public class AniWriter extends Worker {
 		new AniWriter(anis,filename,version,palettes, null).run();
 	}
 
-	public void run() {
+	public void innerRun() {
 		int planesCompressed = 0;
 		int planesRaw = 0;
 		DataOutputStream os = null;

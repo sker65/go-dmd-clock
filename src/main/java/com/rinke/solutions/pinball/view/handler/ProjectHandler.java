@@ -147,7 +147,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 	public void onLoadProject(String filename) {
 		Worker w = new Worker() {
 			@Override
-			public void run() {
+			public void innerRun() {
 				onLoadProjectWithProgress(filename, this);
 			}
 		};
@@ -155,6 +155,12 @@ public class ProjectHandler extends AbstractCommandHandler {
 		w.setInterval(100);
 		progress.setText("Loading Project");
 		progress.open(w);
+		if( w.hasError() ) {
+			messageUtil.warn(SWT.ICON_ERROR | SWT.OK,
+					"Error loading project",
+					"the following error occured while loading: " + w.getRuntimeException().getMessage() + "\n");
+
+		}
 	}
 
 	public void onLoadProjectWithProgress(String filename, Worker w) {
@@ -397,9 +403,9 @@ public class ProjectHandler extends AbstractCommandHandler {
 				anis.add(cani);
 			}
 			String aniFilename = replaceExtensionTo("vni", filename);
-			progress.open(new Worker() {
+			Worker w = new Worker() {
 				@Override
-				public void run() {
+				public void innerRun() {
 					AniWriter aniWriter = new AniWriter(anis, aniFilename, 4, vm.paletteMap, progress);
 					if( !anis.isEmpty() ) {
 						aniWriter.setHeader("VPIN");
@@ -418,7 +424,14 @@ public class ProjectHandler extends AbstractCommandHandler {
 							throw new RuntimeException("error writing " + filename, e);
 						}
 					}
-				}});
+				}
+			};
+			progress.open(w);
+			if( w.hasError() ) {
+				messageUtil.warn(SWT.ICON_ERROR | SWT.OK ,
+						"Error exporting project",
+						"the following error occured while exporting: " + w.getRuntimeException().getMessage() + "\n");
+			}
 			
 		} else {
 			// for all referenced frame mapping we must also copy the frame data as

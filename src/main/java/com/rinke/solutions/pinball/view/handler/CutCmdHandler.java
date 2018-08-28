@@ -85,6 +85,22 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 		}		
 	}
 
+	public void onConvertSceneToRGB() {
+		CompiledAnimation src = vm.selectedScene;
+		if( src != null ) {
+			AnimationQuantizer quantizer = new AnimationQuantizer();
+			String name = getUniqueName(src.getDesc()+"_rgb",vm.scenes.keySet());
+			CompiledAnimation newScene = quantizer.convertSceneToRGB(name, src, vm.selectedPalette);
+			newScene.setDesc(name);
+			newScene.setProjectAnimation(true);
+			newScene.setEditMode(EditMode.REPLACE);
+					
+			vm.scenes.put(name, newScene);
+			vm.scenes.refresh();
+
+		}		
+	}
+
 	String getUniqueName(String name, Set<String> set) {
 		String res = name;
 		int i=0;

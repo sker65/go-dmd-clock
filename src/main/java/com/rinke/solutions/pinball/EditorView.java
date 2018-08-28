@@ -406,6 +406,10 @@ public class EditorView implements MainView {
 		mntmQuantizeScene.setText("Quantize Scene");
 		mntmQuantizeScene.addListener(SWT.Selection, e -> dispatchCmd("quantizeScene"));
 
+		MenuItem mntmConvertSceneToRGB = new MenuItem(menu_2, SWT.NONE);
+		mntmConvertSceneToRGB.setText("Convert Scene to RGB");
+		mntmConvertSceneToRGB.addListener(SWT.Selection, e -> dispatchCmd("convertSceneToRGB"));
+
 		MenuItem mntmRecentAnimationsItem = new MenuItem(menu_2, SWT.CASCADE);
 		mntmRecentAnimationsItem.setText("Recent Animations");
 
@@ -1472,7 +1476,7 @@ public class EditorView implements MainView {
 		try {
 			URL resource = getClass().getResource("/init-dmd-"+dmd.getWidth()+".png");
 			master = ImageIO.read(resource);
-			Frame f = ImageUtil.convertToFrame(master, dmd.getWidth(), dmd.getHeight());
+			Frame f = ImageUtil.convertToFrame(master, dmd.getWidth(), dmd.getHeight(), 5);
 			dmd.setNumberOfPlanes(15);
 			dmd.writeOr(f);
 		} catch (Exception e) {

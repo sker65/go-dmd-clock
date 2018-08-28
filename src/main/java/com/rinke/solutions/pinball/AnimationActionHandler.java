@@ -63,10 +63,17 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 		if( anisToSave.isEmpty() ) return;// Pair.of(0, Collections.emptyMap());
 		Progress progress = getProgress();
 		AniWriter aniWriter = new AniWriter(anisToSave, filename, version, vm.paletteMap, progress);
-		if( progress != null ) 
+		if( progress != null ) {
 			progress.open(aniWriter);
-		else
+			if( aniWriter.hasError() ) {
+				messageUtil.warn(SWT.ICON_ERROR | SWT.OK ,
+						"Error writing animation project",
+						"the following error occured while writing: " + aniWriter.getRuntimeException().getMessage() + "\n");
+			}
+
+		} else {
 			aniWriter.run();
+		}
 		anisToSave.forEach(a->a.setDirty(false));
 	}
 	

@@ -21,6 +21,40 @@ public class AnimationQuantizer {
 		return result;
 	}
 	
+	public CompiledAnimation convertSceneToRGB(String name, CompiledAnimation in, Palette pal) {
+		CompiledAnimation result = new CompiledAnimation(AnimationType.COMPILED, name, 
+				in.start, in.end,in.skip, 0, 0, in.width, in.height);
+		for( Frame inFrame : in.frames ) {
+			Frame qFrame = convertFrameToRGB(inFrame, pal, in.width, in.height);
+			qFrame.delay = inFrame.delay;
+			qFrame.timecode = inFrame.timecode;
+			qFrame.crc32 = inFrame.crc32;
+			if( inFrame.mask != null ) qFrame.mask = new Plane(inFrame.mask);
+			result.addFrame(qFrame);
+		}
+		return result;
+	}
+
+	private Frame convertFrameToRGB(Frame in, Palette pal, int w, int h) {
+		int noOfPlanes = 15; // default
+		int planeSize = in.planes.get(0).data.length;
+		// if( pal.numberOfColors == 16 ) 
+		int bytesPerRow = w / 8;
+		Frame r = createFrame(noOfPlanes, planeSize);
+		for( int x = 0; x < w; x++) {
+			for( int y = 0; y < h; y++ ) {
+				int idx = getPixel( in, x, y, bytesPerRow);
+				int rgb = rgbAsInt(pal.colors[idx]);
+				setPixel( r, rgb, x, y, bytesPerRow);
+			}
+		}
+		return r;
+	}
+
+	private int rgbAsInt(RGB rgb) {
+		return (rgb.red << 16) | (rgb.green << 8) | rgb.blue;
+	}
+
 	private Frame quantizeFrame(Frame in, Palette pal, int w, int h) {
 		int noOfPlanes = 4; // default
 		int planeSize = in.planes.get(0).data.length;

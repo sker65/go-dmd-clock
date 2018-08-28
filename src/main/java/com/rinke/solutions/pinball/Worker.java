@@ -1,5 +1,6 @@
 package com.rinke.solutions.pinball;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import com.rinke.solutions.pinball.animation.ProgressEventListener;
@@ -12,6 +13,22 @@ public abstract class Worker implements Runnable {
 	private ProgressEventListener progressEvt;
 	private long lastUpdate;
 	private long interval = 300;
+	@Getter
+	private RuntimeException runtimeException = null;
+	
+	public void run() {
+		try {
+			innerRun();
+		} catch(RuntimeException e) {
+			runtimeException = e;
+		}
+	}
+	
+	public boolean hasError() {
+		return runtimeException != null;
+	}
+
+	protected abstract void innerRun();
 
 	public void notify(int progress, String job) {
 		if( progressEvt != null ) {

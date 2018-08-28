@@ -31,7 +31,7 @@ public abstract class Renderer extends Worker {
 		return i==-1?b:b.substring(0, i);
 	}
 
-	public void run() {
+	public void innerRun() {
 	}
 
 	public Frame convert(String filename, DMD dmd, int frameNo) {
