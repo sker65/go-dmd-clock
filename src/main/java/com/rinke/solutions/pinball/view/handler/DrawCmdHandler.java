@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.Bean;
 import com.rinke.solutions.pinball.AnimationHandler;
+import com.rinke.solutions.pinball.Constants;
 import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.Dispatcher;
 import com.rinke.solutions.pinball.MaskDmdObserver;
@@ -171,7 +172,7 @@ public class DrawCmdHandler extends AbstractCommandHandler implements EventHandl
 			vm.setDeleteColMaskEnabled(mode.enableColorMaskDrawing);
 			// either col mask drawing or normal drawing
 			// bit 0 ist mask plane in dmd
-			vm.dmd.setDrawMask(mode.enableColorMaskDrawing ? 0b11111000 : 0x7FFFFF);
+			vm.dmd.setDrawMask(mode.enableColorMaskDrawing ? 0b11111000 : Constants.DEFAULT_DRAW_MASK);
 		}
 	}
 	

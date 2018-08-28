@@ -281,24 +281,20 @@ public class ImageUtil {
 	
 	public static Frame convertToFrame(BufferedImage dmdImage, int w, int h, int bitsPerChannel) {
 		if( bitsPerChannel > 8 ) bitsPerChannel = 8;
-		int maxPlanes = bitsPerChannel * 3;
-		Frame res = new Frame();
-		for( int j = 0; j < maxPlanes ; j++) {
-			res.planes.add(new Plane((byte)j, new byte[w*h/8]));
-		}
-		int mask =  ~(1<<bitsPerChannel);
+		Frame res = new Frame(bitsPerChannel,w,h);
+		int mask =  ~(1<<bitsPerChannel) & 0xFF;
 
 		for (int x = 0; x < dmdImage.getWidth(); x++) {
 			for (int y = 0; y < dmdImage.getHeight(); y++) {
 
 				int rgb = dmdImage.getRGB(x, y);
 
-				// reduce color depth to 15 bit
+				// reduce color depth to bitsPerChannel bit
 				int nrgb = ( rgb >> (8-bitsPerChannel) ) & mask;
 				nrgb |= ( ( rgb >> (16-bitsPerChannel) ) & mask ) << bitsPerChannel;
 				nrgb |= ( ( rgb >> (24-bitsPerChannel) ) & mask ) << bitsPerChannel*2;
 				
-				for( int j = 0; j < maxPlanes ; j++) {
+				for( int j = 0; j < bitsPerChannel * 3 ; j++) {
 					if( (nrgb & (1<<j)) != 0)
 						res.planes.get(j).data[y * (w/8) + x / 8] |= (w >> (x % 8));
 				}

@@ -1,5 +1,6 @@
 package com.rinke.solutions.pinball.animation;
 
+import com.rinke.solutions.pinball.Constants;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.Plane;
@@ -25,7 +26,7 @@ public class AnimationQuantizer {
 		CompiledAnimation result = new CompiledAnimation(AnimationType.COMPILED, name, 
 				in.start, in.end,in.skip, 0, 0, in.width, in.height);
 		for( Frame inFrame : in.frames ) {
-			Frame qFrame = convertFrameToRGB(inFrame, pal, in.width, in.height);
+			Frame qFrame = convertFrameToRGB(inFrame, pal, in.width, in.height, Constants.MAX_BIT_PER_COLOR_CHANNEL);
 			qFrame.delay = inFrame.delay;
 			qFrame.timecode = inFrame.timecode;
 			qFrame.crc32 = inFrame.crc32;
@@ -35,8 +36,8 @@ public class AnimationQuantizer {
 		return result;
 	}
 
-	private Frame convertFrameToRGB(Frame in, Palette pal, int w, int h) {
-		int noOfPlanes = 15; // default
+	private Frame convertFrameToRGB(Frame in, Palette pal, int w, int h, int bitPerChannel) {
+		int noOfPlanes = bitPerChannel*3;
 		int planeSize = in.planes.get(0).data.length;
 		// if( pal.numberOfColors == 16 ) 
 		int bytesPerRow = w / 8;
@@ -44,19 +45,19 @@ public class AnimationQuantizer {
 		for( int x = 0; x < w; x++) {
 			for( int y = 0; y < h; y++ ) {
 				int idx = getPixel( in, x, y, bytesPerRow);
-				int rgb = rgbAsInt(pal.colors[idx]);
+				int rgb = rgbAsInt(pal.colors[idx], bitPerChannel);
 				setPixel( r, rgb, x, y, bytesPerRow);
 			}
 		}
 		return r;
 	}
 
-	private int rgbAsInt(RGB rgb) {
-		return ((rgb.red>>3) << 10) | ((rgb.green>>3) << 5) | (rgb.blue>>3);
+	private int rgbAsInt(RGB rgb, int bitPerChannel) {
+		return ((rgb.red>>(8-bitPerChannel)) << (bitPerChannel*2)) | ((rgb.green>>(8-bitPerChannel)) << bitPerChannel) | (rgb.blue>>(8-bitPerChannel));
 	}
 
 	private Frame quantizeFrame(Frame in, Palette pal, int w, int h) {
-		int noOfPlanes = 4; // default
+		int noOfPlanes = Constants.DEFAULT_NO_OF_PLANES; // default
 		int planeSize = in.planes.get(0).data.length;
 		// if( pal.numberOfColors == 16 ) 
 		int bytesPerRow = w / 8;

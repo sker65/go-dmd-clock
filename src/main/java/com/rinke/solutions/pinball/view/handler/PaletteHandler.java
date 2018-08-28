@@ -16,6 +16,7 @@ import org.eclipse.swt.SWT;
 import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.Bean;
 import com.rinke.solutions.beans.Value;
+import com.rinke.solutions.pinball.Constants;
 import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
@@ -84,7 +85,7 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 	}
 	
 	public void onPickColor(int rgb) {
-		if( vm.selectedPalette != null && vm.numberOfPlanes >= 15) {
+		if( vm.selectedPalette != null && vm.numberOfPlanes >= Constants.MAX_BIT_PER_COLOR_CHANNEL*3) {
 			vm.selectedPalette.colors[vm.selectedColor] = RGB.fromInt(rgb);
 		}
 		vm.setPaletteDirty(true);

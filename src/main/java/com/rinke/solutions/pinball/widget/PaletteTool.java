@@ -27,6 +27,7 @@ import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 
 import com.rinke.solutions.beans.Autowired;
+import com.rinke.solutions.pinball.Constants;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.view.CmdDispatcher;
 import com.rinke.solutions.pinball.view.CmdDispatcher.Command;
@@ -86,9 +87,6 @@ public class PaletteTool extends AbstractModel implements ColorModifiedListener 
 		resManager = new LocalResourceManager(JFaceResources.getResources(),
 				parent);
 		paletteBar = new ToolBar(parent, flags);
-//		GridData gd = new GridData(SWT.LEFT, SWT.CENTER, false, false, 4, 1);
-//		gd.widthHint = 310;
-//		paletteBar.setLayoutData(gd);
 		createColorButtons(paletteBar, palette);
 		colorPicker.addListener(this);
 	}
@@ -106,7 +104,7 @@ public class PaletteTool extends AbstractModel implements ColorModifiedListener 
 				colBtn[i].setEnabled(visible[i] == 1);
 			break;
 		case 4: // 4 planes -> 16 colors
-		case 15: // 15 planes -> rgb mode
+		case Constants.MAX_BIT_PER_COLOR_CHANNEL*3: // 15 planes -> rgb mode
 			for (int i = 0; i < colBtn.length; i++)
 				colBtn[i].setEnabled(true);
 			break;
@@ -162,9 +160,13 @@ public class PaletteTool extends AbstractModel implements ColorModifiedListener 
 			if( i % 4 == 3 && i < colBtn.length-1) new ToolItem(toolBar, SWT.SEPARATOR);
 		}
 	}
+	
+	private int rgbAsInt(RGB rgb, int bitPerChannel) {
+		return ((tmpRgb.red>>(8-bitPerChannel))<<(bitPerChannel*2)) | ((tmpRgb.green>>(8-bitPerChannel))<<bitPerChannel) | (tmpRgb.blue>>(8-bitPerChannel));
+	}
 
 	void updateColorIndex(int idx, RGB tmpRgb ) {
-		int v = this.numberOfPlanes < 15 ? selectedColor : ((tmpRgb.red>>3)<<10) | ((tmpRgb.green>>3)<<5) | (tmpRgb.blue>>3);
+		int v = this.numberOfPlanes < Constants.MAX_BIT_PER_COLOR_CHANNEL*3 ? selectedColor : rgbAsInt(tmpRgb, Constants.MAX_BIT_PER_COLOR_CHANNEL);
 		indexChangedListeners.forEach(l -> l.indexChanged(v));
 	}
 
