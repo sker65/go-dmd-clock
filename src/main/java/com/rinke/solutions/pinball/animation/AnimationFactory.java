@@ -22,6 +22,30 @@ import com.rinke.solutions.pinball.renderer.Renderer;
  */
 public class AnimationFactory {
 	
+    public static Animation buildAnimationFromFile(String filename, AnimationType type) {
+        File file = new File(filename);
+        if( !file.canRead() ) {
+            throw new RuntimeException("Could not read '"+filename+"' to load animation");
+        }
+        String base = file.getName();
+        Animation ani = null;
+        switch( type ) {
+        	case COMPILED:
+        		ani = new CompiledAnimation(type, base, 0, 0, 1, 1, 0);
+        		break;
+        	case RAW:
+        		ani = new RawAnimation(type, base, 0, 0, 1, 1, 0);
+        		break;
+        	default: 
+        		ani= new Animation(type, base, 0, 0, 1, 1, 0);
+        		break;
+        }
+        ani.setBasePath(file.getParent() + "/");
+        ani.setDesc(base.substring(0, base.indexOf('.')));
+        ani.setMutable(type.equals(AnimationType.COMPILED)||type.equals(AnimationType.VIDEO));
+        return ani;
+    }
+
 	public static List<Animation> createAnimationsFromProperties(String filename) throws IOException {
 		
 		Properties conf = new Properties();
@@ -34,7 +58,7 @@ public class AnimationFactory {
 		// load compiled file if any
 		if( conf.containsKey("compiled")) {
 			String file = conf.getProperty("compiled");
-			result.addAll(CompiledAnimation.read(file));
+			result.addAll(AniReader.read(file));
 		}
 		
 		if( conf.containsKey("base")) {

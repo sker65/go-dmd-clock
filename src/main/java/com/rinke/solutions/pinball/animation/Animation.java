@@ -24,6 +24,7 @@ import com.rinke.solutions.pinball.renderer.PinDumpRenderer;
 import com.rinke.solutions.pinball.renderer.PngRenderer;
 import com.rinke.solutions.pinball.renderer.Renderer;
 import com.rinke.solutions.pinball.renderer.RgbRenderer;
+import com.rinke.solutions.pinball.renderer.VPinMameRawRenderer;
 import com.rinke.solutions.pinball.renderer.VPinMameRenderer;
 import com.rinke.solutions.pinball.renderer.VideoCapRenderer;
 
@@ -76,7 +77,7 @@ public class Animation {
 		COLMASK("Color Mask",			false, true,  false, false, false), 
 		FIXED("Fixed", 					false, false, true,  true,  false), 
 		FOLLOW("Color Mask Seq.", 		true,  true,  true,  false, false),
-		LAYEREDCOL("Layered ColMask", 	false,  true,  true, false, true);
+		LAYEREDCOL("Layered ColMask", 	true,  true,  true, false, true);
 
 		// label to display
 		public final String label;
@@ -174,19 +175,6 @@ public class Animation {
 		return dest;
 	}
 
-    public static Animation buildAnimationFromFile(String filename, AnimationType type) {
-        File file = new File(filename);
-        if( !file.canRead() ) {
-            throw new RuntimeException("Could not read '"+filename+"' to load animation");
-        }
-        String base = file.getName();
-        Animation ani = new Animation(type, base, 0, 0, 1, 1, 0);
-        ani.setBasePath(file.getParent() + "/");
-        ani.setDesc(base.substring(0, base.indexOf('.')));
-        ani.setMutable(type.equals(AnimationType.COMPILED)||type.equals(AnimationType.VIDEO));
-        return ani;
-    }
-   
 	public String getDesc() {
 		return desc;
 	}
@@ -418,6 +406,9 @@ public class Animation {
 			break;
 		case RGB:
 			renderer = new RgbRenderer();
+			break;
+		case RAW:
+			renderer = new VPinMameRawRenderer();
 			break;
 		default:
 			break;

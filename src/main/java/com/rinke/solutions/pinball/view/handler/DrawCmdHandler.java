@@ -133,6 +133,7 @@ public class DrawCmdHandler extends AbstractCommandHandler implements EventHandl
 			}
 			if( modeToSet != null ) {
 				vm.setDetectionMaskEnabled(modeToSet.useLocalMask);
+				vm.setLayerMaskEnabled(modeToSet.useLayerMask);
 				recordingsCmdHandler.setEnableHashButtons(modeToSet.useLocalMask);
 			}
 			

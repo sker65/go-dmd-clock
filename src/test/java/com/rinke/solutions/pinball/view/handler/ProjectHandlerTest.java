@@ -278,7 +278,7 @@ public class ProjectHandlerTest extends HandlerTest {
 		.thenReturn(tempFile.getAbsolutePath());
 		
 		vm.setProjectFilename("foo"); 
-		List<Animation> anis = AniReader.readFromFile("src/test/resources/ex1.ani");
+		List<Animation> anis = AniReader.read("src/test/resources/ex1.ani");
 		vm.scenes.put("sc1", (CompiledAnimation) anis.get(0));
 		PalMapping k = new PalMapping(1, "foo");
 		k.switchMode = SwitchMode.ADD;
@@ -327,8 +327,8 @@ public class ProjectHandlerTest extends HandlerTest {
 		uut.saveProject(tempFile);
 		XMLUnit.setIgnoreWhitespace(true);
 		assertXMLEqual(new FileReader("./src/test/resources/ex1.xml"), new FileReader(tempFile));
-		Animation ani = CompiledAnimation.read(testFolder.getRoot()+"/ex1.ani").get(0);
-		Animation ani2 = CompiledAnimation.read("./src/test/resources/ex1.ani").get(0);
+		Animation ani = AniReader.read(testFolder.getRoot()+"/ex1.ani").get(0);
+		Animation ani2 = AniReader.read("./src/test/resources/ex1.ani").get(0);
 		compare(ani,ani2);
 		assertNull(Util.isBinaryIdentical(testFolder.getRoot()+"/ex1.ani", "./src/test/resources/ex1.ani"));
 	}

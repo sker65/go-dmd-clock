@@ -45,8 +45,7 @@ public class RgbRenderer extends Renderer {
 		int timecode = 0;
 		long lastTimeStamp = 0;
 		try {
-			stream = new BufferedInputStream(new GZIPInputStream(
-							new FileInputStream(new File(filename))));
+			stream = getInputStream(filename);
 			
 			Frame res = createFrame(dmd);
 			byte[] header = new byte[4];

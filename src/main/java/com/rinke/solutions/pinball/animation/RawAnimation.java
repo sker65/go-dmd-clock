@@ -16,18 +16,16 @@ import com.rinke.solutions.pinball.model.Mask;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.Plane;
 
-@Slf4j
-public class CompiledAnimation extends Animation {
+public class RawAnimation extends Animation {
 
 	public List<Frame> frames;
-	private List<Mask> masks = new ArrayList<>();	// for layered coloring
 	
-	public CompiledAnimation(AnimationType type, String name, int start,
+	public RawAnimation(AnimationType type, String name, int start,
 			int end, int skip, int cycles, int holdCycles) {
 		this(type, name, start, end, skip, cycles, holdCycles, 128, 32);
 	}
 	
-	public CompiledAnimation(AnimationType type, String name, int start,
+	public RawAnimation(AnimationType type, String name, int start,
 			int end, int skip, int cycles, int holdCycles, int w, int h) {
 		super(type, name, start, end, skip, cycles, holdCycles, w, h);
 		init(this.progressEventListener);
@@ -35,23 +33,6 @@ public class CompiledAnimation extends Animation {
 		frames = renderer.getFrames();
 	}
 	
-	@Override
-	public List<Mask> getMasks() {
-		return masks;
-	}
-
-	public Mask getMask(int i) {
-		while( i+1 > masks.size()) {
-			Mask mask = new Mask(width/8 * height);
-			masks.add( mask );
-		}
-		return masks.get(i);
-	}
-	
-	public int getNumberOfMasks() {
-		return masks.size();
-	}
-
 	@Override
 	protected Frame renderFrame(String name, DMD dmd, int act) {
 		if( act < frames.size()) {
@@ -107,44 +88,6 @@ public class CompiledAnimation extends Animation {
 		return maskToUse;
     }
 
-    // looks like there is a chance that commit gets called on an new (already switched) animation, while dmd
-    // content still has the content of the old (that was displayed before)
-	@Override
-	public void commitDMDchanges(DMD dmd, byte[] hash) {
-		if( clockWasAdded ) {		// never commit a frame were clock was rendered, this is savety check only
-			clockWasAdded = false;
-			return;
-		}
-	    if( actFrame >= 0 && actFrame < frames.size() ) {
-	    	Frame aniFrame = frames.get(actFrame);
-	    	if( dmd.canUndo() ) {
-		        Frame dmdFrame = dmd.getFrame();
-		        // if target has no mask, don't create one
-		        int copyMask = aniFrame.hasMask() ? -1 : (-1<<1);
-		        log.debug("commitDMDchanges -> planes: {}, copyMask: {}", dmdFrame.planes.size(), Integer.toBinaryString(copyMask & 0xFFFF));
-		        dmdFrame.copyToWithMask(aniFrame, copyMask );
-		        setDirty(true);
-	    	}
-	    	if( hash!=null && !Arrays.areEqual(hash, aniFrame.crc32)) {
-		        aniFrame.setHash(hash);
-	    	}
-	    }
-	}
-
-	/**
-	 * ensure every frame in this animation has a mask plane
-	 * TODO not ok from goDMD / transitions
-	 */
-	public void ensureMask() {
-		for(Frame frame : frames) {
-			if(!frame.hasMask()) {
-				byte[] data = new byte[frame.getPlane(0).length];
-				Arrays.fill(data, (byte)0xFF);
-				frame.setMask(data);
-			}
-		}
-	}
-
 	@Override
 	public void setDimension(int width, int height) {
 		super.setDimension(width, height);
@@ -154,8 +97,5 @@ public class CompiledAnimation extends Animation {
 	public int getNumberOfPlanes() {
 		return frames != null ? frames.stream().mapToInt(f->f.planes.size()).max().orElse(0) : 0;
 	}
-
-
-
 
 }

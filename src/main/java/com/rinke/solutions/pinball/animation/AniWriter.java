@@ -44,7 +44,7 @@ public class AniWriter extends Worker {
 		setProgressEvt(progressEvt);
 	}
 
-	public static void writeToFile(List<Animation> anis, String filename, int version, Map<Integer,Palette> palettes) {
+	public static void write(List<Animation> anis, String filename, int version, Map<Integer,Palette> palettes) {
 		new AniWriter(anis,filename,version,palettes, null).run();
 	}
 

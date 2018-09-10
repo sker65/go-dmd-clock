@@ -26,7 +26,7 @@ public class AniReader {
 	    return b & 0xFF;
 	}
 
-	public static List<Animation> readFromFile(String filename) {
+	public static List<Animation> read(String filename) {
 		List<Animation> anis = new ArrayList<>();
 		log.info("reading animations from {}",filename);
 		DataInputStream is = null;

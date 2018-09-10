@@ -1,26 +1,17 @@
 package com.rinke.solutions.pinball.renderer;
 
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
 import java.util.zip.CRC32;
-import java.util.zip.GZIPInputStream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.io.LittleEndianDataInputStream;
 import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.DeviceMode;
-import com.rinke.solutions.pinball.PinDmdEditor;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Plane;
-import com.rinke.solutions.pinball.renderer.Pcap.Header;
-import com.rinke.solutions.pinball.renderer.Pcap.Paket;
 
 public class PinDumpRenderer extends Renderer {
 
@@ -28,17 +19,8 @@ public class PinDumpRenderer extends Renderer {
 
 	void readImage(String filename, DMD dmd) {
 		InputStream stream = null;
-		long bufSize = new File(filename).length();
 		try {
-			if (filename.endsWith(".dump.gz")) {
-				stream = new GZIPInputStream(new FileInputStream(filename),
-						(int) bufSize);
-			} else if (filename.endsWith(".dump")) {
-				stream = new BufferedInputStream(new FileInputStream(filename));
-			} else {
-				throw new RuntimeException(
-						"bad file type / file extension. *.dump or *.dump.gz expected");
-			}
+			stream = getInputStream(filename);
 
 			long lastTimestamp = 0;
 			long firstTimestamp = 0;

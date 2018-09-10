@@ -168,7 +168,8 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 			}
 			vm.masks.get(i).locked = useMasks.contains(i);
 		}
-		vm.setDetectionMaskActive(vm.useGlobalMask);
+		
+		vm.setDetectionMaskActive(vm.selectedScene != null ? vm.selectedScene.getEditMode().useGlobalMask : false);
 	}
 	
 	public void onSetKeyframePalette() {

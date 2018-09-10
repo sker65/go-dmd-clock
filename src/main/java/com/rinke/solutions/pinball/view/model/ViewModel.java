@@ -125,7 +125,6 @@ public class ViewModel extends AbstractModel {
 	
 	public boolean dmdDirty;
 	public boolean paletteDirty;
-	public boolean useGlobalMask;
 	public DMD dmd = new DMD(128,32);
 
 	@ViewBinding public int numberOfPlanes = 2;
@@ -397,10 +396,6 @@ public class ViewModel extends AbstractModel {
 
 	public void setNumberOfPlanes(int numberOfPlanes) {
 		firePropertyChange("numberOfPlanes", this.numberOfPlanes, this.numberOfPlanes = numberOfPlanes);
-	}
-
-	public void setUseGlobalMask(boolean useGlobalMask) {
-		firePropertyChange("useGlobalMask", this.useGlobalMask, this.useGlobalMask = useGlobalMask);
 	}
 
 	public void setHashLbl(String[] hashLbl) {

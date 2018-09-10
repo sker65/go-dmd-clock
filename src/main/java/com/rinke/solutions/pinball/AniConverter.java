@@ -48,7 +48,7 @@ public class AniConverter {
 
 	
 	public void convert(String src, String dest, Map<Integer,Palette> palettes) {
-		List<Animation> anis = AniReader.readFromFile(src);
+		List<Animation> anis = AniReader.read(src);
 		
 		anis.stream().forEach(a->a.setProjectAnimation(true));
 		
@@ -81,7 +81,7 @@ public class AniConverter {
 			switchColors(pal);
 		}
 	
-		AniWriter.writeToFile(anis, dest, 3, palettes);
+		AniWriter.write(anis, dest, 3, palettes);
 	}
 	
 	String replaceExtensionTo(String newExt, String filename) {

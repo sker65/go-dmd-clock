@@ -18,6 +18,7 @@ import com.google.common.collect.Lists;
 import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.Bean;
 import com.rinke.solutions.databinding.Command;
+import com.rinke.solutions.pinball.animation.AniReader;
 import com.rinke.solutions.pinball.animation.AniWriter;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.Animation.EditMode;
@@ -103,21 +104,23 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 		java.util.List<Animation> loadedList = new ArrayList<>();
 		try {
 		if (filename.endsWith(".ani")) {
-			loadedList.addAll(CompiledAnimation.read(filename));
+			loadedList.addAll(AniReader.read(filename));
 		} else if (filename.endsWith(".txt.gz")) {
-			loadedList.add(Animation.buildAnimationFromFile(filename, AnimationType.MAME));
+			loadedList.add(AnimationFactory.buildAnimationFromFile(filename, AnimationType.MAME));
 		} else if (filename.endsWith(".properties")) {
 			loadedList.addAll(AnimationFactory.createAnimationsFromProperties(filename));
 		} else if (extensionIs(filename, ".pcap", ".pcap.gz")) {
-			loadedList.add(Animation.buildAnimationFromFile(filename, AnimationType.PCAP));
+			loadedList.add(AnimationFactory.buildAnimationFromFile(filename, AnimationType.PCAP));
 		} else if (extensionIs(filename, ".rgb", ".rgb.gz")) {
-			loadedList.add(Animation.buildAnimationFromFile(filename, AnimationType.RGB));
+			loadedList.add(AnimationFactory.buildAnimationFromFile(filename, AnimationType.RGB));
+		} else if (extensionIs(filename, ".raw", ".raw.gz")) {
+			loadedList.add(AnimationFactory.buildAnimationFromFile(filename, AnimationType.RAW));
 		} else if (extensionIs(filename, ".dump", ".dump.gz")) {
-			loadedList.add(Animation.buildAnimationFromFile(filename, AnimationType.PINDUMP));
+			loadedList.add(AnimationFactory.buildAnimationFromFile(filename, AnimationType.PINDUMP));
 		} else if (extensionIs(filename, ".gif")) {
-			loadedList.add(Animation.buildAnimationFromFile(filename, AnimationType.GIF));
+			loadedList.add(AnimationFactory.buildAnimationFromFile(filename, AnimationType.GIF));
 		} else if (extensionIs(filename, ".mp4", ".3gp", ".avi")) {
-			loadedList.add(Animation.buildAnimationFromFile(filename, AnimationType.VIDEO));
+			loadedList.add(AnimationFactory.buildAnimationFromFile(filename, AnimationType.VIDEO));
 		}
 		log.info("loaded {} animations from {}", loadedList.size(), filename);
 		} catch( IOException e) {

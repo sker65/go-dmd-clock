@@ -79,7 +79,7 @@ public abstract class DrawTool extends Observable implements ColorIndexChangedLi
 
 	@Override
 	public void indexChanged(int actualColor) {
-		log.info("selected color is {}", String.format("0x%06x", actualColor));
+//		log.info("selected color is {}", String.format("0x%06x", actualColor));
 		this.actualColor = actualColor;
 	}
 	

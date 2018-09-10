@@ -1,10 +1,18 @@
 package com.rinke.solutions.pinball.renderer;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.OptionalInt;
 import java.util.Properties;
+import java.util.zip.GZIPInputStream;
 
 import org.eclipse.swt.widgets.Shell;
 
@@ -24,6 +32,28 @@ public abstract class Renderer extends Worker {
 	List<Frame> frames = new ArrayList<>();
 	protected Palette palette = null;
 	
+	protected BufferedReader getReader(String filename) throws IOException {
+		if( filename.endsWith(".gz")) {
+			return new BufferedReader(
+					new InputStreamReader(new GZIPInputStream(
+							new FileInputStream(new File(filename)))));
+		} else {
+			return new BufferedReader(
+					new InputStreamReader(
+							new FileInputStream(new File(filename))));
+		}
+	}
+	
+	protected BufferedInputStream getInputStream(String filename) throws IOException {
+		if( filename.endsWith(".gz")) {
+			return new BufferedInputStream(new GZIPInputStream(
+					new FileInputStream(new File(filename))));
+		} else {
+			return new BufferedInputStream(
+					new FileInputStream(new File(filename)));
+		}
+	}
+
 	protected String bareName(String filename) {
 		if( filename == null ) return null;
 		String b = new File(filename).getName();

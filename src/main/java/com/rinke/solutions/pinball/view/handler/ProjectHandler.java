@@ -32,6 +32,7 @@ import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.Bean;
 import com.rinke.solutions.beans.Value;
 import com.rinke.solutions.pinball.AnimationActionHandler;
+import com.rinke.solutions.pinball.Constants;
 import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.Dispatcher;
 import com.rinke.solutions.pinball.DmdSize;
@@ -452,7 +453,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 						}
 						pl++;
 					}
-					if( frame.planes.size() == 24 ) { // reduce 8 bit per color to 5 bit per color
+					if( frame.planes.size() == Constants.TRUE_COLOR_BIT_PER_CHANNEL*3 ) { // reduce 8 bit per color to 5 bit per color
 						log.debug("24 bit scene will reduced to 15 bit on export: {}", ani.getDesc());
 						frame.planes.remove(5); frame.planes.remove(5); frame.planes.remove(5);
 						frame.planes.remove(10); frame.planes.remove(10); frame.planes.remove(10);

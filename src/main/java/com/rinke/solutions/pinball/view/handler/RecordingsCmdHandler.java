@@ -81,7 +81,7 @@ public class RecordingsCmdHandler extends AbstractListCmdHandler implements View
 				}
 
 				vm.dmd.setNumberOfPlanes(numberOfPlanes);
-				vm.setNumberOfPlanes(vm.useGlobalMask?1:numberOfPlanes);
+				vm.setNumberOfPlanes(vm.detectionMaskActive || vm.layerMaskActive ? 1 :numberOfPlanes);
 
 				Set<Bookmark> set = vm.bookmarksMap.get(a.getDesc());
 				vm.bookmarks.clear();

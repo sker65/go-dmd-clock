@@ -3,8 +3,10 @@ package com.rinke.solutions.pinball.renderer;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
 
@@ -14,16 +16,17 @@ import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Plane;
 
-// als parameter in der Steuerdatei sollten
-// die helligkeits schwellen angebbar sein
 @Slf4j
-public class VPinMameRenderer extends Renderer {
+public class VPinMameRawRenderer extends Renderer {
+	
+	int planesPerFrame = 3;
+	List<Plane> planes = new ArrayList<>();
 
 	@Override
 	public long getTimeCode(int actFrame) {
 		return actFrame < frames.size() ? frames.get(actFrame).timecode : 0;
 	}
-
+	
 	void readImage(String filename, DMD dmd) {
 		BufferedReader stream = null;
 		int frameNo = 0;

@@ -14,15 +14,15 @@ public class AniReaderTest {
     public TemporaryFolder testFolder = new TemporaryFolder();
 	
 	@Test
-		public void testReadFromFile() throws Exception {
-			AniReader.readFromFile("./src/test/resources/test.ani");
-		}
+			public void testRead() throws Exception {
+				AniReader.read("./src/test/resources/test.ani");
+			}
 
 	@Test
 	public void testWriteToCompiledFile() throws Exception {
-		List<Animation> list = AniReader.readFromFile("./src/test/resources/test.ani");
+		List<Animation> list = AniReader.read("./src/test/resources/test.ani");
 		String filename = testFolder.newFile().getAbsolutePath();
-		AniWriter.writeToFile(list, filename, 1, Collections.emptyMap());
+		AniWriter.write(list, filename, 1, Collections.emptyMap());
 	}
 
 }

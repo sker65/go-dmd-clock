@@ -43,8 +43,6 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 		if (useMask) {
 			vm.setPaletteToolPlanes(1);
 			vm.setSelectedMask(getCurrentMask());
-			// if edit mode requires use mask of the scene, turn off global masks
-			vm.setUseGlobalMask(vm.selectedEditMode.useGlobalMask);
 		} else {
 			vm.setPaletteToolPlanes(vm.dmd.getNumberOfPlanes());
 			commitMaskIfNeeded();
