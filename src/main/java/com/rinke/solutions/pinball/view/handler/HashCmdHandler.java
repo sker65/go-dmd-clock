@@ -12,6 +12,7 @@ import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Mask;
 import com.rinke.solutions.pinball.model.Palette;
+import com.rinke.solutions.pinball.model.Plane;
 import com.rinke.solutions.pinball.view.model.ViewModel;
 
 @Bean
@@ -28,7 +29,8 @@ public class HashCmdHandler extends AbstractCommandHandler implements ViewBindin
 				vm.selectedKeyFrame.hashIndex = idx;
 			}
 			// switch palettes in preview
-			Palette palette = vm.previewPalettes.get(vm.numberOfPlanes==4?idx:(idx&1)*4);
+			int palIdx = vm.numberOfPlanes==4 || vm.previewDMD != null ? idx : (idx&1)*4;
+			Palette palette = vm.previewPalettes.get(palIdx);
 			log.info("switch to preview palette: {}", palette);
 			vm.setPreviewDmdPalette(palette);
 			vm.setSelectedHashIndex(idx);
@@ -77,8 +79,15 @@ public class HashCmdHandler extends AbstractCommandHandler implements ViewBindin
 		if( vm.selectedMask != null ) f.setMask(vm.selectedMask.data);
 		else f.setMask(null);
 		
+		if( vm.previewDMD != null ) {
+			f.planes.clear();
+			List<Plane> planes = vm.previewDMD.getFrame().planes;
+			for(int i=0; i<planes.size(); i++) {
+				f.planes.add(planes.get(i));
+			}
+		} 
 		List<byte[]> hashes = f.getHashes();
-		refreshHashButtons(hashes, vm.selectedMask, vm.selectedMaskNumber);
+		refreshHashButtons(hashes, vm.detectionMaskActive ? vm.selectedMask:null, vm.selectedMaskNumber);
 		saveHashes(hashes);
 	}
 

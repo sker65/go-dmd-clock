@@ -294,7 +294,9 @@ public class Animation {
 	}
 	
 	public void init(DMD dmd) {
-		if( renderer != null ) return;
+		if( renderer != null ) {
+			return;
+		}
 		if( transitionName != null && transitions.isEmpty() ) {
 			initTransition(dmd);
 		}
@@ -306,7 +308,6 @@ public class Animation {
 		if( renderer.getPalette() != null ) {
 			aniColors = renderer.getPalette().colors;
 		}
-		postInit(renderer);
 	}
 	
 	// hook to override if needed by some animations
@@ -321,7 +322,9 @@ public class Animation {
 		init(dmd);
 		
 		Frame frame = null;
+		boolean doPostInit = renderer.getFrames().isEmpty();
 		int maxFrame = renderer.getMaxFrame(basePath+name, dmd);
+		if( doPostInit ) postInit(renderer);
 		
 		if(  maxFrame > 0 && end == 0) end = maxFrame-1;
 		if (actFrame <= end) {

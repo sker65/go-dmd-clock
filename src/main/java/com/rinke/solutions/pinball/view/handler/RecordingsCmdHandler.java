@@ -13,9 +13,12 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.Bean;
+import com.rinke.solutions.pinball.AnimationHandler;
+import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.PinDmdEditor;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.Animation.EditMode;
+import com.rinke.solutions.pinball.animation.RawAnimation;
 import com.rinke.solutions.pinball.model.Bookmark;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.util.MessageUtil;
@@ -80,6 +83,13 @@ public class RecordingsCmdHandler extends AbstractListCmdHandler implements View
 					//TODO v.goDmdGroup.transitionCombo.select(0);
 				}
 
+				if( a instanceof RawAnimation) {
+					DMD previewDMD = new DMD(vm.dmdSize);
+					vm.setPreviewDMD(previewDMD);
+				} else {
+					vm.setPreviewDMD(null);
+				}
+				
 				vm.dmd.setNumberOfPlanes(numberOfPlanes);
 				vm.setNumberOfPlanes(vm.detectionMaskActive || vm.layerMaskActive ? 1 :numberOfPlanes);
 

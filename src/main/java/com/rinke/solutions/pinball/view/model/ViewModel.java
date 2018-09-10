@@ -126,6 +126,7 @@ public class ViewModel extends AbstractModel {
 	public boolean dmdDirty;
 	public boolean paletteDirty;
 	public DMD dmd = new DMD(128,32);
+	public DMD previewDMD = null;
 
 	@ViewBinding public int numberOfPlanes = 2;
 	
@@ -593,6 +594,10 @@ public class ViewModel extends AbstractModel {
 
 	public void setSelectedColor(int selectedColor) {
 		firePropertyChange("selectedColor", this.selectedColor, this.selectedColor = selectedColor);
+	}
+
+	public void setPreviewDMD(DMD previewDMD) {
+		firePropertyChange("previewDMD", this.previewDMD, this.previewDMD = previewDMD);
 	}
 
 }

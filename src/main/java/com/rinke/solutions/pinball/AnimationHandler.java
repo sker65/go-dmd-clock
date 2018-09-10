@@ -3,6 +3,7 @@ package com.rinke.solutions.pinball;
 import java.util.List;
 import java.util.Observable;
 
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import com.rinke.solutions.beans.Autowired;
@@ -12,6 +13,7 @@ import com.rinke.solutions.pinball.animation.AniEvent;
 import com.rinke.solutions.pinball.animation.AniEvent.Type;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.EventHandler;
+import com.rinke.solutions.pinball.animation.RawAnimation;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Mask;
 import com.rinke.solutions.pinball.util.Config;
@@ -103,8 +105,12 @@ public class AnimationHandler implements Runnable {
 				        clock.renderTime(dmd,false);
 				}
 				log.debug("rendering ani: {}@{}", ani.getDesc(), ani.getActFrame());
+				int actFrame = ani.getActFrame();
 				Frame res = ani.render(dmd,stop);
-                //vm.setSelectedFrame(ani.actFrame);
+                if( ani instanceof RawAnimation && vm.previewDMD != null ) {
+                	RawAnimation rani = (RawAnimation)ani;
+                	rani.renderSubframes(vm.previewDMD, actFrame);
+                }
                 
                 lastRenderedFrame = ani.actFrame;
                 
@@ -181,8 +187,6 @@ public class AnimationHandler implements Runnable {
 	
 	public void setStop(boolean b) {
 		this.stop = b;
-//		setChanged();
-//		notifyObservers();
 	}
 
 	public void stop() {
@@ -241,8 +245,6 @@ public class AnimationHandler implements Runnable {
 		} else {
 			startClock();
 		}
-//		setChanged();
-//		notifyObservers();
 	}
 
 	public boolean isShowClock() {

@@ -59,8 +59,9 @@ public class VPinMameRawRenderer extends Renderer {
 				currentTimecode = ( ((int)ts[3] & 0xFF ) <<24 ) | ( ((int)ts[2] & 0xFF)<<16 ) | ( ((int)ts[1] & 0xFF) <<8 ) | ( ( (int)ts[0] & 0xFF) <<0 );
 				for( int i = 0; i <planesPerFrame; i++) {
 					// read planes
-					Plane p = new Plane((byte)i, new byte[bytesPerPlane]);
-					r = stream.read(p.data);
+					byte[] buf = new byte[bytesPerPlane];
+					r = stream.read(buf);
+					Plane p = new Plane((byte)i, buf);
 					planes.add(p);
 					if( r == -1 || r < bytesPerPlane ) break;
 				}
@@ -88,6 +89,10 @@ public class VPinMameRawRenderer extends Renderer {
 						res.planes.get(2).data[byteIdx] |= mask;
 					if( (v & 8) != 0 )
 						res.planes.get(3).data[byteIdx] |= mask;
+				}
+				// transform plane data (reverse bit order)
+				for( int i = 0; i <planesPerFrame; i++) {
+					planes.get(planeIdx+i).data = Frame.transform(planes.get(planeIdx+i).data);
 				}
 				res.timecode = currentTimecode -firstTimecode;
 				if( firstTimecode == 0 ) firstTimecode = currentTimecode; // offset basis for timecodes
@@ -163,6 +168,10 @@ public class VPinMameRawRenderer extends Renderer {
 
 	public List<Plane> getPlanes() {
 		return planes;
+	}
+
+	public int getPlanesPerFrame() {
+		return planesPerFrame;
 	}
 
 }

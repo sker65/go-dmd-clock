@@ -1,19 +1,12 @@
 package com.rinke.solutions.pinball.animation;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-import lombok.extern.slf4j.Slf4j;
 
 import org.bouncycastle.util.Arrays;
 
 import com.rinke.solutions.pinball.DMD;
-import com.rinke.solutions.pinball.PinDmdEditor;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Mask;
-import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.Plane;
 import com.rinke.solutions.pinball.renderer.Renderer;
 import com.rinke.solutions.pinball.renderer.VPinMameRawRenderer;
@@ -22,6 +15,7 @@ public class RawAnimation extends Animation {
 
 	public List<Frame> frames;
 	public List<Plane> planes;
+	int planesPerFrame = 0;
 	
 	public RawAnimation(AnimationType type, String name, int start,
 			int end, int skip, int cycles, int holdCycles) {
@@ -73,6 +67,7 @@ public class RawAnimation extends Animation {
 		if( r instanceof VPinMameRawRenderer ) {
 			VPinMameRawRenderer renderer = (VPinMameRawRenderer)r;
 			planes = renderer.getPlanes();
+			planesPerFrame = renderer.getPlanesPerFrame();
 		}
 	}
 
@@ -107,6 +102,14 @@ public class RawAnimation extends Animation {
 	
 	public int getNumberOfPlanes() {
 		return frames != null ? frames.stream().mapToInt(f->f.planes.size()).max().orElse(0) : 0;
+	}
+
+	public void renderSubframes(DMD dmd, int actFrame) {
+		Frame f = new Frame();
+		for(int i = 0; i < planesPerFrame; i++) {
+			f.planes.add(planes.get(actFrame*planesPerFrame + i));
+		}
+		dmd.setFrame(f);
 	}
 
 }

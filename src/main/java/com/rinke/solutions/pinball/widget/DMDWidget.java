@@ -135,6 +135,10 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 		frameChangedListeners.add(l);
 	}
 	
+	public void setDMD(DMD dmd) {
+		setResolution(dmd);
+	}
+	
 	public void setResolution(DMD dmd) {
 		resolutionX = dmd.getWidth();
 		resolutionY = dmd.getHeight();

@@ -37,6 +37,13 @@ public class EditorViewBinding extends AbstractCommandHandler implements ViewBin
 		super(vm);
 	}
 	
+	public void onPreviewDMDChanged(DMD o, DMD n) {
+		if( n != null )
+			editorView.previewDmd.setDMD(n);
+		else
+			editorView.previewDmd.setDMD(vm.dmd);
+	}
+	
 	public void onCut(Palette pal) {
 		editorView.getClipboardHandler().onCut(pal);
 	}
