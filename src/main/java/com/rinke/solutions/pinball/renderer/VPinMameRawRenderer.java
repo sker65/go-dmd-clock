@@ -1,5 +1,6 @@
 package com.rinke.solutions.pinball.renderer;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -7,6 +8,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
 
@@ -28,86 +30,75 @@ public class VPinMameRawRenderer extends Renderer {
 	}
 	
 	void readImage(String filename, DMD dmd) {
-		BufferedReader stream = null;
+		BufferedInputStream stream = null;
+		int r = 0;
 		int frameNo = 0;
-		int timecode = 0;
-		long lastTimeStamp = 0;
+		int lastTimecode = 0;
+		int firstTimecode = 0;
+		int currentTimecode;
+		int width = 0;
+		int height = 0;
+		Frame res = null;
 		try {
-			stream = getReader(filename);
-			String line = stream.readLine();
-			Frame res = new Frame(
-					new byte[dmd.getPlaneSize()],
-					new byte[dmd.getPlaneSize()],
-					new byte[dmd.getPlaneSize()],
-					new byte[dmd.getPlaneSize()]);
-
-			int j = 0;
+			stream = getInputStream(filename);
+			byte[] header = new byte[5];
+			// read header 
+			r = stream.read(header);
+			if( r != 5 || !validateHeader(header)) throw new RuntimeException("raw header expected");
+			width = stream.read();
+			height = stream.read();
+			planesPerFrame = stream.read();
+			int bytesPerPlane = width*height / 8;
 			int vmax = 0;
-			//Map<Integer,Integer> count1 = new HashMap<>();
-			//Map<Integer,Integer> count2 = new HashMap<>();
-			while (line != null) {
-				if (line.startsWith("0x")) {
-					long newTs = Long.parseLong(line.substring(2), 16);	
-					if (frameNo > 0 && lastTimeStamp > 0) {
-						//System.out.println(newTs+":"+(newTs - lastTimeStamp));
-						frames.get(frameNo - 1).delay = (int) (newTs - lastTimeStamp);
-						timecode += (newTs - lastTimeStamp);
-						res.timecode = timecode;
-					}
-					lastTimeStamp = newTs;
-					line = stream.readLine();
-					continue;
+			int planeIdx = 0;
+			while (true) {
+				byte[] ts = new byte[4];
+				r = stream.read(ts);
+				if( r == -1 ) break;
+				// little endian
+				currentTimecode = ( ((int)ts[3] & 0xFF ) <<24 ) | ( ((int)ts[2] & 0xFF)<<16 ) | ( ((int)ts[1] & 0xFF) <<8 ) | ( ( (int)ts[0] & 0xFF) <<0 );
+				for( int i = 0; i <planesPerFrame; i++) {
+					// read planes
+					Plane p = new Plane((byte)i, new byte[bytesPerPlane]);
+					r = stream.read(p.data);
+					planes.add(p);
+					if( r == -1 || r < bytesPerPlane ) break;
 				}
-				int lineLenght = line.length();
-				if (lineLenght == 0) {
-					// check for number of rows
-					int noOfRows = j / dmd.getBytesPerRow();
-					if( noOfRows == 16 && dmd.getHeight() == 32 ) {
-						res = centerRows( res, dmd.getPlaneSize(), dmd.getBytesPerRow() );
-					}
-					frames.add(res);
-					frameNo++;
-					notify(50, "reading "+bareName(filename)+"@"+frameNo);
-					res = new Frame(
-							new byte[dmd.getPlaneSize()],
-							new byte[dmd.getPlaneSize()],
-							new byte[dmd.getPlaneSize()],
-							new byte[dmd.getPlaneSize()]
-							);
-					log.trace("reading frame: " + frameNo);
-					j = 0;
-					line = stream.readLine();
-					continue;
-				}
-				int charsToRead = Math.min(dmd.getWidth(), line.length());
-				if( dmd.getWidth() != line.length() ) {
-					log.warn("unexpected line length={}, line: {}", line.length(), line);
-				}
-				for (int i = 0; i<charsToRead; i++) {
-					int k = i;
-					if( lineLenght > dmd.getWidth()){
-						//v1 = Integer.parseInt(line.substring(i,i+1), 16);
-						//inc(count1,v1);
-						i++; // skip every other byte
-						k >>= 1;
-					}
-					int bit = (k % 8);
-					int b = (k >> 3);
+				res = new Frame(
+						new byte[dmd.getPlaneSize()],
+						new byte[dmd.getPlaneSize()],
+						new byte[dmd.getPlaneSize()],
+						new byte[dmd.getPlaneSize()]
+						);
+				// aggregate to frame
+				for( int pix = 0; pix < width*height; pix++) {
+					int bit = (pix % 8);
+					int byteIdx = pix / 8;
 					int mask = (0b10000000 >> bit);
-					int v = hex2int(line.charAt(i));
-//					inc(count2,v);
+					int v = 0;
+					for( int i = 0; i<planesPerFrame; i++) {
+						v += ( planes.get(planeIdx+i).data[byteIdx] >> bit ) & 1;
+					}
 					if( v > vmax ) vmax = v;
 					if( (v & 1) != 0 ) 
-						res.planes.get(0).data[j + b] |= mask;
+						res.planes.get(0).data[byteIdx] |= mask;
 					if( (v & 2) != 0 )
-						res.planes.get(1).data[j + b] |= mask;
+						res.planes.get(1).data[byteIdx] |= mask;
 					if( (v & 4) != 0 )
-						res.planes.get(2).data[j + b] |= mask;
+						res.planes.get(2).data[byteIdx] |= mask;
 					if( (v & 8) != 0 )
-						res.planes.get(3).data[j + b] |= mask;
+						res.planes.get(3).data[byteIdx] |= mask;
 				}
-				j += dmd.getBytesPerRow();
-				line = stream.readLine();
+				res.timecode = currentTimecode -firstTimecode;
+				if( firstTimecode == 0 ) firstTimecode = currentTimecode; // offset basis for timecodes
+				if( lastTimecode != 0) {
+					frames.get(frameNo - 1).delay = currentTimecode - lastTimecode;
+				}
+				lastTimecode = currentTimecode;
+				frames.add(res);
+				planeIdx += planesPerFrame;
+				frameNo++;
+				notify(50, "reading "+bareName(filename)+"@"+frameNo);
 			}
 			// check maximum value for v
 			// if never ever more than 3 reduce number of planes
@@ -125,20 +116,24 @@ public class VPinMameRawRenderer extends Renderer {
 		this.maxFrame = frameNo;
 	}
 
-	private Frame centerRows(Frame in, int planeSize, int bytesPerRow) {
-		Frame out = new Frame(
-				new byte[planeSize],
-				new byte[planeSize],
-				new byte[planeSize],
-				new byte[planeSize]
-				);
-		for(int p = 0; p<in.planes.size(); p++) {
-			for( int row = 8; row < 24; row++) {
-				System.arraycopy(in.planes.get(p).data, (row-8)*bytesPerRow, out.planes.get(p).data, row*bytesPerRow, bytesPerRow);
-			}
-		}
-		return out;
+	private boolean validateHeader(byte[] header) {
+		return Arrays.equals( new byte[]{0x52, 0x41, 0x57, 0x00, 0x01}, header);
 	}
+
+//	private Frame centerRows(Frame in, int planeSize, int bytesPerRow) {
+//		Frame out = new Frame(
+//				new byte[planeSize],
+//				new byte[planeSize],
+//				new byte[planeSize],
+//				new byte[planeSize]
+//				);
+//		for(int p = 0; p<in.planes.size(); p++) {
+//			for( int row = 8; row < 24; row++) {
+//				System.arraycopy(in.planes.get(p).data, (row-8)*bytesPerRow, out.planes.get(p).data, row*bytesPerRow, bytesPerRow);
+//			}
+//		}
+//		return out;
+//	}
 
 	int hex2int(char ch) {
 		if( ch >= '0' && ch <= '9') return ch - '0';
