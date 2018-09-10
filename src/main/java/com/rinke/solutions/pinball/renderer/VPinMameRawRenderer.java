@@ -161,4 +161,8 @@ public class VPinMameRawRenderer extends Renderer {
 		
 	}
 
+	public List<Plane> getPlanes() {
+		return planes;
+	}
+
 }

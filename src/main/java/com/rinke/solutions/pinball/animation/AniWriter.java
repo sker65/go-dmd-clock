@@ -7,7 +7,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -15,7 +14,6 @@ import org.apache.commons.io.IOUtils;
 
 import com.rinke.solutions.io.HeatShrinkEncoder;
 import com.rinke.solutions.pinball.DMD;
-import com.rinke.solutions.pinball.PinDmdEditor;
 import com.rinke.solutions.pinball.Worker;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Mask;

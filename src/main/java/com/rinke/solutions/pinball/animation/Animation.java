@@ -306,15 +306,17 @@ public class Animation {
 		if( renderer.getPalette() != null ) {
 			aniColors = renderer.getPalette().colors;
 		}
-
+		postInit(renderer);
 	}
 	
+	// hook to override if needed by some animations
+	protected void postInit(Renderer renderer) {}
+
 	public void setDimension(int width, int height) {
 		this.width = width;
 		this.height = height;
 	}
 
-	
 	public Frame render(DMD dmd, boolean stop) {
 		init(dmd);
 		

@@ -15,10 +15,13 @@ import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Mask;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.Plane;
+import com.rinke.solutions.pinball.renderer.Renderer;
+import com.rinke.solutions.pinball.renderer.VPinMameRawRenderer;
 
 public class RawAnimation extends Animation {
 
 	public List<Frame> frames;
+	public List<Plane> planes;
 	
 	public RawAnimation(AnimationType type, String name, int start,
 			int end, int skip, int cycles, int holdCycles) {
@@ -63,6 +66,14 @@ public class RawAnimation extends Animation {
 	    if( frameNo > frames.size()-1 ) frameNo = frames.size()-1;
 		int r = frames.get(frameNo).delay;
 		return r==0?super.getRefreshDelay():r;
+	}
+	
+	@Override
+	protected void postInit(Renderer r) {
+		if( r instanceof VPinMameRawRenderer ) {
+			VPinMameRawRenderer renderer = (VPinMameRawRenderer)r;
+			planes = renderer.getPlanes();
+		}
 	}
 
     @Override
