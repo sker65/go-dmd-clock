@@ -16,6 +16,7 @@ import com.rinke.solutions.pinball.animation.AniEvent;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.animation.EventHandler;
+import com.rinke.solutions.pinball.animation.Animation.EditMode;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.view.handler.HandlerTest;
 import com.rinke.solutions.pinball.view.model.ViewModel;
@@ -32,6 +33,7 @@ public class AnimationHandlerTest extends HandlerTest{
 
 	@Before
 	public void setUp() throws Exception {
+		vm.setSelectedEditMode(EditMode.COLMASK);
 		List<Animation> anis = new ArrayList<>();
 		scene = getScene("foo");
 		anis.add(scene);
