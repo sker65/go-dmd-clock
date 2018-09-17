@@ -27,7 +27,7 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 
 	@Autowired private MessageUtil messageUtil;
 	
-	private List<EditMode> mutable = Arrays.asList( EditMode.REPLACE, EditMode.COLMASK, EditMode.FOLLOW, EditMode.LAYEREDCOL );
+	private List<EditMode> mutable = Arrays.asList( EditMode.REPLACE, EditMode.REPLACE_FOLLOW, EditMode.COLMASK, EditMode.COLMASK_FOLLOW, EditMode.LAYEREDCOL );
 
 	@Autowired DrawCmdHandler drawCmdHandler;
 	@Autowired MaskHandler maskHandler;
@@ -59,14 +59,14 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 		//	v.goDmdGroup.updateAnimation(nextScene);
 			
 			EditMode m = nextScene.getEditMode();
-			vm.setDetectionMaskEnabled(m.useLocalMask);
-			vm.setLayerMaskEnabled(m.useLayerMask||m.useLocalMask);
+			vm.setDetectionMaskEnabled(m.enableDetectionMask);
+			vm.setLayerMaskEnabled(m.enableLayerMask);
 			vm.setDetectionMaskActive(false);
 			vm.setLayerMaskActive(false);
 			
 			// warum mask auch gleich active setzen
 			// was formerly vm.setDetectionMaskActive(nextScene.getEditMode().useLocalMask);
-			vm.setMaskSpinnerEnabled(m.useLayerMask);
+			vm.setMaskSpinnerEnabled(m.enableLayerMask);
 
 			// just to enasure a reasonable default
 			if( nextScene.getEditMode() == null || nextScene.getEditMode().equals(EditMode.FIXED) ) {
@@ -77,7 +77,7 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 			vm.setSuggestedEditMode(nextScene.getEditMode());
 			vm.setSelectedEditMode(nextScene.getEditMode());
 			
-			setEnableHashButtons(m.useLocalMask||m.useLayerMask);
+			setEnableHashButtons(m.enableDetectionMask);
 			
 			// we are in the change handler anyways
 			// vm.setSelectedScene(nextScene);
