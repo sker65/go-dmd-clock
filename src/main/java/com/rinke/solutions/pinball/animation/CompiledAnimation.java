@@ -2,25 +2,40 @@ package com.rinke.solutions.pinball.animation;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import org.bouncycastle.util.Arrays;
 
 import com.rinke.solutions.pinball.DMD;
-import com.rinke.solutions.pinball.PinDmdEditor;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Mask;
-import com.rinke.solutions.pinball.model.Palette;
-import com.rinke.solutions.pinball.model.Plane;
 
 @Slf4j
 public class CompiledAnimation extends Animation {
 
 	public List<Frame> frames;
 	private List<Mask> masks = new ArrayList<>();	// for layered coloring
+	
+	// for follow hash scenes
+	public static class RecordingLink {
+		public String associatedRecordingName;
+		public int startFrame;
+		public RecordingLink(String associatedRecordingName, int startFrame) {
+			super();
+			this.associatedRecordingName = associatedRecordingName;
+			this.startFrame = startFrame;
+		}
+		@Override
+		public String toString() {
+			return String.format("RecordingLink [associatedRecordingName=%s, startFrame=%s]", associatedRecordingName, startFrame);
+		}
+	}
+	
+	@Getter @Setter
+	private RecordingLink recordingLink;
 	
 	public CompiledAnimation(AnimationType type, String name, int start,
 			int end, int skip, int cycles, int holdCycles) {
