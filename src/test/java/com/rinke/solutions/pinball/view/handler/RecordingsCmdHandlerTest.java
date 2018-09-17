@@ -13,9 +13,10 @@ import org.mockito.runners.MockitoJUnitRunner;
 import com.rinke.solutions.pinball.AnimationHandler;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.AnimationType;
+import com.rinke.solutions.pinball.animation.CompiledAnimation;
+import com.rinke.solutions.pinball.animation.CompiledAnimation.RecordingLink;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.util.MessageUtil;
-import com.rinke.solutions.pinball.view.model.ViewModel;
 
 @RunWith(MockitoJUnitRunner.class)
 public class RecordingsCmdHandlerTest extends HandlerTest {
@@ -29,6 +30,18 @@ public class RecordingsCmdHandlerTest extends HandlerTest {
 
 	@Before
 	public void setUp() throws Exception {
+	}
+	
+	@Test
+	public void testRenameRecordingShouldAdjustLink() throws Exception {
+		uut.onRenameRecording("old", "new");
+		Animation cani = new Animation(AnimationType.COMPILED, "old.txt", 0, 0, 0, 0, 0);
+		vm.recordings.put("old", cani);
+		CompiledAnimation scene = getScene("test");
+		scene.setRecordingLink(new RecordingLink("old", 0));
+		vm.scenes.put("scene", scene);
+		uut.onRenameRecording("old", "new");
+		assertEquals("new", scene.getRecordingLink().associatedRecordingName);
 	}
 
 	@Test
@@ -83,7 +96,5 @@ public class RecordingsCmdHandlerTest extends HandlerTest {
 	public void testOnSortRecording() throws Exception {
 		uut.onSortRecording();
 	}
-
-
 
 }
