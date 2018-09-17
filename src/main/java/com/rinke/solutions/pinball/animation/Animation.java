@@ -72,30 +72,37 @@ public class Animation {
 	public int width;
 	public int height;
 
-	public enum EditMode {
-		REPLACE("Replace",				false, false, false, true,  false), 
-		COLMASK("Color Mask",			false, true,  false, false, false), 
-		FIXED("Fixed", 					false, false, true,  true,  false), 
-		FOLLOW("Color Mask Seq.", 		true,  true,  true,  false, false),
-		LAYEREDCOL("Layered ColMask", 	true,  true,  true, false, true);
+	public enum EditMode {		
+		FIXED("Fixed", 							false, true,  true,  false, false, false, false), 
+		REPLACE("Replace",						false, false, true,  false, false, false, false), 
+		COLMASK("Color Mask",					true,  false, false, false, false, false, false), 
+		COLMASK_FOLLOW("Color Mask Seq.", 		true,  true,  true,  false, true,  true,  false),
+		LAYEREDCOL("Layered ColMask", 			true,  true,  false, true,  true,  false, true),
+		REPLACE_FOLLOW("Replace Seq.",			false, false, true,  false, true,  true,  false),
+		;
 
 		// label to display
 		public final String label;
 		// uses masks in scene
-		public final boolean useLocalMask;
-		public final boolean enableColorMaskDrawing;  // draw only on upper planes
-		public final boolean enableMaskDrawing;       // draw on mask planes
-		public final boolean useGlobalMask;
-		public final boolean useLayerMask;
+		public final boolean enableColorMaskDrawing;// draw only on upper planes
+		public final boolean enableMaskDrawing;     // draw on mask planes
+		public final boolean enableDetectionMask;	// controls enable of D-Mask button
+		public final boolean enableLayerMask;		// controls enable of L-Mask button
+		public final boolean haveLocalMask;			// Masks Data is fetch from actual frame of the scene
+		public final boolean pullFrameDataFromAssociatedRecording;	// for FollowXX Modes, we need to pull frame data from associated recording
+		public final boolean haveSceneDetectionMasks; // edit mode uses scene local detections masks
 
-		private EditMode(String label, boolean useLocalMask, boolean colMaskDraw, 
-				boolean enableMaskDrawing, boolean useGlobalMask, boolean layerMask) {
+		private EditMode(String label, boolean colMaskDraw, 
+				boolean enableMaskDrawing, boolean enableDetectionMask, boolean layerMask, boolean haveLocalMask,
+				boolean pullFrameDataFromAssociatedRecording, boolean haveSceneDetectionMasks) {
 			this.label = label;
-			this.useLocalMask = useLocalMask;
 			this.enableMaskDrawing = enableMaskDrawing;
 			this.enableColorMaskDrawing = colMaskDraw;
-			this.useGlobalMask = useGlobalMask;
-			this.useLayerMask = layerMask;
+			this.enableDetectionMask = enableDetectionMask;
+			this.enableLayerMask = layerMask;
+			this.haveLocalMask = haveLocalMask;
+			this.pullFrameDataFromAssociatedRecording = pullFrameDataFromAssociatedRecording;
+			this.haveSceneDetectionMasks = haveSceneDetectionMasks;
 		}
 
 		public static EditMode fromOrdinal(byte emo) {
@@ -104,7 +111,6 @@ public class Animation {
 			}
 			return null;
 		}
-
 	}
 	
 	public List<Mask> getMasks() {
@@ -622,6 +628,15 @@ public class Animation {
 	public void setProgressEventListener(ProgressEventListener listener) {
 		this.progressEventListener = listener;
 		
+	}
+
+	// just a workaround, todo remove actFrame completely from Animation?
+	public Frame render(int frameNo, DMD dmd, boolean stop) {
+		int tmp = actFrame;
+		actFrame = frameNo;
+		Frame r = render(dmd, stop);
+		actFrame = tmp;
+		return r;
 	}
 	
 }
