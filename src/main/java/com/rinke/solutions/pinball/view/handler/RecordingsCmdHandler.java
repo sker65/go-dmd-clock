@@ -18,6 +18,8 @@ import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.PinDmdEditor;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.Animation.EditMode;
+import com.rinke.solutions.pinball.animation.CompiledAnimation;
+import com.rinke.solutions.pinball.animation.CompiledAnimation.RecordingLink;
 import com.rinke.solutions.pinball.animation.RawAnimation;
 import com.rinke.solutions.pinball.model.Bookmark;
 import com.rinke.solutions.pinball.model.PalMapping;
@@ -147,8 +149,17 @@ public class RecordingsCmdHandler extends AbstractListCmdHandler implements View
 	public void onRenameRecording(String oldName, String newName){
 		updateAnimationMapKey(oldName, newName, vm.recordings);
 		updatePalMappingsRecordingNames(oldName, newName);
+		updateRecordingLinks(oldName, newName);
 		vm.recordingNameMap.put(oldName, newName);
 		vm.setDirty(true);
 	}
-	
+
+	private void updateRecordingLinks(String oldName, String newName) {
+		for(CompiledAnimation a: vm.scenes.values()) {
+			RecordingLink link = a.getRecordingLink();
+			if( link != null && link.associatedRecordingName.equals(oldName)) {
+				link.associatedRecordingName = newName;
+			}
+		}	
+	}
 }
