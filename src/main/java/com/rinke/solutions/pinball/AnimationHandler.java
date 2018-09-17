@@ -12,6 +12,9 @@ import com.rinke.solutions.beans.Value;
 import com.rinke.solutions.pinball.animation.AniEvent;
 import com.rinke.solutions.pinball.animation.AniEvent.Type;
 import com.rinke.solutions.pinball.animation.Animation;
+import com.rinke.solutions.pinball.animation.Animation.EditMode;
+import com.rinke.solutions.pinball.animation.CompiledAnimation;
+import com.rinke.solutions.pinball.animation.CompiledAnimation.RecordingLink;
 import com.rinke.solutions.pinball.animation.EventHandler;
 import com.rinke.solutions.pinball.animation.RawAnimation;
 import com.rinke.solutions.pinball.model.Frame;
@@ -106,7 +109,25 @@ public class AnimationHandler implements Runnable {
 				}
 				log.debug("rendering ani: {}@{}", ani.getDesc(), ani.getActFrame());
 				int actFrame = ani.getActFrame();
-				Frame res = ani.render(dmd,stop);
+				
+				// now there is more logic here:
+				Frame res = null;
+				EditMode mode = vm.selectedEditMode;
+				if( ani instanceof CompiledAnimation ) {
+					CompiledAnimation cani = (CompiledAnimation)ani;
+					RecordingLink link = cani.getRecordingLink();
+					if( mode.pullFrameDataFromAssociatedRecording && link != null && vm.detectionMaskActive ) {
+						// calc offset
+						int frameNo = link.startFrame + actFrame;
+						Animation linkedAnimation = vm.recordings.get(link.associatedRecordingName);
+						res = linkedAnimation.render(frameNo, dmd, stop);
+					} else {
+						res = ani.render(dmd,stop);
+					}
+				} else {
+					res = ani.render(dmd,stop);
+				}
+				
                 if( ani instanceof RawAnimation && vm.previewDMD != null ) {
                 	RawAnimation rani = (RawAnimation)ani;
                 	rani.renderSubframes(vm.previewDMD, actFrame);
