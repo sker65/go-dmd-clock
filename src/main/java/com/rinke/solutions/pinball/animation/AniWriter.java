@@ -99,6 +99,17 @@ public class AniWriter extends Worker {
 						os.write( masks.get(i).data);
 					}
 				}
+				if( version >= 6 ) { // write recording link
+					boolean hasLink = (a instanceof CompiledAnimation && ((CompiledAnimation) a).getRecordingLink() != null);
+					if( hasLink ) {
+						CompiledAnimation c = (CompiledAnimation) a;
+						os.writeByte(1);
+						os.writeUTF(c.getRecordingLink().associatedRecordingName);
+						os.writeInt(c.getRecordingLink().startFrame);
+					} else {
+						os.writeByte(0);
+					}
+				}
 
 				int preserveAct = a.getActFrame();
 				a.restart();

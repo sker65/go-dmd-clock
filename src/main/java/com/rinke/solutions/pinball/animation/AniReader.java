@@ -14,6 +14,7 @@ import org.apache.commons.io.IOUtils;
 
 import com.rinke.solutions.io.HeatShrinkDecoder;
 import com.rinke.solutions.pinball.animation.Animation.EditMode;
+import com.rinke.solutions.pinball.animation.CompiledAnimation.RecordingLink;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Mask;
 import com.rinke.solutions.pinball.model.Plane;
@@ -73,6 +74,13 @@ public class AniReader {
 						byte[] data = new byte[length];
 						is.read(data);
 						masks.add(new Mask(data,locked));
+					}
+				}
+				if( version >= 6 ) { // read recording link
+					if( is.readByte() == 1 ) {
+						String name = is.readUTF();
+						int startFrame = is.readInt();
+						a.setRecordingLink(new RecordingLink(name, startFrame));
 					}
 				}
 				readFrames( is, a, frames, version );
