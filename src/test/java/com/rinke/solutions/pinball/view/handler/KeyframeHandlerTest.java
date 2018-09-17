@@ -165,7 +165,7 @@ public class KeyframeHandlerTest extends HandlerTest {
 	public void testOnAddKeyFrameWithSitchModeFromScene() throws Exception {
 		CompiledAnimation scene = getScene("foo");
 		vm.setSelectedRecording(ani);
-		scene.setEditMode(EditMode.FOLLOW);
+		scene.setEditMode(EditMode.COLMASK_FOLLOW);
 		vm.setSelectedFrameSeq(scene);
 		uut.onAddKeyframe(null);
 		PalMapping k = getFristKeyframe();
