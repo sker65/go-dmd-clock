@@ -82,7 +82,7 @@ public class AnimationControlHandler extends AbstractCommandHandler implements V
 		maskHandler.commitMaskIfNeeded();
 		vm.setSelectedFrame(vm.selectedFrame-vm.frameIncrement);
 		
-		if(  (vm.selectedEditMode.useLocalMask || vm.selectedEditMode.useGlobalMask ) && vm.selectedScene!=null) {
+		if(  ( vm.selectedEditMode.enableDetectionMask ) && vm.selectedScene!=null) {
 			selectHash(vm.selectedScene);
 		}
 		vm.setSelection(null);
@@ -101,7 +101,7 @@ public class AnimationControlHandler extends AbstractCommandHandler implements V
 		maskHandler.commitMaskIfNeeded();
 		vm.setSelectedFrame(vm.selectedFrame+vm.frameIncrement);
 
-		if( (vm.selectedEditMode.useLocalMask || vm.selectedEditMode.useGlobalMask ) && vm.selectedScene!=null) {
+		if( ( vm.selectedEditMode.enableDetectionMask ) && vm.selectedScene!=null) {
 			selectHash(vm.selectedScene);
 		}
 		vm.setSelection(null);

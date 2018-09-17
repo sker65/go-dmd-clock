@@ -123,7 +123,7 @@ public class DrawCmdHandler extends AbstractCommandHandler implements EventHandl
 			}
 			if( setMode ) {
 				animation.setEditMode(mode);
-				if(mode.useLocalMask) {
+				if(mode.haveLocalMask ) {
 					animation.ensureMask();
 				}
 				vm.setSelectedEditMode(mode);
@@ -132,9 +132,9 @@ public class DrawCmdHandler extends AbstractCommandHandler implements EventHandl
 				dispatcher.asyncExec(()->vm.setSuggestedEditMode(old));
 			}
 			if( modeToSet != null ) {
-				vm.setDetectionMaskEnabled(modeToSet.useLocalMask);
-				vm.setLayerMaskEnabled(modeToSet.useLayerMask);
-				recordingsCmdHandler.setEnableHashButtons(modeToSet.useLocalMask);
+				vm.setDetectionMaskEnabled(modeToSet.enableDetectionMask);
+				vm.setLayerMaskEnabled(modeToSet.enableLayerMask);
+				recordingsCmdHandler.setEnableHashButtons(modeToSet.enableDetectionMask);
 			}
 			
 			// to force update on master detail

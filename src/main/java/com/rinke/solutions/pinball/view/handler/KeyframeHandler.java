@@ -84,6 +84,7 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 			maskHandler.commitMaskIfNeeded();
 			palMapping.withMask = true;
 			palMapping.maskNumber = vm.selectedMaskNumber;
+			// mask is used now -> lock it
 			if( !vm.masks.get(vm.selectedMaskNumber).locked ) {
 				vm.masks.get(vm.selectedMaskNumber).locked = true;
 				vm.setSelectedMask(null);
@@ -92,7 +93,7 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 			}
 			vm.setDetectionMaskActive(true);
 		} 
-		else if( editMode != null && editMode.useLayerMask && vm.selectedScene != null ) {
+		else if( editMode != null && editMode.enableLayerMask && vm.selectedScene != null ) {
 			palMapping.withMask = true;
 			palMapping.maskNumber = vm.selectedMaskNumber;
 			vm.selectedScene.getMask(vm.selectedMaskNumber).locked = true;
@@ -129,7 +130,7 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 		SwitchMode switchMode = SwitchMode.PALETTE;
 		switch(editMode) {
 			case COLMASK: switchMode = SwitchMode.ADD; break;
-			case FOLLOW: switchMode = SwitchMode.FOLLOW; break;
+			case COLMASK_FOLLOW: switchMode = SwitchMode.FOLLOW; break;
 			case REPLACE: switchMode = SwitchMode.REPLACE; break;
 			case LAYEREDCOL: switchMode = SwitchMode.LAYEREDCOL; break;
 			default: break;
@@ -154,22 +155,25 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 	 */
 	void checkReleaseMask() {
 		HashSet<Integer> useMasks = new HashSet<>();
+		// collect mask numbers for all masks that are referenced by keyframes
 		for (PalMapping p : vm.keyframes.values()) {
 			if (p.withMask) {
 				useMasks.add(p.maskNumber);
 			}
 		}
 		for (int i = 0; i < vm.masks.size(); i++) {
+			// if the not used mask is actually show, force screen update
 			if( vm.masks.get(i).locked && !useMasks.contains(i) && vm.selectedMaskNumber == i && vm.showMask ) {
 				vm.setSelectedMask(null);
 				vm.masks.get(i).locked = useMasks.contains(i);
 				vm.setSelectedMask(vm.masks.get(vm.selectedMaskNumber));
 				vm.setDmdDirty(true);
 			}
+			// update locked flag according to usage
 			vm.masks.get(i).locked = useMasks.contains(i);
 		}
 		
-		vm.setDetectionMaskActive(vm.selectedScene != null ? vm.selectedScene.getEditMode().useGlobalMask : false);
+		vm.setDetectionMaskActive(vm.selectedScene != null ? vm.selectedScene.getEditMode().enableDetectionMask : false);
 	}
 	
 	public void onSetKeyframePalette() {
