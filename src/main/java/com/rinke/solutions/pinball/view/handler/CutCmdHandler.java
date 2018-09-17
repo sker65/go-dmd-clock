@@ -11,6 +11,7 @@ import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.AnimationQuantizer;
 import com.rinke.solutions.pinball.animation.Animation.EditMode;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
+import com.rinke.solutions.pinball.animation.CompiledAnimation.RecordingLink;
 import com.rinke.solutions.pinball.model.PalMapping.SwitchMode;
 import com.rinke.solutions.pinball.util.ObservableMap;
 import com.rinke.solutions.pinball.view.model.ViewModel;
@@ -148,6 +149,7 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 		cutScene.setPalIndex(vm.selectedPalette.index);
 		cutScene.setProjectAnimation(true);
 		cutScene.setEditMode(EditMode.COLMASK);
+		cutScene.setRecordingLink(new RecordingLink(animation.getDesc(), start));
 				
 		vm.scenes.put(name, cutScene);
 		vm.scenes.refresh();
