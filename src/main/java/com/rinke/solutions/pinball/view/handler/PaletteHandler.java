@@ -253,8 +253,9 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 		return true;
 	}
 	
-	public void copyPalettePlaneUpgrade() {
+	public void copyPalettePlaneUpgrade(String hint) {
 		String name = vm.selectedPalette.name;
+		if( hint != null ) name = hint;
 		if (!isNewPaletteName(name)) {
 			name = "new" + UUID.randomUUID().toString().substring(0, 4);
 		}

@@ -96,7 +96,7 @@ public class PaletteHandlerTest extends HandlerTest  {
 	@Test
 	public void testCopyPalettePlaneUpgrade() throws Exception {
 		vm.setSelectedPalette(new Palette(colors,0,"foo"));
-		uut.copyPalettePlaneUpgrade();
+		uut.copyPalettePlaneUpgrade(null);
 	}
 
 	@Test
