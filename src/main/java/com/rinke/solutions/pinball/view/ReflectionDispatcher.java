@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import lombok.extern.java.Log;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
@@ -94,6 +95,7 @@ public class ReflectionDispatcher implements CmdDispatcher {
 	}
 	
 	private <T> boolean callHandler(Command<T> cmd, Method m, CommandHandler handler) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+		log.debug("calling {}:{}", handler.getClass().getSimpleName(), m.getName());
 		if( cmd.param != null && m.getParameterCount() > 0) {
 			if( m.getParameterCount()==1 ) {
 				m.invoke(handler, cmd.param);	
