@@ -143,7 +143,7 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 		CompiledAnimation cutScene = animation.cutScene(start, end, noOfPlanesWhenCutting);
 		
 		if( addPalWhenCut )
-			paletteHandler.copyPalettePlaneUpgrade();
+			paletteHandler.copyPalettePlaneUpgrade(name);
 		
 		cutScene.setDesc(name);
 		cutScene.setPalIndex(vm.selectedPalette.index);

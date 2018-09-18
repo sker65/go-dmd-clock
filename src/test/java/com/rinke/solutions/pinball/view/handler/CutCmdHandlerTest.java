@@ -51,7 +51,7 @@ public class CutCmdHandlerTest extends HandlerTest {
 		uut.addPalWhenCut = true;
 		CompiledAnimation animation = getScene("foO");
 		uut.cutScene(animation, 0, 0, "1");
-		verify(paletteHandler, times(1)).copyPalettePlaneUpgrade();
+		verify(paletteHandler, times(1)).copyPalettePlaneUpgrade(null);
 	}
 
 	@Test
