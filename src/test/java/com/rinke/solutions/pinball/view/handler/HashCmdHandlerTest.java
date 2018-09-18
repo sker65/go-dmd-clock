@@ -57,7 +57,7 @@ public class HashCmdHandlerTest extends HandlerTest {
 	public void testRefreshHashButtons() throws Exception {
 		List<byte[]> hashes = new ArrayList<>();
 		hashes.add(new byte[]{22,33,44,55});
-		uut.refreshHashButtons(hashes, null, 0);
+		uut.refreshHashButtons(hashes, false, 0);
 		assertEquals(PRINT_HASH, vm.hashLbl[0]);
 	}
 
@@ -65,7 +65,7 @@ public class HashCmdHandlerTest extends HandlerTest {
 	public void testRefreshHashButtonsWithMask() throws Exception {
 		List<byte[]> hashes = new ArrayList<>();
 		hashes.add(new byte[]{22,33,44,55});
-		uut.refreshHashButtons(hashes, new Mask(DmdSize.Size128x32.planeSize), 1);
+		uut.refreshHashButtons(hashes, true, 1);
 		assertEquals("M1 "+PRINT_HASH, vm.hashLbl[0]);
 	}
 
