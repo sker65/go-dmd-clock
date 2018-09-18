@@ -229,25 +229,43 @@ public class AnimationHandler implements Runnable {
 	}
 
 	/**
-	 * like setPos but use currentMask to populate DMD mask while animation
-	 * @param pos
-	 * @param currentMask
+	 * get current mask, either from scene or from on of the global masks
+	 * @return
 	 */
-	public void setPos(int pos, Mask currentMask) {
-		if( index <0 || index >= anis.size() ) return;
-	    anis.get(index).setPos(pos);
-	    forceRerender = true;
-	    this.maskToPopulate = currentMask;
-        run();
+	public Mask getCurrentMask() {
+		Mask maskToUse = null; 
+		if( vm.selectedScene!=null) {
+			if( vm.selectedEditMode.haveLocalMask ) {
+				// create mask from actual scene
+				maskToUse = vm.selectedScene.getCurrentMask();
+			} else if( vm.selectedEditMode.haveSceneDetectionMasks ){
+				maskToUse = vm.selectedScene.getMask(vm.selectedMaskNumber); 
+			}
+		}
+		if( vm.selectedEditMode.enableDetectionMask && !vm.selectedEditMode.haveSceneDetectionMasks
+				&& !vm.selectedEditMode.haveLocalMask) {
+			// use one of the global masks
+			maskToUse = vm.masks.get(vm.selectedMaskNumber);
+		}
+		return maskToUse;
 	}
 
+	/**
+	 * like setPos but use currentMask to populate DMD mask while animation
+	 * @param pos
+	 */
 	public void setPos(int pos) {
 		if( index <0 || index >= anis.size() ) return;
 	    anis.get(index).setPos(pos);
-	    log.debug("setpos {} @ {}", pos, anis.get(index).getDesc());
 	    forceRerender = true;
-	    this.maskToPopulate = null;
+	    this.maskToPopulate = getCurrentMask();
+	    log.debug("setpos {} @ {} with mask {}", pos, anis.get(index).getDesc(), maskToPopulate);
         run();
+	}
+	
+	public void forceRerender() {
+		forceRerender = true;
+		run();
 	}
 	
 	public java.util.List<Animation> getAnimations() {

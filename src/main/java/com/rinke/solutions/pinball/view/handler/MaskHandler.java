@@ -2,6 +2,7 @@ package com.rinke.solutions.pinball.view.handler;
 
 import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.Bean;
+import com.rinke.solutions.pinball.AnimationHandler;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.Animation.EditMode;
 import com.rinke.solutions.pinball.model.Mask;
@@ -14,6 +15,8 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 	HashCmdHandler hashCmdHandler;
 	@Autowired
 	DrawCmdHandler drawCmdHandler;
+	@Autowired
+	AnimationHandler animationHandler;
 
 	public MaskHandler(ViewModel vm) {
 		super(vm);
@@ -30,7 +33,7 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 	}
 	
 	public void commitMaskIfNeeded() {
-		Mask mask = getCurrentMask();
+		Mask mask = animationHandler.getCurrentMask();
 		if( mask != null && !mask.locked && vm.dmd.getFrame().mask!=null && vm.dmd.canUndo() ) {
 			mask.commit(vm.dmd.getFrame().mask);
 			vm.setDirty(true);
@@ -42,7 +45,7 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 		// or we use global masks on recordings
 		if (n) {
 			vm.setPaletteToolPlanes(1);
-			vm.setSelectedMask(getCurrentMask());
+			vm.setSelectedMask(animationHandler.getCurrentMask());
 		} else {
 			vm.setPaletteToolPlanes(vm.dmd.getNumberOfPlanes());
 			commitMaskIfNeeded();
@@ -50,6 +53,7 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 			vm.dmd.removeMask();
 		}
 		vm.setBtnInvertEnabled(n);
+		animationHandler.forceRerender();
 		vm.setDmdDirty(true);
 		hashCmdHandler.updateHashes(vm.dmd.getFrame());
 		
@@ -118,27 +122,6 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 			}
 		}
 		vm.setDrawingEnabled( drawing );
-	}
-
-	/**
-	 * get current mask, either from scene or from on of the global masks
-	 * @return
-	 */
-	public Mask getCurrentMask() {
-		Mask maskToUse = null; 
-		if( vm.selectedScene!=null) {
-			if( vm.selectedEditMode.haveLocalMask ) {
-				// create mask from actual scene
-				maskToUse = vm.selectedScene.getCurrentMask();
-			} else if( vm.selectedEditMode.haveSceneDetectionMasks ){
-				maskToUse = vm.selectedScene.getMask(vm.selectedMaskNumber); 
-			}
-		}
-		if( vm.selectedEditMode.enableDetectionMask && !vm.selectedEditMode.haveSceneDetectionMasks ) {
-			// use one of the global masks
-			maskToUse = vm.masks.get(vm.selectedMaskNumber);
-		}
-		return maskToUse;
 	}
 	
 }
