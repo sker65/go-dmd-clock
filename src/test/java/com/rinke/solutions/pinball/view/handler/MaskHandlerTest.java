@@ -6,24 +6,25 @@ import static org.mockito.Mockito.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import com.rinke.solutions.pinball.AnimationHandler;
 import com.rinke.solutions.pinball.animation.Animation.EditMode;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MaskHandlerTest extends HandlerTest  {
 	
-	MaskHandler uut;
-	
 	@Mock HashCmdHandler hashCmdHandler;
 	@Mock DrawCmdHandler drawCmdHandler;
+
+	@InjectMocks
+	MaskHandler uut = new MaskHandler(vm);
 	
 	@Before
 	public void setup() {
-		uut = new MaskHandler(vm);
-		uut.hashCmdHandler = hashCmdHandler;
-		uut.drawCmdHandler = drawCmdHandler;
+		uut.animationHandler = new AnimationHandler(vm, null, dmd);
 	}
 
 	@Test
@@ -65,19 +66,6 @@ public class MaskHandlerTest extends HandlerTest  {
 		vm.setSelectedScene(getScene("foo"));
 		vm.setSelectedEditMode(EditMode.LAYEREDCOL);
 		uut.onSelectedMaskNumberChanged(0, 1);
-	}
-
-	@Test
-	public void testGetCurrentMask() throws Exception {
-		vm.setSelectedEditMode(EditMode.REPLACE);
-		uut.getCurrentMask();
-	}
-
-	@Test
-	public void testGetCurrentMaskWithScene() throws Exception {
-		vm.setSelectedScene(getScene("foo"));
-		vm.setSelectedEditMode(EditMode.LAYEREDCOL);
-		uut.getCurrentMask();
 	}
 
 	@Test
