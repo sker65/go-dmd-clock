@@ -76,9 +76,11 @@ public class HashCmdHandler extends AbstractCommandHandler implements ViewBindin
 	public void updateHashes(Frame frame) {
 		if( frame == null ) return;
 		Frame f = new Frame(frame);
-		if( vm.selectedMask != null ) f.setMask(vm.selectedMask.data);
-		else f.setMask(null);
 		
+		if( vm.selectedMask != null ) f.setMask(vm.selectedMask.data);
+		else f.setMask(null);		
+		// if preview DMD uses its own dmd instance (e.g. for raw recodring) use
+		// plane from that instance instead
 		if( vm.previewDMD != null ) {
 			f.planes.clear();
 			List<Plane> planes = vm.previewDMD.getFrame().planes;
@@ -87,11 +89,11 @@ public class HashCmdHandler extends AbstractCommandHandler implements ViewBindin
 			}
 		} 
 		List<byte[]> hashes = f.getHashes();
-		refreshHashButtons(hashes, vm.detectionMaskActive ? vm.selectedMask:null, vm.selectedMaskNumber);
+		refreshHashButtons(hashes, vm.detectionMaskActive && f.hasMask(), vm.selectedMaskNumber);
 		saveHashes(hashes);
 	}
 
-	void refreshHashButtons(List<byte[]> hashes, Mask mask, int maskNumber) {
+	void refreshHashButtons(List<byte[]> hashes, boolean hasMask, int maskNumber) {
 		//if( v.btnHash[0] == null ) return; // avoid NPE if not initialized
 		int i = 0;
 		String[] lbls = Arrays.copyOf(vm.hashLbl, vm.numberOfHashButtons);
@@ -104,7 +106,7 @@ public class HashCmdHandler extends AbstractCommandHandler implements ViewBindin
 				enabled[i]=false;
 				if( vm.selectedHashIndex == i ) vm.setSelectedHashIndex(-1);
 			} else {
-				if( mask!=null && i == vm.selectedHashIndex) {
+				if( hasMask && i == vm.selectedHashIndex) {
 					lbls[i]=String.format("M%d %s", maskNumber, hash);
 				} else {
 					lbls[i]=hash;
