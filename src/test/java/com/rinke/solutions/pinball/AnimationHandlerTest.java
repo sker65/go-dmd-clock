@@ -61,11 +61,6 @@ public class AnimationHandlerTest extends HandlerTest{
 	}
 
 	@Test
-	public void testSetPosIntMask() throws Exception {
-		uut.setPos(0, null);
-	}
-
-	@Test
 	public void testSetPosInt() throws Exception {
 		uut.setPos(0);
 	}
@@ -97,5 +92,19 @@ public class AnimationHandlerTest extends HandlerTest{
 		scene.end = 2;
 		uut.setPos(2);
 	}
+	
+	@Test
+	public void testGetCurrentMask() throws Exception {
+		vm.setSelectedEditMode(EditMode.REPLACE);
+		uut.getCurrentMask();
+	}
+
+	@Test
+	public void testGetCurrentMaskWithScene() throws Exception {
+		vm.setSelectedScene(getScene("foo"));
+		vm.setSelectedEditMode(EditMode.LAYEREDCOL);
+		uut.getCurrentMask();
+	}
+
 
 }
