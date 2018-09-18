@@ -36,7 +36,7 @@ public class AnimationControlHandler extends AbstractCommandHandler implements V
 	}
 	
 	public void onSelectedFrameChanged(int o, int n) {
-		animationHandler.setPos(n, maskHandler.getCurrentMask());
+		animationHandler.setPos(n);
 		//if( vm.detectionMaskActive || vm.layerMaskActive ) maskHandler.onMaskActiveChanged(false,true );
 		update(vm.minFrame, n, vm.maxFrame, vm.animationIsPlaying);
 	}
