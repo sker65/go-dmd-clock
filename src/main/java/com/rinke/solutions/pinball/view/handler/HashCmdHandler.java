@@ -49,7 +49,7 @@ public class HashCmdHandler extends AbstractCommandHandler implements ViewBindin
 		updateKeyFrameButtons(vm.selectedRecording, vm.selectedFrameSeq, n);
 	}
 	
-	public String getPrintableHashes(byte[] p) {
+	public static String getPrintableHashes(byte[] p) {
 		StringBuffer hexString = new StringBuffer();
 		for (int j = 0; j < p.length; j++)
 			hexString.append(String.format("%02X", p[j]));
@@ -76,9 +76,7 @@ public class HashCmdHandler extends AbstractCommandHandler implements ViewBindin
 	public void updateHashes(Frame frame) {
 		if( frame == null ) return;
 		Frame f = new Frame(frame);
-		
-		if( vm.selectedMask != null ) f.setMask(vm.selectedMask.data);
-		else f.setMask(null);		
+	
 		// if preview DMD uses its own dmd instance (e.g. for raw recodring) use
 		// plane from that instance instead
 		if( vm.previewDMD != null ) {
