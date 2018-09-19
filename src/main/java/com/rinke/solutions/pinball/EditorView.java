@@ -142,6 +142,8 @@ public class EditorView implements MainView {
 
 	@GuiBinding( prop=LABEL, propName="timecode" ) Label lblTcval;
 	@GuiBinding( prop=LABEL, propName="selectedFrame" ) Label lblFrameNo;
+	@GuiBinding( prop=LABEL, propName="hashVal" )private Label lblHashVal;
+	@GuiBinding( prop=LABEL, propName="linkVal" )private Label lblLinkVal;
 
 	/** instance level SWT widgets */
 	Button btnHash[];// = new Button[numberOfHashes];
@@ -173,8 +175,8 @@ public class EditorView implements MainView {
 	@GuiBinding(prop=SELECTION, propName="selectedPaletteType")
 	ComboViewer paletteTypeComboViewer;
 	
-	@PojoBinding(srcs={"mask", "showMask", "palette", "drawingEnabled" }, 
-			targets={"selectedMask","showMask", "selectedPalette", "drawingEnabled" }) 
+	@PojoBinding(srcs={ "showMask", "palette", "drawingEnabled" }, 
+			targets={"showMask", "selectedPalette", "drawingEnabled" }) 
 	DMDWidget dmdWidget;
 	
 	@PojoBinding(src="selection", target="selection") 
@@ -194,7 +196,7 @@ public class EditorView implements MainView {
 	@GuiBinding(prop=ENABLED) Button cutScene;
 	@GuiBinding( props= { ENABLED, LABEL } ) private Button startStop;
 	@GuiBinding(props={ENABLED,LABEL}) Button btnAddFrameSeq;
-	@PojoBinding(srcs={"mask","maskOut","palette"}, targets={"selectedMask","showMask","previewDmdPalette"}) 
+	@PojoBinding(srcs={"maskOut","palette"}, targets={"showMask","previewDmdPalette"}) 
 	DMDWidget previewDmd;
 
 	@PojoBinding(srcs={"numberOfPlanes", "palette", "selectedColor"}, targets={"paletteToolPlanes", "selectedPalette", "selectedColor"}) 
@@ -266,6 +268,7 @@ public class EditorView implements MainView {
 	@GuiBinding(prop=ENABLED) private Button btnDelBookmark;
 	@GuiBinding(prop=ENABLED, propName="drawingEnabled") private Button btnAddFrame;
 	@GuiBinding(prop=ENABLED) private Button btnDelFrame;
+	@GuiBinding(prop=ENABLED) private Button btnSetHash;
 
 	private Config config;
 	
@@ -735,7 +738,7 @@ public class EditorView implements MainView {
 		
 		Group grpDetails = new Group(parent, SWT.NONE);
 		grpDetails.setLayoutData(new GridData(SWT.FILL, SWT.TOP, false, false, 1, 1));
-		grpDetails.setLayout(new GridLayout(12, false));
+		grpDetails.setLayout(new GridLayout(17, false));
 		
 		/*GridData gd_grpDetails = new GridData(SWT.LEFT, SWT.CENTER, false, true, 1, 1);
 		gd_grpDetails.heightHint = 27;
@@ -762,6 +765,15 @@ public class EditorView implements MainView {
 		gd_lblTcval.minimumWidth = 80;
 		lblTcval.setLayoutData(gd_lblTcval);
 		lblTcval.setText("---");
+		
+		Label lblHash = new Label(grpDetails, SWT.NONE);
+		lblHash.setText("Hash:");
+		
+		lblHashVal = new Label(grpDetails, SWT.NONE);
+		GridData gd_lblHashVal = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+		gd_lblHashVal.widthHint = 83;
+		lblHashVal.setLayoutData(gd_lblHashVal);
+		lblHashVal.setText("---");
 
 		Label lblDelay = new Label(grpDetails, SWT.NONE);
 		lblDelay.setText("Delay:");
@@ -801,11 +813,25 @@ public class EditorView implements MainView {
 				
 		Button btnIncPitch = new Button(grpDetails, SWT.NONE);
 		btnIncPitch.setText("+");
-								
+		btnIncPitch.addListener(SWT.Selection, e -> dmdWidget.incPitch());
+		
 		Button btnDecPitch = new Button(grpDetails, SWT.NONE);
 		btnDecPitch.setText("-");
 		btnDecPitch.addListener(SWT.Selection, e -> dmdWidget.decPitch());
-		btnIncPitch.addListener(SWT.Selection, e -> dmdWidget.incPitch());
+		
+		Label lblLink = new Label(grpDetails, SWT.NONE);
+		lblLink.setText("Link:");
+		
+		lblLinkVal = new Label(grpDetails, SWT.NONE);
+		GridData gd_lblLinkVal = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+		gd_lblLinkVal.widthHint = 79;
+		lblLinkVal.setLayoutData(gd_lblLinkVal);
+		lblLinkVal.setText("---");
+		
+		Button btnLink = new Button(grpDetails, SWT.NONE);
+		btnLink.setText("Link");
+		btnLink.addListener(SWT.Selection, e->dispatchCmd(EDIT_LINK));
+		
 	}
 	
 	Map<String, DrawTool> drawTools = new HashMap<>();
@@ -853,8 +879,7 @@ public class EditorView implements MainView {
 		});
 				
 		drawToolBar = new ToolBar(grpDrawing, SWT.FLAT | SWT.RIGHT);
-		GridData gd_drawToolBar = new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1);
-		drawToolBar.setLayoutData(gd_drawToolBar);
+		drawToolBar.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
 						
 		ToolItem tltmPen = new ToolItem(drawToolBar, SWT.RADIO);
 		tltmPen.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/pencil.png")));
@@ -1147,7 +1172,11 @@ public class EditorView implements MainView {
 		previewDmd.setMaskOut(true);
 
 		new Label(grpKeyframe, SWT.NONE);
-		new Label(grpKeyframe, SWT.NONE);
+		
+		btnSetHash = new Button(grpKeyframe, SWT.NONE);
+		btnSetHash.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
+		btnSetHash.setText("Set Hash");
+		btnSetHash.addListener(SWT.Selection, e -> dispatchCmd(SET_HASH));
 		
 		btnAddKeyframe = new Button(grpKeyframe, SWT.NONE);
 		btnAddKeyframe.setToolTipText("Adds a key frame that switches palette");
@@ -1404,6 +1433,7 @@ public class EditorView implements MainView {
 	Realm realm;
 	private ToolItem btnPick;
 	private PalettePickerTool palettePickerTool;
+
 	@Override
 	public void init(ViewModel vm, BeanFactory beanFactory) {
 		display = Display.getDefault();
