@@ -52,6 +52,7 @@ public class RecordingsCmdHandler extends AbstractListCmdHandler implements View
 				vm.setSelection(null);;
 				
 				vm.setSelectedScene(null);
+				vm.setLinkVal("-");
 				
 				// sani check for recordings edit mode
 				if( !EditMode.FIXED.equals(a.getEditMode()) ) a.setEditMode(EditMode.FIXED);
