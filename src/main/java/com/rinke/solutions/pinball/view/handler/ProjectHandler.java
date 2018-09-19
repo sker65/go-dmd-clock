@@ -440,7 +440,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 				ani.actFrame = 0;
 				DMD tmp = new DMD(vm.dmdSize);
 				for (int i = 0; i <= ani.end; i++) {
-					ani.getCurrentMask();
+					Mask mask = ani.getActualFrame().hasMask() ? mask = ani.getCurrentMask() : null;
 					Frame frame = new Frame( ani.render(tmp, false) ); // copy frames to not remove in org
 					// remove planes not in mask
 					int pl = 0;
@@ -457,6 +457,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 						frame.planes.remove(10); frame.planes.remove(10); frame.planes.remove(10);
 						frame.planes.remove(15); frame.planes.remove(15); frame.planes.remove(15);
 					}
+					frame.setMask(mask);
 					p.frames.add(frame);
 				}
 			}
@@ -465,7 +466,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 				Map<String, Integer> map = new HashMap<String, Integer>();
 				BinaryExporter exporter = BinaryExporterFactory.getInstance();
 				if (!frameSeqMap.isEmpty()) {
-					log.info("exporter instance {} wrinting FSQ", exporter);
+					log.info("exporter instance {} writing FSQ", exporter);
 					DataOutputStream dos = new DataOutputStream(streamProvider.buildStream(replaceExtensionTo("fsq", filename)));
 					map = exporter.writeFrameSeqTo(dos, frameSeqMap, useOldExport?1:2);
 					dos.close();

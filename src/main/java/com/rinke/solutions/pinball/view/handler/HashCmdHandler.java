@@ -43,6 +43,7 @@ public class HashCmdHandler extends AbstractCommandHandler implements ViewBindin
 		vm.setBtnAddKeyframeEnabled(selectedRecording != null && selectedHashIndex != -1);
 		vm.setBtnAddFrameSeqEnabled(selectedRecording != null && selectedFrameSeq != null && selectedHashIndex != -1);
 		vm.setBtnAddEventEnabled(selectedRecording != null && selectedHashIndex != -1);
+		vm.setBtnSetHashEnabled( vm.selectedScene != null && vm.selectedEditMode.haveLocalMask && selectedHashIndex != -1);
 	}
 
 	public void onSelectedHashIndexChanged(int old, int n) {
