@@ -1,18 +1,12 @@
 package com.rinke.solutions.pinball.widget;
 
-import java.awt.image.BufferedImage;
+import static com.rinke.solutions.pinball.widget.SWTUtil.toSwtRGB;
+
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import javax.imageio.ImageIO;
-
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import org.eclipse.swt.SWT;
@@ -33,12 +27,8 @@ import org.eclipse.swt.widgets.Shell;
 
 import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.model.Frame;
-import com.rinke.solutions.pinball.model.Mask;
 import com.rinke.solutions.pinball.model.Palette;
-import com.rinke.solutions.pinball.renderer.ImageUtil;
 import com.rinke.solutions.pinball.widget.PaletteTool.ColorChangedListerner;
-
-import static com.rinke.solutions.pinball.widget.SWTUtil.toSwtRGB;
 
 @Slf4j
 public class DMDWidget extends ResourceManagedCanvas implements ColorChangedListerner {
@@ -63,7 +53,6 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 	private int height;
 	private boolean scrollable = false;
 	private List<FrameChangedListerner> frameChangedListeners = new ArrayList<>();
-	private boolean maskLocked;
 	private boolean maskOut = false;
 	// define the rubberband area for copy
 	private RGB areaColorNormal = new RGB(255,255,0);
@@ -81,8 +70,7 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 	}
 	
 	PropertyChangeSupport change = new PropertyChangeSupport(this);
-	// just for the sake of POJO spec
-	@Getter private Mask mask;
+
 	public void addPropertyChangeListener(PropertyChangeListener l) {
 		change.addPropertyChangeListener(l);
 	}
@@ -300,7 +288,7 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
         //System.out.println("draw time: "+(System.currentTimeMillis()-startDrawing));
 		//if( this.scrollable ) writeTmp(ImageUtil.convert(image));
         if( showMask && dmd.getFrame().mask != null) {
-            drawMask(display, cols, image, gcImage);
+            drawMask(display, cols, image, gcImage, dmd.getFrame().mask.locked);
         }
         if( isSelectionSet() && !isShowMask() ) {
             drawSelection(display, image, gcImage);
@@ -316,7 +304,7 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 	
 	int imgSeq;
 
-	private void writeTmp(BufferedImage img) {
+/*	private void writeTmp(BufferedImage img) {
 		String name = "/tmp/pinball/dmd-"+this.hashCode()+"-"+(imgSeq++)+".png";
 		log.debug("writing {}", name);
 		try {
@@ -325,8 +313,8 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 			e.printStackTrace();
 		}
 	}
-
-	private void drawMask(Display display, Color[] cols, Image image, GC gcImage) {
+*/
+	private void drawMask(Display display, Color[] cols, Image image, GC gcImage, boolean maskLocked) {
 		ImageData imageData = image.getImageData();
 		imageData.alpha = 96;
 		Image maskImage =  new Image(display, imageData);
@@ -501,12 +489,6 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 		setPalette(pal);
 	}
 
-	public void setMaskLocked(boolean maskLocked) {
-		this.maskLocked = maskLocked;
-		if( drawTool != null ) setDrawTool(drawTool);
-		redraw();
-	}
-
 	public void setShowMask(boolean showMask) {
 		boolean old = this.showMask;
 		change.firePropertyChange("showMask", old, showMask);
@@ -519,15 +501,6 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 
 	public boolean isShowMask() {
 		return showMask;
-	}
-
-	public void setMask(Mask mask) {
-		this.mask = mask;
-		dmd.setMask(mask.data);
-		// bound / controlled separately 
-		// ->removed this.setShowMask(true);
-		this.setMaskLocked(mask.locked);
-		redraw();
 	}
 
 	public void setMaskOut(boolean maskOut) {
