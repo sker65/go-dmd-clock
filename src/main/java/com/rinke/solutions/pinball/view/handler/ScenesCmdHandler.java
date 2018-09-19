@@ -64,6 +64,12 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 			vm.setDetectionMaskActive(false);
 			vm.setLayerMaskActive(false);
 			
+			if( m.haveLocalMask && nextScene.getRecordingLink() != null) {
+				vm.setLinkVal(nextScene.getRecordingLink().associatedRecordingName);
+			} else {
+				vm.setLinkVal("-");
+			}
+			
 			// warum mask auch gleich active setzen
 			// was formerly vm.setDetectionMaskActive(nextScene.getEditMode().useLocalMask);
 			vm.setMaskSpinnerEnabled(m.enableLayerMask);
