@@ -22,6 +22,7 @@ public class Commands {
 
 	public static final String UPDATE_DELAY = "updateDelay";
 	public static final String UPDATE_HASHES = "updateHashes";
+	public static final String EDIT_LINK = "editLink";
 	public static final String COPY_AND_MOVE_TO_PREV_FRAME = "copyAndMoveToPrevFrame";
 	public static final String COPY_AND_MOVE_TO_NEXT_FRAME = "copyAndMoveToNextFrame";
 	
@@ -37,6 +38,7 @@ public class Commands {
 	public static final String REMOVE_SELECTION = "removeSelection";
 	public static final String DELETE_AUTOSAVE_FILES = "deleteAutosaveFiles";
 	public static final String ADD_KEYFRAME = "addKeyframe";
+	public static final String SET_HASH = "setHash";
 	public static final String HASH_SELECTED = "hashSelected";
 	public static final String DEL_BOOKMARK = "delBookmark";
 	public static final String NEW_BOOKMARK = "newBookmark";
