@@ -2,6 +2,7 @@ package com.rinke.solutions.pinball.animation;
 
 import com.rinke.solutions.pinball.Constants;
 import com.rinke.solutions.pinball.model.Frame;
+import com.rinke.solutions.pinball.model.Mask;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.Plane;
 import com.rinke.solutions.pinball.model.RGB;
@@ -16,7 +17,7 @@ public class AnimationQuantizer {
 			qFrame.delay = inFrame.delay;
 			qFrame.timecode = inFrame.timecode;
 			qFrame.crc32 = inFrame.crc32;
-			if( inFrame.mask != null ) qFrame.mask = new Plane(inFrame.mask);
+			if( inFrame.mask != null ) qFrame.mask = new Mask(inFrame.mask);
 			result.addFrame(qFrame);
 		}
 		return result;
@@ -30,7 +31,7 @@ public class AnimationQuantizer {
 			qFrame.delay = inFrame.delay;
 			qFrame.timecode = inFrame.timecode;
 			qFrame.crc32 = inFrame.crc32;
-			if( inFrame.mask != null ) qFrame.mask = new Plane(inFrame.mask);
+			if( inFrame.mask != null ) qFrame.mask = new Mask(inFrame.mask);
 			result.addFrame(qFrame);
 		}
 		return result;

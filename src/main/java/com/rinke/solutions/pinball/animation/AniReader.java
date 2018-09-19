@@ -207,7 +207,7 @@ public class AniReader {
 			is.readFully(f1);
 			Plane p = new Plane(marker, f1);
 			if( marker < numberOfPlanes ) f.planes.add( p );
-			else f.mask = p;
+			else f.mask = new Mask(p.data, false);
 			np--;
 		}
 		// mask plane is always the first in the list

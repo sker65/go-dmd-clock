@@ -114,9 +114,7 @@ public class CompiledAnimation extends Animation {
 		// build mask from current frame		
 		Frame frame = frames.get(actFrame);
 		if( !frame.hasMask() ) {
-			byte[] emptyMask = new byte[this.width*this.height/8];
-			Arrays.fill(emptyMask, (byte)0xFF);
-			frame.setMask(emptyMask);
+			frame.setMask(new Mask(this.width*this.height/8));
 		}
 		maskToUse = new Mask(frame.mask.data, false);
 		return maskToUse;
@@ -153,9 +151,7 @@ public class CompiledAnimation extends Animation {
 	public void ensureMask() {
 		for(Frame frame : frames) {
 			if(!frame.hasMask()) {
-				byte[] data = new byte[frame.getPlane(0).length];
-				Arrays.fill(data, (byte)0xFF);
-				frame.setMask(data);
+				frame.setMask(new Mask(frame.getPlane(0).length));
 			}
 		}
 	}

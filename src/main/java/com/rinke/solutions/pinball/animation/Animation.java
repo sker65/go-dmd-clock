@@ -77,7 +77,7 @@ public class Animation {
 		REPLACE("Replace",						false, false, true,  false, false, false, false), 
 		COLMASK("Color Mask",					true,  false, false, false, false, false, false), 
 		COLMASK_FOLLOW("Color Mask Seq.", 		true,  true,  true,  false, true,  true,  false),
-		LAYEREDCOL("Layered ColMask", 			true,  true,  false, true,  true,  false, true),
+		LAYEREDCOL("Layered ColMask", 			true,  true,  true,  true,  true,  false, true),
 		REPLACE_FOLLOW("Replace Seq.",			false, false, true,  false, true,  true,  false),
 		;
 
@@ -360,7 +360,7 @@ public class Animation {
 	protected Frame addTransitionFrame(Frame in) {
         Frame tframe = transitions.get(transitionCount < transitions.size() ? transitionCount : transitions.size() - 1);
         Frame r = new Frame(in);
-        r.setMask(tframe.mask.data);
+        r.setMask(tframe.mask);
         return r;
     }
 
