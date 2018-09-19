@@ -62,10 +62,6 @@ public class CompiledAnimation extends Animation {
 		}
 		return masks.get(i);
 	}
-	
-	public int getNumberOfMasks() {
-		return masks.size();
-	}
 
 	@Override
 	protected Frame renderFrame(String name, DMD dmd, int act) {
@@ -123,7 +119,7 @@ public class CompiledAnimation extends Animation {
     // looks like there is a chance that commit gets called on an new (already switched) animation, while dmd
     // content still has the content of the old (that was displayed before)
 	@Override
-	public void commitDMDchanges(DMD dmd, byte[] hash) {
+	public void commitDMDchanges(DMD dmd) {
 		if( clockWasAdded ) {		// never commit a frame were clock was rendered, this is savety check only
 			clockWasAdded = false;
 			return;
@@ -137,9 +133,6 @@ public class CompiledAnimation extends Animation {
 		        log.debug("commitDMDchanges -> planes: {}, copyMask: {}", dmdFrame.planes.size(), Integer.toBinaryString(copyMask & 0xFFFF));
 		        dmdFrame.copyToWithMask(aniFrame, copyMask );
 		        setDirty(true);
-	    	}
-	    	if( hash!=null && !Arrays.areEqual(hash, aniFrame.crc32)) {
-		        aniFrame.setHash(hash);
 	    	}
 	    }
 	}
@@ -166,7 +159,11 @@ public class CompiledAnimation extends Animation {
 		return frames != null ? frames.stream().mapToInt(f->f.planes.size()).max().orElse(0) : 0;
 	}
 
-
-
+	/**
+	 * convenience getter for actual frame
+	 */
+	public Frame getActualFrame() {
+		return frames.get(actFrame);
+	}
 
 }
