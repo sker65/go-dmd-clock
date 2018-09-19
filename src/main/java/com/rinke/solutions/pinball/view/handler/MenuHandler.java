@@ -102,7 +102,6 @@ public class MenuHandler extends AbstractCommandHandler implements ViewBindingHa
 		vm.setSelectedPalette(vm.paletteMap.get(0));
 
 		// init masks
-		vm.setSelectedMask(null);
 		vm.setDetectionMaskActive(false);
 		vm.setLayerMaskActive(false);
 		vm.masks.clear();
@@ -142,7 +141,6 @@ public class MenuHandler extends AbstractCommandHandler implements ViewBindingHa
 			vm.setPin2dmdAdress(configDialog.getPin2DmdHost());
 			// check changed size
 			if( !vm.dmdSize.equals(configDialog.getDmdSize()) ) {
-				vm.setSelectedMask(null);
 				vm.dmd = new DMD(configDialog.getDmdSize());
 				if( vm.previewDMD != null ) vm.previewDMD = new DMD(configDialog.getDmdSize());
 			}
