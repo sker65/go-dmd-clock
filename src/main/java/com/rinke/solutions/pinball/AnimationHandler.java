@@ -45,7 +45,6 @@ public class AnimationHandler implements Runnable {
 	@Value(key=Config.GODMD_ENABLED_PROP_KEY)
 	private boolean enableClock;
 	private ViewModel vm;
-	private Mask maskToPopulate;
 
 	public AnimationHandler( ViewModel vm, DMDClock clock, DMD dmd) {
 		this.vm = vm;
@@ -156,9 +155,6 @@ public class AnimationHandler implements Runnable {
                         dmd.dumpHistogram();
                     }
                 }
-                if( maskToPopulate != null ) {
-                	dmd.setMask(maskToPopulate.data);
-                }
                 Frame f = dmd.getFrame();
                 f.delay = res.delay;
                 f.timecode = res.timecode;
@@ -228,17 +224,20 @@ public class AnimationHandler implements Runnable {
 		run();
 	}
 
+	public Mask getCurrentMask() {
+		return getCurrentMask(false);
+	}
 	/**
 	 * get current mask, either from scene or from on of the global masks
 	 * @return
 	 */
-	public Mask getCurrentMask() {
+	public Mask getCurrentMask(boolean preferDetectionMask) {
 		Mask maskToUse = null; 
 		if( vm.selectedScene!=null) {
 			if( vm.selectedEditMode.haveLocalMask ) {
-				// create mask from actual scene
 				maskToUse = vm.selectedScene.getCurrentMask();
-			} else if( vm.selectedEditMode.haveSceneDetectionMasks ){
+			}
+			if( vm.selectedEditMode.haveSceneDetectionMasks && preferDetectionMask ){
 				maskToUse = vm.selectedScene.getMask(vm.selectedMaskNumber); 
 			}
 		}
@@ -258,8 +257,8 @@ public class AnimationHandler implements Runnable {
 		if( index <0 || index >= anis.size() ) return;
 	    anis.get(index).setPos(pos);
 	    forceRerender = true;
-	    this.maskToPopulate = getCurrentMask();
-	    log.debug("setpos {} @ {} with mask {}", pos, anis.get(index).getDesc(), maskToPopulate);
+	    vm.dmd.setMask(getCurrentMask(vm.detectionMaskActive));
+	    log.debug("setpos {} @ {} with mask {}", pos, anis.get(index).getDesc(), dmd.getFrame().mask);
         run();
 	}
 	
