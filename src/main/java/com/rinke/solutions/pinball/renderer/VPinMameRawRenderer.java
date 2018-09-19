@@ -125,37 +125,6 @@ public class VPinMameRawRenderer extends Renderer {
 		return Arrays.equals( new byte[]{0x52, 0x41, 0x57, 0x00, 0x01}, header);
 	}
 
-//	private Frame centerRows(Frame in, int planeSize, int bytesPerRow) {
-//		Frame out = new Frame(
-//				new byte[planeSize],
-//				new byte[planeSize],
-//				new byte[planeSize],
-//				new byte[planeSize]
-//				);
-//		for(int p = 0; p<in.planes.size(); p++) {
-//			for( int row = 8; row < 24; row++) {
-//				System.arraycopy(in.planes.get(p).data, (row-8)*bytesPerRow, out.planes.get(p).data, row*bytesPerRow, bytesPerRow);
-//			}
-//		}
-//		return out;
-//	}
-
-	int hex2int(char ch) {
-		if( ch >= '0' && ch <= '9') return ch - '0';
-		if( ch >= 'A' && ch <= 'F') return ch -'A' + 10;
-		if( ch >= 'a' && ch <= 'f') return ch -'a' + 10;
-		return 0;
-	}
-
-	/*private void inc(Map<Integer, Integer> map, int v) {
-		if( map.containsKey(v)) {
-			map.put(v, map.get(v)+1);
-		} else {
-			map.put(v, 1);
-		}
-		
-	}*/
-
 	private void reducePlanes(List<Frame> frames, int maxNumberOfPlanes) {
 		for (Frame frame : frames) {
 			List<Plane> planes = frame.planes;
