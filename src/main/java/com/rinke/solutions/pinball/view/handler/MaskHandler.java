@@ -22,36 +22,36 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 		super(vm);
 	}
 	
-	public void onDetectionMaskActiveChanged(boolean old, boolean useMask) {
-		vm.setShowMask(useMask || vm.layerMaskActive );
-		onMaskActiveChanged(old, useMask);
+	public void onDetectionMaskActiveChanged(boolean old, boolean n) {
+		if( n ) vm.setLayerMaskActive(false);
+		updateMaskChange(n, true);
+		vm.setShowMask(n);
 	}
 	
-	public void onLayerMaskActiveChanged(boolean old, boolean useMask) {
-		vm.setShowMask(useMask || vm.detectionMaskActive );
-		onMaskActiveChanged(old, useMask);
+	public void onLayerMaskActiveChanged(boolean old, boolean n) {
+		if( n ) vm.setDetectionMaskActive(false);
+		updateMaskChange(n, false);
+		vm.setShowMask(n);
 	}
 	
-	public void commitMaskIfNeeded() {
-		Mask mask = animationHandler.getCurrentMask();
+	public void commitMaskIfNeeded(boolean preferDetectionMask) {
+		Mask mask = animationHandler.getCurrentMask(preferDetectionMask);
 		if( mask != null && !mask.locked && vm.dmd.getFrame().mask!=null && vm.dmd.canUndo() ) {
-			mask.commit(vm.dmd.getFrame().mask);
+			mask.commit(vm.dmd.getFrame().mask.data);
 			vm.setDirty(true);
 		}
 	}
 
-	public void onMaskActiveChanged(boolean o, boolean n) {
-		// either we use masks with follow hash mode on scenes
-		// or we use global masks on recordings
+	void updateMaskChange(boolean n, boolean preferDetectionMask) {
+		Mask mask = animationHandler.getCurrentMask(preferDetectionMask); 
 		if (n) {
 			vm.setPaletteToolPlanes(1);
-			vm.setSelectedMask(animationHandler.getCurrentMask());
 		} else {
 			vm.setPaletteToolPlanes(vm.dmd.getNumberOfPlanes());
-			commitMaskIfNeeded();
-			vm.setSelectedMask(null);
-			vm.dmd.removeMask();
+			commitMaskIfNeeded(preferDetectionMask);
+			mask = null;
 		}
+		vm.dmd.setMask(mask);
 		vm.setBtnInvertEnabled(n);
 		animationHandler.forceRerender();
 		vm.setDmdDirty(true);
@@ -67,12 +67,12 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 			while( vm.masks.size()-1 < newMaskNumber ) {
 				vm.masks.add(new Mask(vm.dmdSize.planeSize));
 			}
-			vm.setSelectedMask(vm.masks.get(newMaskNumber));
+			vm.dmd.setMask(vm.masks.get(newMaskNumber));
 			updateDrawingEnabled();
 		}
 		if( vm.selectedEditMode.enableLayerMask ) {
 			if( vm.selectedScene != null) {
-				vm.setSelectedMask(vm.selectedScene.getMask(newMaskNumber));
+				vm.dmd.setMask(vm.selectedScene.getMask(newMaskNumber));
 				updateDrawingEnabled();
 			}
 		}
