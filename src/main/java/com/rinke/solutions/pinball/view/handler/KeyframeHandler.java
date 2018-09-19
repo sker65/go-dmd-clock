@@ -10,16 +10,11 @@ import java.util.Map.Entry;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.impl.cookie.BrowserCompatSpecFactory.SecurityLevel;
-import org.eclipse.swt.widgets.Spinner;
-import org.slf4j.Logger;
 
 import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.Bean;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.Animation.EditMode;
-import com.rinke.solutions.pinball.animation.CompiledAnimation;
-import com.rinke.solutions.pinball.model.Model;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.PalMapping.SwitchMode;
 import com.rinke.solutions.pinball.util.MessageUtil;
@@ -81,14 +76,13 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 			palMapping.durationInMillis = vm.duration;
 		}
 		if (vm.showMask) {
-			maskHandler.commitMaskIfNeeded();
+			maskHandler.commitMaskIfNeeded(true);
 			palMapping.withMask = true;
 			palMapping.maskNumber = vm.selectedMaskNumber;
 			// mask is used now -> lock it
 			if( !vm.masks.get(vm.selectedMaskNumber).locked ) {
 				vm.masks.get(vm.selectedMaskNumber).locked = true;
-				vm.setSelectedMask(null);
-				vm.setSelectedMask(vm.masks.get(vm.selectedMaskNumber));
+				vm.dmd.getFrame().mask.locked = true;
 				vm.setDmdDirty(true);
 			}
 			vm.setDetectionMaskActive(true);
@@ -164,9 +158,7 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 		for (int i = 0; i < vm.masks.size(); i++) {
 			// if the not used mask is actually show, force screen update
 			if( vm.masks.get(i).locked && !useMasks.contains(i) && vm.selectedMaskNumber == i && vm.showMask ) {
-				vm.setSelectedMask(null);
 				vm.masks.get(i).locked = useMasks.contains(i);
-				vm.setSelectedMask(vm.masks.get(vm.selectedMaskNumber));
 				vm.setDmdDirty(true);
 			}
 			// update locked flag according to usage
@@ -236,8 +228,8 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 			vm.setSelectedFrame(nk.frameIndex);
 			vm.setDetectionMaskActive(nk.withMask);
 			vm.setSelectedHashIndex(nk.hashIndex);
-			vm.setSelectedMask(nk.withMask?vm.masks.get(nk.maskNumber):null);
-			if(nk.withMask) {
+			if( nk.withMask ) {
+				vm.dmd.setMask(vm.masks.get(nk.maskNumber));
 				vm.setSelectedMaskNumber(nk.maskNumber);
 			}
 			
