@@ -13,13 +13,14 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.rinke.solutions.pinball.model.Frame;
+import com.rinke.solutions.pinball.model.Mask;
 
 public class DMDTest implements Observer {
 	
 	DMD dmd;
 	private int height = 32;
 	private int width = 128;
-	private byte[] plane;
+	Mask mask = new Mask(512);
 	private Frame frame;
 	private boolean notified;
 	private byte[] framePlane0;
@@ -29,7 +30,6 @@ public class DMDTest implements Observer {
 	public void setup() {
 		Random rand = new Random();
 		dmd = new DMD(width,height);
-		plane = new byte[dmd.getPlaneSize()];
 		framePlane0 = new byte[512];
 		rand.nextBytes(framePlane0);
 		framePlane1 = new byte[512];
@@ -112,7 +112,7 @@ public class DMDTest implements Observer {
 		Arrays.fill(target, (byte)1);
 		dmd.fill((byte) 1);
 		assertThat(dmd.getFrame().planes.get(0).data, byteArrayContaining(target));
-		dmd.setMask(plane);
+		dmd.setMask(mask);
 		dmd.fill((byte) 1);
 		assertThat(dmd.getFrame().mask.data, byteArrayContaining(target));
 	}
@@ -120,17 +120,10 @@ public class DMDTest implements Observer {
 	@Test
 	public void testSetMaskPixel() throws Exception {
 		dmd.setMaskPixel(0, 0, true);
-		dmd.setMask(plane);
+		Arrays.fill(mask.data, (byte) 0);
+		dmd.setMask(mask);
 		dmd.setMaskPixel(0, 0, true);
 		assertThat(dmd.getFrame().mask.data[0], equalTo((byte)0x80));
-	}
-
-	@Test
-	public void testRemoveMask() throws Exception {
-		dmd.setMask(plane);
-		dmd.removeMask();
-		assertThat( dmd.getFrame().mask, is(nullValue()));
-		dmd.removeMask();
 	}
 
 	@Test
