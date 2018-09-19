@@ -12,6 +12,7 @@ import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Display;
 
 import com.rinke.solutions.pinball.model.Frame;
+import com.rinke.solutions.pinball.model.Mask;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.renderer.ImageUtil;
 import com.rinke.solutions.pinball.swt.SWTClipboard;
@@ -206,7 +207,7 @@ public class ClipboardHandler {
 				}
 			}
 		}
-		res.setMask(mask);
+		res.setMask(new Mask(mask,false));
 		//ImageUtil.dumpPlane(mask, dmd.getBytesPerRow());
 		return res;
 	}
