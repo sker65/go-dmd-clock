@@ -51,6 +51,12 @@ public class DrawCmdHandlerTest extends HandlerTest {
 	}
 
 	@Test
+	public void testOnSelectedEditModeChangedWithLocalMask() throws Exception {
+		vm.setSelectedScene(ani);
+		uut.onSuggestedEditModeChanged(EditMode.REPLACE, EditMode.COLMASK_FOLLOW);
+	}
+
+	@Test
 	public void testOnSelectedEditModeChangedWithVeto() throws Exception {
 		ani.setDirty(true);
 		vm.setSelectedScene(ani);

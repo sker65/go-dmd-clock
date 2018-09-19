@@ -219,7 +219,7 @@ public class KeyframeHandlerTest extends HandlerTest {
 		PalMapping k = getFristKeyframe();
 		assertEquals(true, k.withMask);
 		assertEquals(SwitchMode.ADD, k.switchMode);
-		verify( maskHandler, atLeastOnce()).commitMaskIfNeeded(false);
+		verify( maskHandler, atLeastOnce()).commitMaskIfNeeded(true);
 	}
 
 	@Test

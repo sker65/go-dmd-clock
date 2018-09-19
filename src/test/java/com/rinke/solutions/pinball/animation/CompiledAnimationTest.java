@@ -40,7 +40,7 @@ public class CompiledAnimationTest {
 		dmd.addUndoBuffer();
 		dmd.setPixel(0, 0, 1);
 		
-		uut.commitDMDchanges(dmd, null);
+		uut.commitDMDchanges(dmd);
 		dmd.clear();
 		
 		frame = uut.render(dmd , true);
