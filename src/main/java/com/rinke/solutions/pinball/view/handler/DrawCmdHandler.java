@@ -134,6 +134,7 @@ public class DrawCmdHandler extends AbstractCommandHandler implements EventHandl
 			if( modeToSet != null ) {
 				vm.setDetectionMaskEnabled(modeToSet.enableDetectionMask);
 				vm.setLayerMaskEnabled(modeToSet.enableLayerMask);
+				vm.setMaskSpinnerEnabled(modeToSet.haveSceneDetectionMasks);
 				recordingsCmdHandler.setEnableHashButtons(modeToSet.enableDetectionMask);
 			}
 			
