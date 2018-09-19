@@ -70,13 +70,7 @@ public class DMDWidgetSWTTest {
 		dmdWidget.setShowMask(true);
 		dmdWidget.setShowMask(false);
 	}
-	
-	@Test
-	public void testSetMask() {
-		Mask mask = new Mask(512);
-		dmdWidget.setMask(mask );
-	}
-	
+		
 	@Test
 	public void testTransformColor( ) {
 		com.rinke.solutions.pinball.model.RGB rgb = new com.rinke.solutions.pinball.model.RGB(128, 128, 128);
@@ -103,11 +97,9 @@ public class DMDWidgetSWTTest {
 	@Test
 	public void testDrawImageWithMask() throws Exception {
 		Mask mask = new Mask(size.planeSize);
-		dmd.setMask(mask.data);
-		dmdWidget.setMask(mask);
+		dmd.setMask(mask);
 		dmdWidget.setShowMask(true);
 		dmdWidget.setMaskOut(true);
-		dmdWidget.setMaskLocked(true);
 		dmdWidget.drawImage(displayHelper.getDisplay(), size.width, size.height);
 	}
 
