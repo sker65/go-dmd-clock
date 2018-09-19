@@ -49,7 +49,7 @@ public class HashCmdHandlerTest extends HandlerTest {
 
 	@Test
 	public void testGetPrintableHashes() throws Exception {
-		String hashes = uut.getPrintableHashes(new byte[]{22,33,44,55});
+		String hashes = HashCmdHandler.getPrintableHashes(new byte[]{22,33,44,55});
 		assertEquals(PRINT_HASH, hashes);
 	}
 

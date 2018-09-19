@@ -12,6 +12,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import com.rinke.solutions.pinball.AnimationHandler;
 import com.rinke.solutions.pinball.animation.Animation.EditMode;
+import com.rinke.solutions.pinball.model.Mask;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MaskHandlerTest extends HandlerTest  {
@@ -22,6 +23,8 @@ public class MaskHandlerTest extends HandlerTest  {
 	@InjectMocks
 	MaskHandler uut = new MaskHandler(vm);
 	
+	Mask mask = new Mask(vm.dmdSize.planeSize);
+	
 	@Before
 	public void setup() {
 		uut.animationHandler = new AnimationHandler(vm, null, dmd);
@@ -29,10 +32,11 @@ public class MaskHandlerTest extends HandlerTest  {
 
 	@Test
 	public void testOnInvertMask() throws Exception {
-		byte[] data = new byte[512];
-		vm.dmd.setMask(data);
+		mask.data[0] = 0;
+		vm.dmd.setMask(mask);
 		uut.onInvertMask();
 		assertEquals((byte) 0xFF, (byte) vm.dmd.getFrame().mask.data[0]);
+		assertEquals((byte) 0x00, (byte) vm.dmd.getFrame().mask.data[1]);
 	}
 
 	@Test
@@ -77,17 +81,16 @@ public class MaskHandlerTest extends HandlerTest  {
 	@Test
 	public void testCommitMaskIfNeeded() throws Exception {
 		vm.setSelectedEditMode(EditMode.LAYEREDCOL);
-		uut.commitMaskIfNeeded();
+		uut.commitMaskIfNeeded(false);
 	}
 	
 	@Test
 	public void testCommitMaskIfNeededWithMask() throws Exception {
 		vm.setSelectedEditMode(EditMode.LAYEREDCOL);
 		vm.setSelectedScene(getScene("foo"));
-		byte[] data = new byte[512];
-		vm.dmd.setMask(data);
+		vm.dmd.setMask(mask);
 		vm.dmd.addUndoBuffer();
-		uut.commitMaskIfNeeded();
+		uut.commitMaskIfNeeded(false);
 		assertTrue( vm.dirty );
 	}
 
@@ -95,11 +98,10 @@ public class MaskHandlerTest extends HandlerTest  {
 	public void testCommitMaskIfNeededWithLockedMask() throws Exception {
 		vm.setSelectedEditMode(EditMode.FIXED);
 		vm.setSelectedScene(getScene("foo"));
-		byte[] data = new byte[512];
-		vm.dmd.setMask(data);
+		vm.dmd.setMask(mask);
 		vm.dmd.addUndoBuffer();
 		vm.masks.get(0).locked = true;
-		uut.commitMaskIfNeeded();
+		uut.commitMaskIfNeeded(false);
 		assertFalse( vm.dirty );
 	}
 

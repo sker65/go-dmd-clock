@@ -3,6 +3,7 @@ package com.rinke.solutions.pinball.view.handler;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
+import org.bouncycastle.util.Arrays;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -14,6 +15,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import com.rinke.solutions.pinball.animation.Animation.EditMode;
 import com.rinke.solutions.pinball.animation.AnimationType;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
+import com.rinke.solutions.pinball.model.Mask;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.PalMapping.SwitchMode;
 import com.rinke.solutions.pinball.model.Palette;
@@ -32,6 +34,8 @@ public class KeyframeHandlerTest extends HandlerTest {
 	
 	@InjectMocks
 	KeyframeHandler uut = new KeyframeHandler(vm);
+
+	Mask mask = new Mask(vm.dmdSize.planeSize);
 	
 	@Before
 	public void setup() {
@@ -210,11 +214,12 @@ public class KeyframeHandlerTest extends HandlerTest {
 	public void testOnAddKeyFrameWithMask() throws Exception {
 		vm.setSelectedRecording(getScene("foo"));
 		vm.showMask = true;
+		vm.dmd.setMask(mask);
 		uut.onAddKeyframe(SwitchMode.ADD);
 		PalMapping k = getFristKeyframe();
 		assertEquals(true, k.withMask);
 		assertEquals(SwitchMode.ADD, k.switchMode);
-		verify( maskHandler, atLeastOnce()).commitMaskIfNeeded();
+		verify( maskHandler, atLeastOnce()).commitMaskIfNeeded(false);
 	}
 
 	@Test
