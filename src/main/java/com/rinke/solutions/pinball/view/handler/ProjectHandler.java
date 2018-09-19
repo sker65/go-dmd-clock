@@ -371,6 +371,10 @@ public class ProjectHandler extends AbstractCommandHandler {
 					if (p.switchMode.masking ) {
 						frameSeq.mask = 0b11111111111111111111111111111100;
 					}
+					if (p.switchMode.equals(SwitchMode.LAYEREDCOL) ) { // ref the scene local masks
+						frameSeq.masks = vm.scenes.get(p.frameSeqName).getMasks();
+					}
+					frameSeq.reorderMask = (p.switchMode.equals(SwitchMode.FOLLOW) || p.switchMode.equals(SwitchMode.FOLLOWREPLACE ));
 					frameSeqMap.put(p.frameSeqName, frameSeq);
 				} else {
 					log.error("referenced scene not found, keyframe will be removed: {}", p);
