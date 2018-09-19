@@ -78,8 +78,6 @@ public class ViewModel extends AbstractModel {
 		setMaxNumberOfMasks(noOfMasks);
 		setSelectedPalette(paletteMap.values().iterator().next());
 		resetMask(ds, noOfMasks);
-		selectedMask = new Mask(ds.planeSize);
-		Arrays.fill(selectedMask.data, (byte)0xFF);
 		//availableEditModes.replaceAll(immutable);
 		//setSelectedEditMode(EditMode.FIXED); // if initialized to FIXED fire propchange is suppressed
 	}
@@ -118,9 +116,7 @@ public class ViewModel extends AbstractModel {
 	
 	@ViewBinding public boolean maskSpinnerEnabled;
 	@ViewBinding public int maxNumberOfMasks;
-	
 
-	@ViewBinding public Mask selectedMask;
 	public ObservableList<Mask> masks = new ObservableList<>(new ArrayList<>());
 	
 	public boolean dmdDirty;
@@ -150,6 +146,7 @@ public class ViewModel extends AbstractModel {
 	@ViewBinding public boolean btnNewBookmarkEnabled;
 	@ViewBinding public boolean btnDelFrameEnabled;
 	
+	@ViewBinding public boolean btnSetHashEnabled;
 	@ViewBinding public boolean btnAddKeyframeEnabled;
 	@ViewBinding public boolean btnAddFrameSeqEnabled;
 	@ViewBinding public boolean btnAddEventEnabled;
@@ -180,6 +177,8 @@ public class ViewModel extends AbstractModel {
 	
 	@ViewBinding public int delay;
 	@ViewBinding public int timecode;
+	@ViewBinding public String linkVal;
+	@ViewBinding public String hashVal;
 	
 	@ViewBinding public boolean startStopEnabled = true;
 	@ViewBinding public String startStopLabel = "Start";
@@ -431,10 +430,6 @@ public class ViewModel extends AbstractModel {
 		firePropertyChange("selectedMaskNumber", this.selectedMaskNumber, this.selectedMaskNumber = selectedMaskNumber);
 	}
 
-	public void setSelectedMask(Mask mask) {
-		firePropertyChange("selectedMask", this.selectedMask, this.selectedMask = mask);
-	}
-
 	public void setBtnInvertEnabled(boolean btnInvertEnabled) {
 		firePropertyChange("btnInvertEnabled", this.btnInvertEnabled, this.btnInvertEnabled = btnInvertEnabled);
 	}
@@ -598,6 +593,18 @@ public class ViewModel extends AbstractModel {
 
 	public void setPreviewDMD(DMD previewDMD) {
 		firePropertyChange("previewDMD", this.previewDMD, this.previewDMD = previewDMD);
+	}
+
+	public void setHashVal(String hashVal) {
+		firePropertyChange("hashVal", this.hashVal, this.hashVal = hashVal);
+	}
+
+	public void setLinkVal(String linkVal) {
+		firePropertyChange("linkVal", this.linkVal, this.linkVal = linkVal);
+	}
+
+	public void setBtnSetHashEnabled(boolean btnSetHashEnabled) {
+		firePropertyChange("btnSetHashEnabled", this.btnSetHashEnabled, this.btnSetHashEnabled = btnSetHashEnabled);
 	}
 
 }
