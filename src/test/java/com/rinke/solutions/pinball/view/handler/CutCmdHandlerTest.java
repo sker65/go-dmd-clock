@@ -34,10 +34,11 @@ public class CutCmdHandlerTest extends HandlerTest {
 
 	@Test
 	public void testBuildUniqueName() throws Exception {
-		Animation animation = getScene("foo");
-		vm.recordings.put("Scene 1", animation);
+		String sceneName = "Scene 1";
+		Animation animation = getScene(sceneName);
+		vm.recordings.put(sceneName, animation);
 		String actual = uut.buildUniqueName(vm.recordings);
-		assertNotEquals("Scene 1", actual);
+		assertNotEquals(sceneName, actual);
 	}
 
 	@Test
@@ -51,7 +52,7 @@ public class CutCmdHandlerTest extends HandlerTest {
 		uut.addPalWhenCut = true;
 		CompiledAnimation animation = getScene("foO");
 		uut.cutScene(animation, 0, 0, "1");
-		verify(paletteHandler, times(1)).copyPalettePlaneUpgrade(null);
+		verify(paletteHandler, times(1)).copyPalettePlaneUpgrade("1");
 	}
 
 	@Test
@@ -87,6 +88,16 @@ public class CutCmdHandlerTest extends HandlerTest {
 	@Test
 	public void testOnCutScene() throws Exception {
 		uut.onCutScene();
+	}
+
+	@Test
+	public void testOnQuantizeScene() throws Exception {
+		uut.onQuantizeScene();
+	}
+
+	@Test
+	public void testOnConvertSceneToRGB() throws Exception {
+		uut.onConvertSceneToRGB();
 	}
 
 
