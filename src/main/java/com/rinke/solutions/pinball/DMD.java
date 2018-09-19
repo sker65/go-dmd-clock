@@ -8,6 +8,7 @@ import java.util.Observable;
 import lombok.extern.slf4j.Slf4j;
 
 import com.rinke.solutions.pinball.model.Frame;
+import com.rinke.solutions.pinball.model.Mask;
 import com.rinke.solutions.pinball.model.Plane;
 
 @Slf4j
@@ -190,7 +191,6 @@ public class DMD extends Observable {
    
     public void clear() {
     	updateActualBuffer(0);
-    	removeMask();
     	log.trace("DMD.clear()");
         for (Plane p : frame.planes) {
 			Arrays.fill(p.data, (byte)0);
@@ -278,13 +278,10 @@ public class DMD extends Observable {
 	
 
     // masken zum setzen von pixeln
-    int[] mask = { 
+    private int[] pixmask = { 
             0b01111111, 0b11011111, 0b11110111, 0b11111101,
             0b10111111, 0b11101111, 0b11111011, 0b11111110
     };
-
-    byte[] m2 = { (byte) 0b10000000, (byte) 0b01000000, (byte) 0b00100000, (byte) 0b00010000, (byte) 0b00001000,
-            (byte) 0b00000100, (byte) 0b00000010, (byte) 0b00000001, };
 
     public Frame getFrame() {
     	log.trace("getFrame()");
@@ -367,12 +364,6 @@ public class DMD extends Observable {
 		return frame.hasMask();
 	}
 
-	public void removeMask() {
-		if( frame.hasMask()) {
-			frame.mask = null;
-		}
-	}
-
 	public void invertMask() {
 		if( hasMask() ) { // TODO check why this is called sometimes without mask
 			addUndoBuffer();
@@ -380,12 +371,12 @@ public class DMD extends Observable {
 			for( int i = 0; i < data.length; i++) {
 				data[i] = (byte) ~data[i];
 			}
-			setMask(data);
+			setMask(new Mask(data, frame.mask.locked));
 		}
 	}
 
-	public void setMask(byte[] data) {
-		frame.setMask(data);
+	public void setMask(Mask mask) {
+		frame.setMask(mask);
 	}
 
 	public void fill(byte val) {
@@ -411,7 +402,7 @@ public class DMD extends Observable {
 	@Override
 	public String toString() {
 		return String.format("DMD [width=%s, height=%s, bytesPerRow=%s, planeSize=%s, drawMask=%s, frame=%s, actualBuffer=%s, mask=%s]", width, height,
-				bytesPerRow, planeSize, drawMask, frame, actualBuffer, Arrays.toString(mask));
+				bytesPerRow, planeSize, drawMask, frame, actualBuffer, Arrays.toString(pixmask));
 	}
 
 
