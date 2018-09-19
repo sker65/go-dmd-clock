@@ -128,5 +128,4 @@ public class HashCmdHandler extends AbstractCommandHandler implements ViewBindin
 		return vm.dmdSize.equals(DmdSize.Size128x32) ? "B2AA7578" : "6C1CE17E";
 	}
 
-
 }

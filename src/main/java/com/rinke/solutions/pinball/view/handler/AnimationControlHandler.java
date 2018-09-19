@@ -67,7 +67,7 @@ public class AnimationControlHandler extends AbstractCommandHandler implements V
 		} else {
 			log.info("Starting animation playback");
 			if( vm.selectedScene != null ){
-				vm.selectedScene.commitDMDchanges(vm.dmd, saveGetHash(vm.selectedHashIndex)); 
+				vm.selectedScene.commitDMDchanges(vm.dmd); 
 				vm.setDirty(vm.dirty|vm.selectedScene.isDirty());
 			}
 			animationHandler.start();
@@ -80,7 +80,7 @@ public class AnimationControlHandler extends AbstractCommandHandler implements V
 
 	public void onPrevFrame() {
 		if(vm.selectedScene!=null) {
-			vm.selectedScene.commitDMDchanges(vm.dmd, saveGetHash(vm.selectedHashIndex)); 
+			vm.selectedScene.commitDMDchanges(vm.dmd); 
 			vm.setDirty(vm.dirty|vm.selectedScene.isDirty());
 		}
 		maskHandler.commitMaskIfNeeded(vm.detectionMaskActive);
@@ -93,13 +93,9 @@ public class AnimationControlHandler extends AbstractCommandHandler implements V
 		//if( vm.selectedScene != null ) System.out.println(vm.selectedScene.actFrame);
 	}
 	
-	byte[] saveGetHash(int idx) {
-		return idx>=0 && idx<vm.hashes.size() ? vm.hashes.get(idx) : null;
-	}
-	
 	public void onNextFrame() {
 		if( vm.selectedScene != null){
-			vm.selectedScene.commitDMDchanges(vm.dmd,saveGetHash(vm.selectedHashIndex)); 
+			vm.selectedScene.commitDMDchanges(vm.dmd); 
 			vm.setDirty(vm.dirty|vm.selectedScene.isDirty());
 		}
 		maskHandler.commitMaskIfNeeded(vm.detectionMaskActive);
