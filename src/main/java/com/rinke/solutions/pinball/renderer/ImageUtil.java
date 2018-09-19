@@ -19,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.PinDmdEditor;
 import com.rinke.solutions.pinball.model.Frame;
+import com.rinke.solutions.pinball.model.Mask;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.Plane;
 import com.rinke.solutions.pinball.model.RGB;
@@ -188,7 +189,7 @@ public class ImageUtil {
 		
 		// TODO if has alpha also create a mask
 		if( hasAlpha ) {
-			res.setMask(new byte[dmd.getPlaneSize()]);
+			res.setMask(new Mask(dmd.getPlaneSize()));
 		}
 		
 		Map<Integer,Integer> alphaDist = new HashMap<>();

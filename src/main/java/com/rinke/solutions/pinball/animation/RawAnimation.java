@@ -81,19 +81,6 @@ public class RawAnimation extends Animation {
         return in;
     }
 
-    public Mask getCurrentMask() {
-		Mask maskToUse;
-		// build mask from current frame		
-		Frame frame = frames.get(actFrame);
-		if( !frame.hasMask() ) {
-			byte[] emptyMask = new byte[this.width*this.height/8];
-			Arrays.fill(emptyMask, (byte)0xFF);
-			frame.setMask(emptyMask);
-		}
-		maskToUse = new Mask(frame.mask.data, false);
-		return maskToUse;
-    }
-
 	@Override
 	public void setDimension(int width, int height) {
 		super.setDimension(width, height);
