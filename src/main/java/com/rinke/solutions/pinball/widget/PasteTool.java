@@ -3,8 +3,7 @@ package com.rinke.solutions.pinball.widget;
 import org.bouncycastle.util.Arrays;
 
 import com.rinke.solutions.pinball.model.Frame;
-import com.rinke.solutions.pinball.model.Plane;
-import com.rinke.solutions.pinball.renderer.ImageUtil;
+import com.rinke.solutions.pinball.model.Mask;
 import com.rinke.solutions.pinball.util.ByteUtil;
 
 /**
@@ -36,19 +35,19 @@ public class PasteTool extends DrawTool {
 			int y = iy - dy;
 			dmd.copyLastBuffer();
 			if( maskOnly ) {
-				byte[] plane = copyShiftedPlane(x, y, frameToPaste.mask, true);
-				dmd.setMask(plane);
+				byte[] plane = copyShiftedPlane(x, y, frameToPaste.mask.data, true);
+				dmd.setMask(new Mask(plane,false));
 			} else {
 				int planeMask = dmd.getDrawMask()>>1;
 				Frame dest = dmd.getFrame();
 				byte[] maskPlane = null;
 				if( frameToPaste.hasMask() ) {
-					maskPlane = copyShiftedPlane(x, y, new Plane(Plane.xMASK,frameToPaste.mask.data), false);
+					maskPlane = copyShiftedPlane(x, y, frameToPaste.mask.data, false);
 					//ImageUtil.dumpPlane(maskPlane, 16);
 				}
 				for( int j = 0; j < dest.planes.size(); j++) {
 					if (((1 << j) & planeMask) != 0) {
-						byte[] plane = copyShiftedPlane(x, y, frameToPaste.planes.get(j), false);
+						byte[] plane = copyShiftedPlane(x, y, frameToPaste.planes.get(j).data, false);
 						if( frameToPaste.hasMask() ) {
 							for( int i = 0; i < planeSize; i++) {
 								dest.planes.get(j).data[i] = (byte) ((plane[i] & maskPlane[i]) | ( dest.planes.get(j).data[i] & ~maskPlane[i] ));
@@ -64,7 +63,7 @@ public class PasteTool extends DrawTool {
 		return false;
 	}
 	
-	private byte[] copyShiftedPlane(int x, int y, Plane p, boolean filling) {
+	private byte[] copyShiftedPlane(int x, int y, byte[] planeData, boolean filling) {
 		byte[] plane = new byte[planeSize];
 		Arrays.fill(plane, filling?(byte)0xFF:0);
 		byte[] rowBytes = new byte[width/8];
@@ -73,7 +72,7 @@ public class PasteTool extends DrawTool {
 			int destRow = row+y;
 			if( destRow >= 0 && destRow < height) {
 				// copy row to shift
-				System.arraycopy(p.data, bytesPerRow*row, rowBytes, 0, bytesPerRow);
+				System.arraycopy(planeData, bytesPerRow*row, rowBytes, 0, bytesPerRow);
 				ByteUtil.shift(rowBytes, x, filling);
 				System.arraycopy(rowBytes, 0, plane, bytesPerRow*destRow, bytesPerRow);
 			} 
