@@ -558,7 +558,7 @@ public class Animation {
                 + ", transitionName=" + transitionName + ", transitionDelay=" + transitionDelay + ", desc=" + desc + "]";
     }
 
-	public void commitDMDchanges(DMD dmd, byte[] hash) {
+	public void commitDMDchanges(DMD dmd) {
 	}
 
 	public boolean isMutable() {
