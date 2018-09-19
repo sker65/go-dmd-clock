@@ -1,5 +1,7 @@
 .project
 .classpath
+reports
+pluginsx
 target
 /build
 /.settings
