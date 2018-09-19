@@ -386,10 +386,6 @@ public class ViewModel extends AbstractModel {
 		firePropertyChange("availableEditModes", this.availableEditModes, this.availableEditModes = availableEditModes);
 	}
 
-	public EditMode getSelectedEditMode() {
-		return selectedEditMode;
-	}
-
 	public void setSelectedEditMode(EditMode selectedEditMode) {
 		firePropertyChange("selectedEditMode", this.selectedEditMode, this.selectedEditMode = selectedEditMode);
 	}
