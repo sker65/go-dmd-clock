@@ -438,11 +438,10 @@ public class ProjectHandler extends AbstractCommandHandler {
 			for (FrameSeq p : frameSeqMap.values()) {
 				CompiledAnimation ani = vm.scenes.get(p.name);			
 				ani.actFrame = 0;
-				DMD tmp = new DMD(vm.dmdSize);
 				for (int i = 0; i <= ani.end; i++) {
-					Mask mask = ani.getActualFrame().hasMask() ? mask = ani.getCurrentMask() : null;
-					Frame frame = new Frame( ani.render(tmp, false) ); // copy frames to not remove in org
-					// remove planes not in mask
+					// copy before exporting
+					Frame frame = new Frame(ani.frames.get(i));
+					// remove planes not in plane mask
 					int pl = 0;
 					for (Iterator<Plane> iter = frame.planes.iterator(); iter.hasNext();) {
 						iter.next();
@@ -457,7 +456,6 @@ public class ProjectHandler extends AbstractCommandHandler {
 						frame.planes.remove(10); frame.planes.remove(10); frame.planes.remove(10);
 						frame.planes.remove(15); frame.planes.remove(15); frame.planes.remove(15);
 					}
-					frame.setMask(mask);
 					p.frames.add(frame);
 				}
 			}
