@@ -242,6 +242,7 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 		} else {
 			vm.setSelectedKeyFrame(null);
 		}
+		vm.setBtnSetHashEnabled(nk != null);
 		vm.setDeleteKeyFrameEnabled(nk != null);
 		vm.setSetKeyFramePalEnabled(nk != null && SwitchMode.PALETTE.equals(nk.switchMode));
 		vm.setFetchDurationEnabled(nk != null);
@@ -263,6 +264,26 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 
 	public void onSelectedFrameSeqChanged(Animation old, Animation ani) {
 		vm.setBtnAddFrameSeqEnabled(ani != null && vm.selectedRecording!=null);
+	}
+
+	byte[] saveGetHash(int idx) {
+		return idx>=0 && idx<vm.hashes.size() ? vm.hashes.get(idx) : null;
+	}
+	
+	public void onSetHash() {
+		if( vm.selectedHashIndex != -1 ) {
+			byte[] hash = saveGetHash(vm.selectedHashIndex);
+			if( vm.selectedKeyFrame != null ) {
+				vm.selectedKeyFrame.setDigest(hash);
+				vm.selectedKeyFrame.hashIndex = vm.selectedHashIndex;
+			} else {
+				if( vm.selectedEditMode.haveLocalMask ) {
+					// Update hash in scene and lock mask (for scene masks)
+					vm.selectedScene.getActualFrame().setHash(hash);
+					vm.setHashVal(HashCmdHandler.getPrintableHashes(hash));
+				}
+			}
+		}
 	}
 
 }
