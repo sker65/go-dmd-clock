@@ -74,7 +74,7 @@ public class EditorViewBinding extends AbstractCommandHandler implements ViewBin
 		updateTitle(this.internalName, vm.dirty);
 	}
 	
-	private Runnable animation = new Runnable() {
+	Runnable animation = new Runnable() {
 		@Override
 		public void run() {
 			if( !animationHandler.isStopped() ) {
