@@ -18,7 +18,7 @@ import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.animation.CompiledAnimation.RecordingLink;
 import com.rinke.solutions.pinball.model.Bookmark;
 import com.rinke.solutions.pinball.model.PalMapping;
-import com.rinke.solutions.pinball.ui.EditLink;
+import com.rinke.solutions.pinball.ui.EditLinkView;
 import com.rinke.solutions.pinball.util.MessageUtil;
 import com.rinke.solutions.pinball.view.View;
 import com.rinke.solutions.pinball.view.model.ViewModel;
@@ -199,12 +199,12 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 	}
 	
 	public void onEditLink() {
-		EditLink editLinkDialog = (EditLink) editLink;
+		EditLinkView editLinkDialog = (EditLinkView) editLink;
 		editLinkDialog.setRecordings(vm.recordings);
 		editLinkDialog.setSceneName(vm.selectedScene.getDesc());
 		editLinkDialog.setRecordingLink(vm.selectedScene.getRecordingLink());
 		editLinkDialog.open();
-		if( editLinkDialog.okClicked && vm.selectedScene != null) {
+		if( editLinkDialog.okClicked() && vm.selectedScene != null) {
 			vm.selectedScene.setRecordingLink(editLinkDialog.getRecordingLink());
 		}
 	}
