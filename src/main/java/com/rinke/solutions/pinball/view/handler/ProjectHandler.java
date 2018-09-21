@@ -54,7 +54,6 @@ import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.PaletteType;
 import com.rinke.solutions.pinball.model.Plane;
 import com.rinke.solutions.pinball.model.Project;
-import com.rinke.solutions.pinball.swt.SWTDispatcher;
 import com.rinke.solutions.pinball.ui.Progress;
 import com.rinke.solutions.pinball.util.Config;
 import com.rinke.solutions.pinball.util.FileChooserUtil;
@@ -372,7 +371,9 @@ public class ProjectHandler extends AbstractCommandHandler {
 						frameSeq.mask = 0b11111111111111111111111111111100;
 					}
 					if (p.switchMode.equals(SwitchMode.LAYEREDCOL) ) { // ref the scene local masks
-						frameSeq.masks = vm.scenes.get(p.frameSeqName).getMasks();
+						// filter out unlocked masks		
+						frameSeq.masks = vm.scenes.get(p.frameSeqName).getMasks()
+								.stream().filter(m->m.locked).collect(Collectors.toList());
 					}
 					frameSeq.reorderMask = (p.switchMode.equals(SwitchMode.FOLLOW) || p.switchMode.equals(SwitchMode.FOLLOWREPLACE ));
 					frameSeqMap.put(p.frameSeqName, frameSeq);
