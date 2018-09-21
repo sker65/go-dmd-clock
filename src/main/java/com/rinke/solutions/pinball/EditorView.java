@@ -142,8 +142,8 @@ public class EditorView implements MainView {
 
 	@GuiBinding( prop=LABEL, propName="timecode" ) Label lblTcval;
 	@GuiBinding( prop=LABEL, propName="selectedFrame" ) Label lblFrameNo;
-	@GuiBinding( prop=LABEL, propName="hashVal" )private Label lblHashVal;
-	@GuiBinding( prop=LABEL, propName="linkVal" )private Label lblLinkVal;
+	@GuiBinding( prop=LABEL, propName="hashVal" ) Label lblHashVal;
+	@GuiBinding( prop=LABEL, propName="linkVal" ) Label lblLinkVal;
 
 	/** instance level SWT widgets */
 	Button btnHash[];// = new Button[numberOfHashes];
@@ -212,6 +212,8 @@ public class EditorView implements MainView {
 	Button layerMask;
 	@GuiBinding( prop=SELECTION, propName="livePreviewActive") 
 	Button btnLivePreview;
+	@GuiBinding( prop=ENABLED )
+	Button btnLink;
 
 	Menu menuPopRecentProjects;
 	Menu mntmRecentAnimations;
@@ -384,13 +386,13 @@ public class EditorView implements MainView {
 		mntmRedo.addListener(SWT.Selection, e -> dispatchCmd(REDO));
 
 		MenuItem mntmAnimations = new MenuItem(menu, SWT.CASCADE);
-		mntmAnimations.setText("&Animations");
+		mntmAnimations.setText("&Scene / Recording");
 
 		Menu menu_2 = new Menu(mntmAnimations);
 		mntmAnimations.setMenu(menu_2);
 
 		MenuItem mntmLoadAnimation = new MenuItem(menu_2, SWT.NONE);
-		mntmLoadAnimation.setText("Load Animation(s)");
+		mntmLoadAnimation.setText("Load Scene(s)");
 		mntmLoadAnimation.addListener(SWT.Selection, e -> dispatchCmd(LOAD_ANI_WITH_FC,true));
 		
 		MenuItem mntmLoadRecordings = new MenuItem(menu_2, SWT.NONE);
@@ -398,38 +400,42 @@ public class EditorView implements MainView {
 		mntmLoadRecordings.addListener(SWT.Selection, e -> dispatchCmd(LOAD_ANI_WITH_FC,true));
 		
 		MenuItem mntmSaveAnimation = new MenuItem(menu_2, SWT.NONE);
-		mntmSaveAnimation.setText("Save Animation(s) ...");
+		mntmSaveAnimation.setText("Save Scene(s) ...");
 		mntmSaveAnimation.addListener(SWT.Selection, e -> dispatchCmd(SAVE_ANI_WITH_FC,1));
 		
 		MenuItem mntmSaveSingleAnimation = new MenuItem(menu_2, SWT.NONE);
-		mntmSaveSingleAnimation.setText("Save single Animation");
+		mntmSaveSingleAnimation.setText("Save single Scene");
 		mntmSaveSingleAnimation.addListener(SWT.Selection, e -> dispatchCmd(SAVE_SINGLE_ANI_WITH_FC,1));
 		
+		separator(menu_2);
+
 		MenuItem mntmQuantizeScene = new MenuItem(menu_2, SWT.NONE);
 		mntmQuantizeScene.setText("Quantize Scene");
-		mntmQuantizeScene.addListener(SWT.Selection, e -> dispatchCmd("quantizeScene"));
+		mntmQuantizeScene.addListener(SWT.Selection, e -> dispatchCmd(QUANTIZE_SCENE));
 
 		MenuItem mntmConvertSceneToRGB = new MenuItem(menu_2, SWT.NONE);
 		mntmConvertSceneToRGB.setText("Convert Scene to RGB");
-		mntmConvertSceneToRGB.addListener(SWT.Selection, e -> dispatchCmd("convertSceneToRGB"));
-
+		mntmConvertSceneToRGB.addListener(SWT.Selection, e -> dispatchCmd(CONVERT_SCENE_TO_RGB));
+				
+		MenuItem mntmUnlockSceneMasks = new MenuItem(menu_2, SWT.NONE);
+		mntmUnlockSceneMasks.setText("Unlock Scene Masks");
+		mntmUnlockSceneMasks.addListener(SWT.Selection, e -> dispatchCmd(UNLOCK_SCENE_MASKS));
+		
 		MenuItem mntmRecentAnimationsItem = new MenuItem(menu_2, SWT.CASCADE);
 		mntmRecentAnimationsItem.setText("Recent Animations");
-
+				
 		mntmRecentAnimations = new Menu(mntmRecentAnimationsItem);
 		mntmRecentAnimationsItem.setMenu(mntmRecentAnimations);
-
-		separator(menu_2);
 		
+		separator(menu_2);
+
 		MenuItem mntmPlayFullscreen = new MenuItem(menu_2, SWT.NONE);
 		mntmPlayFullscreen.setText("Play Fullscreen");
 		mntmPlayFullscreen.setAccelerator(SWT.MOD1 + SWT.F11);
 		mntmPlayFullscreen.addListener(SWT.Selection, e -> playFullScreen() );
-		
-		separator(menu_2);
 
 		MenuItem mntmExportAnimation = new MenuItem(menu_2, SWT.NONE);
-		mntmExportAnimation.setText("Export Animation as GIF");	
+		mntmExportAnimation.setText("Export Scene as GIF");	
 		mntmExportAnimation.addListener(SWT.Selection, e -> dispatchCmd(EXPORT_GIF));
 
 		MenuItem mntmExportForGodmd = new MenuItem(menu_2, SWT.NONE);
@@ -824,11 +830,11 @@ public class EditorView implements MainView {
 		
 		lblLinkVal = new Label(grpDetails, SWT.NONE);
 		GridData gd_lblLinkVal = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
-		gd_lblLinkVal.widthHint = 79;
+		gd_lblLinkVal.widthHint = 139;
 		lblLinkVal.setLayoutData(gd_lblLinkVal);
 		lblLinkVal.setText("---");
 		
-		Button btnLink = new Button(grpDetails, SWT.NONE);
+		btnLink = new Button(grpDetails, SWT.NONE);
 		btnLink.setText("Link");
 		btnLink.addListener(SWT.Selection, e->dispatchCmd(EDIT_LINK));
 		
