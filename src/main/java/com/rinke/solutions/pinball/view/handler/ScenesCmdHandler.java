@@ -20,21 +20,20 @@ import com.rinke.solutions.pinball.model.Bookmark;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.ui.EditLinkView;
 import com.rinke.solutions.pinball.util.MessageUtil;
-import com.rinke.solutions.pinball.view.View;
 import com.rinke.solutions.pinball.view.model.ViewModel;
 
 @Bean
 @Slf4j
 public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBindingHandler {
 
-	@Autowired private MessageUtil messageUtil;
+	@Autowired MessageUtil messageUtil;
 	
 	private List<EditMode> mutable = Arrays.asList( EditMode.REPLACE, EditMode.REPLACE_FOLLOW, EditMode.COLMASK, EditMode.COLMASK_FOLLOW, EditMode.LAYEREDCOL );
 
 	@Autowired DrawCmdHandler drawCmdHandler;
 	@Autowired MaskHandler maskHandler;
 	
-	@Autowired View editLink;
+	@Autowired EditLinkView editLink;
 
 	public ScenesCmdHandler(ViewModel vm) {
 		super(vm);
@@ -199,13 +198,12 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 	}
 	
 	public void onEditLink() {
-		EditLinkView editLinkDialog = (EditLinkView) editLink;
-		editLinkDialog.setRecordings(vm.recordings);
-		editLinkDialog.setSceneName(vm.selectedScene.getDesc());
-		editLinkDialog.setRecordingLink(vm.selectedScene.getRecordingLink());
-		editLinkDialog.open();
-		if( editLinkDialog.okClicked() && vm.selectedScene != null) {
-			vm.selectedScene.setRecordingLink(editLinkDialog.getRecordingLink());
+		editLink.setRecordings(vm.recordings);
+		editLink.setSceneName(vm.selectedScene.getDesc());
+		editLink.setRecordingLink(vm.selectedScene.getRecordingLink());
+		editLink.open();
+		if( editLink.okClicked() && vm.selectedScene != null) {
+			vm.selectedScene.setRecordingLink(editLink.getRecordingLink());
 		}
 	}
 	

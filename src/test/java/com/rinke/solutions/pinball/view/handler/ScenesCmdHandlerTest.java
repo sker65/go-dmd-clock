@@ -2,6 +2,9 @@ package com.rinke.solutions.pinball.view.handler;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
 
 import java.util.Set;
 import java.util.TreeSet;
@@ -16,12 +19,14 @@ import org.mockito.runners.MockitoJUnitRunner;
 import com.rinke.solutions.pinball.AnimationHandler;
 import com.rinke.solutions.pinball.animation.AnimationType;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
+import com.rinke.solutions.pinball.animation.CompiledAnimation.RecordingLink;
 import com.rinke.solutions.pinball.model.Bookmark;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.PalMapping.SwitchMode;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.RGB;
-import com.rinke.solutions.pinball.view.model.ViewModel;
+import com.rinke.solutions.pinball.ui.EditLinkView;
+import com.rinke.solutions.pinball.util.MessageUtil;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ScenesCmdHandlerTest extends HandlerTest {
@@ -30,17 +35,16 @@ public class ScenesCmdHandlerTest extends HandlerTest {
 	
 	@Mock DrawCmdHandler drawCmdHandler;
 	@Mock MaskHandler maskHandler;
+	@Mock MessageUtil messageUtil;
+	@Mock EditLinkView editLink;
 
-	private ScenesCmdHandler uut;
+	@InjectMocks
+	private ScenesCmdHandler uut = new ScenesCmdHandler(vm);
 
 	@Before
 	public void setUp() throws Exception {
 		// setup some hashes
 		vm.hashes.add( new byte[]{0,1,2,3});
-		this.uut = new ScenesCmdHandler(vm);
-		this.uut.animationHandler = animationHandler;
-		this.uut.drawCmdHandler = drawCmdHandler;
-		this.uut.maskHandler = maskHandler;
 	}
 	
 	@Test
@@ -137,6 +141,29 @@ public class ScenesCmdHandlerTest extends HandlerTest {
 	public void testOnSelectedSceneChangedWithNextSceneNull() throws Exception {
 		CompiledAnimation oldScene = getScene("old");
 		uut.onSelectedSceneChanged(oldScene , null);
+	}
+
+	@Test
+	public void testOnUnlockSceneMasks() throws Exception {
+		vm.selectedScene = getScene("foo");
+		when(messageUtil.warn(eq(0), anyString(), anyString(), anyString(), anyObject(), eq(2))).thenReturn(2);
+		uut.onUnlockSceneMasks();
+	}
+
+	@Test
+	public void testOnEditLink() throws Exception {
+		vm.selectedScene = getScene("foo");
+		uut.onEditLink();
+	}
+
+	@Test
+	public void testOnEditLinkWithSetting() throws Exception {
+		vm.selectedScene = getScene("foo");
+		when(editLink.okClicked()).thenReturn(true);
+		RecordingLink rl = new RecordingLink("foo", 1234);
+		when(editLink.getRecordingLink()).thenReturn(rl);
+		uut.onEditLink();
+		assertThat( vm.selectedScene.getRecordingLink().associatedRecordingName, is("foo") );
 	}
 	
 }
