@@ -100,6 +100,7 @@ public class ViewModel extends AbstractModel {
 	@ViewBinding public boolean redoEnabled;
 	@ViewBinding public boolean btnInvertEnabled;
 	@ViewBinding public boolean deleteColMaskEnabled;
+	@ViewBinding public boolean btnLinkEnabled;
 	
 	@ViewBinding public int duration;
 	
@@ -601,6 +602,10 @@ public class ViewModel extends AbstractModel {
 
 	public void setBtnSetHashEnabled(boolean btnSetHashEnabled) {
 		firePropertyChange("btnSetHashEnabled", this.btnSetHashEnabled, this.btnSetHashEnabled = btnSetHashEnabled);
+	}
+
+	public void setBtnLinkEnabled(boolean btnLinkEnabled) {
+		firePropertyChange("btnLinkEnabled", this.btnLinkEnabled, this.btnLinkEnabled = btnLinkEnabled);
 	}
 
 }
