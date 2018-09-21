@@ -12,13 +12,15 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.Bean;
-import com.rinke.solutions.pinball.PinDmdEditor;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.Animation.EditMode;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
+import com.rinke.solutions.pinball.animation.CompiledAnimation.RecordingLink;
 import com.rinke.solutions.pinball.model.Bookmark;
 import com.rinke.solutions.pinball.model.PalMapping;
+import com.rinke.solutions.pinball.ui.EditLink;
 import com.rinke.solutions.pinball.util.MessageUtil;
+import com.rinke.solutions.pinball.view.View;
 import com.rinke.solutions.pinball.view.model.ViewModel;
 
 @Bean
@@ -31,6 +33,8 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 
 	@Autowired DrawCmdHandler drawCmdHandler;
 	@Autowired MaskHandler maskHandler;
+	
+	@Autowired View editLink;
 
 	public ScenesCmdHandler(ViewModel vm) {
 		super(vm);
@@ -63,9 +67,11 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 			vm.setLayerMaskEnabled(m.enableLayerMask);
 			vm.setDetectionMaskActive(false);
 			vm.setLayerMaskActive(false);
+			vm.setBtnLinkEnabled(m.haveLocalMask);
 			
-			if( m.haveLocalMask && nextScene.getRecordingLink() != null) {
-				vm.setLinkVal(nextScene.getRecordingLink().associatedRecordingName);
+			if( nextScene.getRecordingLink() != null) {
+				RecordingLink rl = nextScene.getRecordingLink();
+				vm.setLinkVal(rl.associatedRecordingName+":"+rl.startFrame);
 			} else {
 				vm.setLinkVal("-");
 			}
@@ -111,6 +117,7 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 			
 		} else {
 			vm.setDrawingEnabled(false);
+			vm.setBtnLinkEnabled(false);
 		}
 		// v.goDmdGroup.updateAniModel(nextScene);
 		vm.setDeleteSceneEnabled(nextScene!=null);
@@ -150,8 +157,7 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 					break;
 				}
 			}
-		}
-		
+		}	
 	}
 
 	/**
@@ -192,4 +198,29 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 		vm.setDirty(true);
 	}
 	
+	public void onEditLink() {
+		EditLink editLinkDialog = (EditLink) editLink;
+		editLinkDialog.setRecordings(vm.recordings);
+		editLinkDialog.setSceneName(vm.selectedScene.getDesc());
+		editLinkDialog.setRecordingLink(vm.selectedScene.getRecordingLink());
+		editLinkDialog.open();
+		if( editLinkDialog.okClicked && vm.selectedScene != null) {
+			vm.selectedScene.setRecordingLink(editLinkDialog.getRecordingLink());
+		}
+	}
+	
+	public void onUnlockSceneMasks() {
+		if( vm.selectedScene != null ) {
+			int res = messageUtil.warn(0, "Warning",
+					"Unlock Scene Masks", 
+					"Unlocking scene masks will allowed changes to the masks attached to the scene.\n"
+							+ " But hashes for all frames will be deleted and must be set again.",
+					new String[]{"", "Cancel", "Proceed"},2);
+			if( res != 2 ) return;
+			vm.selectedScene.getMasks().stream().forEach(m->m.locked=false);
+			vm.selectedScene.frames.stream().forEach(f->f.crc32 = new byte[4]);
+			vm.setHashVal("");
+			vm.setDmdDirty(true);
+		}
+	}
 }
