@@ -203,6 +203,8 @@ public class ViewModel extends AbstractModel {
 	@ViewBinding public ObservableMap<Integer,Palette> paletteMap = new ObservableMap<>(new LinkedHashMap<>());
 	@ViewBinding public int selectedColor;
 	
+	public int loadedAniVersion; 	// remember ani version wenn loading a project, to support messaging for incompatible changes
+	
 	public void setDmdSize(DmdSize dmdSize) {
 		firePropertyChange("dmdSize", this.dmdSize, this.dmdSize = dmdSize);
 	}
@@ -606,6 +608,10 @@ public class ViewModel extends AbstractModel {
 
 	public void setBtnLinkEnabled(boolean btnLinkEnabled) {
 		firePropertyChange("btnLinkEnabled", this.btnLinkEnabled, this.btnLinkEnabled = btnLinkEnabled);
+	}
+
+	public void setLoadedAniVersion(int loadedAniVersion) {
+		firePropertyChange("loadedAniVersion", this.loadedAniVersion, this.loadedAniVersion = loadedAniVersion);
 	}
 
 }
