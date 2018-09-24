@@ -37,6 +37,7 @@ import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.Dispatcher;
 import com.rinke.solutions.pinball.DmdSize;
 import com.rinke.solutions.pinball.Worker;
+import com.rinke.solutions.pinball.animation.AniReader;
 import com.rinke.solutions.pinball.animation.AniWriter;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
@@ -80,7 +81,9 @@ public class ProjectHandler extends AbstractCommandHandler {
 	
 	@Value
 	boolean backup;
-	
+
+	public static final int CURRENT_PRJ_ANI_VERSION = 6;
+
 	public ProjectHandler(ViewModel vm) {
 		super(vm);
 	}
@@ -238,7 +241,9 @@ public class ProjectHandler extends AbstractCommandHandler {
 			if( w!=null) w.notify(90, "loading prject ani "+aniFilename);
 
 			dispatcher.syncExec(()->{
-				List<Animation> loadedWithProject = aniAction.loadAni(aniFilename, true, false, progress);
+				AniReader reader = new AniReader();
+				List<Animation> loadedWithProject = reader.read(aniFilename);
+				vm.setLoadedAniVersion(reader.version);
 				loadedWithProject.stream().forEach(a->a.setProjectAnimation(true));
 				
 				vm.recordingNameMap.putAll(p.recordingNameMap);
@@ -490,6 +495,17 @@ public class ProjectHandler extends AbstractCommandHandler {
 		log.info("write project to {}", filename);
 		String aniFilename = replaceExtensionTo("ani", filename);
 		
+		if( vm.loadedAniVersion < CURRENT_PRJ_ANI_VERSION ) {
+			int res = messageUtil.warn(0, "Warning",
+					"Older ani file format", 
+					"This project animation file was written with an older version of the editor.\nSaving the project"
+							+ " will convert it to the new format,\nthat can't be used with older editor versions.",
+					new String[]{"", "Cancel", "Proceed"},2);
+			if( res != 2 ) return;
+		}
+		
+		vm.setLoadedAniVersion(CURRENT_PRJ_ANI_VERSION);
+		
 		if( backup ) {
 			backupFiles(filename, aniFilename);
 		}
@@ -576,7 +592,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 		// only need to save ani's that are 'project' animations
 		List<Animation> prjAnis = vm.scenes.values().stream().filter(a->a.isProjectAnimation()).collect(Collectors.toList());
 		if( !prjAnis.isEmpty() ) {
-			aniAction.storeAnimations(prjAnis, aniFilename, 6, true);
+			aniAction.storeAnimations(prjAnis, aniFilename, CURRENT_PRJ_ANI_VERSION, true);
 		} else {
 			new File(aniFilename).delete(); // delete project ani file
 		}
