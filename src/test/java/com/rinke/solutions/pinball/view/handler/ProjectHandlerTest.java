@@ -6,8 +6,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.nullValue;
-//import static org.hamcrest.Matchers.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 import static org.custommonkey.xmlunit.XMLAssert.*;
@@ -91,6 +89,8 @@ public class ProjectHandlerTest extends HandlerTest {
 		public void syncExec(Runnable runnable) {
 			runnable.run();
 		}};
+
+	private AniReader aniReader = new AniReader();
 	
 	@Before public void setup() {
 		uut.fileHelper = new FileHelper();
@@ -278,7 +278,7 @@ public class ProjectHandlerTest extends HandlerTest {
 		.thenReturn(tempFile.getAbsolutePath());
 		
 		vm.setProjectFilename("foo"); 
-		List<Animation> anis = AniReader.read("src/test/resources/ex1.ani");
+		List<Animation> anis = aniReader .read("src/test/resources/ex1.ani");
 		vm.scenes.put("sc1", (CompiledAnimation) anis.get(0));
 		PalMapping k = new PalMapping(1, "foo");
 		k.switchMode = SwitchMode.ADD;
@@ -327,8 +327,8 @@ public class ProjectHandlerTest extends HandlerTest {
 		uut.saveProject(tempFile);
 		XMLUnit.setIgnoreWhitespace(true);
 		assertXMLEqual(new FileReader("./src/test/resources/ex1.xml"), new FileReader(tempFile));
-		Animation ani = AniReader.read(testFolder.getRoot()+"/ex1.ani").get(0);
-		Animation ani2 = AniReader.read("./src/test/resources/ex1.ani").get(0);
+		Animation ani = aniReader.read(testFolder.getRoot()+"/ex1.ani").get(0);
+		Animation ani2 = aniReader.read("./src/test/resources/ex1.ani").get(0);
 		compare(ani,ani2);
 		assertNull(Util.isBinaryIdentical(testFolder.getRoot()+"/ex1.ani", "./src/test/resources/ex1.ani"));
 	}

@@ -23,15 +23,16 @@ import com.rinke.solutions.pinball.model.RGB;
 @Slf4j
 public class AniReader {
 	
+	public short version = 0;
+	
 	public static int unsignedByte(byte b) {
 	    return b & 0xFF;
 	}
 
-	public static List<Animation> read(String filename) {
+	public List<Animation> read(String filename) {
 		List<Animation> anis = new ArrayList<>();
 		log.info("reading animations from {}",filename);
 		DataInputStream is = null;
-		short version = 0;
 		try {
 			is = new DataInputStream(new FileInputStream(filename));
 			byte[] magic = new byte[4];

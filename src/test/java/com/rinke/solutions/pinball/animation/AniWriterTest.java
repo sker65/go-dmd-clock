@@ -49,8 +49,8 @@ public class AniWriterTest {
 		List<Animation> anis = Arrays.asList(scene);
 		uut = new AniWriter(anis , filename , 6, getDefaultPaletteMap(Palette.getDefaultPalettes()), null);
 		uut.innerRun();
-		
-		List<Animation> an = AniReader.read(filename);
+		AniReader reader = new AniReader();
+		List<Animation> an = reader.read(filename);
 		CompiledAnimation a = (CompiledAnimation) an.get(0);
 		assertEquals(1, a.getMasks().size());
 		assertEquals("foo", a.getRecordingLink().associatedRecordingName);

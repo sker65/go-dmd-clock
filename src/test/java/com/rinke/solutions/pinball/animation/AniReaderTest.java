@@ -13,14 +13,16 @@ public class AniReaderTest {
 	@Rule
     public TemporaryFolder testFolder = new TemporaryFolder();
 	
+	AniReader aniReader = new AniReader();
+	
 	@Test
-			public void testRead() throws Exception {
-				AniReader.read("./src/test/resources/test.ani");
-			}
+	public void testRead() throws Exception {
+		aniReader.read("./src/test/resources/test.ani");
+	}
 
 	@Test
 	public void testWriteToCompiledFile() throws Exception {
-		List<Animation> list = AniReader.read("./src/test/resources/test.ani");
+		List<Animation> list = aniReader.read("./src/test/resources/test.ani");
 		String filename = testFolder.newFile().getAbsolutePath();
 		AniWriter.write(list, filename, 1, Collections.emptyMap());
 	}

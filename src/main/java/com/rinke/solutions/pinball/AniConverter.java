@@ -48,7 +48,8 @@ public class AniConverter {
 
 	
 	public void convert(String src, String dest, Map<Integer,Palette> palettes) {
-		List<Animation> anis = AniReader.read(src);
+		AniReader aniReader = new AniReader();
+		List<Animation> anis = aniReader .read(src);
 		
 		anis.stream().forEach(a->a.setProjectAnimation(true));
 		

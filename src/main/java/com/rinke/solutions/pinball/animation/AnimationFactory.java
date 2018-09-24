@@ -58,7 +58,8 @@ public class AnimationFactory {
 		// load compiled file if any
 		if( conf.containsKey("compiled")) {
 			String file = conf.getProperty("compiled");
-			result.addAll(AniReader.read(file));
+			AniReader aniReader = new AniReader();
+			result.addAll(aniReader.read(file));
 		}
 		
 		if( conf.containsKey("base")) {

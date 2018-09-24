@@ -104,7 +104,8 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 		java.util.List<Animation> loadedList = new ArrayList<>();
 		try {
 		if (filename.endsWith(".ani")) {
-			loadedList.addAll(AniReader.read(filename));
+			AniReader reader = new AniReader();
+			loadedList.addAll(reader.read(filename));
 		} else if (filename.endsWith(".txt.gz")) {
 			loadedList.add(AnimationFactory.buildAnimationFromFile(filename, AnimationType.MAME));
 		} else if (filename.endsWith(".properties")) {

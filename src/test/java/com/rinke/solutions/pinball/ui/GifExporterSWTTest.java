@@ -31,7 +31,8 @@ public class GifExporterSWTTest {
 
 	@Before
 	public void setUp() throws Exception {
-		List<Animation> anis = AniReader.read("./src/test/resources/ex1.ani");
+		AniReader r = new AniReader();
+		List<Animation> anis = r.read("./src/test/resources/ex1.ani");
 		gifExporter = new GifExporter();
 		gifExporter.setAni(anis.get(0));
 		gifExporter.setPalette(palette);
