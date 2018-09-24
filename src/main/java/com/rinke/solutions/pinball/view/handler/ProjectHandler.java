@@ -241,11 +241,10 @@ public class ProjectHandler extends AbstractCommandHandler {
 			if( w!=null) w.notify(90, "loading prject ani "+aniFilename);
 
 			dispatcher.syncExec(()->{
-				AniReader reader = new AniReader();
-				List<Animation> loadedWithProject = reader.read(aniFilename);
-				vm.setLoadedAniVersion(reader.version);
+				List<Animation> loadedWithProject = aniAction.loadAni(aniFilename, true, false, progress);
+				vm.setLoadedAniVersion(aniAction.getVersionOfLastLoad());
 				loadedWithProject.stream().forEach(a->a.setProjectAnimation(true));
-				
+
 				vm.recordingNameMap.putAll(p.recordingNameMap);
 				vm.setSelectedPalette(firstFromMap(vm.paletteMap));
 				
