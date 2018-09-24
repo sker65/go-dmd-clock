@@ -106,14 +106,12 @@ public class CompiledAnimation extends Animation {
     }
 
     public Mask getCurrentMask() {
-		Mask maskToUse;
-		// build mask from current frame		
+		// create mask for current frame on the fly if there is none		
 		Frame frame = frames.get(actFrame);
 		if( !frame.hasMask() ) {
 			frame.setMask(new Mask(this.width*this.height/8));
 		}
-		maskToUse = new Mask(frame.mask.data, false);
-		return maskToUse;
+		return frame.mask;
     }
 
     // looks like there is a chance that commit gets called on an new (already switched) animation, while dmd
