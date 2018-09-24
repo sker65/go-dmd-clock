@@ -249,8 +249,8 @@ public class ConfigDialog extends Dialog implements View {
         Group grpCutting = new Group(grpFoo, SWT.NONE);
         grpCutting.setText("Cutting");
         FormData fd_grpCutting = new FormData();
-        fd_grpCutting.left = new FormAttachment(0);
         fd_grpCutting.top = new FormAttachment(0);
+        fd_grpCutting.left = new FormAttachment(0);
         fd_grpCutting.right = new FormAttachment(100, -228);
         grpCutting.setLayoutData(fd_grpCutting);
         
@@ -276,7 +276,7 @@ public class ConfigDialog extends Dialog implements View {
         spinnerNoPlanes.setMaximum(15);
         
         Group grpExport = new Group(grpFoo, SWT.NONE);
-        grpExport.setText("Export");
+        grpExport.setText("Export / Save");
         FormData fd_grpExport = new FormData();
         fd_grpExport.right = new FormAttachment(100, -10);
         fd_grpExport.left = new FormAttachment(grpCutting, 6);
@@ -289,13 +289,21 @@ public class ConfigDialog extends Dialog implements View {
         
         Group grpGeneral = new Group(grpFoo, SWT.NONE);
         fd_grpCutting.bottom = new FormAttachment(grpGeneral, 0, SWT.BOTTOM);
-        fd_grpExport.bottom = new FormAttachment(100, -123);
+        fd_grpExport.bottom = new FormAttachment(grpGeneral, -14);
         grpGeneral.setText("General");
         FormData fd_grpGeneral = new FormData();
         fd_grpGeneral.right = new FormAttachment(100, -10);
         fd_grpGeneral.left = new FormAttachment(grpCutting, 6);
-        fd_grpGeneral.bottom = new FormAttachment(grpExport, 97, SWT.BOTTOM);
-        fd_grpGeneral.top = new FormAttachment(grpExport, 6);
+        fd_grpGeneral.bottom = new FormAttachment(100, -10);
+        fd_grpGeneral.top = new FormAttachment(0, 88);
+        
+        Combo comboAniVersion = new Combo(grpExport, SWT.NONE);
+        comboAniVersion.setBounds(10, 29, 40, 22);
+        comboAniVersion.setItems("1","2","3","4","5","6");
+        
+        Label lblAniFormatVersion = new Label(grpExport, SWT.NONE);
+        lblAniFormatVersion.setBounds(56, 34, 142, 14);
+        lblAniFormatVersion.setText("Ani Format version ");
         grpGeneral.setLayoutData(fd_grpGeneral);
         
         btnNoQuitWarning = new Button(grpGeneral, SWT.CHECK);
