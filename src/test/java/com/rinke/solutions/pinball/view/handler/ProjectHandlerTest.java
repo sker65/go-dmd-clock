@@ -294,6 +294,7 @@ public class ProjectHandlerTest extends HandlerTest {
 
 	@Test
 	public void testSaveProject() throws Exception {
+		when(messageUtil.warn(eq(0), anyString(), anyString(), anyString(), anyObject(), eq(2))).thenReturn(2);
 		String filename = testFolder.newFile("test.xml").getAbsolutePath();
 		uut.saveProject(filename);
 		// validate that there are 9 default palette
@@ -304,6 +305,7 @@ public class ProjectHandlerTest extends HandlerTest {
 
 	@Test
 	public void testSaveProjectWihtoutDefPalette() throws Exception {
+		when(messageUtil.warn(eq(0), anyString(), anyString(), anyString(), anyObject(), eq(2))).thenReturn(2);
 		String filename = testFolder.newFile("test.xml").getAbsolutePath();
 		vm.paletteMap.clear();
 		uut.saveProject(filename);
@@ -322,6 +324,7 @@ public class ProjectHandlerTest extends HandlerTest {
 
 	@Test
 	public final void testLoadAndSaveProject() throws Exception {
+//		when(messageUtil.warn(eq(0), anyString(), anyString(), anyString(), anyObject(), eq(2))).thenReturn(2);
 		String tempFile = testFolder.newFile("ex1.xml").getPath();
 		uut.onLoadProjectWithProgress("./src/test/resources/ex1.xml", null);
 		uut.saveProject(tempFile);
