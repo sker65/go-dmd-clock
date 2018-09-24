@@ -67,7 +67,6 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 			vm.setDetectionMaskActive(false);
 			vm.setLayerMaskActive(false);
 			vm.setBtnLinkEnabled(m.haveLocalMask);
-			
 			if( nextScene.getRecordingLink() != null) {
 				RecordingLink rl = nextScene.getRecordingLink();
 				vm.setLinkVal(rl.associatedRecordingName+":"+rl.startFrame);
@@ -113,10 +112,16 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 
 			setPlayingAni(nextScene, vm.scenesPosMap.getOrDefault(nextScene.getDesc(), 0));
 			maskHandler.updateDrawingEnabled();
-			
+			if( m.haveLocalMask ) {
+				vm.setHashVal(HashCmdHandler.getPrintableHashes(nextScene.getActualFrame().crc32));
+			} else {
+				vm.setHashVal("");
+			}
+						
 		} else {
 			vm.setDrawingEnabled(false);
 			vm.setBtnLinkEnabled(false);
+			vm.setHashVal("");
 		}
 		// v.goDmdGroup.updateAniModel(nextScene);
 		vm.setDeleteSceneEnabled(nextScene!=null);

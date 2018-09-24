@@ -281,8 +281,10 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 					// Update hash in scene and lock mask (for scene masks)
 					vm.selectedScene.getActualFrame().setHash(hash);
 					vm.setHashVal(HashCmdHandler.getPrintableHashes(hash));
-					vm.dmd.getFrame().mask.locked = true;
-					vm.setDmdDirty(true);
+					if( vm.detectionMaskActive ) {
+						vm.dmd.getFrame().mask.locked = true;
+						vm.setDmdDirty(true);
+					}
 				}
 			}
 		}
