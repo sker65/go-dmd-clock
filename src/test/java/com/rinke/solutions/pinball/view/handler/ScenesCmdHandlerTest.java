@@ -1,11 +1,11 @@
 package com.rinke.solutions.pinball.view.handler;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -17,10 +17,12 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import com.rinke.solutions.pinball.AnimationHandler;
+import com.rinke.solutions.pinball.animation.Animation.EditMode;
 import com.rinke.solutions.pinball.animation.AnimationType;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.animation.CompiledAnimation.RecordingLink;
 import com.rinke.solutions.pinball.model.Bookmark;
+import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.PalMapping.SwitchMode;
 import com.rinke.solutions.pinball.model.Palette;
@@ -109,25 +111,69 @@ public class ScenesCmdHandlerTest extends HandlerTest {
 	}
 
 	@Test
+	public void testOnDeleteSceneWithRefInKeyframe() throws Exception {
+		CompiledAnimation scene = getScene("foo");
+		vm.scenes.put("foo", scene);
+		vm.setSelectedScene(scene);
+		PalMapping palMapping = new PalMapping(1, "k1");
+		palMapping.frameSeqName = "foo";
+		vm.keyframes.put("k1", palMapping );
+		uut.onDeleteScene();
+		verify(messageUtil).warn(anyString(), anyString());
+		assertTrue( vm.scenes.containsKey("foo")); // its reference therefore will not deleted
+	}
+
+	@Test
+	public void testOnDeleteSceneWithSelected() throws Exception {
+		CompiledAnimation scene = getScene("foo");
+		vm.scenes.put("foo", scene);
+		vm.setSelectedScene(scene);
+		uut.onDeleteScene();
+		assertFalse( vm.scenes.containsKey("foo"));
+	}
+
+	@Test
 	public void testOnSortScenes() throws Exception {
 		uut.onSortScenes();
 	}
 
 	@Test
 	public void testUpdateBookmarkNames() throws Exception {
-//		throw new RuntimeException("not yet implemented");
+		Set<Bookmark> bm = new HashSet<Bookmark>();
+		vm.bookmarksMap.put("old", bm );
+		uut.updateBookmarkNames("old", "new");
+		assertFalse( vm.bookmarksMap.containsKey("new"));
 	}
 
 	@Test
 	public void testOnRenameScene() throws Exception {
-//		throw new RuntimeException("not yet implemented");
+		uut.onRenameScene("old", "new");
 	}
 
 	@Test
 	public void testOnSelectedSceneChanged() throws Exception {
-		CompiledAnimation oldScene = null;
-		CompiledAnimation nextScene = getScene(null);
-		uut.onSelectedSceneChanged(oldScene , nextScene);
+		CompiledAnimation nextScene = getScene("foo");
+		uut.onSelectedSceneChanged(null , nextScene);
+		assertEquals(vm.hashVal,"");
+	}
+
+	@Test
+	public void testOnSelectedSceneChangedWithRecordingLink() throws Exception {
+		CompiledAnimation nextScene = getScene("foo");
+		RecordingLink rl = new RecordingLink("rl-foo", 4711);
+		nextScene.setRecordingLink(rl);
+		uut.onSelectedSceneChanged(null , nextScene);
+		assertEquals(vm.linkVal,"rl-foo:4711");
+	}
+
+	@Test
+	public void testOnSelectedSceneChangedWithHash() throws Exception {
+		CompiledAnimation nextScene = getScene("foo");
+		nextScene.setEditMode(EditMode.LAYEREDCOL);
+		Frame frame = nextScene.getActualFrame();
+		frame.crc32 = new byte[]{1,2,3,4};
+		uut.onSelectedSceneChanged(null , nextScene);
+		assertEquals("01020304",vm.hashVal);
 	}
 
 	@Test
@@ -141,6 +187,7 @@ public class ScenesCmdHandlerTest extends HandlerTest {
 	public void testOnSelectedSceneChangedWithNextSceneNull() throws Exception {
 		CompiledAnimation oldScene = getScene("old");
 		uut.onSelectedSceneChanged(oldScene , null);
+		assertEquals(vm.hashVal,"");
 	}
 
 	@Test
