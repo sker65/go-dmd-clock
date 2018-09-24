@@ -299,7 +299,7 @@ public class ConfigDialog extends Dialog implements View {
         
         Combo comboAniVersion = new Combo(grpExport, SWT.NONE);
         comboAniVersion.setBounds(10, 29, 40, 22);
-        comboAniVersion.setItems("1","2","3","4","5","6");
+        comboAniVersion.setItems(new String[]{"1","2","3","4","5","6"});
         
         Label lblAniFormatVersion = new Label(grpExport, SWT.NONE);
         lblAniFormatVersion.setBounds(56, 34, 142, 14);
