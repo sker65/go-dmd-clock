@@ -41,6 +41,7 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 	@Autowired MessageUtil messageUtil;
 	@Autowired FileChooserUtil fileChooserUtil;
 	@Setter private Shell shell;
+	private AniReader reader;
 		
 	public AnimationActionHandler(ViewModel vm) {
 		super(vm);
@@ -50,6 +51,10 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 		return shell!=null ? new Progress(shell) : null;
 	}
 
+	/**
+	 * called from menu directly via action dispatcher. actually version=1 is fixed.
+	 * @param version
+	 */
 	public void onSaveAniWithFC(int version) {
 		String defaultName = vm.selectedRecording!=null ? vm.selectedRecording.getDesc() : "animation";
 		String filename = fileChooserUtil.choose(SWT.SAVE, defaultName, new String[] { "*.ani" }, new String[] { "Animations" });
@@ -104,7 +109,7 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 		java.util.List<Animation> loadedList = new ArrayList<>();
 		try {
 		if (filename.endsWith(".ani")) {
-			AniReader reader = new AniReader();
+			this.reader = new AniReader();
 			loadedList.addAll(reader.read(filename));
 		} else if (filename.endsWith(".txt.gz")) {
 			loadedList.add(AnimationFactory.buildAnimationFromFile(filename, AnimationType.MAME));
@@ -217,6 +222,10 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 		}
 	}
 
+	/**
+	 * called from menu directly via action dispatcher. actually version=1 is fixed.
+	 * @param version
+	 */
 	public void onSaveSingleAniWithFC(int version) {
 		if( vm.selectedScene!=null ) {
 			String filename = fileChooserUtil.choose(SWT.SAVE, vm.selectedScene.getDesc(), new String[] { "*.ani" }, new String[] { "Animations" });
@@ -225,6 +234,10 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 				storeAnimations(Lists.newArrayList(vm.selectedScene), filename, version, true);
 			}
 		}
+	}
+
+	public int getVersionOfLastLoad() {
+		return reader.version;
 	}
 
 }
