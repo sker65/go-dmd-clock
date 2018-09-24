@@ -116,6 +116,7 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 						drawing = false;
 				}
 			}
+			if( m.enableLayerMask && vm.layerMaskActive ) drawing = true; // layer masks always
 			// falls kein masks drawing, dann nur bei editierbaren scenen
 			if( !(vm.detectionMaskActive || vm.layerMaskActive ) ) {
 				drawing = isEditable(vm.playingAnis) ;
