@@ -14,7 +14,7 @@ import com.rinke.solutions.pinball.Worker;
 import com.rinke.solutions.pinball.animation.ProgressEventListener;
 
 @Bean( name="progress", scope=Scope.PROTOTYPE)
-public class Progress extends Dialog implements ProgressEventListener {
+public class Progress extends Dialog implements IProgress {
 
 	protected Shell shell;
 	private Display display;

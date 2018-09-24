@@ -55,6 +55,7 @@ import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.PaletteType;
 import com.rinke.solutions.pinball.model.Plane;
 import com.rinke.solutions.pinball.model.Project;
+import com.rinke.solutions.pinball.ui.IProgress;
 import com.rinke.solutions.pinball.ui.Progress;
 import com.rinke.solutions.pinball.util.Config;
 import com.rinke.solutions.pinball.util.FileChooserUtil;
@@ -69,7 +70,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 	@Autowired FileHelper fileHelper;
 	@Autowired MessageUtil messageUtil;
 	@Autowired Dispatcher dispatcher;
-	@Autowired Progress progress;
+	@Autowired IProgress progress;
 	@Autowired AnimationActionHandler aniAction;
 	@Autowired LicenseManager licenseManager;
 

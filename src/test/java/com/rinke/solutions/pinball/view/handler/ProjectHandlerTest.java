@@ -20,6 +20,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
@@ -29,10 +31,12 @@ import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.Dispatcher;
 import com.rinke.solutions.pinball.DmdSize;
 import com.rinke.solutions.pinball.PinDmdEditor;
+import com.rinke.solutions.pinball.Worker;
 import com.rinke.solutions.pinball.animation.AniReader;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.AnimationType;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
+import com.rinke.solutions.pinball.animation.ProgressEventListener.ProgressEvent;
 import com.rinke.solutions.pinball.api.LicenseManager;
 import com.rinke.solutions.pinball.io.FileHelper;
 import com.rinke.solutions.pinball.model.Frame;
@@ -41,6 +45,7 @@ import com.rinke.solutions.pinball.model.PalMapping.SwitchMode;
 import com.rinke.solutions.pinball.model.Project;
 import com.rinke.solutions.pinball.swt.SWTDispatcher;
 import com.rinke.solutions.pinball.test.Util;
+import com.rinke.solutions.pinball.ui.IProgress;
 import com.rinke.solutions.pinball.ui.Progress;
 import com.rinke.solutions.pinball.util.FileChooserUtil;
 import com.rinke.solutions.pinball.util.MessageUtil;
@@ -58,8 +63,23 @@ public class ProjectHandlerTest extends HandlerTest {
 	@Mock
 	private MessageUtil messageUtil;
 	
-	@Mock
-	private Progress progress;
+	private IProgress progress = new IProgress() {
+		
+		@Override
+		public void notify(ProgressEvent evt) {
+			
+		}
+		
+		@Override
+		public void setText(String string) {
+			
+		}
+		
+		@Override
+		public void open(Worker w) {
+			w.run();
+		}
+	};
 	
 	@Mock LicenseManager licenseManager;
 	
@@ -96,6 +116,7 @@ public class ProjectHandlerTest extends HandlerTest {
 		uut.fileHelper = new FileHelper();
 		uut.aniAction = new AnimationActionHandler(vm);
 		uut.dispatcher = dispatcher;
+		uut.progress = this.progress;
 	}
 	
 	@Test
@@ -270,6 +291,8 @@ public class ProjectHandlerTest extends HandlerTest {
 		vm.setProjectFilename("foo"); 
 		uut.onExportVirtualPinProject();
 	}
+	
+	@Captor ArgumentCaptor<Worker> workerCap;
 
 	@Test
 	public void testOnExportVirtualPinProjectWithData() throws Exception {
