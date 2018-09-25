@@ -2,6 +2,7 @@ package com.rinke.solutions.pinball;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +29,7 @@ import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.animation.ProgressEventListener;
 import com.rinke.solutions.pinball.model.Model;
 import com.rinke.solutions.pinball.model.Palette;
+import com.rinke.solutions.pinball.model.RGB;
 import com.rinke.solutions.pinball.ui.Progress;
 import com.rinke.solutions.pinball.util.FileChooserUtil;
 import com.rinke.solutions.pinball.util.MessageUtil;
@@ -205,21 +207,38 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 
 	void populatePalette(Animation ani, Map<Integer,Palette> palettes) {
 		if (ani.getAniColors() != null) {
+			// sanitize number of color per palette when importing
+			RGB[] aniColors = getSaveSizeRGBArray(ani.getAniColors());
+			
 			// if loaded colors with animations propagate as palette
 			boolean colorsMatch = false;
 			for (Palette p : palettes.values()) {
-				if (p.sameColors(ani.getAniColors())) {
+				if (p.sameColors(aniColors)) {
 					colorsMatch = true;
 					ani.setPalIndex(p.index);
 					break;
 				}
 			}
 			if (!colorsMatch) {
-				Palette aniPalette = new Palette(ani.getAniColors(), palettes.size(), ani.getDesc());
+				Palette aniPalette = new Palette(aniColors, palettes.size(), ani.getDesc());
 				palettes.put(aniPalette.index,aniPalette);
 				ani.setPalIndex(aniPalette.index);
 			}
 		}
+	}
+
+	/**
+	 * create a "save" size for palette (actually this means always 16 colors, because firmware cant handle other) 
+	 * @param aniColors imput array
+	 * @return rgb array with 16 colors
+	 */
+	RGB[] getSaveSizeRGBArray(RGB[] aniColors) {
+		if( aniColors.length == 16 ) return aniColors;
+		RGB[] res = Arrays.copyOf(aniColors, 16);
+		for(int i = 0; i < res.length; i++) {
+			if( res[i] == null ) res[i] = new RGB(0, 0, 0); 		// fill with black
+		}
+		return res;
 	}
 
 	/**
