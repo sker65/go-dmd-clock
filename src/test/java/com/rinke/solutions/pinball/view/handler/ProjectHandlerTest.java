@@ -147,6 +147,8 @@ public class ProjectHandlerTest extends HandlerTest {
 		uut.onLoadProjectWithProgress("src/test/resources/ex1.xml",null);
 	}
 
+	// TODO add test with event keyframes and export
+	
 	@Test
 	public void testOnExportProjectSelectedWithMapping() throws Exception {
 
