@@ -147,12 +147,26 @@ public class ProjectHandlerTest extends HandlerTest {
 		uut.onLoadProjectWithProgress("src/test/resources/ex1.xml",null);
 	}
 
-	// TODO add test with event keyframes and export
-	
+	@Test
+	public void testOnExportProjectSelectedWithEventKeyframe() throws Exception {
+		File tempFile = testFolder.newFile("test.pal");
+		String filename = tempFile.getAbsolutePath();
+
+		PalMapping p = new PalMapping(0, "foo");
+		p.crc32 = new byte[] { 1, 2, 3, 4 };
+		p.switchMode = SwitchMode.EVENT;
+		p.durationInMillis = 257;
+
+		vm.keyframes.put(p.name,p);
+		uut.onExportProject(filename, f -> new FileOutputStream(f), true);
+
+		// create a reference file and compare against
+		assertNull(Util.isBinaryIdentical(filename, "./src/test/resources/eventKeyframe.pal"));
+	}
+
 	@Test
 	public void testOnExportProjectSelectedWithMapping() throws Exception {
-
-		File tempFile = testFolder.newFile("test.dat");
+		File tempFile = testFolder.newFile("test.pal");
 		String filename = tempFile.getAbsolutePath();
 
 		PalMapping p = new PalMapping(0, "foo");
@@ -160,9 +174,6 @@ public class ProjectHandlerTest extends HandlerTest {
 		p.switchMode = SwitchMode.PALETTE;
 
 		vm.keyframes.put(p.name,p);
-		
-		//when(licenseManager.requireOneOf(cap))
-
 		uut.onExportProject(filename, f -> new FileOutputStream(f), true);
 
 		// create a reference file and compare against
