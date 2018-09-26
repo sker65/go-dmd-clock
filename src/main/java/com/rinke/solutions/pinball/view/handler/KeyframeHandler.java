@@ -34,14 +34,18 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 	}
 
 	public void onSelectedSpinnerDeviceIdChanged(int o, int n) {
-		if( vm.selectedKeyFrame != null ) {
-			vm.selectedKeyFrame.durationInMillis = n << 8 +vm.selectedSpinnerEventId; 
+		if( vm.selectedKeyFrame != null && vm.selectedKeyFrame.switchMode.equals(SwitchMode.EVENT)) {
+			int duration = (n << 8) + vm.selectedSpinnerEventId;
+			vm.selectedKeyFrame.durationInMillis = duration;
+			vm.setDuration(duration);
 		}
 	}
 
 	public void onSelectedSpinnerEventIdChanged(int o, int n) {
-		if( vm.selectedKeyFrame != null ) {
-			vm.selectedKeyFrame.durationInMillis = vm.selectedSpinnerDeviceId << 8 + n; 
+		if( vm.selectedKeyFrame != null && vm.selectedKeyFrame.switchMode.equals(SwitchMode.EVENT)) {
+			int duration = (vm.selectedSpinnerDeviceId << 8) + n; 
+			vm.selectedKeyFrame.durationInMillis = duration;
+			vm.setDuration(duration);
 		}
 	}
 	
@@ -60,7 +64,8 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 	
 		if( ani != null ) {
 			palMapping.palIndex = ani.getPalIndex();
-			palMapping.frameSeqName = ani.getDesc();
+			if( !( SwitchMode.EVENT.equals(switchMode) || SwitchMode.PALETTE.equals(switchMode) ) ) // not needed for these two 
+				palMapping.frameSeqName = ani.getDesc();
 		} else {
 			palMapping.palIndex = vm.selectedPalette.index;
 		}
@@ -71,7 +76,7 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 		palMapping.hashIndex = vm.selectedHashIndex;
 		
 		if( switchMode.equals(SwitchMode.EVENT)) {
-			palMapping.durationInMillis = vm.selectedSpinnerDeviceId<<8 + vm.selectedSpinnerEventId;
+			palMapping.durationInMillis = (vm.selectedSpinnerDeviceId<<8) + vm.selectedSpinnerEventId;
 		} else {
 			palMapping.durationInMillis = vm.duration;
 		}
@@ -256,7 +261,7 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 	
 	public void onDurationChanged(int o, int n) {
 		if (vm.selectedKeyFrame != null) {
-			log.debug("setting duration for {}", vm.selectedKeyFrame.name);
+			log.debug("setting duration for {} to {}", vm.selectedKeyFrame.name, n);
 			vm.selectedKeyFrame.durationInMillis = n;
 			vm.selectedKeyFrame.durationInFrames = (int) vm.selectedKeyFrame.durationInMillis / FRAME_RATE;
 		}

@@ -203,6 +203,7 @@ public class KeyframeHandlerTest extends HandlerTest {
 		PalMapping k = getFristKeyframe();
 		assertEquals(256,k.durationInMillis);
 		assertEquals(SwitchMode.EVENT, k.switchMode);
+		assertNull(k.frameSeqName);
 	}
 	
 	PalMapping getFristKeyframe() {
@@ -224,12 +225,30 @@ public class KeyframeHandlerTest extends HandlerTest {
 
 	@Test
 	public void testOnSelectedSpinnerEventIdChanged() throws Exception {
+		vm.selectedKeyFrame = getKeyframe();
+		vm.selectedKeyFrame.switchMode = SwitchMode.EVENT;
 		uut.onSelectedSpinnerEventIdChanged(0, 1);
+		assertEquals(1, vm.duration);
+	}
+
+	@Test
+	public void testOnSelectedSpinnerEventIdChangedWithoutSelection() throws Exception {
+		uut.onSelectedSpinnerEventIdChanged(0, 1);
+		assertEquals(0, vm.duration);
 	}
 
 	@Test
 	public void testOnSelectedSpinnerDeviceIdChanged() throws Exception {
+		vm.selectedKeyFrame = getKeyframe();
+		vm.selectedKeyFrame.switchMode = SwitchMode.EVENT;
 		uut.onSelectedSpinnerDeviceIdChanged(0, 1);
+		assertEquals(256, vm.duration);
+	}
+
+	@Test
+	public void testOnSelectedSpinnerDeviceIdChangedWithoutSelection() throws Exception {
+		uut.onSelectedSpinnerDeviceIdChanged(0, 1);
+		assertEquals(0, vm.duration);
 	}
 
 	@Test

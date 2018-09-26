@@ -495,7 +495,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 		log.info("write project to {}", filename);
 		String aniFilename = replaceExtensionTo("ani", filename);
 		
-		if( vm.loadedAniVersion < CURRENT_PRJ_ANI_VERSION ) {
+		if( vm.loadedAniVersion!= 0 && vm.loadedAniVersion < CURRENT_PRJ_ANI_VERSION ) {
 			int res = messageUtil.warn(0, "Warning",
 					"Older ani file format", 
 					"This project animation file was written with an older version of the editor.\nSaving the project"

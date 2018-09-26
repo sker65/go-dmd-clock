@@ -1548,7 +1548,7 @@ public class EditorView implements MainView {
 			try {
 				log.info("entering event loop");
 				while (!shell.isDisposed()) {
-					if (!display.readAndDispatch()) {
+					if( display != null && !display.readAndDispatch()) {
 						display.sleep();
 					}
 				}
