@@ -161,7 +161,7 @@ public class ProjectHandlerTest extends HandlerTest {
 		uut.onExportProject(filename, f -> new FileOutputStream(f), true);
 
 		// create a reference file and compare against
-		assertNull(Util.isBinaryIdentical(filename, "./src/test/resources/eventKeyframe.pal"));
+		assertNull(Util.isBinaryIdentical(filename, "./src/test/resources/event.pal"));
 	}
 
 	@Test
