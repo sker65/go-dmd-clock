@@ -7,7 +7,6 @@ import java.awt.SplashScreen;
 import java.awt.image.BufferedImage;
 import java.net.URL;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,14 +14,10 @@ import java.util.regex.Pattern;
 
 import javax.imageio.ImageIO;
 
-import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.core.databinding.observable.Realm;
-import org.eclipse.core.runtime.ISafeRunnable;
-import org.eclipse.core.runtime.SafeRunner;
 import org.eclipse.jface.databinding.swt.SWTObservables;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.JFaceResources;
@@ -37,6 +32,7 @@ import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
@@ -59,11 +55,9 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
-import org.slf4j.LoggerFactory;
 
 import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.BeanFactory;
-import com.rinke.solutions.beans.SimpleBeanFactory;
 import com.rinke.solutions.databinding.DataBinder;
 import com.rinke.solutions.databinding.GuiBinding;
 import com.rinke.solutions.databinding.PojoBinding;
@@ -75,7 +69,6 @@ import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.PalMapping.SwitchMode;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.PaletteType;
-import com.rinke.solutions.pinball.model.Plane;
 import com.rinke.solutions.pinball.renderer.ImageUtil;
 import com.rinke.solutions.pinball.swt.ActionAdapter;
 import com.rinke.solutions.pinball.swt.CocoaGuiEnhancer;
@@ -1014,13 +1007,21 @@ public class EditorView implements MainView {
 
 		paletteComboViewer = new ComboViewer(grpPalettes, SWT.NONE);
 		paletteCombo = paletteComboViewer.getCombo();
+		paletteCombo.addKeyListener(new KeyListener() {
+			@Override
+			public void keyReleased(KeyEvent e) {
+			}
+			@Override
+			public void keyPressed(KeyEvent e) {
+				// dont allow RETURN press (to avoid selecting palettes that are not existent)
+				if( e.character == '\r' || e.character == '\n' ) e.doit = false;
+			}
+		});
 		GridData gd_combo = new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1);
 		gd_combo.widthHint = 166;
 		paletteCombo.setLayoutData(gd_combo);
 		paletteComboViewer.setContentProvider(ArrayContentProvider.getInstance());
 		paletteComboViewer.setLabelProvider(new LabelProviderAdapter<Palette>(o -> o.index + " - " + o.name));
-		// bound paletteComboViewer.setInput(vm.paletteMap.values());
-		// bound paletteComboViewer.addSelectionChangedListener(event -> ed.onPaletteChanged(ed.getFirstSelected(event)));
 
 		paletteTypeComboViewer = new ComboViewer(grpPalettes, SWT.READ_ONLY);
 		Combo combo_1 = paletteTypeComboViewer.getCombo();
@@ -1030,8 +1031,6 @@ public class EditorView implements MainView {
 		combo_1.setLayoutData(gd_combo_1);
 		paletteTypeComboViewer.setContentProvider(ArrayContentProvider.getInstance());
 		paletteTypeComboViewer.setInput(PaletteType.values());
-		// bound vm.setSelectedPaletteType(vm.selectedPalette.type);
-		// bound paletteTypeComboViewer.addSelectionChangedListener(e -> ed.onPaletteTypeChanged(e));
 		
 		btnNewPalette = new Button(grpPalettes, SWT.NONE);
 		btnNewPalette.setToolTipText("Creates a new palette by copying the actual colors");
@@ -1070,7 +1069,7 @@ public class EditorView implements MainView {
 	}
 
 	private void createStartStopControl(Composite parent) {
-		
+
 		Composite composite = new Composite(parent, SWT.NONE);
 		composite.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
 		

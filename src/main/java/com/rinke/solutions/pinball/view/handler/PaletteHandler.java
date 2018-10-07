@@ -18,6 +18,7 @@ import com.rinke.solutions.beans.Bean;
 import com.rinke.solutions.beans.Value;
 import com.rinke.solutions.pinball.Constants;
 import com.rinke.solutions.pinball.DMD;
+import com.rinke.solutions.pinball.Dispatcher;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.io.DMCImporter;
@@ -272,8 +273,6 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 		for( Palette pal : vm.paletteMap.values() ) {
 			if( pal.sameColors(cols)) {
 				vm.setSelectedPalette(pal);
-				// bound editor.v.paletteTool.setPalette(vm.selectedPalette);	
-				// bound editor.v.paletteComboViewer.setSelection(new StructuredSelection(vm.selectedPalette), true);
 				return;
 			}
 		}
