@@ -5,7 +5,7 @@
 	<artifactId>go-dmd-clock</artifactId>
 	<version>2.5.0.4</version>
 	<repositories>
-		<repository>
+  	<repository>
     	    <id>maven-eclipse-repo</id>
    	    	<url>http://maven-eclipse.github.io/maven</url>
    		</repository>
