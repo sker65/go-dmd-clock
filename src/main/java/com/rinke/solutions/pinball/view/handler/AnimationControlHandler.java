@@ -36,6 +36,7 @@ public class AnimationControlHandler extends AbstractCommandHandler implements V
 	}
 	
 	public void onSelectedFrameChanged(int o, int n) {
+		commitChanges();
 		animationHandler.setPos(n);
 		update(vm.minFrame, n, vm.maxFrame, vm.animationIsPlaying);
 		if( vm.selectedScene != null && vm.selectedEditMode.haveLocalMask) {
@@ -77,35 +78,31 @@ public class AnimationControlHandler extends AbstractCommandHandler implements V
 			vm.setAnimationIsPlaying(true);
 		}
 	}
-
-	public void onPrevFrame() {
+	
+	void commitChanges() {
 		if(vm.selectedScene!=null) {
 			vm.selectedScene.commitDMDchanges(vm.dmd); 
 			vm.setDirty(vm.dirty|vm.selectedScene.isDirty());
 		}
 		maskHandler.commitMaskIfNeeded(vm.detectionMaskActive);
+	}
+
+	public void onPrevFrame() {
 		vm.setSelectedFrame(vm.selectedFrame-vm.frameIncrement);
 		
 		if(  ( vm.selectedEditMode.enableDetectionMask ) && vm.selectedScene!=null) {
 			selectHash(vm.selectedScene);
 		}
 		vm.setSelection(null);
-		//if( vm.selectedScene != null ) System.out.println(vm.selectedScene.actFrame);
 	}
 	
 	public void onNextFrame() {
-		if( vm.selectedScene != null){
-			vm.selectedScene.commitDMDchanges(vm.dmd); 
-			vm.setDirty(vm.dirty|vm.selectedScene.isDirty());
-		}
-		maskHandler.commitMaskIfNeeded(vm.detectionMaskActive);
 		vm.setSelectedFrame(vm.selectedFrame+vm.frameIncrement);
 
 		if( ( vm.selectedEditMode.enableDetectionMask ) && vm.selectedScene!=null) {
 			selectHash(vm.selectedScene);
 		}
 		vm.setSelection(null);
-		//if( vm.selectedScene != null ) System.out.println(vm.selectedScene.actFrame);
 	}
 	
 	private void selectHash(CompiledAnimation ani) {
