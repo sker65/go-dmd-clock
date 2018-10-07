@@ -244,7 +244,7 @@ public class AnimationHandler implements Runnable {
 		if( vm.selectedEditMode.enableDetectionMask && !vm.selectedEditMode.haveSceneDetectionMasks
 				&& !vm.selectedEditMode.haveLocalMask) {
 			// use one of the global masks
-			maskToUse = vm.masks.get(vm.selectedMaskNumber);
+			if( preferDetectionMask ) maskToUse = vm.masks.get(vm.selectedMaskNumber);
 		}
 		return maskToUse;
 	}

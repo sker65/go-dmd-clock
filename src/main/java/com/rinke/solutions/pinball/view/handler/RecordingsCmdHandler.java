@@ -49,7 +49,7 @@ public class RecordingsCmdHandler extends AbstractListCmdHandler implements View
 			if( o != null ) recordingsPosMap.put(o.getDesc(), o.actFrame);
 			if( a != null) {
 				vm.cutInfo.reset();
-				vm.setSelection(null);;
+				vm.setSelection(null);
 				
 				vm.setSelectedScene(null);
 				vm.setLinkVal("-");
