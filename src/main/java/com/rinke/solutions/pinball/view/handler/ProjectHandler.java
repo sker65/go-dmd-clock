@@ -466,6 +466,10 @@ public class ProjectHandler extends AbstractCommandHandler {
 						frame.planes.remove(10); frame.planes.remove(10); frame.planes.remove(10);
 						frame.planes.remove(15); frame.planes.remove(15); frame.planes.remove(15);
 					}
+					// due to a bug in the current firmware, it is mandatory to have a mask in any case
+					if( !frame.hasMask() ) {
+						frame.setMask(new Mask(frame.planes.get(0).data.length)); // retrieve mask size from first plane
+					}
 					p.frames.add(frame);
 				}
 			}
