@@ -3,6 +3,8 @@ package com.rinke.solutions.pinball.view.handler;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
+import java.util.Iterator;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -16,6 +18,8 @@ import com.rinke.solutions.pinball.animation.AnimationType;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.animation.CompiledAnimation.RecordingLink;
 import com.rinke.solutions.pinball.model.PalMapping;
+import com.rinke.solutions.pinball.model.Palette;
+import com.rinke.solutions.pinball.model.PaletteType;
 import com.rinke.solutions.pinball.util.MessageUtil;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -73,7 +77,10 @@ public class RecordingsCmdHandlerTest extends HandlerTest {
 
 	@Test
 	public void testOnSelectedRecordingChanged() throws Exception {
+		vm.setSelectedPalette(vm.paletteMap.get(2));
 		uut.onSelectedRecordingChanged(null, getScene("foo"));
+		assertEquals(0,vm.selectedPalette.index); //should be first
+		assertEquals(PaletteType.DEFAULT,vm.selectedPalette.type); //should be default
 	}
 
 	@Test

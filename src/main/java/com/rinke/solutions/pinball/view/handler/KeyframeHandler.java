@@ -207,7 +207,6 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 			// btnMask.notifyListeners(SWT.Selection, new Event());
 
 			vm.setDuration(nk.durationInMillis);
-			vm.setSelectedPaletteByIndex(nk.palIndex);
 
 			if( nk.switchMode.equals(SwitchMode.EVENT)) {
 				vm.setSelectedSpinnerDeviceId(nk.durationInMillis >> 8);
@@ -225,7 +224,10 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 			} else {
 				log.warn("keyframe has invalid empty reference: '{}'", nk.animationName);
 			}
+			
 			vm.setSelectedRecording(rec);
+
+			vm.setSelectedPaletteByIndex(nk.palIndex);
 			
 			if (nk.frameSeqName != null)
 				vm.setSelectedFrameSeq(vm.scenes.get(nk.frameSeqName));

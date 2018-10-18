@@ -77,13 +77,16 @@ public class KeyframeHandlerTest extends HandlerTest {
 	public void testOnSelectedKeyFrameChangedWithScene() throws Exception {
 		PalMapping p = getKeyframe();
 		p.frameSeqName = "scene 0";
+		p.palIndex = 4;
 		CompiledAnimation rec = getScene("drwho-dump");
 		CompiledAnimation scene = getScene("scene 0");
+		scene.setPalIndex(5);
 		vm.recordings.put("drwho-dump",rec);
 		vm.scenes.put("scene 0",scene);
 		uut.onSelectedKeyFrameChanged(null, p);
 		assertEquals(vm.selectedRecording, rec);
 		assertEquals(vm.selectedFrameSeq, scene);
+		assertEquals(4, vm.selectedPalette.index);
 	}
 
 	@Test
