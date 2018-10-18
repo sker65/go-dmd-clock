@@ -23,6 +23,7 @@ import com.rinke.solutions.pinball.animation.CompiledAnimation.RecordingLink;
 import com.rinke.solutions.pinball.animation.RawAnimation;
 import com.rinke.solutions.pinball.model.Bookmark;
 import com.rinke.solutions.pinball.model.PalMapping;
+import com.rinke.solutions.pinball.model.PaletteType;
 import com.rinke.solutions.pinball.util.MessageUtil;
 import com.rinke.solutions.pinball.view.model.ViewModel;
 
@@ -74,6 +75,9 @@ public class RecordingsCmdHandler extends AbstractListCmdHandler implements View
 
 				setPlayingAni(a, recordingsPosMap.getOrDefault(a.getDesc(), 0));
 				vm.setDmdDirty(true);
+				
+				vm.setSelectedPalette(vm.paletteMap.values().stream()
+						.filter(p->p.type.equals(PaletteType.DEFAULT)).findFirst().orElse(vm.selectedPalette));
 
 				int numberOfPlanes = a.getRenderer().getNumberOfPlanes();
 				if( numberOfPlanes == 5) {
