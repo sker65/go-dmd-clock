@@ -5,7 +5,6 @@ import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
 
-import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.Bean;
 import com.rinke.solutions.pinball.DmdSize;
 import com.rinke.solutions.pinball.animation.Animation;
