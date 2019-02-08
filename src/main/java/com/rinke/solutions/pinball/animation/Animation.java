@@ -78,7 +78,7 @@ public class Animation {
 		COLMASK("Color Mask",					true,  false, false, false, false, false, false), 
 		FIXED("Fixed", 							false, true,  true,  false, false, false, false), 
 		COLMASK_FOLLOW("Color Mask Seq.", 		true,  true,  true,  false, true,  true,  false),
-		LAYEREDCOL("Layered ColMask", 			true,  true,  true,  true,  true,  false, true),
+		LAYEREDCOL("Layered ColMask", 			true,  true,  true,  false,  true,  false, true),
 		REPLACE_FOLLOW("Replace Seq.",			false, false, true,  false, true,  true,  false),
 		;
 
