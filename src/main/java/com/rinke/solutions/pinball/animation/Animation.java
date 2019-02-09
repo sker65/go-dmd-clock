@@ -80,6 +80,7 @@ public class Animation {
 		COLMASK_FOLLOW("Color Mask Seq.", 		true,  true,  true,  false, true,  true,  false),
 		LAYEREDCOL("Layered ColMask", 			true,  true,  true,  false,  true,  false, true),
 		REPLACE_FOLLOW("Replace Seq.",			false, false, true,  false, true,  true,  false),
+		LAYEREDREPLACE("Layered Repl",			false,  true,  true,  false, true,  false, true),
 		;
 
 		// label to display
