@@ -75,12 +75,12 @@ public class Animation {
 	public enum EditMode {		
 		// because ordinals used directly in ani format, one must not change order
 		REPLACE("Replace",						false, false, true,  false, false, false, false), 
-		COLMASK("Color Mask",					true,  false, false, false, false, false, false), 
+		COLMASK("ColorMask",					true,  false, false, false, false, false, false), 
 		FIXED("Fixed", 							false, true,  true,  false, false, false, false), 
-		COLMASK_FOLLOW("Color Mask Seq.", 		true,  true,  true,  false, true,  true,  false),
-		LAYEREDCOL("Layered ColMask", 			true,  true,  true,  false,  true,  false, true),
-		REPLACE_FOLLOW("Replace Seq.",			false, false, true,  false, true,  true,  false),
-		LAYEREDREPLACE("Layered Repl",			false,  true,  true,  false, true,  false, true),
+		COLMASK_FOLLOW("ColorMask Sequence", 	true,  true,  true,  false, true,  true,  false),
+		LAYEREDCOL("ColorMask Layered", 		true,  true,  true,  false, true,  false, true),
+		REPLACE_FOLLOW("Replace Sequence",		false, true,  true,  false, true,  true,  false),
+		LAYEREDREPLACE("Replace Masked",		false, true,  false, true,  true,  false, true),
 		;
 
 		// label to display
