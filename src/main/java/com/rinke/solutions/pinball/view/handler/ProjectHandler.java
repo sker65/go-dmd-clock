@@ -363,6 +363,8 @@ public class ProjectHandler extends AbstractCommandHandler {
 		populateVmToProject(vm, project);
 		List<Mask> filteredMasks = project.masks.stream().filter(m->m.locked).collect(Collectors.toList());
 		project.masks = filteredMasks;
+
+		int aniVersionForExport = 4;
 		
 		// rebuild frame seq map	
 		HashMap <String,FrameSeq> frameSeqMap = new HashMap<>();
@@ -380,15 +382,19 @@ public class ProjectHandler extends AbstractCommandHandler {
 						frameSeq.masks = vm.scenes.get(p.frameSeqName).getMasks()
 								.stream().filter(m->m.locked).collect(Collectors.toList());
 					}
+					// TODO make this an attribute of switch mode
 					frameSeq.reorderMask = (p.switchMode.equals(SwitchMode.FOLLOW) || p.switchMode.equals(SwitchMode.FOLLOWREPLACE ));
 					frameSeqMap.put(p.frameSeqName, frameSeq);
+					if(p.switchMode.equals(SwitchMode.LAYEREDCOL) || p.switchMode.equals(SwitchMode.LAYEREDREPLACE)) {
+						aniVersionForExport = 5;
+					}
 				} else {
 					log.error("referenced scene not found, keyframe will be removed: {}", p);
 					it.remove();
 				}
 			}
 		}
-		
+		final int aniVersionToUse = aniVersionForExport;
 		// VPIN
 		if( !realPin ) {
 			List<Animation> anis = new ArrayList<>();
@@ -409,13 +415,16 @@ public class ProjectHandler extends AbstractCommandHandler {
 						}
 					}
 				}
+				for( Mask m : ani.getMasks() ) {
+					cani.getMasks().add(m);
+				}
 				anis.add(cani);
 			}
 			String aniFilename = replaceExtensionTo("vni", filename);
 			Worker w = new Worker() {
 				@Override
 				public void innerRun() {
-					AniWriter aniWriter = new AniWriter(anis, aniFilename, 4, vm.paletteMap, progress);
+					AniWriter aniWriter = new AniWriter(anis, aniFilename, aniVersionToUse, vm.paletteMap, progress);
 					if( !anis.isEmpty() ) {
 						aniWriter.setHeader("VPIN");
 						aniWriter.run();
