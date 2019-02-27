@@ -385,6 +385,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 					// TODO make this an attribute of switch mode
 					frameSeq.reorderMask = (p.switchMode.equals(SwitchMode.FOLLOW) || p.switchMode.equals(SwitchMode.FOLLOWREPLACE ));
 					frameSeqMap.put(p.frameSeqName, frameSeq);
+					// TODO make this an attribute of switch mode
 					if(p.switchMode.equals(SwitchMode.LAYEREDCOL) || p.switchMode.equals(SwitchMode.LAYEREDREPLACE)) {
 						aniVersionForExport = 5;
 					}
