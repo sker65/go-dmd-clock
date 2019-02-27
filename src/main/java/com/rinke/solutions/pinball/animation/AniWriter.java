@@ -150,17 +150,23 @@ public class AniWriter extends Worker {
 							ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray());
 							HeatShrinkEncoder enc = new HeatShrinkEncoder(10,5);
 							enc.encode(bis, b2);
-							//log.info("writing compressed planes: {} / {}", b2.size(), bos.size());
+							log.info("writing compressed planes: {} / {}", b2.size(), bos.size());
 							planesCompressed += b2.size();
 							planesRaw += bos.size();
 							os.writeInt(b2.size());
 							os.write(b2.toByteArray());
 						}
 					}
-					if( cancelRequested ) break;
+					if( cancelRequested ) {
+						log.warn("cancel requested, leaving write loop");
+						break;
+					}
 				}
 				a.setActFrame(preserveAct);
-				if( cancelRequested ) break;
+				if( cancelRequested ) {
+					log.warn("cancel requested, leaving ani loop");
+					break;
+				}
 				aniIndex++;
 				notify(aniIndex*aniProgressInc, "animation "+a.getDesc()+" written");
 			}
@@ -184,7 +190,7 @@ public class AniWriter extends Worker {
 		} else {
 			os.writeShort(a.getPalIndex()); // as custom pallette use index short max 
 			log.info("writing pal index: {}",Short.MAX_VALUE);
-			if( a.getPalIndex() < palettes.size() ) {
+			if( palettes.containsKey(a.getPalIndex()) ) {
 				Palette pal = palettes.get(a.getPalIndex());
 				os.writeShort(pal.numberOfColors);
 				log.info("writing {} custom colors",pal.numberOfColors);
