@@ -89,31 +89,14 @@ public class AnimationControlHandler extends AbstractCommandHandler implements V
 
 	public void onPrevFrame() {
 		vm.setSelectedFrame(vm.selectedFrame-vm.frameIncrement);
-		
-		if(  ( vm.selectedEditMode.enableDetectionMask ) && vm.selectedScene!=null) {
-			selectHash(vm.selectedScene);
-		}
 		vm.setSelection(null);
 	}
 	
 	public void onNextFrame() {
 		vm.setSelectedFrame(vm.selectedFrame+vm.frameIncrement);
-
-		if( ( vm.selectedEditMode.enableDetectionMask ) && vm.selectedScene!=null) {
-			selectHash(vm.selectedScene);
-		}
 		vm.setSelection(null);
 	}
 	
-	private void selectHash(CompiledAnimation ani) {
-		byte[] crc32 = ani.frames.get(ani.actFrame).crc32;
-		for( int i =0; i < vm.hashes.size(); i++ ) {
-			if( Arrays.equals(vm.hashes.get(i), crc32) ) {
-				vm.setSelectedHashIndex(i);
-			}
-		}
-	}
-
 	public void onCopyAndMoveToNextFrame() {
 		onNextFrame();
 		CompiledAnimation ani = vm.selectedScene;

@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import com.rinke.solutions.beans.Bean;
 import com.rinke.solutions.pinball.DmdSize;
 import com.rinke.solutions.pinball.animation.Animation;
+import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Mask;
 import com.rinke.solutions.pinball.model.Palette;
@@ -72,7 +73,19 @@ public class HashCmdHandler extends AbstractCommandHandler implements ViewBindin
 	public void onSelectedMaskChanged(Mask o, Mask n) {
 		updateHashes(vm.dmd.getFrame());
 	}
-	
+
+	private void selectHash(CompiledAnimation ani) {
+		byte[] crc32 = ani.frames.get(ani.actFrame).crc32;
+		boolean foundHash = false;
+		for( int i =0; i < vm.hashes.size(); i++ ) {
+			if( Arrays.equals(vm.hashes.get(i), crc32) ) {
+				vm.setSelectedHashIndex(i);
+				foundHash = true;
+			}
+		}
+		if( !foundHash ) vm.setSelectedHashIndex(-1);
+	}
+
 	public void updateHashes(Frame frame) {
 		if( frame == null ) return;
 		Frame f = new Frame(frame);
@@ -86,6 +99,9 @@ public class HashCmdHandler extends AbstractCommandHandler implements ViewBindin
 				f.planes.add(planes.get(i));
 			}
 		} 
+		if(  ( vm.selectedEditMode.enableDetectionMask ) && vm.selectedScene!=null) {
+			selectHash(vm.selectedScene);
+		}
 		List<byte[]> hashes = f.getHashes();
 		refreshHashButtons(hashes, vm.detectionMaskActive && f.hasMask(), vm.selectedMaskNumber);
 		saveHashes(hashes);
