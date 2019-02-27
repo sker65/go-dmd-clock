@@ -81,6 +81,9 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 
 		} else {
 			aniWriter.run();
+			if( aniWriter.hasError() ) {
+				throw aniWriter.getRuntimeException();
+			}
 		}
 		anisToSave.forEach(a->a.setDirty(false));
 	}
