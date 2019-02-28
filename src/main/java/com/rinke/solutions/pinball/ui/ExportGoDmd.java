@@ -1,5 +1,8 @@
 package com.rinke.solutions.pinball.ui;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Button;
@@ -12,7 +15,10 @@ import org.eclipse.swt.widgets.Text;
 
 import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.Bean;
+import com.rinke.solutions.pinball.animation.AniWriter;
+import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.util.Config;
+import com.rinke.solutions.pinball.view.model.ViewModel;
 
 @Bean
 public class ExportGoDmd extends Dialog {
@@ -25,6 +31,7 @@ public class ExportGoDmd extends Dialog {
 	private Combo versionCombo;
 	
 	@Autowired private Config config;
+	@Autowired private ViewModel vm;
 
 	/**
 	 * Create the dialog.
@@ -82,7 +89,7 @@ public class ExportGoDmd extends Dialog {
 		
 		versionCombo = new Combo(shlExportForGodmd, SWT.READ_ONLY);
 		versionCombo.setBounds(68, 34, 122, 22);
-		String items[] = { "RGB Version 1", "RGB Version 2" };
+		String items[] = { "RGB Version 1", "RGB Version 2", "RGB Version 3" };
 		versionCombo.setItems(items);
 		versionCombo.select(config.getInteger(GODMD_EXPORT_VERSION, 0));
 		
@@ -118,6 +125,11 @@ public class ExportGoDmd extends Dialog {
 		config.put(GODMD_EXPORT_VERSION, versionCombo.getSelectionIndex());
 		config.put(GODMD_EXPORT_PATH, text.getText());
 		result = Pair.of(text.getText(), versionCombo.getSelectionIndex());
+		int version = versionCombo.getSelectionIndex()+1;
+		List<Animation> toExport = new ArrayList<>();
+		toExport.addAll(vm.scenes.values());
+		AniWriter aniWriter = new AniWriter(toExport, text.getText(), version, vm.paletteMap, null);
+		aniWriter.run();
 		shlExportForGodmd.close();
 	}
 }
