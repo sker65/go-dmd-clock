@@ -13,6 +13,7 @@ import com.rinke.solutions.pinball.animation.Animation.EditMode;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.animation.CompiledAnimation.RecordingLink;
 import com.rinke.solutions.pinball.model.PalMapping.SwitchMode;
+import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.util.ObservableMap;
 import com.rinke.solutions.pinball.view.model.ViewModel;
 
@@ -100,6 +101,20 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 			vm.scenes.refresh();
 
 		}		
+	}
+	
+	public void onConvertAllScenesToRGB() {
+		for(CompiledAnimation src : vm.scenes.values()) {
+			AnimationQuantizer quantizer = new AnimationQuantizer();
+			String name = src.getDesc();
+			Palette palette = vm.paletteMap.get(src.getPalIndex());
+			CompiledAnimation newScene = quantizer.convertSceneToRGB(name, src, palette);
+			newScene.setDesc(name);
+			newScene.setProjectAnimation(true);
+			newScene.setEditMode(EditMode.REPLACE);
+			vm.scenes.put(name, newScene);
+		}
+		vm.scenes.refresh();
 	}
 
 	String getUniqueName(String name, Set<String> set) {

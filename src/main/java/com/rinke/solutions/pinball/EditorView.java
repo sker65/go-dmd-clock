@@ -409,6 +409,10 @@ public class EditorView implements MainView {
 		MenuItem mntmConvertSceneToRGB = new MenuItem(menu_2, SWT.NONE);
 		mntmConvertSceneToRGB.setText("Convert Scene to RGB");
 		mntmConvertSceneToRGB.addListener(SWT.Selection, e -> dispatchCmd(CONVERT_SCENE_TO_RGB));
+
+		MenuItem mntmConvertAllScenesToRGB = new MenuItem(menu_2, SWT.NONE);
+		mntmConvertAllScenesToRGB.setText("Convert all Scenes to RGB");
+		mntmConvertAllScenesToRGB.addListener(SWT.Selection, e -> dispatchCmd(CONVERT_ALL_SCENES_TO_RGB));
 				
 		MenuItem mntmUnlockSceneMasks = new MenuItem(menu_2, SWT.NONE);
 		mntmUnlockSceneMasks.setText("Unlock Scene Masks");

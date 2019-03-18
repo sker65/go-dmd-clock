@@ -13,6 +13,7 @@ import lombok.extern.apachecommons.CommonsLog;
 import lombok.extern.slf4j.Slf4j;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
 import com.google.common.collect.Lists;
@@ -50,7 +51,7 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 	}
 	
 	protected Progress getProgress() {
-		return shell!=null ? new Progress(shell) : null;
+		return shell!=null ? new Progress(shell) : new Progress(Display.getCurrent().getActiveShell());
 	}
 
 	/**
