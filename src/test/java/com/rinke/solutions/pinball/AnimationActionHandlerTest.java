@@ -112,7 +112,7 @@ public class AnimationActionHandlerTest extends HandlerTest{
 
 	@Test
 	public void testOnLoadAniWithFC() throws Exception {
-		uut.onLoadAniWithFC(false);
+		uut.onLoadAniWithFC(false,false);
 	}
 
 	@Test
