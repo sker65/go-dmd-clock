@@ -386,11 +386,11 @@ public class EditorView implements MainView {
 
 		MenuItem mntmLoadAnimation = new MenuItem(menu_2, SWT.NONE);
 		mntmLoadAnimation.setText("Load Scene(s)");
-		mntmLoadAnimation.addListener(SWT.Selection, e -> dispatchCmd(LOAD_ANI_WITH_FC,true));
+		mntmLoadAnimation.addListener(SWT.Selection, e -> dispatchCmd(LOAD_ANI_WITH_FC,true, true));
 		
 		MenuItem mntmLoadRecordings = new MenuItem(menu_2, SWT.NONE);
 		mntmLoadRecordings.setText("Load Recording(s)");
-		mntmLoadRecordings.addListener(SWT.Selection, e -> dispatchCmd(LOAD_ANI_WITH_FC,true));
+		mntmLoadRecordings.addListener(SWT.Selection, e -> dispatchCmd(LOAD_ANI_WITH_FC,true,false));
 		
 		MenuItem mntmSaveAnimation = new MenuItem(menu_2, SWT.NONE);
 		mntmSaveAnimation.setText("Save Scene(s) ...");

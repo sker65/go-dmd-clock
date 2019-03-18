@@ -229,7 +229,7 @@ public class ImageUtil {
 				}
 			}
 		}
-		log.info("distribution of alpha channel: {}", printDistri(alphaDist));
+		//log.info("distribution of alpha channel: {}", printDistri(alphaDist));
 		return res;
 	}
 	

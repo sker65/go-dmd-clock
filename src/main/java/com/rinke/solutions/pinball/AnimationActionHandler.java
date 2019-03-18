@@ -93,12 +93,12 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 		loadAni(filename, append, true, null);
 	}
 
-	public void onLoadAniWithFC(boolean append) {
+	public void onLoadAniWithFC(boolean append, boolean wantScene) {
 		List<String> filenames = fileChooserUtil.chooseMulti(SWT.OPEN|SWT.MULTI, null, new String[] { "*.properties;*.ani;*.txt.gz;*.pcap;*.pcap.gz;*.*" }, new String[] { "Animationen",
 				"properties, txt.gz, ani, mov" });
 
 		for(String filename : filenames) {
-			loadAni(filename, append, true, null);
+			loadAni(filename, append, true, null, wantScene);
 		}
 	}
 
@@ -109,8 +109,12 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 		}
 		return false;
 	}
-
-	public java.util.List<Animation> loadAni(String filename, boolean append, boolean populateProject, ProgressEventListener listener) {
+	
+	public java.util.List<Animation> loadAni(String filename, boolean append, boolean populateProject, ProgressEventListener listener ) {
+		return loadAni(filename,append,populateProject,listener,false);
+	}
+	
+	public java.util.List<Animation> loadAni(String filename, boolean append, boolean populateProject, ProgressEventListener listener, boolean wantScene) {
 		java.util.List<Animation> loadedList = new ArrayList<>();
 		try {
 		if (filename.endsWith(".ani")) {
@@ -151,8 +155,19 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 			vm.scenes.clear();
 			vm.playingAnis.clear();
 		}
-		DMD dmd = new DMD(vm.dmdSize.width,vm.dmdSize.height);
-		for (Animation ani : loadedList) {
+		DMD dmd = new DMD(vm.dmdSize);
+		for (Animation lani : loadedList) {
+			Animation ani = lani;
+			if( wantScene ) { // try to convert
+				//ani.getAniColors().length;
+				lani.init(dmd);
+				if( lani.end == 0) lani.end = lani.getRenderer().getFrames().size()-1;
+				int noPlanes = lani.getRenderer().getNumberOfPlanes();
+				ani = lani.cutScene(ani.start, ani.end, noPlanes);
+				ani.setAniColors(lani.getAniColors());
+				ani.setDesc(lani.getDesc());
+				populatePalette(ani, vm.paletteMap);
+			}
 			if( ani instanceof CompiledAnimation ) {
 				CompiledAnimation cani = (CompiledAnimation)ani;
 				vm.inputFiles.remove(filename);
@@ -191,7 +206,7 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 		vm.setDirty(true);
 		return loadedList;
 	}
-	
+
 	<T extends Animation> void populateAni( T ani, Map<String, T> anis) {
 		if (anis.containsKey(ani.getDesc())) {
 			int i = 0;
@@ -233,11 +248,11 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 	/**
 	 * create a "save" size for palette (actually this means always 16 colors, because firmware cant handle other) 
 	 * @param aniColors imput array
-	 * @return rgb array with 16 colors
+	 * @return rgb array with at least 16 colors
 	 */
 	RGB[] getSaveSizeRGBArray(RGB[] aniColors) {
 		if( aniColors.length == 16 ) return aniColors;
-		RGB[] res = Arrays.copyOf(aniColors, 16);
+		RGB[] res = Arrays.copyOf(aniColors, aniColors.length < 16 ? 16 : aniColors.length);
 		for(int i = 0; i < res.length; i++) {
 			if( res[i] == null ) res[i] = new RGB(0, 0, 0); 		// fill with black
 		}

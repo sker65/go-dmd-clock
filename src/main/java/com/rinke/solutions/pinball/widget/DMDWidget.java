@@ -269,8 +269,10 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
                 cols[2] = resourceManager.createColor(toSwtRGB(palette.colors[4]));
                 cols[3] = resourceManager.createColor(toSwtRGB(palette.colors[15]));
             } else {
+            	int nColors = palette.colors.length;
                 for(int i = 0; i < (1 << numberOfSubframes);i++) {
-                    cols[i] = resourceManager.createColor(toSwtRGB(palette.colors[i]));
+                    if( i< nColors ) cols[i] = resourceManager.createColor(toSwtRGB(palette.colors[i]));
+                    else cols[i] = resourceManager.createColor( new RGB(0,0,0) );	// for preview palettes fill with black
                 }
             }
         }
