@@ -13,8 +13,11 @@ import com.rinke.solutions.pinball.animation.Animation.EditMode;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.animation.CompiledAnimation.RecordingLink;
 import com.rinke.solutions.pinball.model.PalMapping.SwitchMode;
+import com.rinke.solutions.pinball.ui.NamePrompt;
 import com.rinke.solutions.pinball.model.Palette;
+import com.rinke.solutions.pinball.util.MessageUtil;
 import com.rinke.solutions.pinball.util.ObservableMap;
+import com.rinke.solutions.pinball.view.View;
 import com.rinke.solutions.pinball.view.model.ViewModel;
 
 @Bean
@@ -31,6 +34,8 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 	@Autowired PaletteHandler paletteHandler;
 	@Autowired BookmarkHandler bookmarkHandler;
 	@Autowired KeyframeHandler keyframeHandler;
+	@Autowired MessageUtil messageUtil;
+	@Autowired View namePrompt;
 	
 	public CutCmdHandler(ViewModel vm) {
 		super(vm);
@@ -159,7 +164,19 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 	
 	public Animation cutScene(Animation animation, int start, int end, String name) {
 		CompiledAnimation cutScene = animation.cutScene(start, end, noOfPlanesWhenCutting);
-		
+		do {
+			NamePrompt namePrompt = (NamePrompt) this.namePrompt;
+			namePrompt.setItemName("Scene");
+			namePrompt.setPrompt(name);
+			namePrompt.open();
+			if( namePrompt.isOkay() ) name = namePrompt.getPrompt();
+			else return null;
+			
+			if( vm.scenes.containsKey(name) ) {
+				messageUtil.error("Scene Name exists", "A scene '"+name+"' already exists");
+			}
+		} while(vm.scenes.containsKey(name));
+
 		if( addPalWhenCut )
 			paletteHandler.copyPalettePlaneUpgrade(name);
 		

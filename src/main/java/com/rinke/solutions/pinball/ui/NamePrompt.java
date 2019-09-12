@@ -63,14 +63,10 @@ public class NamePrompt extends Dialog implements View {
 	private void createContents() {
 		shell = new Shell(getParent(), getStyle());
 		shell.setSize(450, 217);
-		shell.setText(getText());
-		
-		Label lblNewLabel = new Label(shell, SWT.NONE);
-		lblNewLabel.setBounds(22, 10, 166, 17);
-		lblNewLabel.setText("New "+itemName);
+		shell.setText("New "+itemName);
 		
 		Group grpName = new Group(shell, SWT.NONE);
-		grpName.setText("Name");
+		grpName.setText("     Name     ");
 		grpName.setBounds(21, 30, 393, 72);
 		
 		nameInput = new Text(grpName, SWT.BORDER);
