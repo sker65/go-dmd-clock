@@ -19,6 +19,7 @@ import com.rinke.solutions.pinball.model.Mask;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.PalMapping.SwitchMode;
 import com.rinke.solutions.pinball.model.Palette;
+import com.rinke.solutions.pinball.ui.NamePrompt;
 import com.rinke.solutions.pinball.util.MessageUtil;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -26,6 +27,9 @@ public class KeyframeHandlerTest extends HandlerTest {
 	
 	@Mock
 	MessageUtil messageUtil;
+	
+	@Mock
+	NamePrompt namePrompt;
 	
 	@Mock
 	HashCmdHandler hashCmdHandler;
@@ -41,6 +45,8 @@ public class KeyframeHandlerTest extends HandlerTest {
 	public void setup() {
 		vm.hashes.add(new byte[] { 1, 2, 3, 4 });
 		vm.selectedRecording = getScene("foo");
+		when(namePrompt.isOkay()).thenReturn(true);
+		when(namePrompt.getPrompt()).thenReturn("Keyframe 1");
 	}
 
 	@Test

@@ -17,7 +17,9 @@ import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.Animation.EditMode;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.PalMapping.SwitchMode;
+import com.rinke.solutions.pinball.ui.NamePrompt;
 import com.rinke.solutions.pinball.util.MessageUtil;
+import com.rinke.solutions.pinball.view.View;
 import com.rinke.solutions.pinball.view.model.ViewModel;
 
 @Bean
@@ -28,6 +30,7 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 	MessageUtil messageUtil;
 	@Autowired HashCmdHandler hashCmdHandler;
 	@Autowired MaskHandler maskHandler;
+	@Autowired View namePrompt;
 
 	public KeyframeHandler(ViewModel vm) {
 		super(vm);
@@ -59,7 +62,21 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 		EditMode editMode = ani==null?null:ani.getEditMode();
 		if( switchMode == null ) switchMode = getSwitchModeFromEditMode(editMode);
 
-		PalMapping palMapping = new PalMapping(0, getName(switchMode, ani) );
+		String prompt = getName(switchMode, ani);
+		do {
+			NamePrompt namePrompt = (NamePrompt) this.namePrompt;
+			namePrompt.setItemName("Keyframe");
+			namePrompt.setPrompt(prompt);
+			namePrompt.open();
+			if( namePrompt.isOkay() ) prompt = namePrompt.getPrompt();
+			else return;
+			
+			if( vm.keyframes.containsKey(prompt) ) {
+				messageUtil.error("Keyframe Name exists", "A keyframe '"+prompt+"' already exists");
+			}
+		} while(vm.keyframes.containsKey(prompt));
+		
+		PalMapping palMapping = new PalMapping(0, prompt );
 		palMapping.setDigest(vm.hashes.get(vm.selectedHashIndex));
 	
 		if( ani != null ) {
