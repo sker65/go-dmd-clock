@@ -31,6 +31,7 @@ import com.rinke.solutions.pinball.animation.ProgressEventListener;
 import com.rinke.solutions.pinball.model.Model;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.RGB;
+import com.rinke.solutions.pinball.ui.IProgress;
 import com.rinke.solutions.pinball.ui.Progress;
 import com.rinke.solutions.pinball.util.FileChooserUtil;
 import com.rinke.solutions.pinball.util.MessageUtil;
@@ -50,7 +51,7 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 		super(vm);
 	}
 	
-	protected Progress getProgress() {
+	protected IProgress getProgress() {
 		return shell!=null ? new Progress(shell) : new Progress(Display.getCurrent().getActiveShell());
 	}
 
@@ -70,7 +71,7 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 	public void storeAnimations(Collection<Animation> anis, String filename, int version, boolean saveAll) {
 		java.util.List<Animation> anisToSave = anis.stream().filter(a -> saveAll || a.isDirty()).collect(Collectors.toList());
 		if( anisToSave.isEmpty() ) return;// Pair.of(0, Collections.emptyMap());
-		Progress progress = getProgress();
+		IProgress progress = getProgress();
 		AniWriter aniWriter = new AniWriter(anisToSave, filename, version, vm.paletteMap, progress);
 		if( progress != null ) {
 			progress.open(aniWriter);

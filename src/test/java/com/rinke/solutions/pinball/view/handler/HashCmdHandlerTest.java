@@ -14,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import com.rinke.solutions.pinball.DmdSize;
+import com.rinke.solutions.pinball.animation.Animation.EditMode;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Mask;
 import com.rinke.solutions.pinball.model.Plane;
@@ -86,6 +87,7 @@ public class HashCmdHandlerTest extends HandlerTest {
 		for(int i = 0; i < 4; i++) {
 			frame.planes.add(new Plane((byte)i, new byte[vm.dmdSize.planeSize]));
 		}
+		vm.setSelectedEditMode(EditMode.FIXED);
 		uut.updateHashes(frame);
 		assertTrue( Arrays.equals(new byte[]{-78, -86, 117, 120}, vm.hashes.get(0)));
 	}

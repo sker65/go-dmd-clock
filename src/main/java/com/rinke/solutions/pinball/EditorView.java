@@ -691,7 +691,7 @@ public class EditorView implements MainView {
 	 */
 	public void createContents() {
 		
-		 // for the sake of window builder
+		 // uncomment this for the sake of window builder
 //			shell = new Shell();
 //			shell.setSize(1400, 1075);
 //			this.vm = new ViewModel();
@@ -1414,6 +1414,12 @@ public class EditorView implements MainView {
 		//gd_dmdWidget.widthHint = 1600;
 		dmdWidget.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		dmdWidget.addListeners(frame -> dispatchCmd(FRAME_CHANGED,frame));
+		dmdWidget.addKeyListener(new KeyAdapter() {
+			public void keyPressed(KeyEvent e) {
+				if(e.keyCode == SWT.ARROW_RIGHT ) dispatchCmd(NEXT_FRAME);
+				if(e.keyCode == SWT.ARROW_LEFT ) dispatchCmd(PREV_FRAME);
+			}
+		});
 		
 		// wire some dependencies to dmdWidget
 		paletteTool.addListener(dmdWidget);

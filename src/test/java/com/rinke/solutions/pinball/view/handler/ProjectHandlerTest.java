@@ -63,62 +63,36 @@ public class ProjectHandlerTest extends HandlerTest {
 	@Mock
 	private MessageUtil messageUtil;
 	
-	private IProgress progress = new IProgress() {
-		
-		@Override
-		public void notify(ProgressEvent evt) {
-			
-		}
-		
-		@Override
-		public void setText(String string) {
-			
-		}
-		
-		@Override
-		public void open(Worker w) {
-			w.run();
-		}
-	};
-	
-	@Mock LicenseManager licenseManager;
-	
+	@Mock
+	LicenseManager licenseManager;
+
 	@InjectMocks
 	private ProjectHandler uut = new ProjectHandler(vm);
-	
+
 	@Rule
 	public TemporaryFolder testFolder = new TemporaryFolder();
-	
-	Dispatcher dispatcher = new Dispatcher() {
 
-		@Override
-		public void asyncExec(Runnable runnable) {
-			runnable.run();
-		}
+	Dispatcher dispatcher=new Dispatcher(){
 
-		@Override
-		public void timerExec(int milliseconds, Runnable runnable) {
-			try {
-				Thread.sleep(milliseconds);
-			} catch (InterruptedException e) {
-			}
-			runnable.run();
-		}
+	@Override public void asyncExec(Runnable runnable){runnable.run();}
 
-		@Override
-		public void syncExec(Runnable runnable) {
-			runnable.run();
-		}};
+	@Override public void timerExec(int milliseconds,Runnable runnable){try{Thread.sleep(milliseconds);}catch(InterruptedException e){}runnable.run();}
+
+	@Override public void syncExec(Runnable runnable){runnable.run();}};
 
 	private AniReader aniReader = new AniReader();
-	
+
 	@Before public void setup() {
 		uut.fileHelper = new FileHelper();
-		uut.aniAction = new AnimationActionHandler(vm);
+		uut.aniAction = new AnimationActionHandler(vm) {
+			protected IProgress getProgress() {
+				return new MockProgress();
+			}
+		};
 		uut.dispatcher = dispatcher;
-		uut.progress = this.progress;
+		uut.progress = new MockProgress();
 	}
-	
+
 	@Test
 	public void testReplaceExtensionTo() throws Exception {
 		String newName = uut.replaceExtensionTo("ani", "foo.xml");
@@ -133,7 +107,6 @@ public class ProjectHandlerTest extends HandlerTest {
 		assertEquals("/foo.ani", filename);
 	}
 
-
 	@Test
 	public void testBareName() throws Exception {
 		assertEquals("pin2dmd", uut.bareName(null));
@@ -141,10 +114,10 @@ public class ProjectHandlerTest extends HandlerTest {
 		assertEquals("foo", uut.bareName("foo.xml"));
 		assertEquals("foo", uut.bareName("/USER/foo.xml"));
 	}
-	
+
 	@Test
 	public final void testLoadProject() {
-		uut.onLoadProjectWithProgress("src/test/resources/ex1.xml",null);
+		uut.onLoadProjectWithProgress("src/test/resources/ex1.xml", null);
 	}
 
 	@Test
@@ -157,7 +130,7 @@ public class ProjectHandlerTest extends HandlerTest {
 		p.switchMode = SwitchMode.EVENT;
 		p.durationInMillis = 257;
 
-		vm.keyframes.put(p.name,p);
+		vm.keyframes.put(p.name, p);
 		uut.onExportProject(filename, f -> new FileOutputStream(f), true);
 
 		// create a reference file and compare against
@@ -173,7 +146,7 @@ public class ProjectHandlerTest extends HandlerTest {
 		p.crc32 = new byte[] { 1, 2, 3, 4 };
 		p.switchMode = SwitchMode.PALETTE;
 
-		vm.keyframes.put(p.name,p);
+		vm.keyframes.put(p.name, p);
 		uut.onExportProject(filename, f -> new FileOutputStream(f), true);
 
 		// create a reference file and compare against
@@ -190,12 +163,12 @@ public class ProjectHandlerTest extends HandlerTest {
 		p.crc32 = new byte[] { 1, 2, 3, 4 };
 		p.switchMode = SwitchMode.PALETTE;
 
-		vm.keyframes.put(p.name,p);
-		
+		vm.keyframes.put(p.name, p);
+
 		vm.masks.get(0).locked = true;
 		vm.masks.get(0).data[0] = 0;
-		
-		//when(licenseManager.requireOneOf(cap))
+
+		// when(licenseManager.requireOneOf(cap))
 
 		uut.onExportProject(filename, f -> new FileOutputStream(f), true);
 
@@ -218,7 +191,7 @@ public class ProjectHandlerTest extends HandlerTest {
 		// FrameSeq fs = new FrameSeq(frames, "foo");
 		// uut.project.frameSeqMap.put("foo", fs);
 
-		vm.keyframes.put(p.name,p);
+		vm.keyframes.put(p.name, p);
 
 		// there must also be an animation called "foo"
 		CompiledAnimation ani = new CompiledAnimation(AnimationType.COMPILED, "foo", 0, 0, 0, 0, 0);
@@ -257,7 +230,7 @@ public class ProjectHandlerTest extends HandlerTest {
 		assertNull(Util.isBinaryIdentical(filename, "./src/test/resources/defaultPalettes.dat"));
 	}
 
-	@Test 
+	@Test
 	public void testOnImportProject() throws Exception {
 		uut.importProject("./src/test/resources/test.xml");
 	}
@@ -265,7 +238,7 @@ public class ProjectHandlerTest extends HandlerTest {
 	@Test
 	public void testOnImportProjectWithChoose() throws Exception {
 		when(fileChooserUtil.choose(anyInt(), eq(null), any(String[].class), any(String[].class)))
-			.thenReturn("src/test/resources/test.xml");
+				.thenReturn("src/test/resources/test.xml");
 		uut.onImportProject();
 	}
 
@@ -282,7 +255,7 @@ public class ProjectHandlerTest extends HandlerTest {
 	@Test
 	public void testOnLoadProjectWithName() throws Exception {
 		when(fileChooserUtil.choose(anyInt(), eq(null), any(String[].class), any(String[].class)))
-			.thenReturn("src/test/resources/ex1.xml");
+				.thenReturn("src/test/resources/ex1.xml");
 		uut.onLoadProject();
 	}
 
@@ -290,8 +263,8 @@ public class ProjectHandlerTest extends HandlerTest {
 	public void testOnExportRealPinProject() throws Exception {
 		File tempFile = testFolder.newFile("test.dat");
 		when(fileChooserUtil.choose(anyInt(), anyString(), any(String[].class), any(String[].class)))
-		.thenReturn(tempFile.getAbsolutePath());
-		vm.setProjectFilename("foo"); 
+				.thenReturn(tempFile.getAbsolutePath());
+		vm.setProjectFilename("foo");
 		uut.onExportRealPinProject();
 	}
 
@@ -299,27 +272,28 @@ public class ProjectHandlerTest extends HandlerTest {
 	public void testOnExportVirtualPinProject() throws Exception {
 		File tempFile = testFolder.newFile("test.dat");
 		when(fileChooserUtil.choose(anyInt(), anyString(), any(String[].class), any(String[].class)))
-		.thenReturn(tempFile.getAbsolutePath());
-		
-		vm.setProjectFilename("foo"); 
+				.thenReturn(tempFile.getAbsolutePath());
+
+		vm.setProjectFilename("foo");
 		uut.onExportVirtualPinProject();
 	}
-	
-	@Captor ArgumentCaptor<Worker> workerCap;
+
+	@Captor
+	ArgumentCaptor<Worker> workerCap;
 
 	@Test
 	public void testOnExportVirtualPinProjectWithData() throws Exception {
 		File tempFile = testFolder.newFile("test.dat");
 		when(fileChooserUtil.choose(anyInt(), anyString(), any(String[].class), any(String[].class)))
-		.thenReturn(tempFile.getAbsolutePath());
-		
-		vm.setProjectFilename("foo"); 
-		List<Animation> anis = aniReader .read("src/test/resources/ex1.ani");
+				.thenReturn(tempFile.getAbsolutePath());
+
+		vm.setProjectFilename("foo");
+		List<Animation> anis = aniReader.read("src/test/resources/ex1.ani");
 		vm.scenes.put("sc1", (CompiledAnimation) anis.get(0));
 		PalMapping k = new PalMapping(1, "foo");
 		k.switchMode = SwitchMode.ADD;
 		k.frameSeqName = "sc1";
-		vm.keyframes.put("kf1", k );
+		vm.keyframes.put("kf1", k);
 		uut.onExportVirtualPinProject();
 	}
 
@@ -336,7 +310,7 @@ public class ProjectHandlerTest extends HandlerTest {
 		// validate that there are 9 default palette
 		FileHelper fileHelper = new FileHelper();
 		Project p = (Project) fileHelper.loadObject(filename);
-		assertEquals(9,p.paletteMap.size());
+		assertEquals(9, p.paletteMap.size());
 	}
 
 	@Test
@@ -348,14 +322,14 @@ public class ProjectHandlerTest extends HandlerTest {
 		// validate that there are no default palette
 		FileHelper fileHelper = new FileHelper();
 		Project p = (Project) fileHelper.loadObject(filename);
-		assertEquals(0,p.paletteMap.size());
+		assertEquals(0, p.paletteMap.size());
 	}
 
 	@Test
 	public void testSaveProjectWithBackup() throws Exception {
 		String filename = testFolder.newFile("test.xml").getAbsolutePath();
 		uut.backup = true;
-		uut.saveProject(filename );
+		uut.saveProject(filename);
 	}
 
 	@Test
@@ -366,40 +340,47 @@ public class ProjectHandlerTest extends HandlerTest {
 		uut.saveProject(tempFile);
 		XMLUnit.setIgnoreWhitespace(true);
 		assertXMLEqual(new FileReader("./src/test/resources/ex1.xml"), new FileReader(tempFile));
-		Animation ani = aniReader.read(testFolder.getRoot()+"/ex1.ani").get(0);
+		Animation ani = aniReader.read(testFolder.getRoot() + "/ex1.ani").get(0);
 		Animation ani2 = aniReader.read("./src/test/resources/ex1.ani").get(0);
-		compare(ani,ani2);
-		assertNull(Util.isBinaryIdentical(testFolder.getRoot()+"/ex1.ani", "./src/test/resources/ex1.ani"));
+		compare(ani, ani2);
+		assertNull(Util.isBinaryIdentical(testFolder.getRoot() + "/ex1.ani", "./src/test/resources/ex1.ani"));
 	}
 
 	@SuppressWarnings("deprecation")
 	private void compare(Animation ani, Animation ani2) {
 		int i = ani.getStart();
-		ani.restart(); ani2.restart();
+		ani.restart();
+		ani2.restart();
 		DMD dmd = new DMD(DmdSize.Size128x32);
-		while( i < ani.end ) {
+		while (i < ani.end) {
 			Frame f = ani.render(dmd, false);
 			Frame f2 = ani2.render(dmd, false);
-			if( !EqualsBuilder.reflectionEquals(f, f2, false) ) fail("frame different @ "+i);
-			if( ani.getRefreshDelay() != ani2.getRefreshDelay() ) fail( "delay at "+i);
+			if (!EqualsBuilder.reflectionEquals(f, f2, false))
+				fail("frame different @ " + i);
+			if (ani.getRefreshDelay() != ani2.getRefreshDelay())
+				fail("delay at " + i);
 			i++;
 		}
-		if( ani.getAniColors() != null && ani2.getAniColors() == null ) fail("different colors set");
-		if( ani2.getAniColors() != null && ani.getAniColors() == null ) fail("different colors set");
-		
-		if( ani.getAniColors().length != ani2.getAniColors().length ) fail("different number of colors");
+		if (ani.getAniColors() != null && ani2.getAniColors() == null)
+			fail("different colors set");
+		if (ani2.getAniColors() != null && ani.getAniColors() == null)
+			fail("different colors set");
+
+		if (ani.getAniColors().length != ani2.getAniColors().length)
+			fail("different number of colors");
 		for (int j = 0; j < ani.getAniColors().length; j++) {
-			if( !ani.getAniColors()[j].equals(ani2.getAniColors()[j])) fail("different color @"+j);
+			if (!ani.getAniColors()[j].equals(ani2.getAniColors()[j]))
+				fail("different color @" + j);
 		}
 		boolean eq = EqualsBuilder.reflectionEquals(ani, ani2, "basePath", "name", "frames", "renderer");
-		if( !eq ) fail( "not equal");
+		if (!eq)
+			fail("not equal");
 	}
 
 	@Test
 	public void testGetUniqueName() throws Exception {
-		assertEquals("foo",uut.getUniqueName("foo", Arrays.asList("xxx")));
-		assertEquals("foo_1",uut.getUniqueName("foo", Arrays.asList("foo")));
+		assertEquals("foo", uut.getUniqueName("foo", Arrays.asList("xxx")));
+		assertEquals("foo_1", uut.getUniqueName("foo", Arrays.asList("foo")));
 	}
-
 
 }

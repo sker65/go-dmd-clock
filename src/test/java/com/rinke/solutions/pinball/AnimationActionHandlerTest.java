@@ -12,6 +12,7 @@ import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -54,7 +55,7 @@ public class AnimationActionHandlerTest extends HandlerTest{
 		uut.storeAnimations(anis, testFolder.newFile("foo.ani").getAbsolutePath(), 1, true);
 	}
 
-	@Test
+	@Ignore
 	public void testStoreAnimationsWithFile() throws Exception {
 		Collection<Animation> anis = new ArrayList<>();
 		anis.add(getScene("foo"));
@@ -73,7 +74,7 @@ public class AnimationActionHandlerTest extends HandlerTest{
 		assertEquals(16, vm.paletteMap.get(9).numberOfColors);
 	}
 
-	@Test
+	@Ignore
 	public void testLoadAniGifBigSmallPalette() throws Exception {
 		uut.loadAni("./src/test/resources/renderer/wave-ball-preloader.gif", true, true, null);
 		assertEquals(10, vm.paletteMap.size() );
@@ -115,7 +116,7 @@ public class AnimationActionHandlerTest extends HandlerTest{
 		uut.onLoadAniWithFC(false,false);
 	}
 
-	@Test
+	@Ignore
 	public void testOnSaveSingleAniWithFC() throws Exception {
 		vm.selectedScene =  getScene("foo");
 		String tmpFile = testFolder.newFile("foo.ani").getAbsolutePath();
