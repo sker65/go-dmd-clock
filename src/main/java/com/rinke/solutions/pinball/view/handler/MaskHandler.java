@@ -1,6 +1,7 @@
 package com.rinke.solutions.pinball.view.handler;
 
 import com.rinke.solutions.beans.Autowired;
+
 import com.rinke.solutions.beans.Bean;
 import com.rinke.solutions.pinball.AnimationHandler;
 import com.rinke.solutions.pinball.animation.Animation;
@@ -8,6 +9,10 @@ import com.rinke.solutions.pinball.animation.Animation.EditMode;
 import com.rinke.solutions.pinball.model.Mask;
 import com.rinke.solutions.pinball.util.MessageUtil;
 import com.rinke.solutions.pinball.view.model.ViewModel;
+import com.rinke.solutions.pinball.model.PalMapping;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Bean
 public class MaskHandler extends AbstractCommandHandler implements ViewBindingHandler {
@@ -124,9 +129,14 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 				vm.dmd.fill((vm.layerMaskActive||vm.detectionMaskActive)?(byte)0xFF:0);
 				vm.setDmdDirty(true);
 			} else {
-				//TODO: Show which keyframes use the mask here
-				messageUtil.warn("Mask Locked", 
-						"This mask is already used and cannot be modified");
+				//Show which keyframes use the mask here
+				List<String> res = new ArrayList<>();
+				for( PalMapping pm : vm.keyframes.values()) {
+					if( pm.maskNumber == vm.selectedMaskNumber ) {
+						res.add("KeyFrame "+pm.name);
+					}
+				}
+				messageUtil.warn("Mask cannot be deleted", "It is used by: "+res);
 			}
 		}
 		
