@@ -797,7 +797,8 @@ public class EditorView implements MainView {
 			}
 		} );
 		
-		txtDelayVal.addListener(SWT.Verify, e -> e.doit = Pattern.matches("^[0-9]*$", e.text));
+		//TODO: fix for more than 3 digits
+		//txtDelayVal.addListener(SWT.Verify, e -> e.doit = Pattern.matches("^[0-9]*$", e.text));
 
 		Label lblPlanes = new Label(grpDetails, SWT.NONE);
 		lblPlanes.setText("Planes:");
