@@ -6,11 +6,14 @@ import com.rinke.solutions.pinball.AnimationHandler;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.Animation.EditMode;
 import com.rinke.solutions.pinball.model.Mask;
+import com.rinke.solutions.pinball.util.MessageUtil;
 import com.rinke.solutions.pinball.view.model.ViewModel;
 
 @Bean
 public class MaskHandler extends AbstractCommandHandler implements ViewBindingHandler {
 
+	@Autowired 
+	MessageUtil messageUtil;
 	@Autowired
 	HashCmdHandler hashCmdHandler;
 	@Autowired
@@ -52,6 +55,7 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 			mask = null;
 		}
 		vm.dmd.setMask(mask);
+		vm.setDeleteColMaskEnabled(n);
 		vm.setBtnInvertEnabled(n);
 		animationHandler.forceRerender();
 		vm.setDmdDirty(true);
@@ -98,13 +102,53 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 	 * depending on draw mask (presence of a mask) this is plane 2,3 or 3,4
 	 */
 	 public void onDeleteColMask() {
-		vm.dmd.addUndoBuffer();
-		vm.dmd.fill((vm.layerMaskActive||vm.detectionMaskActive)?(byte)0xFF:0);
-		vm.setDmdDirty(true);
+		EditMode m = vm.selectedEditMode;
+		if( m.haveSceneDetectionMasks ) {
+			if(vm.selectedScene != null && vm.selectedScene.getMask(vm.selectedMaskNumber).locked) {
+				int res = messageUtil.warn(0, "Warning",
+						"Unlock Mask", 
+						"If you unlock this mask all frames using this mask need to be reassigned !",
+						new String[]{"", "OK", "Cancel"},2);
+				if( res == 1 ) {
+					vm.dmd.getFrame().mask.locked = false;
+				}
+				
+			} else { 				
+				vm.dmd.addUndoBuffer();
+				vm.dmd.fill((vm.layerMaskActive||vm.detectionMaskActive)?(byte)0xFF:0);
+			}
+			vm.setDmdDirty(true);
+		} else {
+			if (!(vm.dmd.getFrame().mask.locked)) {
+				vm.dmd.addUndoBuffer();
+				vm.dmd.fill((vm.layerMaskActive||vm.detectionMaskActive)?(byte)0xFF:0);
+				vm.setDmdDirty(true);
+			} else {
+				//TODO: Show which keyframes use the mask here
+				messageUtil.warn("Mask Locked", 
+						"This mask is already used and cannot be modified");
+			}
+		}
+		
 	}
 
 	public void onInvertMask() {
-		vm.dmd.invertMask();
+		EditMode m = vm.selectedEditMode;
+		if( m.haveSceneDetectionMasks ) {
+			if(vm.selectedScene != null && !vm.selectedScene.getMask(vm.selectedMaskNumber).locked) {
+				vm.dmd.invertMask();
+			} else {
+				messageUtil.warn("Mask Locked", 
+						"This mask is already used and cannot be modified");
+			}
+		} else {
+			if (!(vm.dmd.getFrame().mask.locked)) {
+				vm.dmd.invertMask();
+			} else {
+				messageUtil.warn("Mask Locked", 
+						"This mask is already used and cannot be modified");
+			}
+		}
 	}
 
 	public void updateDrawingEnabled() {
