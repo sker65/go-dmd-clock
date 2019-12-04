@@ -29,6 +29,7 @@ public class Commands {
 	public static final String UNDO = "undo";
 	public static final String REDO = "redo";
 	public static final String SELECT_ALL = "selectAll";
+	public static final String REPLACE = "replace";
 	public static final String PASTE_HOOVER = "pasteHoover";
 	public static final String PASTE = "paste";
 	public static final String COPY = "copy";

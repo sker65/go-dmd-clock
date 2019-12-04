@@ -356,6 +356,11 @@ public class EditorView implements MainView {
 		mntmPasteWithHover.setAccelerator(SWT.MOD1 + SWT.MOD2 + 'V');
 		mntmPasteWithHover.addListener(SWT.Selection, e -> dispatchCmd(PASTE_HOOVER)); 
 		
+		MenuItem mntmReplace = new MenuItem(menu_5, SWT.NONE);
+		mntmReplace.setText("Replace\tCtrl-R");
+		mntmReplace.setAccelerator(SWT.MOD1 + 'R');
+		mntmReplace.addListener(SWT.Selection, e -> dispatchCmd(REPLACE)); 
+		
 		mntmSelectAll = new MenuItem(menu_5, SWT.NONE);
 		mntmSelectAll.setText("Select All\tCtrl-A");
 		mntmSelectAll.setAccelerator(SWT.MOD1 + 'A');

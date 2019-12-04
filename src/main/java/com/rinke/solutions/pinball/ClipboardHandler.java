@@ -11,6 +11,7 @@ import org.eclipse.swt.graphics.PaletteData;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Display;
 
+import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Mask;
 import com.rinke.solutions.pinball.model.Palette;
@@ -241,6 +242,18 @@ public class ClipboardHandler {
 				}
 			}
 		}
+	}
+
+	public void onReplace() {
+		for( String item : clipboard.getAvailableTypeNames() ) {
+			log.info("Clipboard type: {}", item);
+		}
+		dmdWidget.resetSelection();
+		Frame frame = (Frame) clipboard.getContents("DmdFrameTransfer");
+		if( frame != null ) {
+			dmd.addUndoBuffer();
+			frame.copyToWithMask(dmd.getFrame(), 0x7FFFFF);
+		} 
 	}
 	
 }
