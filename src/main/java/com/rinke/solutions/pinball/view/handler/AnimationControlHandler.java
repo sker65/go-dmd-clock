@@ -102,9 +102,9 @@ public class AnimationControlHandler extends AbstractCommandHandler implements V
 	}
 	
 	public void onCopyAndMoveToNextFrame() {
-		onNextFrame();
 		CompiledAnimation ani = vm.selectedScene;
 		if( !ani.hasEnded() ) {
+			onNextFrame();
 			ani.frames.get(ani.actFrame-1).copyToWithMask(vm.dmd.getFrame(), vm.dmd.getDrawMask());
 			vm.setDmdDirty(true);
 		}
