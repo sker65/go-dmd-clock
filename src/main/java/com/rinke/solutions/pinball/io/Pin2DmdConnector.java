@@ -204,13 +204,16 @@ public abstract class Pin2DmdConnector {
     	int headerSize = 4;
     	int planeSize = dmdSize.planeSize;
     	int bufferSize = min(4,frame.planes.size()) * planeSize;
-
+    	int planeCount = 0;
+    	for( Plane p : frame.planes) planeCount++;
+    	
     	// XL dmd is handled different: use E8 framing with size byte
     	if( dmdSize.equals(DmdSize.Size192x64) ) {
         	byte[] buffer = buildFrameBuffer( bufferSize, 0xE8, bufferSize/512 );
     		for( Plane p : frame.planes) {
         		System.arraycopy(Frame.transform(p.data), 0, buffer, headerSize+i*planeSize, planeSize);
-        		if( i++ > 3 ) break; // max 4 planes
+        		i++;
+        		if( i > 3 ) break; // max 4 planes
         	}
            	send(buffer, usb);
     	} else {
@@ -233,7 +236,8 @@ public abstract class Pin2DmdConnector {
         	} else {
             	for( Plane p : frame.planes) {
             		System.arraycopy(Frame.transform(p.data), 0, buffer, headerSize+i*planeSize, planeSize);
-            		if( i++ > 3 ) break;
+            		i++;
+            		if( i > 3 ) break;
             	}
         	}
            	send(buffer, usb);
