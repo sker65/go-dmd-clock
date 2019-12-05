@@ -282,6 +282,9 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 	}
 	
 	public void onNewPalette() {
+		if (vm.livePreviewActive ) {
+			vm.setLivePreviewActive(false);
+		}
 		String name = vm.editedPaletteName;
 		if (!isNewPaletteName(name)) {
 			name = "new" + UUID.randomUUID().toString().substring(0, 4);
