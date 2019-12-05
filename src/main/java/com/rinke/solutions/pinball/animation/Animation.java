@@ -437,7 +437,7 @@ public class Animation {
 	public void restart() {
 		ended = false;
 		actCycle = 0;
-		actFrame = start;
+		//actFrame = start;
 		holdCount = 0;
 		transitionCount=0;
 	}
