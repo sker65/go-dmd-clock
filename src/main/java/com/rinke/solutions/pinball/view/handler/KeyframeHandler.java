@@ -76,6 +76,11 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 			}
 		} while(vm.keyframes.containsKey(prompt));
 		
+		if (vm.selectedHashIndex == -1) {
+			messageUtil.error("No Hash Selected", "Please select a hash");
+			return;
+		} 
+		
 		PalMapping palMapping = new PalMapping(0, prompt );
 		palMapping.setDigest(vm.hashes.get(vm.selectedHashIndex));
 	
