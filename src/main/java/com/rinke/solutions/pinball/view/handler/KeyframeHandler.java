@@ -130,9 +130,15 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 	 * @return name
 	 */
 	 String getName(SwitchMode switchMode, Animation ani) {
-		String name = "KeyFrame " + ( ani!=null 
-				&&  !switchMode.equals(SwitchMode.PALETTE) 
-				&& !switchMode.equals(SwitchMode.EVENT) ? ani.getDesc():Integer.toString(vm.keyframes.size()+1) );
+//		String name = "KeyFrame " + ( ani!=null 
+//				&&  !switchMode.equals(SwitchMode.PALETTE) 
+//				&& !switchMode.equals(SwitchMode.EVENT) ? ani.getDesc():Integer.toString(vm.keyframes.size()+1) );
+	 	String name = "";
+		if (ani!=null && !switchMode.equals(SwitchMode.PALETTE) && !switchMode.equals(SwitchMode.EVENT)) {
+			name = name + ani.getDesc();
+		} else {
+			name = "KeyFrame ";
+		}
 		int i = 0;
 		String res = name;
 		while( vm.keyframes.containsKey(res)) {
