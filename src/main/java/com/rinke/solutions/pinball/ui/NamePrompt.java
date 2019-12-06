@@ -70,7 +70,7 @@ public class NamePrompt extends Dialog implements View {
 		grpName.setBounds(21, 30, 393, 72);
 		
 		nameInput = new Text(grpName, SWT.BORDER);
-		nameInput.setBounds(10, 10, 371, 23);
+		nameInput.setBounds(10, 23, 371, 23);
 		nameInput.setText(prompt);
 		nameInput.setSelection(0, prompt.length());
 		

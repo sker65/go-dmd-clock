@@ -32,10 +32,12 @@ import com.rinke.solutions.pinball.model.PaletteType;
 import com.rinke.solutions.pinball.model.Plane;
 import com.rinke.solutions.pinball.model.RGB;
 import com.rinke.solutions.pinball.ui.ConfigDialog;
+import com.rinke.solutions.pinball.ui.NamePrompt;
 import com.rinke.solutions.pinball.ui.PalettePicker;
 import com.rinke.solutions.pinball.util.Config;
 import com.rinke.solutions.pinball.util.FileChooserUtil;
 import com.rinke.solutions.pinball.util.MessageUtil;
+import com.rinke.solutions.pinball.view.View;
 import com.rinke.solutions.pinball.view.model.ViewModel;
 
 @Slf4j
@@ -46,6 +48,7 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 	@Autowired FileChooserUtil fileChooserUtil;
 	@Autowired MessageUtil messageUtil;
 	@Autowired PalettePicker palettePicker;
+	@Autowired View namePrompt;
 	
 	@Value(key=Config.COLOR_ACCURACY,defaultValue="0")
     private int colorAccuracy;
@@ -285,10 +288,16 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 		if (vm.livePreviewActive ) {
 			vm.setLivePreviewActive(false);
 		}
-		String name = vm.editedPaletteName;
-		if (!isNewPaletteName(name)) {
-			name = "new" + UUID.randomUUID().toString().substring(0, 4);
-		}
+		
+		String name = "pal " + UUID.randomUUID().toString().substring(0, 4);
+		
+		NamePrompt namePrompt = (NamePrompt) this.namePrompt;
+		namePrompt.setItemName("Palette");
+		namePrompt.setPrompt(name);
+		namePrompt.open();
+		if( namePrompt.isOkay() ) name = namePrompt.getPrompt();
+		else return;
+		
 		Palette newPal =  new Palette(vm.selectedPalette.colors, getHighestIndex(vm.paletteMap)+1, name);
 		vm.paletteMap.put(newPal.index,newPal);
 		vm.setSelectedPalette(newPal);
