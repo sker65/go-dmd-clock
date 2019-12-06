@@ -254,8 +254,8 @@ public abstract class Pin2DmdConnector {
     			byte[] planeG = frame.planes.get(j+8).data;
     			byte[] planeB = frame.planes.get(j+16).data;
         		System.arraycopy(Frame.transform(planeR), 0, buffer, headerSize+((j-3)*planeSize), planeSize);
-        		System.arraycopy(Frame.transform(planeG), 0, buffer, headerSize+((j-3)*planeSize)+2560, planeSize);
-        		System.arraycopy(Frame.transform(planeB), 0, buffer, headerSize+((j-3)*planeSize)+5120, planeSize);
+        		System.arraycopy(Frame.transform(planeG), 0, buffer, headerSize+((j-3)*planeSize)+(5*planeSize), planeSize);
+        		System.arraycopy(Frame.transform(planeB), 0, buffer, headerSize+((j-3)*planeSize)+(10*planeSize), planeSize);
         	}
            	send(buffer, usb);
     	}
