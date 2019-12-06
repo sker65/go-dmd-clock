@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
@@ -235,7 +236,21 @@ public class ProjectHandler extends AbstractCommandHandler {
 						}
 					} catch( RuntimeException e) {
 						log.error("problem loading {}", file, e);
-						//msg +="\nProblem loading "+file+": "+e.getMessage();
+						String basefile = FilenameUtils.getBaseName(file)
+				                + "." + FilenameUtils.getExtension(file);
+						try {
+							List<Animation> anis = aniAction.loadAni(buildRelFilename(filename, basefile), true, false, progress);
+							if( !anis.isEmpty() ) {
+								Animation firstAni = anis.get(0);
+								if( p.recordingNameMap.containsKey(basefile)) {
+									firstAni.setDesc(p.recordingNameMap.get(basefile));
+								}
+							}
+						} catch( RuntimeException f) {
+							log.error("problem loading {}", file, f);
+							messageUtil.warn("Project file not found","Project file " + file + " missing. Please copy the file to the project folder.");
+							//msg +="\nProblem loading "+file+": "+e.getMessage();
+						}
 					}
 				});
 			}

@@ -37,6 +37,7 @@ import com.rinke.solutions.pinball.util.FileChooserUtil;
 import com.rinke.solutions.pinball.util.MessageUtil;
 import com.rinke.solutions.pinball.view.handler.AbstractCommandHandler;
 import com.rinke.solutions.pinball.view.model.ViewModel;
+import org.apache.commons.io.FilenameUtils;
 
 @Slf4j
 @Bean
@@ -44,6 +45,7 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 	
 	@Autowired MessageUtil messageUtil;
 	@Autowired FileChooserUtil fileChooserUtil;
+	
 	@Setter private Shell shell;
 	private AniReader reader;
 		
@@ -147,8 +149,10 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 		if (populateProject) {
 			if (!append)
 				vm.inputFiles.clear();
-			if (!vm.inputFiles.contains(filename))
-				vm.inputFiles.add(filename);
+			String baseFilename = FilenameUtils.getBaseName(filename)
+	                + "." + FilenameUtils.getExtension(filename);
+			if (!vm.inputFiles.contains(baseFilename))
+				vm.inputFiles.add(baseFilename);
 		}
 
 		// animationHandler.setAnimations(sourceAnis);
