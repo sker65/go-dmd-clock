@@ -254,7 +254,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 					}
 				});
 			}
-			if( w!=null) w.notify(90, "loading prject ani "+aniFilename);
+			if( w!=null) w.notify(90, "loading project ani "+aniFilename);
 
 			dispatcher.syncExec(()->{
 				List<Animation> loadedWithProject = aniAction.loadAni(aniFilename, true, false, progress);
