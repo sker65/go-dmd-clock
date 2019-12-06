@@ -181,6 +181,7 @@ public class EditorView implements MainView {
 	Button btnNewPalette;
 	Button btnRenamePalette;
 	@GuiBinding(prop=ENABLED, propName="drawingEnabled") private ToolBar drawToolBar;
+	@GuiBinding(prop=ENABLED, propName="drawingEnabled") private ToolBar drawToolBar2;
 	
 	@GuiBinding( props={INPUT,SELECTION}, propNames={"scenes", "selectedFrameSeq"} )
 	ComboViewer frameSeqViewer;
@@ -858,6 +859,7 @@ public class EditorView implements MainView {
 		
 		Group grpDrawing = new Group(parent, SWT.NONE);
 		GridData gd_grpDrawing = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+		gd_grpDrawing.heightHint = 92;
 		gd_grpDrawing.widthHint = 541;
 		grpDrawing.setLayoutData(gd_grpDrawing);
 		grpDrawing.setLayout(new GridLayout(7, false));
@@ -914,10 +916,6 @@ public class EditorView implements MainView {
 		tltmFilledCircle.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/oval2.png")));
 		tltmFilledCircle.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("filledCircle")));
 
-		//		ToolItem tltmColorize = new ToolItem(drawToolBar, SWT.RADIO);
-//		tltmColorize.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/colorize.png")));
-//		tltmColorize.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("colorize")));
-		
 		ToolItem tltmMark = new ToolItem(drawToolBar, SWT.RADIO);
 		tltmMark.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/select.png")));
 		tltmMark.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("select")));
@@ -967,6 +965,42 @@ public class EditorView implements MainView {
 		detectionMask.setEnabled(false);
 		detectionMask.setToolTipText("enables drawing the DETECTION MASK for triggering a keyframe");
 		
+
+		drawToolBar2 = new ToolBar(grpDrawing, SWT.FLAT | SWT.RIGHT);
+		drawToolBar2.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
+	
+
+		//ToolItem tltmMagic = new ToolItem(drawToolBar2, SWT.RADIO);
+		//tltmPen.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/magic.png")));
+		//tltmPen.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("magic")));
+		
+		//ToolItem tltmBrush = new ToolItem(drawToolBar2, SWT.RADIO);
+		//tltmPen.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/brush.png")));
+		//tltmPen.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("brush")));
+		
+		//ToolItem tltmColorize = new ToolItem(drawToolBar2, SWT.RADIO);
+		//tltmColorize.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/colorize.png")));
+		//tltmColorize.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("colorize")));
+
+		new Label(grpDrawing, SWT.NONE);
+		new Label(grpDrawing, SWT.NONE);
+		
+		deleteColMask = new Button(grpDrawing, SWT.NONE);
+		deleteColMask.setText("Del");
+		deleteColMask.setEnabled(false);
+		deleteColMask.addListener(SWT.Selection, e -> dispatchCmd(DELETE_COL_MASK));
+		
+		btnInvert = new Button(grpDrawing, SWT.NONE);
+		btnInvert.setText("Inv");
+		btnInvert.addListener(SWT.Selection, e->dispatchCmd(INVERT_MASK));
+		btnInvert.setEnabled(false);
+
+		layerMask = new Button(grpDrawing, SWT.CHECK);
+		layerMask.setText("L-Mask");
+		layerMask.setEnabled(false);
+		layerMask.setToolTipText("enables drawing the LAYERED MASK for layered coloring");
+		
+		
 		copyToPrev = new Button(grpDrawing, SWT.NONE);
 		copyToPrev.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
 		copyToPrev.setText("CopyPrev");
@@ -984,21 +1018,16 @@ public class EditorView implements MainView {
 		redo = new Button(grpDrawing, SWT.NONE);
 		redo.setText("&Redo");
 		redo.addListener(SWT.Selection, e -> dispatchCmd(REDO));
-		
-		deleteColMask = new Button(grpDrawing, SWT.NONE);
-		deleteColMask.setText("Del");
-		deleteColMask.setEnabled(false);
-		deleteColMask.addListener(SWT.Selection, e -> dispatchCmd(DELETE_COL_MASK));
-		
-		btnInvert = new Button(grpDrawing, SWT.NONE);
-		btnInvert.setText("Inv");
-		btnInvert.addListener(SWT.Selection, e->dispatchCmd(INVERT_MASK));
-		btnInvert.setEnabled(false);
-
-		layerMask = new Button(grpDrawing, SWT.CHECK);
-		layerMask.setText("L-Mask");
-		layerMask.setEnabled(false);
-		layerMask.setToolTipText("enables drawing the LAYERED MASK for layered coloring");
+		new Label(grpDrawing, SWT.NONE);
+		new Label(grpDrawing, SWT.NONE);
+		new Label(grpDrawing, SWT.NONE);
+		new Label(grpDrawing, SWT.NONE);
+		new Label(grpDrawing, SWT.NONE);
+		new Label(grpDrawing, SWT.NONE);
+		new Label(grpDrawing, SWT.NONE);
+		new Label(grpDrawing, SWT.NONE);
+		new Label(grpDrawing, SWT.NONE);
+		new Label(grpDrawing, SWT.NONE);
 
 		
 	}
@@ -1006,6 +1035,7 @@ public class EditorView implements MainView {
 	private void createPalettesGroup(Composite parent) {
 		Group grpPalettes = new Group(parent, SWT.NONE);
 		GridData gd_grpPalettes = new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1);
+		gd_grpPalettes.heightHint = 84;
 		gd_grpPalettes.widthHint = 539;
 		grpPalettes.setLayoutData(gd_grpPalettes);
 		GridLayout gl_grpPalettes = new GridLayout(5, false);
