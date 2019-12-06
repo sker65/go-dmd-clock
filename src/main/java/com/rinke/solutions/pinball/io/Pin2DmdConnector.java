@@ -203,42 +203,59 @@ public abstract class Pin2DmdConnector {
     	int i = 0;
     	int headerSize = 4;
     	int planeSize = dmdSize.planeSize;
-    	int bufferSize = min(4,frame.planes.size()) * planeSize;
+    	int bufferSize = 0;
     	int planeCount = 0;
+    	
+    	
     	for( Plane p : frame.planes) planeCount++;
     	
-    	// XL dmd is handled different: use E8 framing with size byte
-    	if( dmdSize.equals(DmdSize.Size192x64) ) {
-        	byte[] buffer = buildFrameBuffer( bufferSize, 0xE8, bufferSize/512 );
-    		for( Plane p : frame.planes) {
-        		System.arraycopy(Frame.transform(p.data), 0, buffer, headerSize+i*planeSize, planeSize);
-        		i++;
-        		if( i > 3 ) break; // max 4 planes
-        	}
-           	send(buffer, usb);
-    	} else {
-    		if( bufferSize / planeSize == 2 ) {
-    			bufferSize *= 2;				// double buffer size for 4 plane output
-    		}
-        	byte[] buffer = buildFrameBuffer(bufferSize, 0xE7, 0);
-        	if( frame.planes.size() == 2 ) {
-        		byte[] planeAnd = new byte[planeSize];
-        		byte[] plane0 = frame.planes.get(0).data;
-        		byte[] plane1 = frame.planes.get(1).data;
-        		
-        		for (int j = 0; j < plane0.length; j++) {
-    				planeAnd[j] =  (byte) (plane0[j] & plane1[j]);
-    			}
-        		System.arraycopy(Frame.transform(plane0), 0, buffer, headerSize+0*planeSize, planeSize);
-        		System.arraycopy(Frame.transform(plane1), 0, buffer, headerSize+2*planeSize, planeSize);
-        		System.arraycopy(Frame.transform(planeAnd), 0, buffer, headerSize+1*planeSize, planeSize);
-        		System.arraycopy(Frame.transform(planeAnd), 0, buffer, headerSize+3*planeSize, planeSize);
-        	} else {
-            	for( Plane p : frame.planes) {
-            		System.arraycopy(Frame.transform(p.data), 0, buffer, headerSize+i*planeSize, planeSize);
-            		i++;
-            		if( i > 3 ) break;
-            	}
+    	if (planeCount < 24) {
+    		bufferSize = min(4,frame.planes.size()) * planeSize;
+	    	// XL dmd is handled different: use E8 framing with size byte
+	    	if( dmdSize.equals(DmdSize.Size192x64) ) {
+	        	byte[] buffer = buildFrameBuffer( bufferSize, 0xE8, bufferSize/512 );
+	    		for( Plane p : frame.planes) {
+	        		System.arraycopy(Frame.transform(p.data), 0, buffer, headerSize+i*planeSize, planeSize);
+	        		i++;
+	        		if( i > 3 ) break; // max 4 planes
+	        	}
+	           	send(buffer, usb);
+	    	} else {
+	    		if( bufferSize / planeSize == 2 ) {
+	    			bufferSize *= 2;				// double buffer size for 4 plane output
+	    		}
+	        	byte[] buffer = buildFrameBuffer(bufferSize, 0xE7, 0);
+	        	if( frame.planes.size() == 2 ) {
+	        		byte[] planeAnd = new byte[planeSize];
+	        		byte[] plane0 = frame.planes.get(0).data;
+	        		byte[] plane1 = frame.planes.get(1).data;
+	        		
+	        		for (int j = 0; j < plane0.length; j++) {
+	    				planeAnd[j] =  (byte) (plane0[j] & plane1[j]);
+	    			}
+	        		System.arraycopy(Frame.transform(plane0), 0, buffer, headerSize+0*planeSize, planeSize);
+	        		System.arraycopy(Frame.transform(plane1), 0, buffer, headerSize+2*planeSize, planeSize);
+	        		System.arraycopy(Frame.transform(planeAnd), 0, buffer, headerSize+1*planeSize, planeSize);
+	        		System.arraycopy(Frame.transform(planeAnd), 0, buffer, headerSize+3*planeSize, planeSize);
+	        	} else {
+	            	for( Plane p : frame.planes) {
+	            		System.arraycopy(Frame.transform(p.data), 0, buffer, headerSize+i*planeSize, planeSize);
+	            		i++;
+	            		if( i > 3 ) break;
+	            	}
+	        	}
+	           	send(buffer, usb);
+	    	}
+    	} else { // 0-7 red, 8-15 green, 16-23 blue
+    		bufferSize = min(15,frame.planes.size()) * planeSize;
+        	byte[] buffer = buildFrameBuffer(bufferSize, 0xE8, bufferSize/512 );
+        	for( int j=3; j < (planeCount/3); j++ ) {
+    			byte[] planeR = frame.planes.get(j).data;
+    			byte[] planeG = frame.planes.get(j+8).data;
+    			byte[] planeB = frame.planes.get(j+16).data;
+        		System.arraycopy(Frame.transform(planeR), 0, buffer, headerSize+((j-3)*planeSize), planeSize);
+        		System.arraycopy(Frame.transform(planeG), 0, buffer, headerSize+((j-3)*planeSize)+2560, planeSize);
+        		System.arraycopy(Frame.transform(planeB), 0, buffer, headerSize+((j-3)*planeSize)+5120, planeSize);
         	}
            	send(buffer, usb);
     	}
