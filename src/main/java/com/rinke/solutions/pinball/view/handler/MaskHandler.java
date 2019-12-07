@@ -112,7 +112,7 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 			if(vm.selectedScene != null && vm.selectedScene.getMask(vm.selectedMaskNumber).locked) {
 				int res = messageUtil.warn(0, "Warning",
 						"Unlock Mask", 
-						"If you unlock this mask all frames using this mask need to be reassigned !",
+						"If you unlock this mask all hashes using this mask need to be set again !",
 						new String[]{"", "OK", "Cancel"},2);
 				if( res == 1 ) {
 					vm.dmd.getFrame().mask.locked = false;
