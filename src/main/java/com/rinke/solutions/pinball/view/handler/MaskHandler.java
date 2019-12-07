@@ -10,6 +10,10 @@ import com.rinke.solutions.pinball.model.Mask;
 import com.rinke.solutions.pinball.util.MessageUtil;
 import com.rinke.solutions.pinball.view.model.ViewModel;
 import com.rinke.solutions.pinball.model.PalMapping;
+import org.eclipse.swt.widgets.Display; 
+import org.eclipse.swt.dnd.Clipboard; 
+import org.eclipse.swt.dnd.TextTransfer; 
+import org.eclipse.swt.dnd.Transfer; 
 
 import java.util.ArrayList;
 import java.util.List;
@@ -137,6 +141,10 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 					}
 				}
 				messageUtil.warn("Mask cannot be deleted", "It is used by: "+res);
+				Clipboard clipboard=new Clipboard(Display.getCurrent());
+				TextTransfer transfer=TextTransfer.getInstance();
+				clipboard.setContents(new Object[]{res.toString()},new Transfer[]{transfer});
+				clipboard.dispose();
 			}
 		}
 		
