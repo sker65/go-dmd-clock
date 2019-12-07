@@ -263,7 +263,7 @@ public class KeyframeHandlerTest extends HandlerTest {
 	@Test
 	public void testGetName() throws Exception {
 		String n = uut.getName(SwitchMode.PALETTE, null);
-		assertEquals("KeyFrame 1", n);
+		assertEquals("KeyFrame ", n);
 	}
 
 	@Test
@@ -271,6 +271,6 @@ public class KeyframeHandlerTest extends HandlerTest {
 		vm.keyframes.put("KeyFrame 1", getKeyframe());
 		CompiledAnimation scene = getScene("1");
 		String n = uut.getName(SwitchMode.ADD, scene);
-		assertEquals("KeyFrame 1 1", n);	}
+		assertEquals("1", n);	}
 
 }
