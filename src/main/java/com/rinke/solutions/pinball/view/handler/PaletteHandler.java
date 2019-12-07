@@ -12,6 +12,10 @@ import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.widgets.Display;
 
 import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.Bean;
@@ -412,6 +416,10 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 				vm.setSelectedPalette(vm.paletteMap.values().iterator().next());
 			} else {
 				messageUtil.warn("Palette cannot be deleted", "It is used by: "+res);
+				Clipboard clipboard=new Clipboard(Display.getCurrent());
+				TextTransfer transfer=TextTransfer.getInstance();
+				clipboard.setContents(new Object[]{res.toString()},new Transfer[]{transfer});
+				clipboard.dispose();
 			}
 		}
 	}
