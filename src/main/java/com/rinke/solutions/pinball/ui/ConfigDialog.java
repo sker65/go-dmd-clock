@@ -202,14 +202,14 @@ public class ConfigDialog extends Dialog implements View {
         
         dmdSizeViewer = new ComboViewer(grpDmd, SWT.READ_ONLY);
         Combo combo = dmdSizeViewer.getCombo();
-        combo.setBounds(57, 10, 119, 22);
+        combo.setBounds(60, 16, 119, 22);
         dmdSizeViewer.setContentProvider(ArrayContentProvider.getInstance());
 		dmdSizeViewer.setLabelProvider(new LabelProviderAdapter<DmdSize>(o -> o.label ));
 		dmdSizeViewer.setInput(DmdSize.values());
 		dmdSizeViewer.setSelection(new StructuredSelection(dmdSize));
 		
 		Label lblSize = new Label(grpDmd, SWT.RIGHT);
-		lblSize.setBounds(10, 13, 41, 14);
+		lblSize.setBounds(10, 19, 41, 14);
 		lblSize.setText("Size: ");
 		
         Group grpAutosave = new Group(grpTest, SWT.NONE);
@@ -222,21 +222,21 @@ public class ConfigDialog extends Dialog implements View {
         grpAutosave.setText("Save");
         
         btnAutosaveActive = new Button(grpAutosave, SWT.CHECK);
-        btnAutosaveActive.setBounds(10, 10, 106, 18);
+        btnAutosaveActive.setBounds(10, 21, 106, 18);
         btnAutosaveActive.setText("autosave active");
         
         autosaveInterval = new Spinner(grpAutosave, SWT.BORDER);
-        autosaveInterval.setBounds(122, 8, 52, 22);
+        autosaveInterval.setBounds(122, 20, 52, 22);
         autosaveInterval.setIncrement(5);
         autosaveInterval.setMinimum(5);
         autosaveInterval.setMaximum(30);
         
         Label lblSec = new Label(grpAutosave, SWT.NONE);
-        lblSec.setBounds(180, 13, 40, 14);
+        lblSec.setBounds(180, 23, 40, 14);
         lblSec.setText("min.");
         
         btnBackupOnSave = new Button(grpAutosave, SWT.CHECK);
-        btnBackupOnSave.setBounds(10, 33, 140, 18);
+        btnBackupOnSave.setBounds(10, 45, 140, 18);
         btnBackupOnSave.setText("backup on save");
         
         TabItem tbtmSettings = new TabItem(tabFolder, SWT.NONE);
@@ -255,23 +255,23 @@ public class ConfigDialog extends Dialog implements View {
         grpCutting.setLayoutData(fd_grpCutting);
         
         btnCreateKeyFrame = new Button(grpCutting, SWT.CHECK);
-        btnCreateKeyFrame.setBounds(10, 10, 228, 18);
+        btnCreateKeyFrame.setBounds(10, 20, 228, 18);
         btnCreateKeyFrame.setText("create key frame after cutting");
         
         btnCreatePaletteAfter = new Button(grpCutting, SWT.CHECK);
-        btnCreatePaletteAfter.setBounds(10, 34, 241, 18);
+        btnCreatePaletteAfter.setBounds(10, 44, 241, 18);
         btnCreatePaletteAfter.setText("create palette after cutting");
         
         btnCreateBookmarkAfter = new Button(grpCutting, SWT.CHECK);
-        btnCreateBookmarkAfter.setBounds(10, 58, 241, 18);
+        btnCreateBookmarkAfter.setBounds(10, 68, 241, 18);
         btnCreateBookmarkAfter.setText("create bookmark after cutting");
         
         Label lblNumberOfPlanes = new Label(grpCutting, SWT.NONE);
-        lblNumberOfPlanes.setBounds(60, 87, 192, 14);
+        lblNumberOfPlanes.setBounds(60, 97, 192, 14);
         lblNumberOfPlanes.setText("Number of planes when cutting");
         
         spinnerNoPlanes = new Spinner(grpCutting, SWT.BORDER);
-        spinnerNoPlanes.setBounds(10, 82, 44, 22);
+        spinnerNoPlanes.setBounds(10, 92, 44, 22);
         spinnerNoPlanes.setMinimum(2);
         spinnerNoPlanes.setMaximum(15);
         
@@ -284,7 +284,7 @@ public class ConfigDialog extends Dialog implements View {
         grpExport.setLayoutData(fd_grpExport);
         
         btnUseOldExport = new Button(grpExport, SWT.CHECK);
-        btnUseOldExport.setBounds(10, 10, 188, 18);
+        btnUseOldExport.setBounds(10, 22, 188, 18);
         btnUseOldExport.setText("use old export format");
         
         Group grpGeneral = new Group(grpFoo, SWT.NONE);
@@ -298,20 +298,20 @@ public class ConfigDialog extends Dialog implements View {
         fd_grpGeneral.top = new FormAttachment(0, 88);
         
         Combo comboAniVersion = new Combo(grpExport, SWT.NONE);
-        comboAniVersion.setBounds(10, 29, 40, 22);
+        comboAniVersion.setBounds(10, 41, 40, 22);
         comboAniVersion.setItems(new String[]{"1","2","3","4","5","6"});
         
         Label lblAniFormatVersion = new Label(grpExport, SWT.NONE);
-        lblAniFormatVersion.setBounds(56, 34, 142, 14);
+        lblAniFormatVersion.setBounds(56, 46, 142, 14);
         lblAniFormatVersion.setText("Ani Format version ");
         grpGeneral.setLayoutData(fd_grpGeneral);
         
         btnNoQuitWarning = new Button(grpGeneral, SWT.CHECK);
-        btnNoQuitWarning.setBounds(10, 10, 131, 18);
+        btnNoQuitWarning.setBounds(10, 20, 131, 18);
         btnNoQuitWarning.setText("no quit warning");
         
         btnNoExportWarnings = new Button(grpGeneral, SWT.CHECK);
-        btnNoExportWarnings.setBounds(10, 34, 149, 18);
+        btnNoExportWarnings.setBounds(10, 44, 149, 18);
         btnNoExportWarnings.setText("no export warnings");
         
         FormData fd_grpConfig = new FormData();

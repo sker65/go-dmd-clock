@@ -113,6 +113,9 @@ public class DeviceConfig extends Dialog implements View {
         fd_btnOk.right = new FormAttachment(grpConfig, 0, SWT.RIGHT);
         
         Label lblRgbSeq = new Label(grpConfig, SWT.NONE);
+        GridData gd_lblRgbSeq = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+        gd_lblRgbSeq.heightHint = 27;
+        lblRgbSeq.setLayoutData(gd_lblRgbSeq);
         lblRgbSeq.setText("RGB Seq");
         
         rgbSeqComboViewer = new ComboViewer(grpConfig, SWT.NONE);
@@ -200,7 +203,7 @@ public class DeviceConfig extends Dialog implements View {
         
         scBrightness = new Scale(grpConfig, SWT.NONE);
         GridData gd_scale = new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1);
-        gd_scale.heightHint = 18;
+        gd_scale.heightHint = 43;
         scBrightness.setLayoutData(gd_scale);
         scBrightness.setMinimum(0);
         scBrightness.setMaximum(255);
