@@ -77,7 +77,7 @@ public class GifExporter extends Dialog {
 	private Text maxFrameTxt;
 	private int margin;
 	private int maxFrame;
-	private int pitch = 2;
+	private int pitch = 3;
 
     /**
      * Create the dialog.
@@ -101,7 +101,7 @@ public class GifExporter extends Dialog {
 		
 		DMDWidget widget = getDmdWidget(shell, 0, dmd, false);
 		widget.setPalette(palette);
-		int pitch = comboSize.getSelectionIndex() + 2;
+		int pitch = comboSize.getSelectionIndex() + 3;
 		widget.setMargin(margin);
 		int width = (dmd.getWidth()+0) * pitch + widget.getMargin();
 		int height = (dmd.getHeight()+0) * pitch + widget.getMargin();
@@ -153,6 +153,7 @@ public class GifExporter extends Dialog {
 					ani.actFrame = saveActframe;
 					try {
 						gifWriter.close();
+						outputStream.close();
 					} catch (IOException e) {
 					}
 				}
