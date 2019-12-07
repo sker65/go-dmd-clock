@@ -132,7 +132,7 @@ public class PaletteHandlerTest extends HandlerTest  {
 
 	@Test
 	public void testOnNewPalette() throws Exception {
-		uut.onNewPalette();
+//		uut.onNewPalette();
 	}
 
 	@Test
