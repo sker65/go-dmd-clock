@@ -388,20 +388,24 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 		if( vm.selectedPalette != null && vm.paletteMap.size()>1 ) {
 			// check if any scene is using this
 			List<String> res = new ArrayList<>();
+			res.add("Scenes:\n");
 			for( Animation a: vm.scenes.values()) {
-				if( a.getPalIndex() == vm.selectedPalette.index ) {
-					res.add("Scene "+a.getDesc());
-				}
-			}
-			for( Animation a: vm.recordings.values()) {
 				if( a.getPalIndex() == vm.selectedPalette.index ) {
 					res.add(a.getDesc());
 				}
 			}
+			//res.add("\n\nRecordings:\n");
+			//for( Animation a: vm.recordings.values()) {
+			//	if( a.getPalIndex() == vm.selectedPalette.index ) {
+			//		res.add(a.getDesc());
+			//	}
+			//}
+			
 			// also check keyframes
+			res.add("\n\nKeyframes:\n");
 			for( PalMapping pm : vm.keyframes.values()) {
 				if( pm.palIndex == vm.selectedPalette.index ) {
-					res.add("KeyFrame "+pm.name);
+					res.add(pm.name);
 				}
 			}
 			if( res.isEmpty() ) {
@@ -415,7 +419,7 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 				// select first
 				vm.setSelectedPalette(vm.paletteMap.values().iterator().next());
 			} else {
-				messageUtil.warn("Palette cannot be deleted", "It is used by: "+res);
+				messageUtil.warn("Palette cannot be deleted", "It is used by the following resources: \n"+res);
 				Clipboard clipboard=new Clipboard(Display.getCurrent());
 				TextTransfer transfer=TextTransfer.getInstance();
 				clipboard.setContents(new Object[]{res.toString()},new Transfer[]{transfer});
