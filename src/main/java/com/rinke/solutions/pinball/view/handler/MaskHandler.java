@@ -137,10 +137,10 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 				List<String> res = new ArrayList<>();
 				for( PalMapping pm : vm.keyframes.values()) {
 					if( pm.maskNumber == vm.selectedMaskNumber ) {
-						res.add("KeyFrame "+pm.name);
+						res.add(" "+pm.name);
 					}
 				}
-				messageUtil.warn("Mask cannot be deleted", "It is used by: "+res);
+				messageUtil.warn("Mask cannot be deleted", "It is used by the following Keyframes:\n"+res);
 				Clipboard clipboard=new Clipboard(Display.getCurrent());
 				TextTransfer transfer=TextTransfer.getInstance();
 				clipboard.setContents(new Object[]{res.toString()},new Transfer[]{transfer});
