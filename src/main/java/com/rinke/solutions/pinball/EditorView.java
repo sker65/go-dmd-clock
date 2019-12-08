@@ -225,7 +225,8 @@ public class EditorView implements MainView {
 
 	@GuiBinding(props={ENABLED,SELECTION,MAX}, propNames={"maskSpinnerEnabled","selectedMaskNumber", "maxNumberOfMasks"}) 
 	Spinner maskSpinner;
-
+	Spinner brushSpinner;
+	
 	GoDmdGroup goDmdGroup;
 	@GuiBinding(prop=ENABLED) MenuItem mntmUploadProject;
 	@GuiBinding(prop=ENABLED) MenuItem mntmUploadPalettes;
@@ -701,7 +702,7 @@ public class EditorView implements MainView {
 	 */
 	public void createContents() {
 		
-		 // uncomment this for the sake of window builder
+		// uncomment this for the sake of  builder
 		//	shell = new Shell();
 		//	shell.setSize(1400, 1075);
 		//	this.vm = new ViewModel();
@@ -737,7 +738,9 @@ public class EditorView implements MainView {
 		createDrawingGroup(drawPalGroup);
 
 		Composite previewGroup = new Composite(shell,0);
-		previewGroup.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
+		GridData gd_previewGroup = new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1);
+		gd_previewGroup.widthHint = 1366;
+		previewGroup.setLayoutData(gd_previewGroup);
 		GridLayout gl_previewGroup = new GridLayout(1,false);
 		gl_previewGroup.marginRight = 20;
 		previewGroup.setLayout(gl_previewGroup);
@@ -864,9 +867,9 @@ public class EditorView implements MainView {
 		Group grpDrawing = new Group(parent, SWT.NONE);
 		GridData gd_grpDrawing = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
 		gd_grpDrawing.heightHint = 92;
-		gd_grpDrawing.widthHint = 541;
+		gd_grpDrawing.widthHint = 492;
 		grpDrawing.setLayoutData(gd_grpDrawing);
-		grpDrawing.setLayout(new GridLayout(7, false));
+		grpDrawing.setLayout(new GridLayout(9, false));
 		
 		grpDrawing.setText("Drawing");
 
@@ -896,7 +899,7 @@ public class EditorView implements MainView {
 		});
 				
 		drawToolBar = new ToolBar(grpDrawing, SWT.FLAT | SWT.RIGHT);
-		drawToolBar.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
+		drawToolBar.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 4, 1));
 						
 		ToolItem tltmPen = new ToolItem(drawToolBar, SWT.RADIO);
 		tltmPen.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/pencil.png")));
@@ -933,7 +936,7 @@ public class EditorView implements MainView {
 		editModeViewer = new ComboViewer(grpDrawing, SWT.READ_ONLY);
 		Combo combo_2 = editModeViewer.getCombo();
 		GridData gd_combo_2 = new GridData(SWT.LEFT, SWT.CENTER, false, false, 2, 1);
-		gd_combo_2.widthHint = 150;
+		gd_combo_2.widthHint = 101;
 		combo_2.setLayoutData(gd_combo_2);
 		editModeViewer.setContentProvider(ArrayContentProvider.getInstance());
 		editModeViewer.setLabelProvider(new LabelProviderAdapter<EditMode>(o -> o.label));
@@ -973,21 +976,32 @@ public class EditorView implements MainView {
 		
 
 		drawToolBar2 = new ToolBar(grpDrawing, SWT.FLAT | SWT.RIGHT);
-		drawToolBar2.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
-	
+		drawToolBar2.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
 
 		ToolItem tltmMagic = new ToolItem(drawToolBar2, SWT.RADIO);
 		tltmMagic.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/magic.png")));
 		tltmMagic.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("magic")));
-		
-		ToolItem tltmBrush = new ToolItem(drawToolBar2, SWT.RADIO);
-		tltmBrush.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/brush.png")));
-		tltmBrush.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("brush")));
+			
+		//ToolItem tltmBrush = new ToolItem(drawToolBar2, SWT.RADIO);
+		//tltmBrush.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/brush.png")));
+		//tltmBrush.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("brush")));
 		
 		//ToolItem tltmColorize = new ToolItem(drawToolBar2, SWT.RADIO);
 		//tltmColorize.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/colorize.png")));
 		//tltmColorize.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("colorize")));
 
+		Label lblBrushSize = new Label(grpDrawing, SWT.NONE);
+		lblBrushSize.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+		lblBrushSize.setText("BrushSize:");
+			
+		brushSpinner = new Spinner(grpDrawing, SWT.BORDER);
+		brushSpinner.setToolTipText("select size of the brush");
+		brushSpinner.setMinimum(0);
+		brushSpinner.setMaximum(8);
+		brushSpinner.setEnabled(false);
+		//brushSpinner.addListener(SWT.Selection, e -> ed.onBrushSizeChanged(brushSpinner.getSelection()));
+
+		new Label(grpDrawing, SWT.NONE);
 		new Label(grpDrawing, SWT.NONE);
 		new Label(grpDrawing, SWT.NONE);
 		
@@ -1000,7 +1014,7 @@ public class EditorView implements MainView {
 		btnInvert.setText("Inv");
 		btnInvert.addListener(SWT.Selection, e->dispatchCmd(INVERT_MASK));
 		btnInvert.setEnabled(false);
-
+		
 		layerMask = new Button(grpDrawing, SWT.CHECK);
 		layerMask.setText("L-Mask");
 		layerMask.setEnabled(false);
@@ -1016,6 +1030,8 @@ public class EditorView implements MainView {
 		copyToNext.setToolTipText("copy the actual scene / color mask to next frame and move forward");
 		copyToNext.setText("CopyNext");
 		copyToNext.addListener(SWT.Selection, e->dispatchCmd(COPY_AND_MOVE_TO_NEXT_FRAME));
+		new Label(grpDrawing, SWT.NONE);
+		new Label(grpDrawing, SWT.NONE);
 		
 		undo = new Button(grpDrawing, SWT.NONE);
 		undo.setText("&Undo");
@@ -1027,13 +1043,6 @@ public class EditorView implements MainView {
 		new Label(grpDrawing, SWT.NONE);
 		new Label(grpDrawing, SWT.NONE);
 		new Label(grpDrawing, SWT.NONE);
-		new Label(grpDrawing, SWT.NONE);
-		new Label(grpDrawing, SWT.NONE);
-		new Label(grpDrawing, SWT.NONE);
-		new Label(grpDrawing, SWT.NONE);
-		new Label(grpDrawing, SWT.NONE);
-		new Label(grpDrawing, SWT.NONE);
-		new Label(grpDrawing, SWT.NONE);
 
 		
 	}
@@ -1042,7 +1051,7 @@ public class EditorView implements MainView {
 		Group grpPalettes = new Group(parent, SWT.NONE);
 		GridData gd_grpPalettes = new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1);
 		gd_grpPalettes.heightHint = 84;
-		gd_grpPalettes.widthHint = 539;
+		gd_grpPalettes.widthHint = 481;
 		grpPalettes.setLayoutData(gd_grpPalettes);
 		GridLayout gl_grpPalettes = new GridLayout(5, false);
 		gl_grpPalettes.verticalSpacing = 2;
@@ -1073,7 +1082,7 @@ public class EditorView implements MainView {
 		Combo combo_1 = paletteTypeComboViewer.getCombo();
 		combo_1.setToolTipText("Type of palette. Default palette is choosen at start and after timed switch is expired");
 		GridData gd_combo_1 = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
-		gd_combo_1.widthHint = 96;
+		gd_combo_1.widthHint = 80;
 		combo_1.setLayoutData(gd_combo_1);
 		paletteTypeComboViewer.setContentProvider(ArrayContentProvider.getInstance());
 		paletteTypeComboViewer.setInput(PaletteType.values());
