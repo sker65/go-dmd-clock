@@ -91,6 +91,10 @@ import com.rinke.solutions.pinball.widget.PaletteTool;
 import com.rinke.solutions.pinball.widget.RectTool;
 import com.rinke.solutions.pinball.widget.SelectTool;
 import com.rinke.solutions.pinball.widget.SetPixelTool;
+import com.rinke.solutions.pinball.widget.MagicTool;
+import com.rinke.solutions.pinball.widget.BrushTool;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 
 @Slf4j
 public class EditorView implements MainView {
@@ -698,10 +702,10 @@ public class EditorView implements MainView {
 	public void createContents() {
 		
 		 // uncomment this for the sake of window builder
-//			shell = new Shell();
-//			shell.setSize(1400, 1075);
-//			this.vm = new ViewModel();
-//			vm.dmd = new DMD(192, 64);
+		//	shell = new Shell();
+		//	shell.setSize(1400, 1075);
+		//	this.vm = new ViewModel();
+		//	vm.dmd = new DMD(192, 64);
 			
 		shell.setMaximized(true);
 		
@@ -874,6 +878,8 @@ public class EditorView implements MainView {
 		drawTools.put("filledCircle", new CircleTool(paletteTool.getSelectedColor(), true));
 		palettePickerTool = new PalettePickerTool(0);
 		drawTools.put("picker",palettePickerTool);
+		drawTools.put("magic", new MagicTool(paletteTool.getSelectedColor()));
+		drawTools.put("brush", new BrushTool(paletteTool.getSelectedColor()));
 		selectTool = new SelectTool(paletteTool.getSelectedColor());
 		selectTool.setDMD(vm.dmd);
 		
@@ -970,13 +976,13 @@ public class EditorView implements MainView {
 		drawToolBar2.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
 	
 
-		//ToolItem tltmMagic = new ToolItem(drawToolBar2, SWT.RADIO);
-		//tltmPen.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/magic.png")));
-		//tltmPen.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("magic")));
+		ToolItem tltmMagic = new ToolItem(drawToolBar2, SWT.RADIO);
+		tltmMagic.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/magic.png")));
+		tltmMagic.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("magic")));
 		
-		//ToolItem tltmBrush = new ToolItem(drawToolBar2, SWT.RADIO);
-		//tltmPen.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/brush.png")));
-		//tltmPen.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("brush")));
+		ToolItem tltmBrush = new ToolItem(drawToolBar2, SWT.RADIO);
+		tltmBrush.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/brush.png")));
+		tltmBrush.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("brush")));
 		
 		//ToolItem tltmColorize = new ToolItem(drawToolBar2, SWT.RADIO);
 		//tltmColorize.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/colorize.png")));
