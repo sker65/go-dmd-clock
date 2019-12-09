@@ -11,6 +11,7 @@ import org.eclipse.swt.graphics.PaletteData;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Display;
 
+import com.rinke.solutions.pinball.Constants;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Mask;
@@ -252,7 +253,7 @@ public class ClipboardHandler {
 		Frame frame = (Frame) clipboard.getContents("DmdFrameTransfer");
 		if( frame != null ) {
 			dmd.addUndoBuffer();
-			frame.copyToWithMask(dmd.getFrame(), 0x7FFFFF);
+			frame.copyToWithMask(dmd.getFrame(), Constants.DEFAULT_DRAW_MASK);
 		} 
 	}
 	
