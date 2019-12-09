@@ -53,28 +53,28 @@ public class PaletteTool extends AbstractModel implements ColorModifiedListener 
 
 	/** used to reused images in col buttons. */
 	Map<RGB, Image> colImageCache = new HashMap<>();
-	List<ColorChangedListerner> colorChangedListeners = new ArrayList<>();
-	List<ColorIndexChangedListerner> indexChangedListeners = new ArrayList<>();
+	List<ColorChangedListener> colorChangedListeners = new ArrayList<>();
+	List<ColorIndexChangedListener> indexChangedListeners = new ArrayList<>();
 	ColorPicker colorPicker = new ColorPicker(Display.getDefault(), null);
 	// just for the sake of POJO spec
 	@Getter private int numberOfPlanes;
 
 	@FunctionalInterface
-	public static interface ColorChangedListerner {
+	public static interface ColorChangedListener {
 		public void paletteChanged(Palette palette );
 	}
 	
 	@FunctionalInterface
-	public static interface ColorIndexChangedListerner {
+	public static interface ColorIndexChangedListener {
 		public void indexChanged(int index);
 	}
 
-	public void addListener(ColorChangedListerner listener) {
+	public void addListener(ColorChangedListener listener) {
 		if( listener != null ) colorChangedListeners.add(listener);
 	}
 	
 	// draw tools bind to this to get actual color index
-	public void addIndexListener(ColorIndexChangedListerner listener) {
+	public void addIndexListener(ColorIndexChangedListener listener) {
 		indexChangedListeners.add(listener);
 	}
 

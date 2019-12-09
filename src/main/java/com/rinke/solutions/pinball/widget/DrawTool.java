@@ -9,8 +9,8 @@ import org.eclipse.swt.widgets.Event;
 
 import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.model.Palette;
-import com.rinke.solutions.pinball.widget.PaletteTool.ColorChangedListerner;
-import com.rinke.solutions.pinball.widget.PaletteTool.ColorIndexChangedListerner;
+import com.rinke.solutions.pinball.widget.PaletteTool.ColorChangedListener;
+import com.rinke.solutions.pinball.widget.PaletteTool.ColorIndexChangedListener;
 
 /*
  * notes:
@@ -20,7 +20,7 @@ import com.rinke.solutions.pinball.widget.PaletteTool.ColorIndexChangedListerner
  * 
  */
 @Slf4j
-public abstract class DrawTool extends Observable implements ColorIndexChangedListerner {
+public abstract class DrawTool extends Observable implements ColorIndexChangedListener {
 	
 	protected int x1 = -1;
 	protected int y1 = -1; // where mouse goes down

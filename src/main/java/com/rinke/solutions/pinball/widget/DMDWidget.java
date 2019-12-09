@@ -28,10 +28,10 @@ import org.eclipse.swt.widgets.Shell;
 import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Palette;
-import com.rinke.solutions.pinball.widget.PaletteTool.ColorChangedListerner;
+import com.rinke.solutions.pinball.widget.PaletteTool.ColorChangedListener;
 
 @Slf4j
-public class DMDWidget extends ResourceManagedCanvas implements ColorChangedListerner {
+public class DMDWidget extends ResourceManagedCanvas implements ColorChangedListener {
 	
 	private Palette palette;	// color palette
 	private DMD dmd; 			// the model holding buffers etc.
