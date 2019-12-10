@@ -108,15 +108,21 @@ public class ViewModel extends AbstractModel {
 	public int lastTimeCode;
 	public int saveTimeCode;
 	
-	@ViewBinding public int selectedMaskNumber;
 	@ViewBinding public boolean detectionMaskEnabled;
 	@ViewBinding public boolean layerMaskEnabled;
 	@ViewBinding public boolean detectionMaskActive;
 	@ViewBinding public boolean layerMaskActive;
 	@ViewBinding public boolean showMask;
 	
+	@ViewBinding public int selectedMaskNumber;
 	@ViewBinding public boolean maskSpinnerEnabled;
 	@ViewBinding public int maxNumberOfMasks;
+	
+	@ViewBinding public int selectedBrushSize = 1;
+	@ViewBinding public boolean brushSpinnerEnabled;
+	
+	@ViewBinding public boolean smartDrawEnabled;
+	@ViewBinding public boolean smartDrawActive;
 
 	public ObservableList<Mask> masks = new ObservableList<>(new ArrayList<>());
 	
@@ -425,10 +431,6 @@ public class ViewModel extends AbstractModel {
 		firePropertyChange("previewDmdPalette", this.previewDmdPalette, this.previewDmdPalette = previewDmdPalette);
 	}
 
-	public void setSelectedMaskNumber(int selectedMaskNumber) {
-		firePropertyChange("selectedMaskNumber", this.selectedMaskNumber, this.selectedMaskNumber = selectedMaskNumber);
-	}
-
 	public void setBtnInvertEnabled(boolean btnInvertEnabled) {
 		firePropertyChange("btnInvertEnabled", this.btnInvertEnabled, this.btnInvertEnabled = btnInvertEnabled);
 	}
@@ -448,7 +450,31 @@ public class ViewModel extends AbstractModel {
 	public void setMaskSpinnerEnabled(boolean maskSpinnerEnabled) {
 		firePropertyChange("maskSpinnerEnabled", this.maskSpinnerEnabled, this.maskSpinnerEnabled = maskSpinnerEnabled);
 	}
+	
+	public void setSelectedMaskNumber(int selectedMaskNumber) {
+		firePropertyChange("selectedMaskNumber", this.selectedMaskNumber, this.selectedMaskNumber = selectedMaskNumber);
+	}
+	
+	public void setMaxNumberOfMasks(int maxNumberOfMasks) {
+		firePropertyChange("maxNumberOfMasks", this.maxNumberOfMasks, this.maxNumberOfMasks = maxNumberOfMasks);
+	}
 
+	public void setSelectedBrushSize(int selectedBrushSize) {
+		firePropertyChange("selectedBrushSize", this.selectedBrushSize, this.selectedBrushSize = selectedBrushSize);
+	}
+	
+	public void setBrushSpinnerEnabled(boolean brushSpinnerEnabled) {
+		firePropertyChange("brushSpinnerEnabled", this.brushSpinnerEnabled, this.brushSpinnerEnabled = brushSpinnerEnabled);
+	}
+	
+	public void setSmartDrawEnabled(boolean smartDrawEnabled) {
+		firePropertyChange("smartDrawEnabled", this.smartDrawEnabled, this.smartDrawEnabled = smartDrawEnabled);
+	}
+	
+	public void setSmartDrawActive(boolean smartDrawActive) {
+		firePropertyChange("smartDrawActive", this.smartDrawActive, this.smartDrawActive = smartDrawActive);
+	}
+	
 	public void setBtnSetScenePalEnabled(boolean btnSetScenePalEnabled) {
 		firePropertyChange("btnSetScenePalEnabled", this.btnSetScenePalEnabled, this.btnSetScenePalEnabled = btnSetScenePalEnabled);
 	}
@@ -528,10 +554,6 @@ public class ViewModel extends AbstractModel {
 
 	public void setRecentAnimations(String recentAnimations) {
 		firePropertyChange("recentAnimations", this.recentAnimations, this.recentAnimations = recentAnimations);
-	}
-
-	public void setMaxNumberOfMasks(int maxNumberOfMasks) {
-		firePropertyChange("maxNumberOfMasks", this.maxNumberOfMasks, this.maxNumberOfMasks = maxNumberOfMasks);
 	}
 
 	public void setBookmarksMap(Map<String, Set<Bookmark>> bookmarksMap) {

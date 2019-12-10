@@ -91,8 +91,6 @@ import com.rinke.solutions.pinball.widget.PaletteTool;
 import com.rinke.solutions.pinball.widget.RectTool;
 import com.rinke.solutions.pinball.widget.SelectTool;
 import com.rinke.solutions.pinball.widget.SetPixelTool;
-import com.rinke.solutions.pinball.widget.MagicTool;
-import com.rinke.solutions.pinball.widget.BrushTool;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 
@@ -185,7 +183,7 @@ public class EditorView implements MainView {
 	Button btnNewPalette;
 	Button btnRenamePalette;
 	@GuiBinding(prop=ENABLED, propName="drawingEnabled") private ToolBar drawToolBar;
-	@GuiBinding(prop=ENABLED, propName="drawingEnabled") private ToolBar drawToolBar2;
+	//@GuiBinding(prop=ENABLED, propName="drawingEnabled") private ToolBar drawToolBar2;
 	
 	@GuiBinding( props={INPUT,SELECTION}, propNames={"scenes", "selectedFrameSeq"} )
 	ComboViewer frameSeqViewer;
@@ -204,6 +202,9 @@ public class EditorView implements MainView {
 	@GuiBinding( prop=TEXT, propName="delay" ) Text txtDelayVal;
 	Button btnSortAni;
 
+	@GuiBinding(props={ENABLED,SELECTION}, propNames={"smartDrawEnabled", "smartDrawActive"}) 
+	Button smartDraw;
+	
 	@GuiBinding(props={ENABLED,SELECTION}, propNames={"detectionMaskEnabled", "detectionMaskActive"}) 
 	Button detectionMask;
 	@GuiBinding(props={ENABLED,SELECTION}, propNames={"layerMaskEnabled", "layerMaskActive"}) 
@@ -225,6 +226,7 @@ public class EditorView implements MainView {
 
 	@GuiBinding(props={ENABLED,SELECTION,MAX}, propNames={"maskSpinnerEnabled","selectedMaskNumber", "maxNumberOfMasks"}) 
 	Spinner maskSpinner;
+	@GuiBinding(props={ENABLED,SELECTION}, propNames={"brushSpinnerEnabled","selectedBrushSize"})
 	Spinner brushSpinner;
 	
 	GoDmdGroup goDmdGroup;
@@ -881,8 +883,6 @@ public class EditorView implements MainView {
 		drawTools.put("filledCircle", new CircleTool(paletteTool.getSelectedColor(), true));
 		palettePickerTool = new PalettePickerTool(0);
 		drawTools.put("picker",palettePickerTool);
-		drawTools.put("magic", new MagicTool(paletteTool.getSelectedColor()));
-		drawTools.put("brush", new BrushTool(paletteTool.getSelectedColor()));
 		selectTool = new SelectTool(paletteTool.getSelectedColor());
 		selectTool.setDMD(vm.dmd);
 		
@@ -899,7 +899,7 @@ public class EditorView implements MainView {
 		});
 				
 		drawToolBar = new ToolBar(grpDrawing, SWT.FLAT | SWT.RIGHT);
-		drawToolBar.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 4, 1));
+		drawToolBar.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 3, 1));
 						
 		ToolItem tltmPen = new ToolItem(drawToolBar, SWT.RADIO);
 		tltmPen.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/pencil.png")));
@@ -933,6 +933,10 @@ public class EditorView implements MainView {
 		tltmPicker.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/color-picker.png")));
 		tltmPicker.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("picker")));
 		
+		//ToolItem tltmColorize = new ToolItem(drawToolBar, SWT.RADIO);
+		//tltmColorize.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/colorize.png")));
+		//tltmColorize.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("colorize")));
+
 		editModeViewer = new ComboViewer(grpDrawing, SWT.READ_ONLY);
 		Combo combo_2 = editModeViewer.getCombo();
 		GridData gd_combo_2 = new GridData(SWT.LEFT, SWT.CENTER, false, false, 2, 1);
@@ -975,33 +979,23 @@ public class EditorView implements MainView {
 		detectionMask.setToolTipText("enables drawing the DETECTION MASK for triggering a keyframe");
 		
 
-		drawToolBar2 = new ToolBar(grpDrawing, SWT.FLAT | SWT.RIGHT);
-		drawToolBar2.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
-
-		ToolItem tltmMagic = new ToolItem(drawToolBar2, SWT.RADIO);
-		tltmMagic.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/magic.png")));
-		tltmMagic.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("magic")));
-			
-		//ToolItem tltmBrush = new ToolItem(drawToolBar2, SWT.RADIO);
-		//tltmBrush.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/brush.png")));
-		//tltmBrush.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("brush")));
+		new Label(grpDrawing, SWT.NONE);
 		
-		//ToolItem tltmColorize = new ToolItem(drawToolBar2, SWT.RADIO);
-		//tltmColorize.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/colorize.png")));
-		//tltmColorize.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("colorize")));
-
+		smartDraw = new Button(grpDrawing, SWT.CHECK);
+		smartDraw.setText("Smart");
+		smartDraw.setEnabled(false);
+		smartDraw.setToolTipText("enables smart drawing in replacement modes");
+		
 		Label lblBrushSize = new Label(grpDrawing, SWT.NONE);
 		lblBrushSize.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
 		lblBrushSize.setText("BrushSize:");
 			
 		brushSpinner = new Spinner(grpDrawing, SWT.BORDER);
 		brushSpinner.setToolTipText("select size of the brush");
-		brushSpinner.setMinimum(0);
-		brushSpinner.setMaximum(8);
+		brushSpinner.setMinimum(1);
+		brushSpinner.setMaximum(5);
 		brushSpinner.setEnabled(false);
-		//brushSpinner.addListener(SWT.Selection, e -> ed.onBrushSizeChanged(brushSpinner.getSelection()));
 
-		new Label(grpDrawing, SWT.NONE);
 		new Label(grpDrawing, SWT.NONE);
 		new Label(grpDrawing, SWT.NONE);
 		
@@ -1019,6 +1013,7 @@ public class EditorView implements MainView {
 		layerMask.setText("L-Mask");
 		layerMask.setEnabled(false);
 		layerMask.setToolTipText("enables drawing the LAYERED MASK for layered coloring");
+		new Label(grpDrawing, SWT.NONE);
 		
 		
 		copyToPrev = new Button(grpDrawing, SWT.NONE);
@@ -1031,7 +1026,6 @@ public class EditorView implements MainView {
 		copyToNext.setText("CopyNext");
 		copyToNext.addListener(SWT.Selection, e->dispatchCmd(COPY_AND_MOVE_TO_NEXT_FRAME));
 		new Label(grpDrawing, SWT.NONE);
-		new Label(grpDrawing, SWT.NONE);
 		
 		undo = new Button(grpDrawing, SWT.NONE);
 		undo.setText("&Undo");
@@ -1040,6 +1034,7 @@ public class EditorView implements MainView {
 		redo = new Button(grpDrawing, SWT.NONE);
 		redo.setText("&Redo");
 		redo.addListener(SWT.Selection, e -> dispatchCmd(REDO));
+		new Label(grpDrawing, SWT.NONE);
 		new Label(grpDrawing, SWT.NONE);
 		new Label(grpDrawing, SWT.NONE);
 		new Label(grpDrawing, SWT.NONE);

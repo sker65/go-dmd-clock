@@ -97,6 +97,7 @@ public class DrawCmdHandler extends AbstractCommandHandler implements EventHandl
 	public void onDrawingEnabledChanged(boolean o, boolean n) {
 		vm.setCopyToNextEnabled(n);
 		vm.setCopyToPrevEnabled(n);
+		vm.setBrushSpinnerEnabled(n);
 		//vm.setDeleteColMaskEnabled(n);
 		//vm.setBtnInvertEnabled(n);
 		vm.setBtnDelFrameEnabled(n);
