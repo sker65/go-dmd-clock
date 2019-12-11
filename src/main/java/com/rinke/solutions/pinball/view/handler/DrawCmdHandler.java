@@ -98,6 +98,7 @@ public class DrawCmdHandler extends AbstractCommandHandler implements EventHandl
 		vm.setCopyToNextEnabled(n);
 		vm.setCopyToPrevEnabled(n);
 		vm.setBrushSpinnerEnabled(n);
+		vm.setSmartDrawEnabled(n);
 		//vm.setDeleteColMaskEnabled(n);
 		//vm.setBtnInvertEnabled(n);
 		vm.setBtnDelFrameEnabled(n);
@@ -171,11 +172,17 @@ public class DrawCmdHandler extends AbstractCommandHandler implements EventHandl
 	public void setDrawMaskByEditMode(EditMode mode) {
 		if( mode.enableMaskDrawing && (vm.detectionMaskActive || vm.layerMaskActive ) ) {
 			// only draw on mask
+			vm.setSmartDrawEnabled(false);
 			vm.dmd.setDrawMask( 0b00000001);
 		} else {
 			//vm.setDeleteColMaskEnabled(mode.enableColorMaskDrawing);
 			// either col mask drawing or normal drawing
 			// bit 0 ist mask plane in dmd
+			if( vm.selectedScene != null ) {
+				vm.setSmartDrawEnabled(mode.enableColorMaskDrawing ? false : true);
+			} else {
+				vm.setSmartDrawEnabled(false);
+			}
 			vm.dmd.setDrawMask(mode.enableColorMaskDrawing ? 0b11111000 : Constants.DEFAULT_DRAW_MASK);
 		}
 	}
@@ -221,6 +228,16 @@ public class DrawCmdHandler extends AbstractCommandHandler implements EventHandl
 			vm.setDirty(true);
 		}
 		vm.setBtnDelFrameEnabled(ani.frames.size()>1);
+	}
+	
+	public void onSmartDrawActiveChanged(boolean old, boolean n) {
+		if( vm.selectedScene != null ) {
+			vm.dmd.setDrawMask(n ? 0b11111000 : Constants.DEFAULT_DRAW_MASK);
+		} 
+	}
+
+	public void onSelectedBrushSizeChanged(int old, int newBrushSize) {
+//		drawTool.setBrushSize(newBrushSize);
 	}
 	
 }
