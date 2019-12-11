@@ -229,6 +229,8 @@ public class EditorView implements MainView {
 	@GuiBinding(props={ENABLED,SELECTION}, propNames={"brushSpinnerEnabled","selectedBrushSize"})
 	Spinner brushSpinner;
 	
+	private SetPixelTool pixelTool; 
+	
 	GoDmdGroup goDmdGroup;
 	@GuiBinding(prop=ENABLED) MenuItem mntmUploadProject;
 	@GuiBinding(prop=ENABLED) MenuItem mntmUploadPalettes;
@@ -875,7 +877,8 @@ public class EditorView implements MainView {
 		
 		grpDrawing.setText("Drawing");
 
-		drawTools.put("pencil", new SetPixelTool(paletteTool.getSelectedColor()));
+		pixelTool = new SetPixelTool(paletteTool.getSelectedColor());
+        drawTools.put("pencil", pixelTool); 
 		drawTools.put("fill", new FloodFillTool(paletteTool.getSelectedColor()));
 		drawTools.put("rect", new RectTool(paletteTool.getSelectedColor()));
 		drawTools.put("line", new LineTool(paletteTool.getSelectedColor()));
@@ -990,11 +993,17 @@ public class EditorView implements MainView {
 		lblBrushSize.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
 		lblBrushSize.setText("BrushSize:");
 			
-		brushSpinner = new Spinner(grpDrawing, SWT.BORDER);
-		brushSpinner.setToolTipText("select size of the brush");
-		brushSpinner.setMinimum(1);
-		brushSpinner.setMaximum(5);
-		brushSpinner.setEnabled(false);
+        brushSpinner = new Spinner(grpDrawing, SWT.BORDER);
+        brushSpinner.setToolTipText("select size of the brush");
+        brushSpinner.setMinimum(1);
+        brushSpinner.setMaximum(10);
+        brushSpinner.setEnabled(false);
+        brushSpinner.addListener(SWT.Selection, e -> this.pixelTool.setBrushSize(brushSpinner.getSelection()));
+//        brushSpinner.addListener(SWT.Selection, e -> {
+//			drawTools.values().forEach(d->d.setBrushSize(brushSpinner.getSelection()));
+//        });
+//        brushSpinner.addListener(SWT.Selection, e -> dispatchCmd("//", brushSpinner.getSelection()));
+
 
 		new Label(grpDrawing, SWT.NONE);
 		new Label(grpDrawing, SWT.NONE);

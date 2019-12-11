@@ -236,8 +236,9 @@ public class DrawCmdHandler extends AbstractCommandHandler implements EventHandl
 		} 
 	}
 
-	public void onSelectedBrushSizeChanged(int old, int newBrushSize) {
-//		drawTool.setBrushSize(newBrushSize);
-	}
+	
+	public void onBrushSizeChanged(int newBrushSize) {
+    //    log.info("brush size {}", newBrushSize);
+    } 
 	
 }
