@@ -206,28 +206,32 @@ public class DrawCmdHandler extends AbstractCommandHandler implements EventHandl
 	}
 	
 	public void onAddFrame() {
-		CompiledAnimation ani = vm.selectedScene;
-		log.info("adding frame at {}", ani.actFrame);
-		ani.addFrame(ani.actFrame, new Frame(ani.frames.get(ani.actFrame)));
-		animationHandler.updateScale(ani);
-		vm.setDmdDirty(true);
-		vm.setDirty(true);
+		if (vm.selectedScene != null) {
+			CompiledAnimation ani = vm.selectedScene;
+			log.info("adding frame at {}", ani.actFrame);
+			ani.addFrame(ani.actFrame, new Frame(ani.frames.get(ani.actFrame)));
+			animationHandler.updateScale(ani);
+			vm.setDmdDirty(true);
+			vm.setDirty(true);
+		}
 	}
 
 	public void onRemoveFrame() {
-		CompiledAnimation ani = vm.selectedScene;
-		if( ani.frames.size()>1 ) {
-			ani.removeFrame(ani.actFrame);
-			if( ani.actFrame >= ani.end ) {
-				animationHandler.setPos(ani.end);
-				vm.setSelectedFrame(ani.end);
-			} else {
-				animationHandler.setPos(ani.actFrame);
+		if (vm.selectedScene != null) {
+			CompiledAnimation ani = vm.selectedScene;
+			if( ani.frames.size()>1 ) {
+				ani.removeFrame(ani.actFrame);
+				if( ani.actFrame >= ani.end ) {
+					animationHandler.setPos(ani.end);
+					vm.setSelectedFrame(ani.end);
+				} else {
+					animationHandler.setPos(ani.actFrame);
+				}
+				animationHandler.updateScale(ani);
+				vm.setDirty(true);
 			}
-			animationHandler.updateScale(ani);
-			vm.setDirty(true);
+			vm.setBtnDelFrameEnabled(ani.frames.size()>1);
 		}
-		vm.setBtnDelFrameEnabled(ani.frames.size()>1);
 	}
 	
 	public void onSmartDrawActiveChanged(boolean old, boolean n) {
