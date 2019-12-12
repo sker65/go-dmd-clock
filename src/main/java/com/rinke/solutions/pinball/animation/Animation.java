@@ -74,13 +74,13 @@ public class Animation {
 
 	public enum EditMode {		
 		// because ordinals used directly in ani format, one must not change order
-		REPLACE("Replace",						false, false, true,  false, false, false, false), 
-		COLMASK("ColorMask",					true,  false, false, false, false, false, false), 
-		FIXED("Fixed", 							false, true,  true,  false, false, false, false), 
-		COLMASK_FOLLOW("ColorMask Sequence", 	true,  true,  true,  false, true,  true,  false),
-		LAYEREDCOL("ColorMask Layered", 		true,  true,  true,  false, true,  false, true),
-		REPLACE_FOLLOW("Replace Sequence",		false, true,  true,  false, true,  true,  false),
-		LAYEREDREPLACE("Replace Masked",		false, true,  false, true,  true,  false, true),
+		REPLACE("Replace",						false, false, false, false,  false, false, false, false), 
+		COLMASK("ColorMask",					true,  false, false, false, false, false, false, false), 
+		FIXED("Fixed", 							false, true,  true, true, false, false, false, false), 
+		COLMASK_FOLLOW("ColorMask Sequence", 	true,  true,  true, false, false, true,  false,  false),
+		LAYEREDCOL("ColorMask Layered", 		true,  true,  true, true, false, true,  false, true),
+		REPLACE_FOLLOW("Replace Sequence",		false, true,  true, false, false, true,  true,  false),
+		LAYEREDREPLACE("Replace Masked",		false, true,  false, false, true,  true,  false, true),
 		;
 
 		// label to display
@@ -89,18 +89,20 @@ public class Animation {
 		public final boolean enableColorMaskDrawing;// draw only on upper planes
 		public final boolean enableMaskDrawing;     // draw on mask planes
 		public final boolean enableDetectionMask;	// controls enable of D-Mask button
+		public final boolean enableDetectionMaskSpinner;	// controls enable of D-Mask Spinner
 		public final boolean enableLayerMask;		// controls enable of L-Mask button
 		public final boolean haveLocalMask;			// Masks Data is fetch from actual frame of the scene
 		public final boolean pullFrameDataFromAssociatedRecording;	// for FollowXX Modes, we need to pull frame data from associated recording
 		public final boolean haveSceneDetectionMasks; // edit mode uses scene local detections masks
 
 		private EditMode(String label, boolean colMaskDraw, 
-				boolean enableMaskDrawing, boolean enableDetectionMask, boolean layerMask, boolean haveLocalMask,
+				boolean enableMaskDrawing, boolean enableDetectionMask, boolean enableDetectionMaskSpinner ,boolean layerMask, boolean haveLocalMask,
 				boolean pullFrameDataFromAssociatedRecording, boolean haveSceneDetectionMasks) {
 			this.label = label;
 			this.enableMaskDrawing = enableMaskDrawing;
 			this.enableColorMaskDrawing = colMaskDraw;
 			this.enableDetectionMask = enableDetectionMask;
+			this.enableDetectionMaskSpinner = enableDetectionMaskSpinner;
 			this.enableLayerMask = layerMask;
 			this.haveLocalMask = haveLocalMask;
 			this.pullFrameDataFromAssociatedRecording = pullFrameDataFromAssociatedRecording;

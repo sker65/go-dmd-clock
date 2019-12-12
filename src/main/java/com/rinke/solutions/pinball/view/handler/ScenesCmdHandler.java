@@ -64,6 +64,7 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 			
 			EditMode m = nextScene.getEditMode();
 			vm.setDetectionMaskEnabled(m.enableDetectionMask);
+			vm.setMaskSpinnerEnabled(m.enableDetectionMaskSpinner);
 			vm.setLayerMaskEnabled(m.enableLayerMask);
 			vm.setDetectionMaskActive(false);
 			vm.setLayerMaskActive(false);

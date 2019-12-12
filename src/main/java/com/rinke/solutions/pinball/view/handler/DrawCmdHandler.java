@@ -98,9 +98,6 @@ public class DrawCmdHandler extends AbstractCommandHandler implements EventHandl
 		vm.setCopyToNextEnabled(n);
 		vm.setCopyToPrevEnabled(n);
 		vm.setBrushSpinnerEnabled(n);
-		vm.setSmartDrawEnabled(n);
-		//vm.setDeleteColMaskEnabled(n);
-		//vm.setBtnInvertEnabled(n);
 		vm.setBtnDelFrameEnabled(n);
 	}
 
@@ -137,7 +134,8 @@ public class DrawCmdHandler extends AbstractCommandHandler implements EventHandl
 			if( modeToSet != null ) {
 				vm.setDetectionMaskEnabled(modeToSet.enableDetectionMask);
 				vm.setLayerMaskEnabled(modeToSet.enableLayerMask);
-				vm.setMaskSpinnerEnabled(modeToSet.haveSceneDetectionMasks);
+				vm.setMaskSpinnerEnabled(modeToSet.enableDetectionMaskSpinner);
+				vm.setSmartDrawEnabled(!modeToSet.enableColorMaskDrawing);
 				recordingsCmdHandler.setEnableHashButtons(modeToSet.enableDetectionMask);
 			}
 			
