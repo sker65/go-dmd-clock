@@ -79,16 +79,20 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 		if (vm.selectedEditMode.enableDetectionMask) {
 			Mask maskToUse = null;
 			if( vm.selectedEditMode.haveSceneDetectionMasks ){
-				maskToUse = vm.selectedScene.getMask(oldMaskNumber);
-				maskToUse.commit(vm.dmd.getFrame().mask.data);
+				if (!vm.selectedScene.getMask(oldMaskNumber).locked) {
+					maskToUse = vm.selectedScene.getMask(oldMaskNumber);
+					maskToUse.commit(vm.dmd.getFrame().mask.data);
+				}
 				maskToUse = vm.selectedScene.getMask(vm.selectedMaskNumber); 
 			} else {
 				// fill up global masks
 				while( vm.masks.size()-1 < newMaskNumber ) {
 					vm.masks.add(new Mask(vm.dmdSize.planeSize));
 				}
-				maskToUse = vm.masks.get(oldMaskNumber);
-				maskToUse.commit(vm.dmd.getFrame().mask.data);
+				if (!vm.masks.get(oldMaskNumber).locked) {
+					maskToUse = vm.masks.get(oldMaskNumber);
+					maskToUse.commit(vm.dmd.getFrame().mask.data);
+				}
 				maskToUse = vm.masks.get(newMaskNumber);
 			}
 			vm.dmd.setMask(maskToUse);
