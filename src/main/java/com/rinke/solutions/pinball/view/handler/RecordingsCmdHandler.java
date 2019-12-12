@@ -66,6 +66,7 @@ public class RecordingsCmdHandler extends AbstractListCmdHandler implements View
 				vm.setLayerMaskActive(false);
 				vm.setLayerMaskEnabled(false);
 				vm.setDetectionMaskEnabled(true);
+				vm.setDetectionMaskActive(false);
 				vm.setMaskSpinnerEnabled(true);
 				
 				vm.setSuggestedEditMode(EditMode.FIXED);
