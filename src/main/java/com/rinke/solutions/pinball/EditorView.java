@@ -553,7 +553,7 @@ public class EditorView implements MainView {
 		Table aniList = recordingsListViewer.getTable();
 		GridData gd_aniList = new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1);
 		gd_aniList.heightHint = listHeight;
-		gd_aniList.widthHint = listWidth;
+		gd_aniList.widthHint = 138;
 		aniList.setLayoutData(gd_aniList);
 		aniList.setLinesVisible(true);
 		aniList.addKeyListener(new EscUnselect(recordingsListViewer));
@@ -581,7 +581,7 @@ public class EditorView implements MainView {
 		Table sceneList = sceneListViewer.getTable();
 		GridData gd_list = new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1);
 		gd_list.heightHint = listHeight;
-		gd_list.widthHint = listWidth;
+		gd_list.widthHint = 136;
 		sceneList.setLayoutData(gd_list);
 		sceneList.setLinesVisible(true);
 		sceneList.addKeyListener(new EscUnselect(sceneListViewer));
@@ -613,7 +613,7 @@ public class EditorView implements MainView {
 		Table keyframeList = keyframeTableViewer.getTable();
 		GridData gd_keyframeList = new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1);
 		gd_keyframeList.heightHint = listHeight;
-		gd_keyframeList.widthHint = listWidth;
+		gd_keyframeList.widthHint = 129;
 		keyframeList.setLinesVisible(true);
 		keyframeList.setLayoutData(gd_keyframeList);
 		keyframeList.addKeyListener(new EscUnselect(keyframeTableViewer));
@@ -706,9 +706,9 @@ public class EditorView implements MainView {
 	 */
 	public void createContents() {
 		
-		// uncomment this for the sake of  builder
+		// uncomment this for the sake of window builder
 		//	shell = new Shell();
-		//	shell.setSize(1400, 1075);
+		//	shell.setSize(1534, 920);
 		//	this.vm = new ViewModel();
 		//	vm.dmd = new DMD(192, 64);
 			
@@ -736,14 +736,16 @@ public class EditorView implements MainView {
 		createTabbedFolder(shell);
 
 		Composite drawPalGroup = new Composite(shell,0);
-		drawPalGroup.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
+		GridData gd_drawPalGroup = new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1);
+		gd_drawPalGroup.widthHint = 548;
+		drawPalGroup.setLayoutData(gd_drawPalGroup);
 		drawPalGroup.setLayout(new GridLayout(1,false));
 		createPalettesGroup(drawPalGroup);
 		createDrawingGroup(drawPalGroup);
 
 		Composite previewGroup = new Composite(shell,0);
 		GridData gd_previewGroup = new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1);
-		gd_previewGroup.widthHint = 1366;
+		gd_previewGroup.widthHint = 1412;
 		previewGroup.setLayoutData(gd_previewGroup);
 		GridLayout gl_previewGroup = new GridLayout(1,false);
 		gl_previewGroup.marginRight = 20;
@@ -870,8 +872,8 @@ public class EditorView implements MainView {
 		
 		Group grpDrawing = new Group(parent, SWT.NONE);
 		GridData gd_grpDrawing = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
-		gd_grpDrawing.heightHint = 92;
-		gd_grpDrawing.widthHint = 492;
+		gd_grpDrawing.heightHint = 122;
+		gd_grpDrawing.widthHint = 537;
 		grpDrawing.setLayoutData(gd_grpDrawing);
 		grpDrawing.setLayout(new GridLayout(9, false));
 		
@@ -1054,8 +1056,8 @@ public class EditorView implements MainView {
 	private void createPalettesGroup(Composite parent) {
 		Group grpPalettes = new Group(parent, SWT.NONE);
 		GridData gd_grpPalettes = new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1);
-		gd_grpPalettes.heightHint = 84;
-		gd_grpPalettes.widthHint = 481;
+		gd_grpPalettes.heightHint = 105;
+		gd_grpPalettes.widthHint = 521;
 		grpPalettes.setLayoutData(gd_grpPalettes);
 		GridLayout gl_grpPalettes = new GridLayout(5, false);
 		gl_grpPalettes.verticalSpacing = 2;
@@ -1467,7 +1469,9 @@ public class EditorView implements MainView {
 		dmdWidget = new DMDWidget(comp, SWT.DOUBLE_BUFFERED, vm.dmd, true);
 		//gd_dmdWidget.heightHint = 231;
 		//gd_dmdWidget.widthHint = 1600;
-		dmdWidget.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		GridData gd_dmdWidget = new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1);
+		gd_dmdWidget.widthHint = 1138;
+		dmdWidget.setLayoutData(gd_dmdWidget);
 		dmdWidget.addListeners(frame -> dispatchCmd(FRAME_CHANGED,frame));
 		dmdWidget.addKeyListener(new KeyAdapter() {
 			public void keyPressed(KeyEvent e) {
