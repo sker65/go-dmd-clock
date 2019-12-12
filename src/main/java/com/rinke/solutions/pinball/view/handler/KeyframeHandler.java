@@ -319,6 +319,7 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 					vm.selectedScene.getActualFrame().setHash(hash);
 					vm.setHashVal(HashCmdHandler.getPrintableHashes(hash));
 					if( vm.detectionMaskActive ) {
+						maskHandler.commitMaskIfNeeded(true);
 						vm.dmd.getFrame().mask.locked = true;
 						vm.setDmdDirty(true);
 					}

@@ -75,9 +75,11 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 		updateDrawingEnabled();
 	}
 
-	public void onSelectedMaskNumberChanged(int old, int newMaskNumber) {
+	public void onSelectedMaskNumberChanged(int oldMaskNumber, int newMaskNumber) {
 		if (vm.selectedEditMode.enableDetectionMask) {
 			Mask maskToUse = null;
+			maskToUse = vm.masks.get(oldMaskNumber); 
+			maskToUse.commit(vm.dmd.getFrame().mask.data);
 			if( vm.selectedEditMode.haveSceneDetectionMasks ){
 				maskToUse = vm.selectedScene.getMask(vm.selectedMaskNumber); 
 			} else {
