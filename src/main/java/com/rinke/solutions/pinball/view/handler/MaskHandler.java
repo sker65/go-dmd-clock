@@ -128,6 +128,7 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 						new String[]{"", "OK", "Cancel"},2);
 				if( res == 1 ) {
 					vm.dmd.getFrame().mask.locked = false;
+					updateDrawingEnabled();
 				}
 				
 			} else { 				
@@ -141,18 +142,20 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 				vm.dmd.fill((vm.layerMaskActive||vm.detectionMaskActive)?(byte)0xFF:0);
 				vm.setDmdDirty(true);
 			} else {
-				//Show which keyframes use the mask here
-				List<String> res = new ArrayList<>();
-				for( PalMapping pm : vm.keyframes.values()) {
-					if( pm.maskNumber == vm.selectedMaskNumber ) {
-						res.add(" "+pm.name);
+				if (vm.selectedScene == null) {
+					//Show which keyframes use the mask here
+					List<String> res = new ArrayList<>();
+					for( PalMapping pm : vm.keyframes.values()) {
+						if( pm.maskNumber == vm.selectedMaskNumber ) {
+							res.add(" "+pm.name);
+						}
 					}
+					messageUtil.warn("Mask cannot be deleted", "It is used by the following Keyframes:\n"+res);
+					Clipboard clipboard=new Clipboard(Display.getCurrent());
+					TextTransfer transfer=TextTransfer.getInstance();
+					clipboard.setContents(new Object[]{res.toString()},new Transfer[]{transfer});
+					clipboard.dispose();
 				}
-				messageUtil.warn("Mask cannot be deleted", "It is used by the following Keyframes:\n"+res);
-				Clipboard clipboard=new Clipboard(Display.getCurrent());
-				TextTransfer transfer=TextTransfer.getInstance();
-				clipboard.setContents(new Object[]{res.toString()},new Transfer[]{transfer});
-				clipboard.dispose();
 			}
 		}
 		

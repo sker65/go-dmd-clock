@@ -97,7 +97,7 @@ public class DrawCmdHandler extends AbstractCommandHandler implements EventHandl
 	public void onDrawingEnabledChanged(boolean o, boolean n) {
 		vm.setCopyToNextEnabled(n);
 		vm.setCopyToPrevEnabled(n);
-		vm.setBrushSpinnerEnabled(n);
+		vm.setToolSizeSpinnerEnabled(n);
 		vm.setBtnDelFrameEnabled(n);
 	}
 
@@ -239,8 +239,8 @@ public class DrawCmdHandler extends AbstractCommandHandler implements EventHandl
 	}
 
 	
-	public void onBrushSizeChanged(int newBrushSize) {
-    //    log.info("brush size {}", newBrushSize);
+	public void onToolSizeChanged(int newToolSize) {
+    //    log.info("tool size {}", newToolSize);
     } 
 	
 }

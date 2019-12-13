@@ -118,8 +118,8 @@ public class ViewModel extends AbstractModel {
 	@ViewBinding public boolean maskSpinnerEnabled;
 	@ViewBinding public int maxNumberOfMasks;
 	
-	@ViewBinding public int selectedBrushSize = 1;
-	@ViewBinding public boolean brushSpinnerEnabled;
+	@ViewBinding public int selectedToolSize = 1;
+	@ViewBinding public boolean toolSizeSpinnerEnabled;
 	
 	@ViewBinding public boolean smartDrawEnabled;
 	@ViewBinding public boolean smartDrawActive;
@@ -459,12 +459,12 @@ public class ViewModel extends AbstractModel {
 		firePropertyChange("maxNumberOfMasks", this.maxNumberOfMasks, this.maxNumberOfMasks = maxNumberOfMasks);
 	}
 
-	public void setSelectedBrushSize(int selectedBrushSize) {
-		firePropertyChange("selectedBrushSize", this.selectedBrushSize, this.selectedBrushSize = selectedBrushSize);
+	public void setSelectedToolSize(int selectedToolSize) {
+		firePropertyChange("selectedToolSize", this.selectedToolSize, this.selectedToolSize = selectedToolSize);
 	}
 	
-	public void setBrushSpinnerEnabled(boolean brushSpinnerEnabled) {
-		firePropertyChange("brushSpinnerEnabled", this.brushSpinnerEnabled, this.brushSpinnerEnabled = brushSpinnerEnabled);
+	public void setToolSizeSpinnerEnabled(boolean toolSizeSpinnerEnabled) {
+		firePropertyChange("toolSizeSpinnerEnabled", this.toolSizeSpinnerEnabled, this.toolSizeSpinnerEnabled = toolSizeSpinnerEnabled);
 	}
 	
 	public void setSmartDrawEnabled(boolean smartDrawEnabled) {

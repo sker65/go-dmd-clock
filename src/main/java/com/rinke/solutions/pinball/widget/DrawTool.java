@@ -27,7 +27,7 @@ public abstract class DrawTool extends Observable implements ColorIndexChangedLi
 	protected int pressedButton;
 	protected DMD dmd;
 	protected int actualColor = 0;
-	protected int brushSize = 1;
+	protected int toolSize = 1;
 	
 	public DrawTool(int actualColor) {
 		super();
@@ -74,8 +74,8 @@ public abstract class DrawTool extends Observable implements ColorIndexChangedLi
 		this.dmd = dmd;
 	}
 	
-	public void setBrushSize(int brushSize) {
-		this.brushSize = brushSize;
+	public void setToolSize(int toolSize) {
+		this.toolSize = toolSize;
 	}
 
 	public int getActualColor() {

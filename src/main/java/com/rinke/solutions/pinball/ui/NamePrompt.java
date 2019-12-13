@@ -1,12 +1,15 @@
 package com.rinke.solutions.pinball.ui;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.FormAttachment;
+import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.Text;
 
 import com.rinke.solutions.beans.Bean;
@@ -83,6 +86,7 @@ public class NamePrompt extends Dialog implements View {
 		btnCancelButton.setBounds(214, 129, 93, 30);
 		btnCancelButton.setText("Cancel");
 		btnCancelButton.addListener(SWT.Selection, e->cancel());
+		
 	}
 
 	private void cancel() {

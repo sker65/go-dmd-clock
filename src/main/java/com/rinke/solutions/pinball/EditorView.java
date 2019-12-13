@@ -226,8 +226,8 @@ public class EditorView implements MainView {
 
 	@GuiBinding(props={ENABLED,SELECTION,MAX}, propNames={"maskSpinnerEnabled","selectedMaskNumber", "maxNumberOfMasks"}) 
 	Spinner maskSpinner;
-	@GuiBinding(props={ENABLED,SELECTION}, propNames={"brushSpinnerEnabled","selectedBrushSize"})
-	Spinner brushSpinner;
+	@GuiBinding(props={ENABLED,SELECTION}, propNames={"toolSizeSpinnerEnabled","selectedToolSize"})
+	Spinner toolSizeSpinner;
 	
 	private SetPixelTool pixelTool; 
 	
@@ -991,20 +991,20 @@ public class EditorView implements MainView {
 		smartDraw.setEnabled(false);
 		smartDraw.setToolTipText("enables smart drawing in replacement modes");
 		
-		Label lblBrushSize = new Label(grpDrawing, SWT.NONE);
-		lblBrushSize.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
-		lblBrushSize.setText("BrushSize:");
+		Label lblToolSize = new Label(grpDrawing, SWT.NONE);
+		lblToolSize.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+		lblToolSize.setText("ToolSize:");
 			
-        brushSpinner = new Spinner(grpDrawing, SWT.BORDER);
-        brushSpinner.setToolTipText("select size of the brush");
-        brushSpinner.setMinimum(1);
-        brushSpinner.setMaximum(10);
-        brushSpinner.setEnabled(false);
-        brushSpinner.addListener(SWT.Selection, e -> this.pixelTool.setBrushSize(brushSpinner.getSelection()));
-//        brushSpinner.addListener(SWT.Selection, e -> {
-//			drawTools.values().forEach(d->d.setBrushSize(brushSpinner.getSelection()));
-//        });
-//        brushSpinner.addListener(SWT.Selection, e -> dispatchCmd("//", brushSpinner.getSelection()));
+        toolSizeSpinner = new Spinner(grpDrawing, SWT.BORDER);
+        toolSizeSpinner.setToolTipText("select size of the tool");
+        toolSizeSpinner.setMinimum(1);
+        toolSizeSpinner.setMaximum(10);
+        toolSizeSpinner.setEnabled(false);
+//        toolSizeSpinner.addListener(SWT.Selection, e -> this.pixelTool.setToolSize(toolSizeSpinner.getSelection()));
+        toolSizeSpinner.addListener(SWT.Selection, e -> {
+			drawTools.values().forEach(d->d.setToolSize(toolSizeSpinner.getSelection()));
+        });
+//        toolSizeSpinner.addListener(SWT.Selection, e -> dispatchCmd("//", toolSizeSpinner.getSelection()));
 
 
 		new Label(grpDrawing, SWT.NONE);
