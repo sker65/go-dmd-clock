@@ -57,7 +57,7 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 			vm.cutInfo.reset();
 			vm.setSelection(null);
 			vm.setSelectedRecording(null);
-			
+			vm.setPreviewDMD(null);
 			vm.setSelectedKeyFrame(null);
 			
 		//	v.goDmdGroup.updateAnimation(nextScene);
