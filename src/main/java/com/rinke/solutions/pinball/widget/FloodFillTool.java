@@ -25,8 +25,8 @@ public class FloodFillTool extends DrawTool {
 	}
 
 	private void replaceColor(int oldColor) {
-		for( int x=0; x <= dmd.getWidth(); x++) {
-			for(int y = 0; y<=dmd.getHeight(); y++) {
+		for( int x=0; x < dmd.getWidth(); x++) {
+			for(int y = 0; y < dmd.getHeight(); y++) {
 				if (dmd.getPixelWithoutMask(x, y) == oldColor) {
 					dmd.setPixel(x, y, actualColor);
 				}
