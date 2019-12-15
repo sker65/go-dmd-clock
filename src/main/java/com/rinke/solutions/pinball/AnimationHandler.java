@@ -233,18 +233,20 @@ public class AnimationHandler implements Runnable {
 	 */
 	public Mask getCurrentMask(boolean preferDetectionMask) {
 		Mask maskToUse = null; 
-		if( vm.selectedScene!=null) {
-			if( vm.selectedEditMode.haveLocalMask ) {
-				maskToUse = vm.selectedScene.getCurrentMask();
+		if(vm.selectedEditMode != null) {
+			if( vm.selectedScene!=null) {
+				if( vm.selectedEditMode.haveLocalMask ) {
+					maskToUse = vm.selectedScene.getCurrentMask();
+				}
+				if( vm.selectedEditMode.haveSceneDetectionMasks && preferDetectionMask ){
+					maskToUse = vm.selectedScene.getMask(vm.selectedMaskNumber); 
+				}
 			}
-			if( vm.selectedEditMode.haveSceneDetectionMasks && preferDetectionMask ){
-				maskToUse = vm.selectedScene.getMask(vm.selectedMaskNumber); 
+			if( vm.selectedEditMode.enableDetectionMask && !vm.selectedEditMode.haveSceneDetectionMasks
+					&& !vm.selectedEditMode.haveLocalMask) {
+				// use one of the global masks
+				if( preferDetectionMask ) maskToUse = vm.masks.get(vm.selectedMaskNumber);
 			}
-		}
-		if( vm.selectedEditMode.enableDetectionMask && !vm.selectedEditMode.haveSceneDetectionMasks
-				&& !vm.selectedEditMode.haveLocalMask) {
-			// use one of the global masks
-			if( preferDetectionMask ) maskToUse = vm.masks.get(vm.selectedMaskNumber);
 		}
 		return maskToUse;
 	}
