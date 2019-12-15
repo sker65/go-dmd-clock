@@ -452,7 +452,8 @@ public class ViewModel extends AbstractModel {
 	}
 	
 	public void setSelectedMaskNumber(int selectedMaskNumber) {
-		firePropertyChange("selectedMaskNumber", this.selectedMaskNumber, selectedMaskNumber);
+		firePropertyChange("selectedMaskNumber", this.selectedMaskNumber, -1); //hack to commit mask before change
+		firePropertyChange("selectedMaskNumber", this.selectedMaskNumber, this.selectedMaskNumber = selectedMaskNumber);
 	}
 	
 	public void setMaxNumberOfMasks(int maxNumberOfMasks) {

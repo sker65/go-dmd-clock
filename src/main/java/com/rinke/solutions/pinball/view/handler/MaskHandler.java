@@ -76,29 +76,31 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 	}
 
 	public void onSelectedMaskNumberChanged(int oldMaskNumber, int newMaskNumber) {
-		commitMaskIfNeeded(true);
-		vm.selectedMaskNumber = newMaskNumber;
-		if (vm.selectedEditMode.enableDetectionMask) {
-			Mask maskToUse = null;
-			if( vm.selectedEditMode.haveSceneDetectionMasks ){
-				maskToUse = vm.selectedScene.getMask(vm.selectedMaskNumber); 
-			} else {
-				// fill up global masks
-				while( vm.masks.size()-1 < newMaskNumber ) {
-					vm.masks.add(new Mask(vm.dmdSize.planeSize));
+		if (newMaskNumber == -1) {
+			commitMaskIfNeeded(true);
+		} else {
+			if (vm.selectedEditMode.enableDetectionMask) {
+				Mask maskToUse = null;
+				if( vm.selectedEditMode.haveSceneDetectionMasks ){
+					maskToUse = vm.selectedScene.getMask(vm.selectedMaskNumber); 
+				} else {
+					// fill up global masks
+					while( vm.masks.size()-1 < newMaskNumber ) {
+						vm.masks.add(new Mask(vm.dmdSize.planeSize));
+					}
+					maskToUse = vm.masks.get(newMaskNumber);
 				}
-				maskToUse = vm.masks.get(newMaskNumber);
-			}
-			vm.dmd.setMask(maskToUse);
-			updateDrawingEnabled();
-		}
-		if( vm.selectedEditMode.enableLayerMask ) {
-			if( vm.selectedScene != null) {
-				vm.dmd.setMask(vm.selectedScene.getMask(newMaskNumber));
+				vm.dmd.setMask(maskToUse);
 				updateDrawingEnabled();
 			}
+			if( vm.selectedEditMode.enableLayerMask ) {
+				if( vm.selectedScene != null) {
+					vm.dmd.setMask(vm.selectedScene.getMask(newMaskNumber));
+					updateDrawingEnabled();
+				}
+			}
+			vm.setDmdDirty(true);
 		}
-		vm.setDmdDirty(true);
 	}
 
 	private boolean isEditable(java.util.List<Animation> a) {
