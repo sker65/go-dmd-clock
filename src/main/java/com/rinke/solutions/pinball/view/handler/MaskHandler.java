@@ -124,6 +124,7 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 						new String[]{"", "OK", "Cancel"},2);
 				if( res == 1 ) {
 					vm.dmd.getFrame().mask.locked = false;
+					vm.setDmdDirty(true);
 					updateDrawingEnabled();
 				}
 				
