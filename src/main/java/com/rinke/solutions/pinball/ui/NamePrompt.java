@@ -1,6 +1,8 @@
 package com.rinke.solutions.pinball.ui;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.Button;
@@ -77,6 +79,17 @@ public class NamePrompt extends Dialog implements View {
 		nameInput.setText(prompt);
 		nameInput.setSelection(0, prompt.length());
 		
+		nameInput.addKeyListener(new KeyListener() {
+			@Override
+			public void keyReleased(KeyEvent e) {
+			}
+			@Override
+			public void keyPressed(KeyEvent e) {
+				// dont allow RETURN press (to avoid selecting palettes that are not existent)
+				if( e.character == '\r' || e.character == '\n' ) ok();
+			}
+		});
+		
 		Button btnOkayButton = new Button(shell, SWT.NONE);
 		btnOkayButton.setBounds(321, 129, 93, 30);
 		btnOkayButton.setText("Okay");
@@ -99,4 +112,7 @@ public class NamePrompt extends Dialog implements View {
 		this.okay = true;
 		shell.close();
 	}
+	
+	
+
 }
