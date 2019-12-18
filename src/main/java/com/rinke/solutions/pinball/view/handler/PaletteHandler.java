@@ -404,8 +404,10 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 			vm.selectedPalette.colors[colorIndex-2] = color33;
 			vm.setSelectedColor(colorIndex);
 			vm.setPaletteDirty(true);
-			vm.setDmdDirty(true);
-			vm.setDirty(true);
+			if (vm.selectedRecording != null || vm.selectedScene != null) {
+				vm.setDmdDirty(true);
+				vm.setDirty(true);
+			}
 
 		}
 	}
