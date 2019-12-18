@@ -472,6 +472,10 @@ public class EditorView implements MainView {
 		mntmExtractColorsFrom.setAccelerator(SWT.MOD1 + 'E');
 		mntmExtractColorsFrom.addListener(SWT.Selection, e -> dispatchCmd("extractPalColorsFromFrame"));
 		
+		MenuItem mntmPickPaletteFrom = new MenuItem(menu_3, SWT.NONE);
+		mntmPickPaletteFrom.setText("Pick Palette from Frame");
+		mntmPickPaletteFrom.addListener(SWT.Selection, e -> dispatchCmd("pickPalette"));
+		
 		MenuItem mntmRecentPalettesItem = new MenuItem(menu_3, SWT.CASCADE);
 		mntmRecentPalettesItem.setText("Recent Palettes");
 
@@ -1117,16 +1121,22 @@ public class EditorView implements MainView {
 		paletteTool = new PaletteTool(shell, grpPal, SWT.FLAT | SWT.RIGHT, vm.selectedPalette);
 		
 		ToolBar bar = new ToolBar(grpPalettes, SWT.NONE);
-		btnPick = new ToolItem(bar, SWT.NONE);
-		btnPick.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/color-picker.png")));
-		btnPick.addListener(SWT.Selection, e->dispatchCmd("pickPalette"));
 		
-		ToolItem btnPick2 = new ToolItem(bar, SWT.NONE);
-		btnPick2.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/color-picker2.png")));
-		btnPick2.addListener(SWT.Selection, e->dispatchCmd("extractPalColorsFromFrame"));
+		ToolItem btnGradient = new ToolItem(bar, SWT.NONE);
+		btnGradient.setToolTipText("Creates color gradients between the first and last color in the selected group");
+		btnGradient.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/gradient.png")));
+		btnGradient.addListener(SWT.Selection, e->dispatchCmd("createGradients"));
 
-		Label lblCtrlclick = new Label(grpPalettes, SWT.NONE);
-		lblCtrlclick.setText("Ctrl-Click to edit");
+		//btnPick = new ToolItem(bar, SWT.NONE);
+		//btnPick.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/color-picker.png")));
+		//btnPick.addListener(SWT.Selection, e->dispatchCmd("pickPalette"));
+		
+		//ToolItem btnPick2 = new ToolItem(bar, SWT.NONE);
+		//btnPick2.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/color-picker2.png")));
+		//btnPick2.addListener(SWT.Selection, e->dispatchCmd("extractPalColorsFromFrame"));
+		
+		//Label lblCtrlclick = new Label(grpPalettes, SWT.NONE);
+		//lblCtrlclick.setText("Ctrl-Click to edit");
 	}
 
 	private void createStartStopControl(Composite parent) {
@@ -1505,7 +1515,7 @@ public class EditorView implements MainView {
 	}
 	
 	Realm realm;
-	private ToolItem btnPick;
+	//private ToolItem btnPick;
 	private PalettePickerTool palettePickerTool;
 
 	@Override

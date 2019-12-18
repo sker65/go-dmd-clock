@@ -383,6 +383,30 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 		}
 		return sb.toString();
 	}
+
+	public void onCreateGradients() {
+		if( vm.selectedPalette != null) {
+			int colorIndex = vm.getSelectedColor() | 3; // select last color of group.
+			RGB color = vm.selectedPalette.colors[colorIndex];
+			RGB color66 = vm.selectedPalette.colors[colorIndex - 1];
+			RGB color33 = vm.selectedPalette.colors[colorIndex - 2];
+			RGB color0 = vm.selectedPalette.colors[colorIndex - 3];
+			
+			color66.blue = (color0.blue / 3) + ((color.blue / 3) * 2);
+			color66.red = (color0.red / 3) + ((color.red / 3) * 2);
+			color66.green = (color0.green / 3) + ((color.green / 3) * 2);
+			
+			color33.blue = ((color0.blue / 3) * 2) + (color.blue / 3);
+			color33.red = ((color0.red / 3) * 2) + (color.red / 3);
+			color33.green = ((color0.green / 3) * 2) + (color.green / 3);
+
+			vm.selectedPalette.colors[colorIndex-1] = color66;
+			vm.selectedPalette.colors[colorIndex-2] = color33;
+				
+			vm.setPaletteDirty(true);
+		}
+	}
+
 	
 	public void onDeletePalette() {
 		if( vm.selectedPalette != null && vm.paletteMap.size()>1 ) {
