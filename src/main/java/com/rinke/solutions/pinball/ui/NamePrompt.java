@@ -85,7 +85,7 @@ public class NamePrompt extends Dialog implements View {
 			}
 			@Override
 			public void keyPressed(KeyEvent e) {
-				// dont allow RETURN press (to avoid selecting palettes that are not existent)
+				// allow RETURN press to confirm
 				if( e.character == '\r' || e.character == '\n' ) ok();
 			}
 		});

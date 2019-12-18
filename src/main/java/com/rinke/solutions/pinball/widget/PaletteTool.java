@@ -227,6 +227,11 @@ public class PaletteTool extends AbstractModel implements ColorModifiedListener 
 	}
 
 	public void setSelectedColor(int selectedColor) {
+		//avoid multiple selections in palette
+		for (int i = 0; i < colBtn.length; i++) {
+			colBtn[i].setSelection(false);
+		}
+		colBtn[selectedColor].setSelection(true);
 		firePropertyChange("selectedColor", this.selectedColor, this.selectedColor = selectedColor);
 	}
 
