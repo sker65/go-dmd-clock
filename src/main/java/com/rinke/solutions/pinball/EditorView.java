@@ -741,7 +741,7 @@ public class EditorView implements MainView {
 
 		Composite drawPalGroup = new Composite(shell,0);
 		GridData gd_drawPalGroup = new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1);
-		gd_drawPalGroup.widthHint = 548;
+		gd_drawPalGroup.widthHint = 612;
 		drawPalGroup.setLayoutData(gd_drawPalGroup);
 		drawPalGroup.setLayout(new GridLayout(1,false));
 		createPalettesGroup(drawPalGroup);
@@ -877,7 +877,7 @@ public class EditorView implements MainView {
 		Group grpDrawing = new Group(parent, SWT.NONE);
 		GridData gd_grpDrawing = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
 		gd_grpDrawing.heightHint = 122;
-		gd_grpDrawing.widthHint = 537;
+		gd_grpDrawing.widthHint = 604;
 		grpDrawing.setLayoutData(gd_grpDrawing);
 		grpDrawing.setLayout(new GridLayout(9, false));
 		
@@ -1125,6 +1125,7 @@ public class EditorView implements MainView {
 		ToolItem btnGradient = new ToolItem(bar, SWT.NONE);
 		btnGradient.setToolTipText("Creates color gradients between the first and last color in the selected group");
 		btnGradient.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/gradient.png")));
+		new Label(grpPalettes, SWT.NONE);
 		btnGradient.addListener(SWT.Selection, e->dispatchCmd("createGradients"));
 
 		//btnPick = new ToolItem(bar, SWT.NONE);
