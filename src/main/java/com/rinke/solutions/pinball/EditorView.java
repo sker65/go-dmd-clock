@@ -1015,17 +1015,17 @@ public class EditorView implements MainView {
 		new Label(grpDrawing, SWT.NONE);
 		//maskSpinner.addListener(SWT.Selection, e -> ed.onMaskNumberChanged(maskSpinner.getSelection()));
 		
-		detectionMask = new Button(grpDrawing, SWT.CHECK);
-		detectionMask.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
-		detectionMask.setText("D-");
-		detectionMask.setEnabled(false);
-		detectionMask.setToolTipText("enables drawing the DETECTION MASK for triggering a keyframe");
 		
 		layerMask = new Button(grpDrawing, SWT.CHECK);
-		layerMask.setText("L-Mask");
+		layerMask.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+		layerMask.setText("L-");
 		layerMask.setEnabled(false);
 		layerMask.setToolTipText("enables drawing the LAYERED MASK for layered coloring");
-		
+
+		detectionMask = new Button(grpDrawing, SWT.CHECK);
+		detectionMask.setText("D-Mask");
+		detectionMask.setEnabled(false);
+		detectionMask.setToolTipText("enables drawing the DETECTION MASK for triggering a keyframe");
 		
 		copyToPrev = new Button(grpDrawing, SWT.NONE);
 		copyToPrev.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
