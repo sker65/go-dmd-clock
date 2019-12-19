@@ -417,9 +417,14 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 		if( vm.selectedPalette != null && vm.paletteMap.size()>1 ) {
 			// check if any scene is using this
 			List<String> res = new ArrayList<>();
-			res.add("Scenes:\n");
+			int index = 0;
+			boolean sceneFound = false;
 			for( Animation a: vm.scenes.values()) {
 				if( a.getPalIndex() == vm.selectedPalette.index ) {
+					if( !sceneFound ) {
+						res.add("Scenes:\n");
+						sceneFound = true;
+					}
 					res.add(a.getDesc());
 				}
 			}
@@ -431,9 +436,13 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 			//}
 			
 			// also check keyframes
-			res.add("\n\nKeyframes:\n");
+			boolean keyFrameFound = false;
 			for( PalMapping pm : vm.keyframes.values()) {
 				if( pm.palIndex == vm.selectedPalette.index ) {
+					if( !keyFrameFound ) {
+						res.add("\n\nKeyframes:\n");
+						keyFrameFound = true;
+					}
 					res.add(pm.name);
 				}
 			}
