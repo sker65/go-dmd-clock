@@ -553,11 +553,11 @@ public class EditorView implements MainView {
 		int listHeight = 181;
 		int colWidth = 220;
 
-		recordingsListViewer = new TableViewer(listComp, SWT.BORDER | SWT.V_SCROLL);
+		recordingsListViewer = new TableViewer(listComp,SWT.SINGLE | SWT.BORDER | SWT.V_SCROLL);
 		Table aniList = recordingsListViewer.getTable();
 		GridData gd_aniList = new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1);
 		gd_aniList.heightHint = listHeight;
-		gd_aniList.widthHint = 138;
+		gd_aniList.widthHint = listWidth;
 		aniList.setLayoutData(gd_aniList);
 		aniList.setLinesVisible(true);
 		aniList.addKeyListener(new EscUnselect(recordingsListViewer));
@@ -585,7 +585,7 @@ public class EditorView implements MainView {
 		Table sceneList = sceneListViewer.getTable();
 		GridData gd_list = new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1);
 		gd_list.heightHint = listHeight;
-		gd_list.widthHint = 136;
+		gd_list.widthHint = listWidth;
 		sceneList.setLayoutData(gd_list);
 		sceneList.setLinesVisible(true);
 		sceneList.addKeyListener(new EscUnselect(sceneListViewer));
@@ -617,7 +617,7 @@ public class EditorView implements MainView {
 		Table keyframeList = keyframeTableViewer.getTable();
 		GridData gd_keyframeList = new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1);
 		gd_keyframeList.heightHint = listHeight;
-		gd_keyframeList.widthHint = 129;
+		gd_keyframeList.widthHint = listWidth;
 		keyframeList.setLinesVisible(true);
 		keyframeList.setLayoutData(gd_keyframeList);
 		keyframeList.addKeyListener(new EscUnselect(keyframeTableViewer));
@@ -634,7 +634,12 @@ public class EditorView implements MainView {
 		viewerColumn.setLabelProvider(new IconLabelProvider<PalMapping>(shell, o -> Pair.of(o.switchMode.name().toLowerCase(), o.name ) ));
 
 		Composite composite_1 = new Composite(listComp, SWT.NONE);
-		composite_1.setLayout(new GridLayout(2, false));
+		GridLayout gl_composite_1 = new GridLayout(2, false);
+		gl_composite_1.horizontalSpacing = 0;
+		gl_composite_1.marginHeight = 0;
+		gl_composite_1.marginWidth = 0;
+		gl_composite_1.verticalSpacing = 0;
+		composite_1.setLayout(gl_composite_1);
 		GridData gd_composite_1 = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
 		gd_composite_1.widthHint = listWidth;
 		composite_1.setLayoutData(gd_composite_1);
@@ -653,9 +658,10 @@ public class EditorView implements MainView {
 		Composite composite_4 = new Composite(listComp, SWT.NONE);
 		composite_4.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
 		GridLayout gl_composite_4 = new GridLayout(3, false);
-		gl_composite_4.horizontalSpacing = 1;
-		gl_composite_4.marginWidth = 1;
-		gl_composite_4.verticalSpacing = 1;
+		gl_composite_4.verticalSpacing = 0;
+		gl_composite_4.marginWidth = 0;
+		gl_composite_4.marginHeight = 0;
+		gl_composite_4.horizontalSpacing = 0;
 		composite_4.setLayout(gl_composite_4);
 		
 		deleteScene = new Button(composite_4, SWT.NONE);
@@ -677,8 +683,10 @@ public class EditorView implements MainView {
 
 		Composite composite_2 = new Composite(listComp, SWT.NONE);
 		GridLayout gl_composite_2 = new GridLayout(3, false);
-		gl_composite_2.marginWidth = 1;
-		gl_composite_2.horizontalSpacing = 1;
+		gl_composite_2.verticalSpacing = 0;
+		gl_composite_2.marginWidth = 0;
+		gl_composite_2.marginHeight = 0;
+		gl_composite_2.horizontalSpacing = 0;
 		composite_2.setLayout(gl_composite_2);
 
 		deleteKeyFrame = new Button(composite_2, SWT.NONE);
@@ -741,7 +749,7 @@ public class EditorView implements MainView {
 
 		Composite drawPalGroup = new Composite(shell,0);
 		GridData gd_drawPalGroup = new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1);
-		gd_drawPalGroup.widthHint = 612;
+		gd_drawPalGroup.widthHint = 635;
 		drawPalGroup.setLayoutData(gd_drawPalGroup);
 		drawPalGroup.setLayout(new GridLayout(1,false));
 		createPalettesGroup(drawPalGroup);
@@ -749,7 +757,7 @@ public class EditorView implements MainView {
 
 		Composite previewGroup = new Composite(shell,0);
 		GridData gd_previewGroup = new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1);
-		gd_previewGroup.widthHint = 1412;
+		gd_previewGroup.widthHint = 1487;
 		previewGroup.setLayoutData(gd_previewGroup);
 		GridLayout gl_previewGroup = new GridLayout(1,false);
 		gl_previewGroup.marginRight = 20;
@@ -877,9 +885,9 @@ public class EditorView implements MainView {
 		Group grpDrawing = new Group(parent, SWT.NONE);
 		GridData gd_grpDrawing = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
 		gd_grpDrawing.heightHint = 122;
-		gd_grpDrawing.widthHint = 604;
+		gd_grpDrawing.widthHint = 484;
 		grpDrawing.setLayoutData(gd_grpDrawing);
-		grpDrawing.setLayout(new GridLayout(9, false));
+		grpDrawing.setLayout(new GridLayout(7, false));
 		
 		grpDrawing.setText("Drawing");
 
@@ -980,17 +988,9 @@ public class EditorView implements MainView {
 		maskSpinner.setMinimum(0);
 		maskSpinner.setMaximum(25);
 		maskSpinner.setEnabled(false);
-		//maskSpinner.addListener(SWT.Selection, e -> ed.onMaskNumberChanged(maskSpinner.getSelection()));
-		
-		detectionMask = new Button(grpDrawing, SWT.CHECK);
-		detectionMask.setText("D-Mask");
-		detectionMask.setEnabled(false);
-		detectionMask.setToolTipText("enables drawing the DETECTION MASK for triggering a keyframe");
-		
-
-		new Label(grpDrawing, SWT.NONE);
 		
 		smartDraw = new Button(grpDrawing, SWT.CHECK);
+		smartDraw.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false, 1, 1));
 		smartDraw.setText("Smart");
 		smartDraw.setEnabled(false);
 		smartDraw.setToolTipText("enables smart drawing in replacement modes");
@@ -1013,22 +1013,17 @@ public class EditorView implements MainView {
 
 		new Label(grpDrawing, SWT.NONE);
 		new Label(grpDrawing, SWT.NONE);
+		//maskSpinner.addListener(SWT.Selection, e -> ed.onMaskNumberChanged(maskSpinner.getSelection()));
 		
-		deleteColMask = new Button(grpDrawing, SWT.NONE);
-		deleteColMask.setText("Del");
-		deleteColMask.setEnabled(false);
-		deleteColMask.addListener(SWT.Selection, e -> dispatchCmd(DELETE_COL_MASK));
-		
-		btnInvert = new Button(grpDrawing, SWT.NONE);
-		btnInvert.setText("Inv");
-		btnInvert.addListener(SWT.Selection, e->dispatchCmd(INVERT_MASK));
-		btnInvert.setEnabled(false);
+		detectionMask = new Button(grpDrawing, SWT.CHECK);
+		detectionMask.setText("D-");
+		detectionMask.setEnabled(false);
+		detectionMask.setToolTipText("enables drawing the DETECTION MASK for triggering a keyframe");
 		
 		layerMask = new Button(grpDrawing, SWT.CHECK);
 		layerMask.setText("L-Mask");
 		layerMask.setEnabled(false);
 		layerMask.setToolTipText("enables drawing the LAYERED MASK for layered coloring");
-		new Label(grpDrawing, SWT.NONE);
 		
 		
 		copyToPrev = new Button(grpDrawing, SWT.NONE);
@@ -1049,10 +1044,17 @@ public class EditorView implements MainView {
 		redo = new Button(grpDrawing, SWT.NONE);
 		redo.setText("&Redo");
 		redo.addListener(SWT.Selection, e -> dispatchCmd(REDO));
-		new Label(grpDrawing, SWT.NONE);
-		new Label(grpDrawing, SWT.NONE);
-		new Label(grpDrawing, SWT.NONE);
-		new Label(grpDrawing, SWT.NONE);
+		
+		deleteColMask = new Button(grpDrawing, SWT.NONE);
+		deleteColMask.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+		deleteColMask.setText("Del");
+		deleteColMask.setEnabled(false);
+		
+		btnInvert = new Button(grpDrawing, SWT.NONE);
+		btnInvert.setText("Inv");
+		btnInvert.addListener(SWT.Selection, e->dispatchCmd(INVERT_MASK));
+		btnInvert.setEnabled(false);
+		deleteColMask.addListener(SWT.Selection, e -> dispatchCmd(DELETE_COL_MASK));
 
 		
 	}
@@ -1061,7 +1063,7 @@ public class EditorView implements MainView {
 		Group grpPalettes = new Group(parent, SWT.NONE);
 		GridData gd_grpPalettes = new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1);
 		gd_grpPalettes.heightHint = 105;
-		gd_grpPalettes.widthHint = 521;
+		gd_grpPalettes.widthHint = 481;
 		grpPalettes.setLayoutData(gd_grpPalettes);
 		GridLayout gl_grpPalettes = new GridLayout(5, false);
 		gl_grpPalettes.verticalSpacing = 2;
