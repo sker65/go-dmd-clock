@@ -35,12 +35,20 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 	}
 	
 	public void onDetectionMaskActiveChanged(boolean old, boolean n) {
+		if(vm.selectedScene!=null && n) {
+			vm.selectedScene.commitDMDchanges(vm.dmd); 
+			vm.setDirty(vm.dirty|vm.selectedScene.isDirty());
+		}
 		if( n ) vm.setLayerMaskActive(false);
 		updateMaskChange(n, true);
 		vm.setShowMask(n);
 	}
 	
 	public void onLayerMaskActiveChanged(boolean old, boolean n) {
+		if(vm.selectedScene!=null && n) {
+			vm.selectedScene.commitDMDchanges(vm.dmd); 
+			vm.setDirty(vm.dirty|vm.selectedScene.isDirty());
+		}
 		if( n ) vm.setDetectionMaskActive(false);
 		updateMaskChange(n, false);
 		vm.setShowMask(n);
