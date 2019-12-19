@@ -885,7 +885,7 @@ public class EditorView implements MainView {
 		Group grpDrawing = new Group(parent, SWT.NONE);
 		GridData gd_grpDrawing = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
 		gd_grpDrawing.heightHint = 122;
-		gd_grpDrawing.widthHint = 484;
+		gd_grpDrawing.widthHint = 541;
 		grpDrawing.setLayoutData(gd_grpDrawing);
 		grpDrawing.setLayout(new GridLayout(7, false));
 		
@@ -957,7 +957,7 @@ public class EditorView implements MainView {
 		editModeViewer = new ComboViewer(grpDrawing, SWT.READ_ONLY);
 		Combo combo_2 = editModeViewer.getCombo();
 		GridData gd_combo_2 = new GridData(SWT.LEFT, SWT.CENTER, false, false, 2, 1);
-		gd_combo_2.widthHint = 101;
+		gd_combo_2.widthHint = 120;
 		combo_2.setLayoutData(gd_combo_2);
 		editModeViewer.setContentProvider(ArrayContentProvider.getInstance());
 		editModeViewer.setLabelProvider(new LabelProviderAdapter<EditMode>(o -> o.label));
@@ -1016,6 +1016,7 @@ public class EditorView implements MainView {
 		//maskSpinner.addListener(SWT.Selection, e -> ed.onMaskNumberChanged(maskSpinner.getSelection()));
 		
 		detectionMask = new Button(grpDrawing, SWT.CHECK);
+		detectionMask.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
 		detectionMask.setText("D-");
 		detectionMask.setEnabled(false);
 		detectionMask.setToolTipText("enables drawing the DETECTION MASK for triggering a keyframe");
