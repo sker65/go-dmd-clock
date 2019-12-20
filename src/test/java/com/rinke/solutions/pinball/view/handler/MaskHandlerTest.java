@@ -32,17 +32,23 @@ public class MaskHandlerTest extends HandlerTest  {
 
 	@Test
 	public void testOnInvertMask() throws Exception {
-//		mask.data[0] = 0;
-//		vm.dmd.setMask(mask);
-//		uut.onInvertMask();
-//		assertEquals((byte) 0xFF, (byte) vm.dmd.getFrame().mask.data[0]);
-//		assertEquals((byte) 0x00, (byte) vm.dmd.getFrame().mask.data[1]);
+		vm.setSelectedScene(getScene("foo"));
+		vm.setSelectedEditMode(EditMode.FIXED);
+		mask.data[0] = 0;
+		vm.dmd.setMask(mask);
+		uut.onInvertMask();
+		assertEquals((byte) 0xFF, (byte) vm.dmd.getFrame().mask.data[0]);
+		assertEquals((byte) 0x00, (byte) vm.dmd.getFrame().mask.data[1]);
 	}
 
 	@Test
 	public void testOnDeleteColMaskd() throws Exception {
-//		uut.onDeleteColMask();
-//		assertTrue(vm.dmdDirty);
+		vm.setSelectedScene(getScene("foo"));
+		vm.setSelectedEditMode(EditMode.FIXED);
+		mask.data[0] = 0;
+		vm.dmd.setMask(mask);
+		uut.onDeleteColMask();
+		assertTrue(vm.dmdDirty);
 		// test filling of dmd in dmd itself
 	}
 
@@ -56,7 +62,11 @@ public class MaskHandlerTest extends HandlerTest  {
 
 	@Test
 	public void testOnDeleteColMask() throws Exception {
-//		uut.onDeleteColMask();
+		vm.setSelectedScene(getScene("foo"));
+		vm.setSelectedEditMode(EditMode.FIXED);
+		mask.data[0] = 0;
+		vm.dmd.setMask(mask);
+		uut.onDeleteColMask();
 	}
 
 	@Test
