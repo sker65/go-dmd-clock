@@ -103,6 +103,7 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 		if( newPalette != null) {
 			log.info("new palette is {}", vm.selectedPalette);
 			vm.setSelectedPaletteType(vm.selectedPalette.type);
+			vm.setPaletteDirty(true);
 		}
 	}
 	
@@ -305,6 +306,8 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 		Palette newPal =  new Palette(vm.selectedPalette.colors, getHighestIndex(vm.paletteMap)+1, name);
 		vm.paletteMap.put(newPal.index,newPal);
 		vm.setSelectedPalette(newPal);
+		vm.setSelectedColor(0);
+		vm.setPaletteDirty(true);
 		vm.setDirty(true);
 	}
 
