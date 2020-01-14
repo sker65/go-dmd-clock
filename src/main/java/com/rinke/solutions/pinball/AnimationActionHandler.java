@@ -75,7 +75,6 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 		if( anisToSave.isEmpty() ) return;// Pair.of(0, Collections.emptyMap());
 		IProgress progress = getProgress();
 		AniWriter aniWriter = new AniWriter(anisToSave, filename, version, vm.paletteMap, progress);
-		anisToSave.forEach(a->a.setActFrame(0));
 		if( progress != null ) {
 			progress.open(aniWriter);
 			if( aniWriter.hasError() ) {

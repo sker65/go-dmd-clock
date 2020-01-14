@@ -71,6 +71,7 @@ public class AniWriter extends Worker {
 			for (Animation a : anis) {
 				aniOffset[aniIndex] = os.size();
 				offsetMap.put(a.getDesc(), os.size());
+				a.setActFrame(0);
 			    writeAnimation(os, a);
 
 				DMD dmd = new DMD(a.width,a.height);
