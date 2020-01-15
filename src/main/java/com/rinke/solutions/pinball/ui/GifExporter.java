@@ -101,7 +101,9 @@ public class GifExporter extends Dialog {
 		
 		DMDWidget widget = getDmdWidget(shell, 0, dmd, false);
 		widget.setPalette(palette);
-		int pitch = comboSize.getSelectionIndex() + 3;
+		int pitch = 1;
+		if (comboSize.getSelectionIndex() > 0)
+			pitch = comboSize.getSelectionIndex() + 2;
 		widget.setMargin(margin);
 		int width = (dmd.getWidth()+0) * pitch + widget.getMargin();
 		int height = (dmd.getHeight()+0) * pitch + widget.getMargin();
