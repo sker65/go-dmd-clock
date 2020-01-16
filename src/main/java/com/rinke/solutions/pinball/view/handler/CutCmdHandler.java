@@ -14,6 +14,7 @@ import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.animation.CompiledAnimation.RecordingLink;
 import com.rinke.solutions.pinball.model.PalMapping.SwitchMode;
 import com.rinke.solutions.pinball.ui.NamePrompt;
+import com.rinke.solutions.pinball.ui.SplitPrompt;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.util.MessageUtil;
 import com.rinke.solutions.pinball.util.ObservableMap;
@@ -36,6 +37,7 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 	@Autowired KeyframeHandler keyframeHandler;
 	@Autowired MessageUtil messageUtil;
 	@Autowired View namePrompt;
+	@Autowired View splitPrompt;
 	
 	public CutCmdHandler(ViewModel vm) {
 		super(vm);
@@ -151,7 +153,7 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 		// respect number of planes while cutting / copying
 		Animation src = getSourceAnimation();
 		if( src != null ) {
-			splitScene(src, 0);
+			splitScene(src);
 			log.info("splitting scene {}", src.getDesc());
 		}
 		
@@ -217,17 +219,18 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 		return cutScene;
 	}
 	
-	public Animation splitScene(Animation animation, int splitSize) {
+	public Animation splitScene(Animation animation) {
 		CompiledAnimation splitScene = null;
 		String namePrefix = animation.getDesc();
+		int splitSize = 0;
 		do {
-			NamePrompt namePrompt = (NamePrompt) this.namePrompt;
-			namePrompt.setItemName("Scene");
-			namePrompt.setPrompt(namePrefix);
-			namePrompt.open();
-			if( namePrompt.isOkay() ) namePrefix = namePrompt.getPrompt();
+			SplitPrompt splitPrompt = (SplitPrompt) this.splitPrompt;
+			splitPrompt.setItemName("Scene");
+			splitPrompt.setPrompt(namePrefix);
+			splitPrompt.open();
+			if( splitPrompt.isOkay() ) namePrefix = splitPrompt.getPrompt();
 			else return null;
-			
+			splitSize = splitPrompt.getSize() + 1;
 			if( vm.scenes.containsKey(namePrefix+" 1") ) {
 				messageUtil.error("Scene Name exists", "A scene '"+namePrefix+" 1"+"' already exists");
 			}

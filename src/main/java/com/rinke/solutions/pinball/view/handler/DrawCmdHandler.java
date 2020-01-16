@@ -99,7 +99,6 @@ public class DrawCmdHandler extends AbstractCommandHandler implements EventHandl
 		vm.setCopyToPrevEnabled(n);
 		vm.setToolSizeSpinnerEnabled(n);
 		vm.setBtnDelFrameEnabled(n);
-		vm.setSceneSplitEnabled(n);
 	}
 
 	public void onSelectedFrameChanged(int ov, int nv) {

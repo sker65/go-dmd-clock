@@ -143,7 +143,6 @@ public class ViewModel extends AbstractModel {
 	@ViewBinding public boolean markStartEnabled;
 	@ViewBinding public boolean markEndEnabled;
 	@ViewBinding public boolean cutSceneEnabled;
-	@ViewBinding public boolean splitSceneEnabled;
 	
 	@ViewBinding public Bookmark selectedBookmark;
 	@ViewBinding public ObservableSet<Bookmark> bookmarks = new ObservableSet<>(new TreeSet<>());
@@ -336,10 +335,6 @@ public class ViewModel extends AbstractModel {
 		firePropertyChange("cutSceneEnabled", this.cutSceneEnabled, this.cutSceneEnabled = cutEnabled);
 	}
 
-	public void setSceneSplitEnabled(boolean splitEnabled) {
-		firePropertyChange("splitSceneEnabled", this.splitSceneEnabled, this.splitSceneEnabled = splitEnabled);
-	}
-	
 	public void setMarkEndEnabled(boolean markEndEnabled) {
 		firePropertyChange("markEndEnabled", this.markEndEnabled, this.markEndEnabled = markEndEnabled);
 	}

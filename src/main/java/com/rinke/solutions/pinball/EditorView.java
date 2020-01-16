@@ -190,7 +190,6 @@ public class EditorView implements MainView {
 	@GuiBinding(prop=ENABLED) Button markStart;
 	@GuiBinding(prop=ENABLED) Button markEnd;
 	@GuiBinding(prop=ENABLED) Button cutScene;
-	@GuiBinding(prop=ENABLED) Button splitScene;
 	@GuiBinding( props= { ENABLED, LABEL } ) private Button startStop;
 	@GuiBinding(props={ENABLED,LABEL}) Button btnAddFrameSeq;
 	@PojoBinding(srcs={"maskOut","palette"}, targets={"showMask","previewDmdPalette"}) 
@@ -275,7 +274,6 @@ public class EditorView implements MainView {
 	@GuiBinding(prop=ENABLED, propName="drawingEnabled") private Button btnAddFrame;
 	@GuiBinding(prop=ENABLED) private Button btnDelFrame;
 	@GuiBinding(prop=ENABLED) private Button btnSetHash;
-	
 
 	private Config config;
 	
@@ -418,6 +416,10 @@ public class EditorView implements MainView {
 		mntmSaveSingleAnimation.addListener(SWT.Selection, e -> dispatchCmd(SAVE_SINGLE_ANI_WITH_FC,1));
 		
 		separator(menu_2);
+
+		MenuItem mntmSplitScene = new MenuItem(menu_2, SWT.NONE);
+		mntmSplitScene.setText("Split Scene");
+		mntmSplitScene.addListener(SWT.Selection, e -> dispatchCmd(SPLIT_SCENE));
 
 		MenuItem mntmQuantizeScene = new MenuItem(menu_2, SWT.NONE);
 		mntmQuantizeScene.setText("Quantize Scene");
@@ -1181,11 +1183,6 @@ public class EditorView implements MainView {
 		cutScene.setText("Cut");
 		cutScene.addListener(SWT.Selection, e -> dispatchCmd(CUT_SCENE));
 
-		splitScene = new Button(composite, SWT.NONE);
-		splitScene.setText("Split");
-		splitScene.setToolTipText("splits scene into several scenes");
-		splitScene.addListener(SWT.Selection, e->dispatchCmd(SPLIT_SCENE));
-
 		btnAddFrame = new Button(composite, SWT.NONE);
 		btnAddFrame.setText("Frame+");
 		btnAddFrame.addListener(SWT.Selection, e->dispatchCmd(ADD_FRAME));
@@ -1209,7 +1206,7 @@ public class EditorView implements MainView {
 		btnDelBookmark = new Button(composite, SWT.NONE);
 		btnDelBookmark.setText("Del");
 		btnDelBookmark.addListener(SWT.Selection, e->dispatchCmd(DEL_BOOKMARK));
-
+		
 	}
 	
 	public void createHashButtons(Composite parent, int x, int y) {
