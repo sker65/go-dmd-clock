@@ -147,17 +147,31 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 		
 	}
 	
+	public void onSplitScene() {
+		// respect number of planes while cutting / copying
+		Animation src = getSourceAnimation();
+		if( src != null ) {
+			splitScene(src, 0);
+			log.info("splitting scene {}", src.getDesc());
+		}
+		
+	}
+	
 	/**
 	 * creates a unique key name for scenes
 	 * @param anis the map containing the keys
 	 * @return the new unique name
 	 */
 	public <T extends Animation> String buildUniqueName(ObservableMap<String, T> anis) {
-		int no = anis.size();
-		String name = "Scene " + no;
+		return buildUniqueNameWithPrefix(anis,"Scene", anis.size());
+	}
+	
+	public <T extends Animation> String buildUniqueNameWithPrefix(ObservableMap<String, T> anis, String prefix, int startIdx) {
+		int no = startIdx;
+		String name = prefix + " " + no;
 		while( anis.containsKey(name)) {
 			no++;
-			name = "Scene " + no;
+			name = prefix+ " " + no;
 		}
 		return name;
 	}
@@ -202,5 +216,42 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 
 		return cutScene;
 	}
+	
+	public Animation splitScene(Animation animation, int splitSize) {
+		CompiledAnimation splitScene = null;
+		String namePrefix = animation.getDesc();
+		do {
+			NamePrompt namePrompt = (NamePrompt) this.namePrompt;
+			namePrompt.setItemName("Scene");
+			namePrompt.setPrompt(namePrefix);
+			namePrompt.open();
+			if( namePrompt.isOkay() ) namePrefix = namePrompt.getPrompt();
+			else return null;
+			
+			if( vm.scenes.containsKey(namePrefix+" 1") ) {
+				messageUtil.error("Scene Name exists", "A scene '"+namePrefix+" 1"+"' already exists");
+			}
+		} while(vm.scenes.containsKey(namePrefix+" 1"));
+		for (int i = 0; i < animation.end; i++) {
+			String name = buildUniqueNameWithPrefix(vm.scenes,namePrefix, 1);
+			splitScene = animation.cutScene(i, i, noOfPlanesWhenCutting);
+			
+			splitScene.setDesc(name);
+			splitScene.setPalIndex(vm.selectedPalette.index);
+			splitScene.setProjectAnimation(true);
+			splitScene.setEditMode(EditMode.COLMASK);
+					
+			vm.scenes.put(name, splitScene);
+		}
+
+		vm.scenes.refresh();
+
+		vm.setSelectedFrameSeq(splitScene);
+
+		vm.setSelectedScene(splitScene);
+			
+		return splitScene;
+	}
+
 
 }

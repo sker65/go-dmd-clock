@@ -190,6 +190,7 @@ public class EditorView implements MainView {
 	@GuiBinding(prop=ENABLED) Button markStart;
 	@GuiBinding(prop=ENABLED) Button markEnd;
 	@GuiBinding(prop=ENABLED) Button cutScene;
+	@GuiBinding(prop=ENABLED) Button splitScene;
 	@GuiBinding( props= { ENABLED, LABEL } ) private Button startStop;
 	@GuiBinding(props={ENABLED,LABEL}) Button btnAddFrameSeq;
 	@PojoBinding(srcs={"maskOut","palette"}, targets={"showMask","previewDmdPalette"}) 
@@ -274,6 +275,7 @@ public class EditorView implements MainView {
 	@GuiBinding(prop=ENABLED, propName="drawingEnabled") private Button btnAddFrame;
 	@GuiBinding(prop=ENABLED) private Button btnDelFrame;
 	@GuiBinding(prop=ENABLED) private Button btnSetHash;
+	
 
 	private Config config;
 	
@@ -1148,7 +1150,7 @@ public class EditorView implements MainView {
 		Composite composite = new Composite(parent, SWT.NONE);
 		composite.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
 		
-		composite.setLayout(new GridLayout(11, false));
+		composite.setLayout(new GridLayout(12, false));
 
 		startStop = new Button(composite, SWT.NONE);
 		startStop.setToolTipText("Starts automatic playback");
@@ -1179,6 +1181,11 @@ public class EditorView implements MainView {
 		cutScene.setText("Cut");
 		cutScene.addListener(SWT.Selection, e -> dispatchCmd(CUT_SCENE));
 
+		splitScene = new Button(composite, SWT.NONE);
+		splitScene.setText("Split");
+		splitScene.setToolTipText("splits scene into several scenes");
+		splitScene.addListener(SWT.Selection, e->dispatchCmd(SPLIT_SCENE));
+
 		btnAddFrame = new Button(composite, SWT.NONE);
 		btnAddFrame.setText("Frame+");
 		btnAddFrame.addListener(SWT.Selection, e->dispatchCmd(ADD_FRAME));
@@ -1202,7 +1209,7 @@ public class EditorView implements MainView {
 		btnDelBookmark = new Button(composite, SWT.NONE);
 		btnDelBookmark.setText("Del");
 		btnDelBookmark.addListener(SWT.Selection, e->dispatchCmd(DEL_BOOKMARK));
-		
+
 	}
 	
 	public void createHashButtons(Composite parent, int x, int y) {

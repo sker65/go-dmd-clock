@@ -74,6 +74,7 @@ public class Commands {
 	public static final String SAVE_ANI_WITH_FC = "saveAniWithFC";
 	public static final String LOAD_ANI_WITH_FC = "loadAniWithFC";
 	public static final String CUT_SCENE = "cutScene";
+	public static final String SPLIT_SCENE = "splitScene";
 	
 	public static final String UNLOCK_SCENE_MASKS = "unlockSceneMasks";
 	public static final String CONVERT_SCENE_TO_RGB = "convertSceneToRGB";
