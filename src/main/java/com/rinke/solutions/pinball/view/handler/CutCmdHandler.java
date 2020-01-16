@@ -232,9 +232,14 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 				messageUtil.error("Scene Name exists", "A scene '"+namePrefix+" 1"+"' already exists");
 			}
 		} while(vm.scenes.containsKey(namePrefix+" 1"));
-		for (int i = 0; i < animation.end; i++) {
+		int start = 0;
+		int end = 0;
+		do {
+			end = start + splitSize - 1;
+			if (end > animation.end)
+				end = animation.end;
 			String name = buildUniqueNameWithPrefix(vm.scenes,namePrefix, 1);
-			splitScene = animation.cutScene(i, i, noOfPlanesWhenCutting);
+			splitScene = animation.cutScene(start, end, noOfPlanesWhenCutting);
 			
 			splitScene.setDesc(name);
 			splitScene.setPalIndex(vm.selectedPalette.index);
@@ -242,7 +247,8 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 			splitScene.setEditMode(EditMode.COLMASK);
 					
 			vm.scenes.put(name, splitScene);
-		}
+			start += splitSize;
+		} while (end < animation.end);
 
 		vm.scenes.refresh();
 
