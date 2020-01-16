@@ -83,7 +83,7 @@ public class SplitPrompt extends Dialog implements View {
 		
 		Group grpName = new Group(shell, SWT.NONE);
 		grpName.setText("     Name     ");
-		grpName.setBounds(21, 30, 393, 54);
+		grpName.setBounds(21, 10, 393, 69);
 		
 		nameInput = new Text(grpName, SWT.BORDER);
 		nameInput.setBounds(10, 21, 371, 23);
@@ -103,7 +103,7 @@ public class SplitPrompt extends Dialog implements View {
 		});
 	
 		Button btnOkayButton = new Button(shell, SWT.NONE);
-		btnOkayButton.setBounds(321, 90, 93, 30);
+		btnOkayButton.setBounds(320, 108, 93, 30);
 		btnOkayButton.setText("Okay");
 		btnOkayButton.addListener(SWT.Selection, e->ok());
 		
@@ -113,16 +113,16 @@ public class SplitPrompt extends Dialog implements View {
 			public void widgetSelected(SelectionEvent e) {
 			}
 		});
-		btnCancelButton.setBounds(205, 90, 93, 30);
+		btnCancelButton.setBounds(205, 108, 93, 30);
 		btnCancelButton.setText("Cancel");
 		
 		comboSize = new Combo(shell, SWT.NONE);
-		comboSize.setBounds(86, 95, 42, 23);
+		comboSize.setBounds(106, 113, 42, 23);
 		comboSize.setItems(new String[] {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10"});
 		comboSize.select(0);
 		
 		labelSize = new Label(shell, SWT.NONE);
-		labelSize.setBounds(45, 98, 20, 15);
+		labelSize.setBounds(45, 116, 42, 15);
 		labelSize.setText("Size");
 		btnCancelButton.addListener(SWT.Selection, e->cancel());
 		
