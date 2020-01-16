@@ -329,14 +329,18 @@ public class ProjectHandler extends AbstractCommandHandler {
 	}
 
 	public void onExportRealPinProject() {
-		licenseManager.requireOneOf( Capability.REALPIN, Capability.GODMD, Capability.XXL_DISPLAY);
-		String filename = fileChooserUtil.choose(SWT.SAVE, bareName(vm.projectFilename), new String[] { "*.pal" }, new String[] { "Export pal" });
-		if (filename != null) {
-			if(!noExportWarning ) messageUtil.warn("Warning", "Please don´t publish projects with copyrighted material / frames");
-			onExportProject(filename, f -> new FileOutputStream(f), true);
-			if( !filename.endsWith("pin2dmd.pal")) {
-				if(!noExportWarning ) messageUtil.warn("Hint", "Remember to rename your export file to pin2dmd.pal if you want to use it" + " in a real pinballs sdcard of pin2dmd.");
+		if(licenseManager.getLicense() != null) {
+			licenseManager.requireOneOf( Capability.REALPIN, Capability.GODMD, Capability.XXL_DISPLAY);
+			String filename = fileChooserUtil.choose(SWT.SAVE, bareName(vm.projectFilename), new String[] { "*.pal" }, new String[] { "Export pal" });
+			if (filename != null) {
+				if(!noExportWarning ) messageUtil.warn("Warning", "Please don´t publish projects with copyrighted material / frames");
+				onExportProject(filename, f -> new FileOutputStream(f), true);
+				if( !filename.endsWith("pin2dmd.pal")) {
+					if(!noExportWarning ) messageUtil.warn("Hint", "Remember to rename your export file to pin2dmd.pal if you want to use it" + " in a real pinballs sdcard of pin2dmd.");
+				}
 			}
+		} else {
+			messageUtil.warn("Warning", "Feature only available with valid license file");
 		}
 	}
 	
