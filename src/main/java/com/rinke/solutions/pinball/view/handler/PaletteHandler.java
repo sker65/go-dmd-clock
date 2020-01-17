@@ -71,9 +71,7 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 		if (newName.contains(" - ")) {
 			vm.selectedPalette.name = newName.split(" - ")[1];
 			vm.paletteMap.refresh();
-			int idx = vm.selectedPalette.index;
-			vm.setSelectedPalette(null);	// to force refresh
-			vm.setSelectedPaletteByIndex(idx);
+			refreshPalette();
 		} else {
 			messageUtil.warn("Illegal palette name", "Palette names must consist of palette index and name.\nName format therefore must be '<idx> - <name>'");
 			vm.setEditedPaletteName(vm.selectedPalette.index + " - " + vm.selectedPalette.name);
@@ -392,6 +390,12 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 		}
 		return sb.toString();
 	}
+	
+	private void refreshPalette () {
+		int idx = vm.selectedPalette.index;
+		vm.setSelectedPalette(null);	// to force refresh
+		vm.setSelectedPaletteByIndex(idx);
+	}
 
 	public void onCreateGradients() {
 		if( vm.selectedPalette != null) {
@@ -411,6 +415,7 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 
 			vm.selectedPalette.colors[colorIndex-1] = color66;
 			vm.selectedPalette.colors[colorIndex-2] = color33;
+			refreshPalette();
 			vm.setSelectedColor(colorIndex);
 			vm.setPaletteDirty(true);
 			if (vm.selectedRecording != null || vm.selectedScene != null) {
@@ -422,6 +427,7 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 	}
 
 	public void onCopySwatch() {
+		refreshPalette();
 		if( vm.selectedPalette != null) {
 			int colorIndex = vm.getSelectedColor() | 3; // select last color of group.
 			colorBuf0 = vm.selectedPalette.colors[colorIndex];
@@ -432,6 +438,7 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 	}
 
 	public void onPasteSwatch() {
+		refreshPalette();
 		if( vm.selectedPalette != null && colorBuf0 != null) {
 			int colorIndex = vm.getSelectedColor() | 3; // select last color of group.
 			vm.selectedPalette.colors[colorIndex] = colorBuf0;
@@ -448,6 +455,7 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 	}
 
 	public void onSwapSwatch() {
+		refreshPalette();
 		if( vm.selectedPalette != null && colorBuf0 != null) {
 			int colorIndex = vm.getSelectedColor() | 3; // select last color of group.
 			RGB color0 = vm.selectedPalette.colors[colorIndex];
