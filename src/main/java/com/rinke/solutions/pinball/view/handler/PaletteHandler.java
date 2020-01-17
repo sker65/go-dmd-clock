@@ -56,6 +56,12 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 	
 	@Value(key=Config.COLOR_ACCURACY,defaultValue="0")
     private int colorAccuracy;
+	
+	private RGB colorBuf0 = null;
+	private RGB colorBuf1 = null;
+	private RGB colorBuf2 = null;
+	private RGB colorBuf3 = null;
+
 
 	public PaletteHandler(ViewModel vm) {
 		super(vm);
@@ -415,7 +421,58 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 		}
 	}
 
-	
+	public void onCopySwatch() {
+		if( vm.selectedPalette != null) {
+			int colorIndex = vm.getSelectedColor() | 3; // select last color of group.
+			colorBuf0 = vm.selectedPalette.colors[colorIndex];
+			colorBuf1 = vm.selectedPalette.colors[colorIndex - 1];
+			colorBuf2 = vm.selectedPalette.colors[colorIndex - 2];
+			colorBuf3 = vm.selectedPalette.colors[colorIndex - 3];
+		}
+	}
+
+	public void onPasteSwatch() {
+		if( vm.selectedPalette != null && colorBuf0 != null) {
+			int colorIndex = vm.getSelectedColor() | 3; // select last color of group.
+			vm.selectedPalette.colors[colorIndex] = colorBuf0;
+			vm.selectedPalette.colors[colorIndex - 1] = colorBuf1;
+			vm.selectedPalette.colors[colorIndex - 2] = colorBuf2;
+			vm.selectedPalette.colors[colorIndex - 3] = colorBuf3;
+
+			vm.setPaletteDirty(true);
+			if (vm.selectedRecording != null || vm.selectedScene != null) {
+				vm.setDmdDirty(true);
+				vm.setDirty(true);
+			}
+		}
+	}
+
+	public void onSwapSwatch() {
+		if( vm.selectedPalette != null && colorBuf0 != null) {
+			int colorIndex = vm.getSelectedColor() | 3; // select last color of group.
+			RGB color0 = vm.selectedPalette.colors[colorIndex];
+			RGB color1 = vm.selectedPalette.colors[colorIndex - 1];
+			RGB color2 = vm.selectedPalette.colors[colorIndex - 2];
+			RGB color3 = vm.selectedPalette.colors[colorIndex - 3];
+			
+			vm.selectedPalette.colors[colorIndex] = colorBuf0;
+			vm.selectedPalette.colors[colorIndex - 1] = colorBuf1;
+			vm.selectedPalette.colors[colorIndex - 2] = colorBuf2;
+			vm.selectedPalette.colors[colorIndex - 3] = colorBuf3;
+
+			colorBuf0 = color0;
+			colorBuf1 = color1;
+			colorBuf2 = color2;
+			colorBuf3 = color3;
+			
+			vm.setPaletteDirty(true);
+			if (vm.selectedRecording != null || vm.selectedScene != null) {
+				vm.setDmdDirty(true);
+				vm.setDirty(true);
+			}
+		}
+	}
+
 	public void onDeletePalette() {
 		if( vm.selectedPalette != null && vm.paletteMap.size()>1 ) {
 			// check if any scene is using this

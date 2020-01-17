@@ -1128,6 +1128,9 @@ public class EditorView implements MainView {
 		paletteTool = new PaletteTool(shell, grpPal, SWT.FLAT | SWT.RIGHT, vm.selectedPalette);
 		
 		ToolBar bar = new ToolBar(grpPalettes, SWT.NONE);
+		bar.setLayout(new GridLayout(1, false));
+		GridData gd_grpBar = new GridData(SWT.LEFT, SWT.TOP, false, false, 2, 1);
+		bar.setLayoutData(gd_grpBar);
 		
 		ToolItem btnGradient = new ToolItem(bar, SWT.NONE);
 		btnGradient.setToolTipText("Creates color gradients between the first and last color in the selected group");
@@ -1135,6 +1138,24 @@ public class EditorView implements MainView {
 		new Label(grpPalettes, SWT.NONE);
 		btnGradient.addListener(SWT.Selection, e->dispatchCmd("createGradients"));
 
+		ToolItem btnCopyPal = new ToolItem(bar, SWT.NONE);
+		btnCopyPal.setToolTipText("Copy colors of the selected group to clipboard");
+		btnCopyPal.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/copypal.png")));
+		new Label(grpPalettes, SWT.NONE);
+		btnCopyPal.addListener(SWT.Selection, e->dispatchCmd("copySwatch"));
+
+		ToolItem btnPastePal = new ToolItem(bar, SWT.NONE);
+		btnPastePal.setToolTipText("Paste colors of clipboard to the selected group");
+		btnPastePal.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/pastepal.png")));
+		new Label(grpPalettes, SWT.NONE);
+		btnPastePal.addListener(SWT.Selection, e->dispatchCmd("pasteSwatch"));
+		
+		ToolItem btnSwapPal = new ToolItem(bar, SWT.NONE);
+		btnSwapPal.setToolTipText("Swap colors of the selected group with the content of the clipboard");
+		btnSwapPal.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/swappal.png")));
+		new Label(grpPalettes, SWT.NONE);
+		btnSwapPal.addListener(SWT.Selection, e->dispatchCmd("swapSwatch"));
+		
 		//btnPick = new ToolItem(bar, SWT.NONE);
 		//btnPick.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/color-picker.png")));
 		//btnPick.addListener(SWT.Selection, e->dispatchCmd("pickPalette"));
