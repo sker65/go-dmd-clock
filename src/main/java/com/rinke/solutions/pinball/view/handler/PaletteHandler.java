@@ -71,7 +71,6 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 		if (newName.contains(" - ")) {
 			vm.selectedPalette.name = newName.split(" - ")[1];
 			vm.paletteMap.refresh();
-			refreshPalette();
 		} else {
 			messageUtil.warn("Illegal palette name", "Palette names must consist of palette index and name.\nName format therefore must be '<idx> - <name>'");
 			vm.setEditedPaletteName(vm.selectedPalette.index + " - " + vm.selectedPalette.name);
@@ -391,19 +390,13 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 		return sb.toString();
 	}
 	
-	private void refreshPalette () {
-		int idx = vm.selectedPalette.index;
-		vm.setSelectedPalette(null);	// to force refresh
-		vm.setSelectedPaletteByIndex(idx);
-	}
-
 	public void onCreateGradients() {
 		if( vm.selectedPalette != null) {
 			int colorIndex = vm.getSelectedColor() | 3; // select last color of group.
-			RGB color = vm.selectedPalette.colors[colorIndex];
-			RGB color66 = vm.selectedPalette.colors[colorIndex - 1];
-			RGB color33 = vm.selectedPalette.colors[colorIndex - 2];
-			RGB color0 = vm.selectedPalette.colors[colorIndex - 3];
+			RGB color = RGB.of( vm.selectedPalette.colors[colorIndex]);
+			RGB color66 = RGB.of( vm.selectedPalette.colors[colorIndex - 1] );
+            RGB color33 = RGB.of( vm.selectedPalette.colors[colorIndex - 2] );
+			RGB color0 = RGB.of( vm.selectedPalette.colors[colorIndex - 3]);
 			
 			color66.blue = (color0.blue / 3) + ((color.blue / 3) * 2);
 			color66.red = (color0.red / 3) + ((color.red / 3) * 2);
@@ -413,71 +406,66 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 			color33.red = ((color0.red / 3) * 2) + (color.red / 3);
 			color33.green = ((color0.green / 3) * 2) + (color.green / 3);
 
-			vm.selectedPalette.colors[colorIndex-1] = color66;
-			vm.selectedPalette.colors[colorIndex-2] = color33;
-			refreshPalette();
+			vm.selectedPalette.colors[colorIndex-1] = RGB.of(color66);
+			vm.selectedPalette.colors[colorIndex-2] = RGB.of(color33);
 			vm.setSelectedColor(colorIndex);
 			vm.setPaletteDirty(true);
 			if (vm.selectedRecording != null || vm.selectedScene != null) {
 				vm.setDmdDirty(true);
-				vm.setDirty(true);
 			}
-
+			vm.setDirty(true);
 		}
 	}
 
 	public void onCopySwatch() {
-		refreshPalette();
 		if( vm.selectedPalette != null) {
 			int colorIndex = vm.getSelectedColor() | 3; // select last color of group.
-			colorBuf0 = vm.selectedPalette.colors[colorIndex];
-			colorBuf1 = vm.selectedPalette.colors[colorIndex - 1];
-			colorBuf2 = vm.selectedPalette.colors[colorIndex - 2];
-			colorBuf3 = vm.selectedPalette.colors[colorIndex - 3];
+			colorBuf0 = RGB.of(vm.selectedPalette.colors[colorIndex]);
+			colorBuf1 = RGB.of(vm.selectedPalette.colors[colorIndex - 1]);
+			colorBuf2 = RGB.of(vm.selectedPalette.colors[colorIndex - 2]);
+			colorBuf3 = RGB.of(vm.selectedPalette.colors[colorIndex - 3]);
 		}
 	}
 
 	public void onPasteSwatch() {
-		refreshPalette();
 		if( vm.selectedPalette != null && colorBuf0 != null) {
 			int colorIndex = vm.getSelectedColor() | 3; // select last color of group.
-			vm.selectedPalette.colors[colorIndex] = colorBuf0;
-			vm.selectedPalette.colors[colorIndex - 1] = colorBuf1;
-			vm.selectedPalette.colors[colorIndex - 2] = colorBuf2;
-			vm.selectedPalette.colors[colorIndex - 3] = colorBuf3;
+			vm.selectedPalette.colors[colorIndex] = RGB.of(colorBuf0);
+			vm.selectedPalette.colors[colorIndex - 1] = RGB.of(colorBuf1);
+			vm.selectedPalette.colors[colorIndex - 2] = RGB.of(colorBuf2);
+			vm.selectedPalette.colors[colorIndex - 3] = RGB.of(colorBuf3);
 
 			vm.setPaletteDirty(true);
 			if (vm.selectedRecording != null || vm.selectedScene != null) {
 				vm.setDmdDirty(true);
-				vm.setDirty(true);
 			}
+			vm.setDirty(true);
 		}
 	}
 
 	public void onSwapSwatch() {
-		refreshPalette();
 		if( vm.selectedPalette != null && colorBuf0 != null) {
 			int colorIndex = vm.getSelectedColor() | 3; // select last color of group.
-			RGB color0 = vm.selectedPalette.colors[colorIndex];
-			RGB color1 = vm.selectedPalette.colors[colorIndex - 1];
-			RGB color2 = vm.selectedPalette.colors[colorIndex - 2];
-			RGB color3 = vm.selectedPalette.colors[colorIndex - 3];
+			RGB color0 = RGB.of(vm.selectedPalette.colors[colorIndex]);
+			RGB color1 = RGB.of(vm.selectedPalette.colors[colorIndex - 1]);
+			RGB color2 = RGB.of(vm.selectedPalette.colors[colorIndex - 2]);
+			RGB color3 = RGB.of(vm.selectedPalette.colors[colorIndex - 3]);
 			
-			vm.selectedPalette.colors[colorIndex] = colorBuf0;
-			vm.selectedPalette.colors[colorIndex - 1] = colorBuf1;
-			vm.selectedPalette.colors[colorIndex - 2] = colorBuf2;
-			vm.selectedPalette.colors[colorIndex - 3] = colorBuf3;
+			vm.selectedPalette.colors[colorIndex] = RGB.of(colorBuf0);
+			vm.selectedPalette.colors[colorIndex - 1] = RGB.of(colorBuf1);
+			vm.selectedPalette.colors[colorIndex - 2] = RGB.of(colorBuf2);
+			vm.selectedPalette.colors[colorIndex - 3] = RGB.of(colorBuf3);
 
-			colorBuf0 = color0;
-			colorBuf1 = color1;
-			colorBuf2 = color2;
-			colorBuf3 = color3;
+			colorBuf0 = RGB.of(color0);
+			colorBuf1 = RGB.of(color1);
+			colorBuf2 = RGB.of(color2);
+			colorBuf3 = RGB.of(color3);
 			
 			vm.setPaletteDirty(true);
 			if (vm.selectedRecording != null || vm.selectedScene != null) {
 				vm.setDmdDirty(true);
-				vm.setDirty(true);
 			}
+			vm.setDirty(true);
 		}
 	}
 

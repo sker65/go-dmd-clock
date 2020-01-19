@@ -1635,7 +1635,7 @@ public class EditorView implements MainView {
 		recentPalettesMenuManager.loadRecent();
 
 		// hier muss eine selectedPalette bereits da sein
-		vm.setSelectedPalette(Palette.getDefaultPalettes().get(0));
+		vm.setSelectedPaletteByIndex(0);
 		clipboardHandler = new ClipboardHandler(vm.dmd, dmdWidget, vm.selectedPalette);
 
 		//timerExec(animationHandler.getRefreshDelay(), cyclicRedraw);
