@@ -378,6 +378,11 @@ public class ProjectHandler extends AbstractCommandHandler {
 		log.info("export project {} file {}", realPin?"real":"vpin", filename);
 		if( realPin) licenseManager.requireOneOf(Capability.VPIN, Capability.REALPIN, Capability.GODMD, Capability.XXL_DISPLAY);
 
+		if(vm.selectedScene!=null) {
+			vm.selectedScene.commitDMDchanges(vm.dmd); 
+			vm.setDirty(vm.dirty|vm.selectedScene.isDirty());
+		}
+
 		Project project = new Project();
 		populateVmToProject(vm, project);
 		List<Mask> filteredMasks = project.masks.stream().filter(m->m.locked).collect(Collectors.toList());
@@ -528,6 +533,11 @@ public class ProjectHandler extends AbstractCommandHandler {
 		log.info("write project to {}", filename);
 		String aniFilename = replaceExtensionTo("ani", filename);
 		
+		if(vm.selectedScene!=null) {
+			vm.selectedScene.commitDMDchanges(vm.dmd); 
+			vm.setDirty(vm.dirty|vm.selectedScene.isDirty());
+		}
+
 		if( vm.loadedAniVersion!= 0 && vm.loadedAniVersion < CURRENT_PRJ_ANI_VERSION ) {
 			int res = messageUtil.warn(0, "Warning",
 					"Older ani file format", 
