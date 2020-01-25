@@ -136,7 +136,7 @@ public class PaletteTool extends AbstractModel implements ColorModifiedListener 
 		for (int i = 0; i < colBtn.length; i++) {
 			colBtn[i] = new ToolItem(toolBar, SWT.RADIO);
 			colBtn[i].setSelection(i==0);
-			colBtn[i].setToolTipText("Ctrl-Click to edit");
+			colBtn[i].setToolTipText("Ctrl-Click to edit\nShift-Click to swap");
 			colBtn[i].setData(Integer.valueOf(i));
 			colBtn[i].setImage(getSquareImage(display, toSwtRGB(pal.colors[i])));
 			colBtn[i].addListener(SWT.Selection, e -> {
