@@ -20,6 +20,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import static java.nio.file.StandardCopyOption.*;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -168,6 +169,8 @@ public class ProjectHandler extends AbstractCommandHandler {
 		}
 	}
 
+	private int index = 0;
+	
 	public void onLoadProjectWithProgress(String filename, Worker w) {
 		log.info("load project from {}", filename);
 		// TODO clear view model
@@ -210,7 +213,12 @@ public class ProjectHandler extends AbstractCommandHandler {
 				vm.recordings.clear();
 				vm.scenes.clear();
 				vm.inputFiles.clear();
-				vm.inputFiles.addAll(p.inputFiles);
+				for (String file : p.inputFiles) {
+					String basefile = FilenameUtils.getBaseName(file)
+			                + "." + FilenameUtils.getExtension(file);
+					vm.inputFiles.add(basefile);	
+				}
+				//vm.addAll(p.inputFiles);
 				
 				// mask
 				vm.masks.clear();
@@ -223,36 +231,48 @@ public class ProjectHandler extends AbstractCommandHandler {
 			p.inputFiles.remove(new File(aniFilename).getName()); // simple name
 			String msg = "";
 			int i = 1;
+			index = 0;
 			for (String file : p.inputFiles) {
+				String basefile = vm.inputFiles.get(index);
 				if( w!=null) w.notify(10 + i*(80/p.inputFiles.size()), "loading ani "+file);
 				dispatcher.syncExec(()->{
-					try {
-						List<Animation> anis = aniAction.loadAni(buildRelFilename(filename, file), true, false, progress);
+					try { // load from project folder
+						List<Animation> anis = aniAction.loadAni(buildRelFilename(filename, basefile), true, false, progress);
 						if( !anis.isEmpty() ) {
 							Animation firstAni = anis.get(0);
-							if( p.recordingNameMap.containsKey(file)) {
-								firstAni.setDesc(p.recordingNameMap.get(file));
+							if( p.recordingNameMap.containsKey(basefile)) {
+								firstAni.setDesc(p.recordingNameMap.get(basefile));
 							}
 						}
 					} catch( RuntimeException e) {
-						log.error("problem loading {}", file, e);
-						String basefile = FilenameUtils.getBaseName(file)
-				                + "." + FilenameUtils.getExtension(file);
-						try {
-							List<Animation> anis = aniAction.loadAni(buildRelFilename(filename, basefile), true, false, progress);
+						log.error("problem loading {}", vm.inputFiles.get(i), e);
+						try { // try full path 
+							List<Animation> anis = aniAction.loadAni(buildRelFilename(filename, file), true, false, progress);
 							if( !anis.isEmpty() ) {
+								try { // found file but not in project directory => copy
+									Files.copy(Paths.get(buildRelFilename(filename, file)),Paths.get(buildRelFilename(filename, basefile)) , REPLACE_EXISTING);
+								} catch (IOException f) {
+									log.error("problem moving {}", basefile, f);
+								}
 								Animation firstAni = anis.get(0);
-								if( p.recordingNameMap.containsKey(basefile)) {
-									firstAni.setDesc(p.recordingNameMap.get(basefile));
+								if( p.recordingNameMap.containsKey(file)) {
+									firstAni.setDesc(p.recordingNameMap.get(file));
 								}
 							}
 						} catch( RuntimeException f) {
 							log.error("problem loading {}", file, f);
-							messageUtil.warn("Project file not found","Project file " + file + " missing. Please copy the file to the project folder.");
-							//msg +="\nProblem loading "+file+": "+e.getMessage();
+							int res = messageUtil.warn(0, "Warning",
+									"Project file not found", 
+									"Project file " + file + " missing. Please copy the file to the project folder or remove from project.",
+									new String[]{"", "CONTINUE", "REMOVE"},2);
+							if( res != 2 ) return;
+							int j = vm.inputFiles.indexOf(basefile);
+							if (j != -1) vm.inputFiles.remove(j);
+							index--;
 						}
 					}
 				});
+				index++;
 			}
 			if( w!=null) w.notify(90, "loading project ani "+aniFilename);
 

@@ -133,7 +133,17 @@ public class RecordingsCmdHandler extends AbstractListCmdHandler implements View
 		}
 		if( res.isEmpty() ) {
 			vm.bookmarksMap.remove(vm.selectedRecording.getDesc());
+			String filename = vm.selectedRecording.getName();
+			int i = vm.inputFiles.indexOf(filename);
 			onRemove(vm.selectedRecording, vm.recordings);
+			// if not used anymore delete from file list
+			boolean nameExists = false;
+			for (Animation r: vm.recordings.values()) {
+				String name = r.getName();
+				if (name.equals(filename))
+					nameExists = true;
+			}
+			if ( nameExists != true && (i != -1)) vm.inputFiles.remove(i);
 		} else {
 			messageUtil.warn("Recording cannot be deleted", "It is used by "+res);
 		}

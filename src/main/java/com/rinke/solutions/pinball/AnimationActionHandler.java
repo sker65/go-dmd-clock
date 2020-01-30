@@ -151,7 +151,7 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 				vm.inputFiles.clear();
 			String baseFilename = FilenameUtils.getBaseName(filename)
 	                + "." + FilenameUtils.getExtension(filename);
-			if (!vm.inputFiles.contains(baseFilename))
+			//if (!vm.inputFiles.contains(baseFilename))
 				vm.inputFiles.add(baseFilename);
 		}
 
