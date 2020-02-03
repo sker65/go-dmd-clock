@@ -94,6 +94,7 @@ public class UsbConnector extends Pin2DmdConnector {
 		if( read != data.length ) {
 		    log.error("unexpected length returned on bulk: {}", read);
 		}
+		buffer.get(data,0,len);
     	return data;
     }
 
