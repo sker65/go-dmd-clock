@@ -269,7 +269,7 @@ public class DeviceConfig extends Dialog implements View {
         btnOk.addListener(SWT.Selection, e->shell.close());
     }
     
-    private void removeLicenses() {
+    private void removeLicense() {
 		connector.sendCmd(UsbCmd.DELETE_LICENSE);
 		try {
 			Thread.sleep(200);

@@ -72,7 +72,7 @@ public class LivePreviewHandler extends AbstractCommandHandler implements ViewBi
 	 * @param frame
 	 */
 	public void onFrameChanged(Frame frame) {
-		if (vm.livePreviewActive) {
+		if (vm.livePreviewActive && handle != null) {
 			connector.sendFrame(frame, handle);
 		}
 	}
@@ -106,16 +106,20 @@ public class LivePreviewHandler extends AbstractCommandHandler implements ViewBi
 			try {
 				connector.switchToMode(DeviceMode.PinMame_RGB.ordinal(), null);
 				handle = connector.connect(vm.pin2dmdAdress);
-				for( Palette pal : vm.paletteMap.values() ) {
-					log.debug("uploading palette: {}", pal);
-					try {
-						Thread.sleep(100);
-					} catch (InterruptedException e) {}
-					connector.upload(pal,handle);
+				if (handle != null) {
+					for( Palette pal : vm.paletteMap.values() ) {
+						log.debug("uploading palette: {}", pal);
+						try {
+							Thread.sleep(100);
+						} catch (InterruptedException e) {}
+						connector.upload(pal,handle);
+					}
+					// upload actual palette
+					connector.switchToPal(vm.selectedPalette.index, handle);
+					setEnableUsbTooling(!livePreviewIsOn);
+				} else {
+					messageUtil.warn("PIN2DMD device not found","Please check USB connection");
 				}
-				// upload actual palette
-				connector.switchToPal(vm.selectedPalette.index, handle);
-				setEnableUsbTooling(!livePreviewIsOn);
 			} catch (RuntimeException ex) {
 				messageUtil.warn("usb problem", "Message was: " + ex.getMessage());
 				// TODO veto v.btnLivePreview.setSelection(false);
@@ -140,14 +144,14 @@ public class LivePreviewHandler extends AbstractCommandHandler implements ViewBi
 	}
 	
 	public void onSelectedPaletteChanged(Palette o, Palette newPalette) {
-		if (vm.livePreviewActive ) {
+		if (vm.livePreviewActive && handle != null) {
 	//		connector.upload(vm.selectedPalette,handle);
 			connector.switchToPal(newPalette.index, handle);
 		}
 	}
 
 	public void sendFrame(Frame frame) {
-		if( connector != null ) {
+		if( connector != null && handle != null) {
 			connector.sendFrame(frame, handle);
 		}
 	}
