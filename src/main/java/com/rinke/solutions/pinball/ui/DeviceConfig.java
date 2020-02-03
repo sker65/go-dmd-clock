@@ -171,7 +171,7 @@ public class DeviceConfig extends Dialog implements View {
      */
     void createContents() {
         shell = new Shell(getParent(), getStyle());
-        shell.setSize(480, 262);
+        shell.setSize(454, 286);
         shell.setText("Device Configuration");
         shell.setLayout(new FormLayout());
         
@@ -179,17 +179,18 @@ public class DeviceConfig extends Dialog implements View {
         fd_grpConfig = new FormData();
         fd_grpConfig.top = new FormAttachment(0, 10);
         fd_grpConfig.left = new FormAttachment(0, 10);
-        fd_grpConfig.right = new FormAttachment(0, 470);
+        fd_grpConfig.right = new FormAttachment(100, -10);
         grpConfig.setLayoutData(fd_grpConfig);
         grpConfig.setText("Config");
-        grpConfig.setLayout(new GridLayout(7, false));
+        grpConfig.setLayout(new GridLayout(8, false));
+        fd_grpConfig.width = 600;
         
         Label lblNewLabel = new Label(grpConfig, SWT.NONE);
         lblNewLabel.setText("Device Mode");
         
         deviceModecomboViewer = new ComboViewer(grpConfig, SWT.NONE);
         deviceModeCombo = deviceModecomboViewer.getCombo();
-        deviceModeCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 6, 1));
+        deviceModeCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 7, 1));
         deviceModecomboViewer.setContentProvider(ArrayContentProvider.getInstance());
         deviceModecomboViewer.setInput(DeviceMode.values());
         deviceModeCombo.select(0);
@@ -200,8 +201,8 @@ public class DeviceConfig extends Dialog implements View {
         
         comboViewerDefaultPalette = new ComboViewer(grpConfig, SWT.NONE);
         comboDefaultPalette = comboViewerDefaultPalette.getCombo();
-        GridData gd_comboDefaultPalette = new GridData(SWT.FILL, SWT.CENTER, true, false, 6, 1);
-        gd_comboDefaultPalette.widthHint = 263;
+        GridData gd_comboDefaultPalette = new GridData(SWT.FILL, SWT.CENTER, true, false, 7, 1);
+        gd_comboDefaultPalette.widthHint = 278;
         comboDefaultPalette.setLayoutData(gd_comboDefaultPalette);
         comboViewerDefaultPalette.setContentProvider(ArrayContentProvider.getInstance());
         comboViewerDefaultPalette.setInput(DefaultPalette.values());
@@ -212,7 +213,7 @@ public class DeviceConfig extends Dialog implements View {
         lblBrightness.setText("Brightness");
         
         scBrightness = new Scale(grpConfig, SWT.NONE);
-        GridData gd_scale = new GridData(SWT.FILL, SWT.CENTER, false, false, 6, 1);
+        GridData gd_scale = new GridData(SWT.FILL, SWT.CENTER, false, false, 7, 1);
         gd_scale.heightHint = 43;
         scBrightness.setLayoutData(gd_scale);
         scBrightness.setMinimum(0);
@@ -241,8 +242,10 @@ public class DeviceConfig extends Dialog implements View {
         new Label(grpConfig, SWT.NONE);
         new Label(grpConfig, SWT.NONE);
         new Label(grpConfig, SWT.NONE);
+        new Label(grpConfig, SWT.NONE);
         
         Button btnLoadUSB = new Button(grpConfig, SWT.NONE);
+        btnLoadUSB.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
         btnLoadUSB.setText("Load USB");
         btnLoadUSB.addListener(SWT.Selection, e->loadUSB() );
         
@@ -250,6 +253,7 @@ public class DeviceConfig extends Dialog implements View {
         Button btnSaveUSB = new Button(grpConfig, SWT.NONE);
         btnSaveUSB.setText("Save USB");
         btnSaveUSB.addListener(SWT.Selection, e->connector.sendCmd(UsbCmd.SAVE_CONFIG) );
+        new Label(grpConfig, SWT.NONE);
         new Label(grpConfig, SWT.NONE);
         
         Button btnLoad = new Button(grpConfig, SWT.NONE);
@@ -259,11 +263,17 @@ public class DeviceConfig extends Dialog implements View {
         Button btnSave = new Button(grpConfig, SWT.NONE);
         btnSave.setText("Save File");
         btnSave.addListener(SWT.Selection, e->save());
+        new Label(grpConfig, SWT.NONE);
+        new Label(grpConfig, SWT.NONE);
         
-        Button btnOk = new Button(grpConfig, SWT.NONE);
-        GridData gd_btnOk = new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1);
-        gd_btnOk.widthHint = 52;
-        btnOk.setLayoutData(gd_btnOk);
+        Button btnOk = new Button(shell, SWT.NONE);
+        fd_grpConfig.bottom = new FormAttachment(100, -49);
+        FormData fd_btnOk = new FormData();
+        fd_btnOk.top = new FormAttachment(grpConfig, 14);
+        fd_btnOk.bottom = new FormAttachment(100, -10);
+        fd_btnOk.right = new FormAttachment(100, -10);
+        fd_btnOk.left = new FormAttachment(0, 372);
+        btnOk.setLayoutData(fd_btnOk);
         btnOk.setText("Ok");
         
         btnOk.addListener(SWT.Selection, e->shell.close());
