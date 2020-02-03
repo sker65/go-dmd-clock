@@ -73,7 +73,6 @@ import com.rinke.solutions.pinball.renderer.ImageUtil;
 import com.rinke.solutions.pinball.swt.ActionAdapter;
 import com.rinke.solutions.pinball.swt.CocoaGuiEnhancer;
 import com.rinke.solutions.pinball.ui.RegisterLicense;
-import com.rinke.solutions.pinball.ui.UsbConfig;
 import com.rinke.solutions.pinball.util.Config;
 import com.rinke.solutions.pinball.util.FileChooserUtil;
 import com.rinke.solutions.pinball.util.MessageUtil;
@@ -495,16 +494,16 @@ public class EditorView implements MainView {
 		separator(menu_3);
 
 		MenuItem mntmConfig = new MenuItem(menu_3, SWT.NONE);
-		mntmConfig.setText("Configuration");
+		mntmConfig.setText("Editor Configuration");
 		mntmConfig.addListener(SWT.Selection, e -> dispatchCmd(CONFIGURATION) );
 
 		MenuItem mntmDevice = new MenuItem(menu_3, SWT.NONE);
-		mntmDevice.setText("Create Device File / WiFi");
+		mntmDevice.setText("Configure PIN2DMD Device");
 		mntmDevice.addListener(SWT.Selection, e -> dispatchCmd(DEVICE_CONFIGURATION));
 
-		MenuItem mntmUsbconfig = new MenuItem(menu_3, SWT.NONE);
-		mntmUsbconfig.setText("Configure Device via USB");
-		mntmUsbconfig.addListener(SWT.Selection, e -> new UsbConfig(shell).open());
+		//MenuItem mntmUsbconfig = new MenuItem(menu_3, SWT.NONE);
+		//mntmUsbconfig.setText("Configure Device via USB");
+		//mntmUsbconfig.addListener(SWT.Selection, e -> new UsbConfig(shell).open());
 
 		MenuItem mntmhelp = new MenuItem(menu, SWT.CASCADE);
 		mntmhelp.setText("&Help");

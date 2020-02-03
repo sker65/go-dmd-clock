@@ -59,7 +59,11 @@ public class UsbConnector extends Pin2DmdConnector {
         Context ctx = initCtx();
         Device device = findDevice(ctx, (short) 0x314, (short)0xE457);
         if( device != null ) log.info("libusb device found for pin2dmd");
-        else throw new LibUsbException("pin2dmd device not found",-1);
+        else {
+        	log.info("pin2dmd device not found");
+        	//throw new LibUsbException("pin2dmd device not found",-1);
+        	return null;
+        }
         DeviceHandle handle = new DeviceHandle();
         int result = LibUsb.open(device, handle);
         if (result != LibUsb.SUCCESS)
@@ -85,7 +89,6 @@ public class UsbConnector extends Pin2DmdConnector {
     	byte[] data = new byte[len];
 		IntBuffer transfered = IntBuffer.allocate(1);
 		ByteBuffer buffer = ByteBuffer.allocateDirect(data.length);
-		buffer.put(data);
 		// Use device handle here
 		UsbHandle usb = (UsbHandle) h;
 		int res = LibUsb.bulkTransfer(usb.getDeviceHandle(), (byte) 0x81, buffer, transfered, 4000);

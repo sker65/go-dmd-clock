@@ -23,8 +23,8 @@ public abstract class Pin2DmdConnector {
 
 	public static enum UsbCmd {
 		RESET(0), SAVE_CONFIG(1), SWITCH_DEVICEMODE(2), SWITCH_PALETTE(3),  UPLOAD_PALETTE(4), UPLOAD_MAPPING(5),
-		UPLOAD_SMARTDMD_SIG(6), RESET_SETTINGS(7), SET_DISPLAY_TIMING(8), WRITE_FILE(9), WRITE_FILE_EX(10), SEND_SETTINGS(16),
-		UPLOAD_MASK(17), DELETE_LICENSE(0xFD), RECEIVE_LICENSE(0xFE), DISPLAY_UID(0xFF);
+		UPLOAD_SMARTDMD_SIG(6), RESET_SETTINGS(7), SET_DISPLAY_TIMING(8), WRITE_FILE(9), WRITE_FILE_EX(10), SEND_SETTINGS(0x10), RECEIVE_SETTINGS(0x20),
+		UPLOAD_MASK(17), SEND_LICENSE(0xFC), DELETE_LICENSE(0xFD), RECEIVE_LICENSE(0xFE), DISPLAY_UID(0xFF);
 		
 		UsbCmd(int cmd) {
 			this.cmd = (byte)cmd;
@@ -89,6 +89,12 @@ public abstract class Pin2DmdConnector {
         
         return res;
     }
+    
+    public void sendBrightness(int value) {
+    	byte[] res = buildBuffer(UsbCmd.SET_DISPLAY_TIMING);
+    	res[17] = (byte) value;
+    	bulk(res);
+    }
 
     /* (non-Javadoc)
 	 * @see com.rinke.solutions.pinball.io.Pin2DmdConnector#sendCmd(com.rinke.solutions.pinball.io.UsbTool.UsbCmd)
@@ -139,7 +145,7 @@ public abstract class Pin2DmdConnector {
 	 * @see com.rinke.solutions.pinball.io.Pin2DmdConnector#transferFile(java.lang.String, java.io.InputStream)
 	 */
 	public void transferFile(String filename, InputStream is) {
-		log.info("tranfering file {}", filename);
+		log.info("transfering file {}", filename);
     	byte[] data = buildBuffer(UsbCmd.WRITE_FILE_EX);
     	data[5] = (byte) 0;
     	String sdname = filename;
@@ -169,6 +175,23 @@ public abstract class Pin2DmdConnector {
         	release(usb);
         }
     	
+    }
+
+	public byte[] loadConfig () {
+		log.info("receiving config from device");
+    	ConnectionHandle usb = connect(this.address);
+    	byte[] ret;
+    	if (usb == null) {
+    		return null;
+    	}
+        try {
+        	byte[] data = buildBuffer(UsbCmd.SEND_SETTINGS);
+        	send(data, usb);
+        	ret = receive(usb,63);
+		} finally {
+        	release(usb);
+        }
+    	return ret;
     }
 
 	private void doHandShake(ConnectionHandle usb) {
@@ -300,11 +323,14 @@ public abstract class Pin2DmdConnector {
 	}
 
 	public void bulk(byte[] data) {
-	    ConnectionHandle usb = connect(this.address);      
-	    try {
-	    	send(data, usb);
-	    } finally {
-	    	release(usb);
+		ConnectionHandle usb = null;
+	    usb = connect(this.address);
+	    if (usb != null) {
+		    try {
+		    	send(data, usb);
+		    } finally {
+		    	release(usb);
+		    }
 	    }
 	}
 
