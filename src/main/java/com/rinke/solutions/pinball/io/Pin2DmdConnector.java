@@ -150,31 +150,32 @@ public abstract class Pin2DmdConnector {
     	data[5] = (byte) 0;
     	String sdname = filename;
     	buildBytes(data, sdname);
-    	ConnectionHandle usb = connect(this.address);    
-        try {
-        	send(data, usb);
-        	doHandShake(usb);
-        	byte[] buffer = new byte[USB_BUFFER_SIZE];
-        	int read;
-        	while( (read = is.read(buffer)) > 0 ){
-        		data = buildBuffer(UsbCmd.WRITE_FILE_EX);
-        		data[5] = (byte) 1;
-        		data[6] = (byte) (read >> 8);
-        		data[7] = (byte) (read & 0xFF);
-        		System.arraycopy(buffer, 0, data, 8, read);
-        		send(data, usb);
-        		doHandShake(usb);
-        	}
-        	data = buildBuffer(UsbCmd.WRITE_FILE_EX);
-    		data[5] = (byte) 0xFF;
-    		send(data, usb);
-    		doHandShake(usb);
-        } catch (IOException e) {
-        	throw new RuntimeException(e);
-		} finally {
-        	release(usb);
-        }
-    	
+    	ConnectionHandle usb = connect(this.address);
+    	if (usb != null) {
+	        try {
+	        	send(data, usb);
+	        	doHandShake(usb);
+	        	byte[] buffer = new byte[USB_BUFFER_SIZE];
+	        	int read;
+	        	while( (read = is.read(buffer)) > 0 ){
+	        		data = buildBuffer(UsbCmd.WRITE_FILE_EX);
+	        		data[5] = (byte) 1;
+	        		data[6] = (byte) (read >> 8);
+	        		data[7] = (byte) (read & 0xFF);
+	        		System.arraycopy(buffer, 0, data, 8, read);
+	        		send(data, usb);
+	        		doHandShake(usb);
+	        	}
+	        	data = buildBuffer(UsbCmd.WRITE_FILE_EX);
+	    		data[5] = (byte) 0xFF;
+	    		send(data, usb);
+	    		doHandShake(usb);
+	        } catch (IOException e) {
+	        	throw new RuntimeException(e);
+			} finally {
+	        	release(usb);
+	        }
+	    }
     }
 
 	public byte[] loadConfig () {

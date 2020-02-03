@@ -162,7 +162,7 @@ public class ViewModel extends AbstractModel {
 	
 	@ViewBinding public boolean livePreviewActive;
 	@ViewBinding public boolean mntmUploadPalettesEnabled;
-	@ViewBinding public boolean mntmUploadProjectEnabled;
+	@ViewBinding public boolean mntmUploadProjectEnabled = true;
 	
 	@ViewBinding public boolean cutEnabled = true;
 	@ViewBinding public boolean copyEnabled = true;
