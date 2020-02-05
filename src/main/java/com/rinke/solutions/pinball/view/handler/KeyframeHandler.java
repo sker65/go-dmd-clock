@@ -266,6 +266,8 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 			
 			if (nk.frameSeqName != null)
 				vm.setSelectedFrameSeq(vm.scenes.get(nk.frameSeqName));
+			else
+				vm.setSelectedFrameSeq(null);
 
 			vm.setSelectedFrame(nk.frameIndex);
 			vm.setDetectionMaskActive(nk.withMask);
