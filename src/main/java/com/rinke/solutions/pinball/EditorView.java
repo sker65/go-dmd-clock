@@ -142,8 +142,7 @@ public class EditorView implements MainView {
 	/** instance level SWT widgets */
 	Button btnHash[];// = new Button[numberOfHashes];
 	
-	@GuiBinding( prop=TEXT, propName="duration" ) 
-	Text txtDuration;
+	@GuiBinding( props= {TEXT,ENABLED}, propNames= {"duration","durationEnabled"} ) Text txtDuration;
 	@GuiBinding( props={MIN,MAX,SELECTION} ) Scale frame;
 	
 	@GuiBinding( props={INPUT,SELECTION}, propNames={"paletteMap","selectedPalette"} )

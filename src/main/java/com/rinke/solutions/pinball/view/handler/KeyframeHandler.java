@@ -264,10 +264,15 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 
 			vm.setSelectedPaletteByIndex(nk.palIndex);
 			
-			if (nk.frameSeqName != null)
+			if (nk.frameSeqName != null) {
 				vm.setSelectedFrameSeq(vm.scenes.get(nk.frameSeqName));
-			else
+				vm.setDurationEnabled(false);
+				vm.setFetchDurationEnabled(false);
+			} else {
 				vm.setSelectedFrameSeq(null);
+				vm.setDurationEnabled(true);
+				vm.setFetchDurationEnabled(true);
+			}
 
 			vm.setSelectedFrame(nk.frameIndex);
 			vm.setDetectionMaskActive(nk.withMask);
@@ -289,7 +294,6 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 		vm.setBtnSetHashEnabled(nk != null);
 		vm.setDeleteKeyFrameEnabled(nk != null);
 		vm.setSetKeyFramePalEnabled(nk != null && SwitchMode.PALETTE.equals(nk.switchMode));
-		vm.setFetchDurationEnabled(nk != null);
 	}
 	
 	private static final int FRAME_RATE = 40;

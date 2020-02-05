@@ -92,6 +92,7 @@ public class ViewModel extends AbstractModel {
 	@ViewBinding public boolean deleteSceneEnabled;
 	@ViewBinding public boolean deleteKeyFrameEnabled;
 	@ViewBinding public boolean fetchDurationEnabled;
+	@ViewBinding public boolean durationEnabled;
 	@ViewBinding public boolean setKeyFramePalEnabled;
 	@ViewBinding public boolean drawingEnabled;
 	@ViewBinding public boolean copyToNextEnabled;
@@ -245,6 +246,10 @@ public class ViewModel extends AbstractModel {
 
 	public void setFetchDurationEnabled(boolean fetchDurationEnabled) {
 		firePropertyChange("fetchDurationEnabled", this.fetchDurationEnabled, this.fetchDurationEnabled = fetchDurationEnabled);
+	}
+
+	public void setDurationEnabled(boolean durationEnabled) {
+		firePropertyChange("durationEnabled", this.durationEnabled, this.durationEnabled = durationEnabled);
 	}
 
 	public void setSetKeyFramePalEnabled(boolean setKeyFramePalEnabled) {
