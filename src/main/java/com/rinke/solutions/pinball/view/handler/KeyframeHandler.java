@@ -100,6 +100,10 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 		if( switchMode.equals(SwitchMode.EVENT)) {
 			palMapping.durationInMillis = (vm.selectedSpinnerDeviceId<<8) + vm.selectedSpinnerEventId;
 		} else {
+			if (SwitchMode.PALETTE.equals(switchMode)) {
+				vm.setDuration(0);
+				vm.setSelectedFrameSeq(null);
+			}	
 			palMapping.durationInMillis = vm.duration;
 		}
 		if (vm.showMask) {
@@ -126,6 +130,7 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 		} else {
 			messageUtil.warn("duplicate hash", "There is already another Keyframe that uses the same hash");
 		}
+		vm.setSelectedKeyFrame(palMapping);
 	}
 	
 	/**
