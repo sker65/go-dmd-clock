@@ -306,7 +306,8 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 		if( namePrompt.isOkay() ) name = namePrompt.getPrompt();
 		else return;
 		
-		Palette newPal =  new Palette(vm.selectedPalette.colors, getHighestIndex(vm.paletteMap)+1, name);
+		//Palette newPal =  new Palette(vm.selectedPalette.colors, getHighestIndex(vm.paletteMap)+1, name);
+		Palette newPal =  new Palette(vm.selectedPalette.colors, getNextFreeIndex(), name);
 		vm.paletteMap.put(newPal.index,newPal);
 		vm.setSelectedPalette(newPal);
 		vm.setSelectedColor(0);
@@ -317,6 +318,22 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 	private int getHighestIndex(Map<Integer, Palette> paletteMap) {
 		OptionalInt max = paletteMap.values().stream().mapToInt(p->p.index).max();
 		return max.orElse(0);
+	}
+	
+	private int getNextFreeIndex() {
+		int i = 0;
+		boolean exists = false;
+		do {
+			exists = false;			
+			for (Palette p : vm.paletteMap.values()) {
+				if (p.index == i) {
+					exists = true;
+					break;
+				}
+			}
+			i++;
+		} while ((exists == true) && (i < 256));
+		return i-1;
 	}
 
 	public void onSavePalette() {
@@ -344,13 +361,16 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 			palettesImported = Arrays.asList(pal);
 		}
 		if( palettesImported != null ) {
-			String override = checkOverride(vm.paletteMap, palettesImported);
-			if (!override.isEmpty()) {
-				int res = messageUtil.warn(SWT.ICON_WARNING | SWT.OK | SWT.IGNORE | SWT.ABORT,
-						"Override warning", "importing these palettes will override palettes: " + override + "\n");
-				if (res != SWT.ABORT) {
-					importPalettes(palettesImported, res == SWT.OK);
-				}
+			String overwrite = checkOverwrite(vm.paletteMap, palettesImported);
+			if (!overwrite.isEmpty()) {
+				int res = messageUtil.warn(0,"Warning",
+						"Palette conflict", "The following palettes already exist: " + overwrite + "\n", new String[]{"Cancel", "Replace", "Append"},2);
+				if (res == 1) 
+					importPalettes(palettesImported, true);
+				else if (res == 2)	
+					importPalettes(palettesImported, false);
+				else
+					return;
 			} else {
 				importPalettes(palettesImported, true);
 			}
@@ -369,18 +389,22 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 		return null;
 	}
 	
-	void importPalettes(java.util.List<Palette> palettesImported, boolean override) {
+	void importPalettes(java.util.List<Palette> palettesImported, boolean overwrite) {
 		for (Palette p : palettesImported) {
 			if (vm.paletteMap.containsKey(p.index)) {
-				if (override)
+				if (overwrite) {
 					vm.paletteMap.put(p.index, p);
+				} else {
+					vm.paletteMap.put(p.index = getNextFreeIndex(), p);
+				} 
+					
 			} else {
 				vm.paletteMap.put(p.index, p);
 			}
 		}
 	}
 
-	String checkOverride(java.util.Map<Integer,Palette> pm, java.util.List<Palette> palettesImported) {
+	String checkOverwrite(java.util.Map<Integer,Palette> pm, java.util.List<Palette> palettesImported) {
 		StringBuilder sb = new StringBuilder();
 		for (Palette pi : palettesImported) {
 			if (pi.index != 0 && pm.containsKey(pi.index)) {
