@@ -16,6 +16,7 @@ import com.rinke.solutions.beans.Bean;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.Animation.EditMode;
 import com.rinke.solutions.pinball.model.PalMapping;
+import com.rinke.solutions.pinball.model.PaletteType;
 import com.rinke.solutions.pinball.model.PalMapping.SwitchMode;
 import com.rinke.solutions.pinball.ui.NamePrompt;
 import com.rinke.solutions.pinball.util.MessageUtil;
@@ -131,6 +132,8 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 			messageUtil.warn("duplicate hash", "There is already another Keyframe that uses the same hash");
 		}
 		vm.setSelectedKeyFrame(palMapping);
+		vm.setSelectedPalette(vm.paletteMap.values().stream()
+				.filter(p->p.type.equals(PaletteType.DEFAULT)).findFirst().orElse(vm.selectedPalette));
 	}
 	
 	/**
