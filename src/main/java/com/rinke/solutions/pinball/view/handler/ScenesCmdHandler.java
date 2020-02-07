@@ -137,7 +137,7 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 		if( a!=null) {
 			for( PalMapping pm : vm.keyframes.values()) {
 				if( a.getDesc().equals(pm.frameSeqName) ) {
-					res.add( a.getDesc() );
+					res.add( pm.name );
 				}
 			}
 		}
