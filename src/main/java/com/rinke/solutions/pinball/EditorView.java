@@ -545,8 +545,8 @@ public class EditorView implements MainView {
 		Label lblAnimations = new Label(listComp, SWT.NONE);
 		lblAnimations.setText("Recordings");
 		
-		Label lblScences = new Label(listComp, SWT.NONE);
-		lblScences.setText("Scences");
+		Label lblScenes = new Label(listComp, SWT.NONE);
+		lblScenes.setText("Scenes");
 
 		Label lblKeyframes = new Label(listComp, SWT.NONE);
 		lblKeyframes.setText("Keyframes");
@@ -1317,6 +1317,7 @@ public class EditorView implements MainView {
 		lblDuration.setText("Duration:");
 		
 		txtDuration = new Text(grpKeyframe, SWT.BORDER);
+		txtDuration.setEditable(false);
 		txtDuration.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
 		txtDuration.setText("0");
 		txtDuration.addListener(SWT.Verify, e -> e.doit = Pattern.matches("^[0-9]+$", e.text));
