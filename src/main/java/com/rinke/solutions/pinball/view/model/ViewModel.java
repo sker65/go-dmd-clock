@@ -103,7 +103,7 @@ public class ViewModel extends AbstractModel {
 	@ViewBinding public boolean deleteColMaskEnabled;
 	@ViewBinding public boolean btnLinkEnabled;
 	
-	@ViewBinding public int duration;
+	public int duration;
 	
 	@ViewBinding public int paletteToolPlanes;
 	public int lastTimeCode;

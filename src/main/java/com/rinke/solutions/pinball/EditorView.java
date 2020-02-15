@@ -142,7 +142,8 @@ public class EditorView implements MainView {
 	/** instance level SWT widgets */
 	Button btnHash[];// = new Button[numberOfHashes];
 	
-	@GuiBinding( props= {TEXT,ENABLED}, propNames= {"duration","durationEnabled"} ) Text txtDuration;
+	@GuiBinding(prop=ENABLED , propName= "durationEnabled") Text txtDuration;
+	//@GuiBinding( props= {TEXT,ENABLED}, propNames= {"duration","durationEnabled"} ) Text txtDuration;
 	@GuiBinding( props={MIN,MAX,SELECTION} ) Scale frame;
 	
 	@GuiBinding( props={INPUT,SELECTION}, propNames={"paletteMap","selectedPalette"} )
@@ -1317,10 +1318,18 @@ public class EditorView implements MainView {
 		lblDuration.setText("Duration:");
 		
 		txtDuration = new Text(grpKeyframe, SWT.BORDER);
-		txtDuration.setEditable(false);
+		txtDuration.setEditable(true);
 		txtDuration.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
 		txtDuration.setText("0");
-		txtDuration.addListener(SWT.Verify, e -> e.doit = Pattern.matches("^[0-9]+$", e.text));
+		txtDuration.addKeyListener(new KeyAdapter() {
+			public void keyPressed(KeyEvent event) {
+				if( event.keyCode == SWT.CR ) {
+					vm.setDuration(Integer.parseInt(txtDuration.getText()));
+				}
+			}
+		} );
+
+		//txtDuration.addListener(SWT.Verify, e -> e.doit = Pattern.matches("^[0-9]+$", e.text));
 //		txtDuration.addListener(SWT.Modify, e -> {
 //			if (vm.selectedKeyFrame != null) {
 //				System.out.println("setting "+txtDuration.getText() +" -> "+vm.selectedKeyFrame.name+" : "+vm.selectedKeyFrame.durationInMillis);
