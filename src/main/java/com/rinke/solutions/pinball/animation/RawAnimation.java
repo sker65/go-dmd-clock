@@ -93,7 +93,10 @@ public class RawAnimation extends Animation {
 
 	public void renderSubframes(DMD dmd, int actFrame) {
 		Frame f = new Frame();
-		for(int i = 0; i < planesPerFrame; i++) {
+		int planesToRender = planesPerFrame;
+		if (planesToRender > 4 && planesToRender < 15)
+			planesToRender = 4;
+		for(int i = 0; i < planesToRender; i++) {
 			f.planes.add(planes.get(actFrame*planesPerFrame + i));
 		}
 		dmd.setFrame(f);
