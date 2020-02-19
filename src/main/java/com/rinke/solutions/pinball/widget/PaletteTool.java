@@ -99,16 +99,16 @@ public class PaletteTool extends AbstractModel implements ColorModifiedListener 
 		log.info("setting number of planes: {}",planes);
 		switch (planes) {
 		case 1:
-			for (int i = 0; i < colBtn.length; i++)
+			for (int i = 0; i < palette.numberOfColors; i++)
 				colBtn[i].setEnabled(i<2);
 			break;
 		case 2: // 2 planes -> 4 colors
-			for (int i = 0; i < colBtn.length; i++)
+			for (int i = 0; i < palette.numberOfColors; i++)
 				colBtn[i].setEnabled(visible[i] == 1);
 			break;
 		case 4: // 4 planes -> 16 colors
 		case Constants.MAX_BIT_PER_COLOR_CHANNEL*3: // 15 planes -> rgb mode
-			for (int i = 0; i < colBtn.length; i++)
+			for (int i = 0; i < palette.numberOfColors; i++)
 				colBtn[i].setEnabled(true);
 			break;
 		}
@@ -196,7 +196,7 @@ public class PaletteTool extends AbstractModel implements ColorModifiedListener 
 
 	public void setPalette(Palette palette) {
 		this.palette = palette;
-		for (int i = 0; i < colBtn.length; i++) {
+		for (int i = 0; i < palette.numberOfColors; i++) {
 			colBtn[i].setImage(getSquareImage(display, toSwtRGB(palette.colors[i])));
 		}
 	}
@@ -240,7 +240,7 @@ public class PaletteTool extends AbstractModel implements ColorModifiedListener 
 
 	public void setSelectedColor(int selectedColor) {
 		//avoid multiple selections in palette
-		for (int i = 0; i < colBtn.length; i++) {
+		for (int i = 0; i < palette.numberOfColors; i++) {
 			colBtn[i].setSelection(false);
 		}
 		colBtn[selectedColor].setSelection(true);
