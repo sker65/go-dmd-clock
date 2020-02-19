@@ -30,7 +30,7 @@ public class PinDumpRenderer extends Renderer {
 			long tc = 0;
 			int numberOfFrames = 0;
 			switch (deviceMode) {
-			case Gottlieb:
+			case Gottlieb2:
 				numberOfFrames = 5;
 				break;
 			case Stern:
@@ -55,7 +55,7 @@ public class PinDumpRenderer extends Renderer {
 				Frame res = null;
 				// TODO for Gottlieb and WPC do an additive aggregation
 				if( deviceMode.equals(DeviceMode.WPC) ||
-						deviceMode.equals(DeviceMode.Gottlieb) ) {
+						deviceMode.equals(DeviceMode.Gottlieb2) ) {
 					res = transformPlanes(data, deviceMode, dmd.getPlaneSize());
 				} else {
 					res = new Frame();

@@ -104,7 +104,7 @@ public class LivePreviewHandler extends AbstractCommandHandler implements ViewBi
 	public void onLivePreviewActiveChanged(boolean old, boolean livePreviewIsOn) {
 		if (livePreviewIsOn) {
 			try {
-				connector.switchToMode(DeviceMode.PinMame_RGB.ordinal(), null);
+				connector.switchToMode(DeviceMode.PinMame.ordinal(), null);
 				handle = connector.connect(vm.pin2dmdAdress);
 				if (handle != null) {
 					for( Palette pal : vm.paletteMap.values() ) {
