@@ -1124,19 +1124,34 @@ public class EditorView implements MainView {
 		gd_grpPal.heightHint = 22;
 		grpPal.setLayoutData(gd_grpPal);
 		
-		paletteTool = new PaletteTool(shell, grpPal, SWT.FLAT | SWT.RIGHT, vm.selectedPalette);
-		
 		ToolBar bar = new ToolBar(grpPalettes, SWT.NONE);
 		bar.setLayout(new GridLayout(1, false));
-		GridData gd_grpBar = new GridData(SWT.LEFT, SWT.TOP, false, false, 2, 1);
-		bar.setLayoutData(gd_grpBar);
-		
+        bar.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 2, 1));
+        
 		ToolItem btnGradient = new ToolItem(bar, SWT.NONE);
 		btnGradient.setToolTipText("Creates color gradients between the first and last color in the selected group");
 		btnGradient.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/gradient.png")));
-		new Label(grpPalettes, SWT.NONE);
 		btnGradient.addListener(SWT.Selection, e->dispatchCmd("createGradients"));
 
+		//btnPick = new ToolItem(bar, SWT.NONE);
+        //btnPick.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/color-picker.png")));
+        //btnPick.addListener(SWT.Selection, e->dispatchCmd("pickPalette"));
+        
+        //ToolItem btnPick2 = new ToolItem(bar, SWT.NONE);
+        //btnPick2.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/color-picker2.png")));
+        //btnPick2.addListener(SWT.Selection, e->dispatchCmd("extractPalColorsFromFrame"));
+        
+        //Label lblCtrlclick = new Label(grpPalettes, SWT.NONE);
+        //lblCtrlclick.setText("Ctrl-Click to edit");
+        Composite grpPal3 = new Composite(grpPalettes, SWT.NONE);
+        grpPal3.setLayout(new GridLayout(1, false));
+        GridData gd_grpPal3 = new GridData(SWT.LEFT, SWT.TOP, false, false, 3, 1);
+        gd_grpPal3.widthHint = 333;
+        gd_grpPal3.heightHint = 22;
+        grpPal3.setLayoutData(gd_grpPal3);
+
+        paletteTool = new PaletteTool(shell, grpPal, grpPal3, SWT.FLAT | SWT.RIGHT, vm.selectedPalette);
+        
 		ToolItem btnCopyPal = new ToolItem(bar, SWT.NONE);
 		btnCopyPal.setToolTipText("Copy colors of the selected group to clipboard");
 		btnCopyPal.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/copypal.png")));
@@ -1155,16 +1170,7 @@ public class EditorView implements MainView {
 		new Label(grpPalettes, SWT.NONE);
 		btnSwapPal.addListener(SWT.Selection, e->dispatchCmd("swapSwatch"));
 		
-		//btnPick = new ToolItem(bar, SWT.NONE);
-		//btnPick.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/color-picker.png")));
-		//btnPick.addListener(SWT.Selection, e->dispatchCmd("pickPalette"));
-		
-		//ToolItem btnPick2 = new ToolItem(bar, SWT.NONE);
-		//btnPick2.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/color-picker2.png")));
-		//btnPick2.addListener(SWT.Selection, e->dispatchCmd("extractPalColorsFromFrame"));
-		
-		//Label lblCtrlclick = new Label(grpPalettes, SWT.NONE);
-		//lblCtrlclick.setText("Ctrl-Click to edit");
+        new Label(grpPalettes, SWT.NONE);
 	}
 
 	private void createStartStopControl(Composite parent) {
@@ -1225,6 +1231,7 @@ public class EditorView implements MainView {
 
 		btnDelBookmark = new Button(composite, SWT.NONE);
 		btnDelBookmark.setText("Del");
+        new Label(composite, SWT.NONE);
 		btnDelBookmark.addListener(SWT.Selection, e->dispatchCmd(DEL_BOOKMARK));
 		
 	}
@@ -1242,7 +1249,6 @@ public class EditorView implements MainView {
 					((Button)e.widget).getSelection() ));
 		}
 	}
-
 
 	
 	private Composite createKeyFrameGroup(Composite parent) {

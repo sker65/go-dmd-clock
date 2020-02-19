@@ -42,6 +42,7 @@ public class ViewModel extends AbstractModel {
 	}
 
 	public int numberOfHashButtons = 4;
+	public int numberOfColors = 16;
 	public boolean dirty;
 	public DmdSize dmdSize;
 	public String pin2dmdAdress;
@@ -74,7 +75,7 @@ public class ViewModel extends AbstractModel {
 		
 		setProjectFilename(null);
 		setDirty(false);
-		Palette.getDefaultPalettes().stream().forEach(p->paletteMap.put(p.index, p));
+		Palette.getDefaultPalettes(numberOfColors).stream().forEach(p->paletteMap.put(p.index, p));
 		setMaxNumberOfMasks(noOfMasks);
 		setSelectedPalette(paletteMap.values().iterator().next());
 		resetMask(ds, noOfMasks);
@@ -206,7 +207,7 @@ public class ViewModel extends AbstractModel {
 	// try to bound it to scenes as well
 	//@ViewBinding public ObservableList<Animation> frameSeqList = new ObservableList<>(new ArrayList<>());
 	
-	@ViewBinding public Palette selectedPalette = Palette.getDefaultPalettes().get(0);
+	@ViewBinding public Palette selectedPalette = Palette.getDefaultPalettes(numberOfColors).get(0);
 	@ViewBinding public ObservableMap<Integer,Palette> paletteMap = new ObservableMap<>(new LinkedHashMap<>());
 	@ViewBinding public int selectedColor;
 	
