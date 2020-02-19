@@ -30,7 +30,7 @@ import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.Bean;
 import com.rinke.solutions.beans.Scope;
 import com.rinke.solutions.pinball.model.DefaultPalette;
-//import com.rinke.solutions.pinball.model.DeviceMode;
+import com.rinke.solutions.pinball.model.DeviceMode;
 import com.rinke.solutions.pinball.util.MessageUtil;
 import com.rinke.solutions.pinball.view.View;
 
@@ -43,10 +43,6 @@ import com.rinke.solutions.pinball.io.UsbConnector;
 @Bean(name="deviceConfig", scope=Scope.PROTOTYPE)
 
 public class DeviceConfig extends Dialog implements View {
-
-	public enum DeviceMode {
-	    PinMame, WPC, Stern, WhiteStar, Spike, DataEast, Gottlieb1, Gottlieb2, Gottlieb3, Capcom, AlvinG, Spooky, DE128x16, Inder, Sleic, HomePin 
-	}
 
 	protected Shell shell;
     private String lastPath;

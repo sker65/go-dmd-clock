@@ -90,7 +90,7 @@ public class HashCmdHandler extends AbstractCommandHandler implements ViewBindin
 		if( frame == null ) return;
 		Frame f = new Frame(frame);
 	
-		// if preview DMD uses its own dmd instance (e.g. for raw recodring) use
+		// if preview DMD uses its own dmd instance (e.g. for raw recording) use
 		// plane from that instance instead
 		if( vm.previewDMD != null ) {
 			f.planes.clear();
