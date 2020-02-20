@@ -407,7 +407,7 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 	String checkOverwrite(java.util.Map<Integer,Palette> pm, java.util.List<Palette> palettesImported) {
 		StringBuilder sb = new StringBuilder();
 		for (Palette pi : palettesImported) {
-			if (pi.index != 0 && pm.containsKey(pi.index)) {
+			if (pm.containsKey(pi.index)) {
 				sb.append(pi.index + ", ");
 			}
 		}
