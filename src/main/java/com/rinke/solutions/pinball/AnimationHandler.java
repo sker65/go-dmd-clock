@@ -162,7 +162,7 @@ public class AnimationHandler implements Runnable {
 
                 if( ani.hasEnded() ) {
 					if( !ani.isMutable() ){
-						ani.restart();
+//						ani.restart();
 						if( showClock) setClockActive(true);
 						index++;
 						if( index >= anis.size()) {
