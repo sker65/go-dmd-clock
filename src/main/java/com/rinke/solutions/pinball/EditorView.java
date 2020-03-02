@@ -479,6 +479,10 @@ public class EditorView implements MainView {
 		mntmPickPaletteFrom.setText("Pick Palette from Frame");
 		mntmPickPaletteFrom.addListener(SWT.Selection, e -> dispatchCmd("pickPalette"));
 		
+		MenuItem mntmFixPaletteAndMode = new MenuItem(menu_3, SWT.NONE);
+		mntmFixPaletteAndMode.setText("Fix Palette and Mode");
+		mntmFixPaletteAndMode.addListener(SWT.Selection, e -> dispatchCmd("fixPaletteAndMode"));
+		
 		MenuItem mntmRecentPalettesItem = new MenuItem(menu_3, SWT.CASCADE);
 		mntmRecentPalettesItem.setText("Recent Palettes");
 

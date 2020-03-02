@@ -174,6 +174,37 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 		}
 		return switchMode;
 	}
+	
+	private EditMode getEditModeFromSwitchMode(SwitchMode switchMode) {
+		EditMode editMode = EditMode.FIXED;
+		switch(switchMode) {
+			case ADD: editMode = EditMode.COLMASK; break;
+			case REPLACE: editMode = EditMode.REPLACE; break;
+			case LAYEREDCOL: editMode = EditMode.LAYEREDCOL; break;
+			case FOLLOWREPLACE: editMode = EditMode.REPLACE_FOLLOW; break;
+			case LAYEREDREPLACE: editMode = EditMode.LAYEREDREPLACE; break;
+			case FOLLOW: editMode = EditMode.COLMASK_FOLLOW; break;
+			default: break;
+		}
+		return editMode;
+	}
+
+	
+	public void onFixPaletteAndMode() {
+		int res = messageUtil.warn(0, "Warning",
+				"Use only on corrupted projects !", 
+				"This function sets the mode and palette of the scenes from the keyframe settings.\n Use it only if you really know what you are doing !",
+				new String[]{"", "Cancel", "Proceed"},2);
+		if( res != 2 ) return;
+		for( PalMapping pm : vm.keyframes.values()) {
+			if (pm.frameSeqName != "") {
+				vm.setSelectedScene(vm.scenes.get(pm.frameSeqName));
+				vm.selectedScene.setPalIndex(pm.palIndex);
+				vm.selectedScene.setEditMode(getEditModeFromSwitchMode(pm.switchMode));
+			}
+		}
+	}
+
 
 	boolean checkForDuplicateKeyFrames(PalMapping palMapping) {
 		for (PalMapping p : vm.keyframes.values()) {
