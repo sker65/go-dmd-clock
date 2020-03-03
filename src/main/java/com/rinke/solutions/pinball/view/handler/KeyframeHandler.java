@@ -126,10 +126,11 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 			//vm.setDetectionMaskActive(false);
 			palMapping.targetFrameIndex = 0; // how will this look like
 		}
-		if (!checkForDuplicateKeyFrames(palMapping)) {
+		String duplicateName = checkForDuplicateKeyFrames(palMapping);
+		if (duplicateName == null) {
 			vm.keyframes.put(palMapping.name,palMapping);
 		} else {
-			messageUtil.warn("duplicate hash", "There is already another Keyframe that uses the same hash");
+			messageUtil.warn("duplicate hash", "There is already Keyframe \"" + duplicateName + "\" that uses the same hash");
 		}
 		vm.setSelectedKeyFrame(palMapping);
 		vm.setSelectedPalette(vm.paletteMap.values().stream()
@@ -206,12 +207,12 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 	}
 
 
-	boolean checkForDuplicateKeyFrames(PalMapping palMapping) {
+	String checkForDuplicateKeyFrames(PalMapping palMapping) {
 		for (PalMapping p : vm.keyframes.values()) {
 			if (Arrays.equals(p.crc32, palMapping.crc32))
-				return true;
+				return p.name;
 		}
-		return false;
+		return null;
 	}
 
 	public void onDeleteKeyframe() {
