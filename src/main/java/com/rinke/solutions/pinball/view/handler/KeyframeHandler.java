@@ -197,7 +197,7 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 				new String[]{"", "Cancel", "Proceed"},2);
 		if( res != 2 ) return;
 		for( PalMapping pm : vm.keyframes.values()) {
-			if (pm.frameSeqName != "") {
+			if (pm.frameSeqName != null) {
 				vm.setSelectedScene(vm.scenes.get(pm.frameSeqName));
 				vm.selectedScene.setPalIndex(pm.palIndex);
 				vm.selectedScene.setEditMode(getEditModeFromSwitchMode(pm.switchMode));
