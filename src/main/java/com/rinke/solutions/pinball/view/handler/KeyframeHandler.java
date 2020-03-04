@@ -194,14 +194,21 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 	public void onFixPaletteAndMode() {
 		int res = messageUtil.warn(0, "Warning",
 				"Use only on corrupted projects !", 
-				"This function sets the mode and palette of the scenes from the keyframe settings.\n Use it only if you really know what you are doing !",
-				new String[]{"", "Cancel", "Proceed"},2);
-		if( res != 2 ) return;
+				"This function synchronizes the mode and palette of the scenes and the keyframes.\n Take the mode and palette settings from :",
+				new String[]{"Cancel", "Scenes", "Keyframes"},2);
+		if( res == 0 ) return;
 		for( PalMapping pm : vm.keyframes.values()) {
 			if (pm.frameSeqName != null) {
-				vm.setSelectedScene(vm.scenes.get(pm.frameSeqName));
-				vm.selectedScene.setPalIndex(pm.palIndex);
-				vm.selectedScene.setEditMode(getEditModeFromSwitchMode(pm.switchMode));
+				if (res == 2) {
+					vm.setSelectedScene(vm.scenes.get(pm.frameSeqName));
+					vm.selectedScene.setPalIndex(pm.palIndex);
+					vm.selectedScene.setEditMode(getEditModeFromSwitchMode(pm.switchMode));
+				} else if (res == 1) {
+					vm.setSelectedScene(vm.scenes.get(pm.frameSeqName));
+					pm.switchMode = getSwitchModeFromEditMode(vm.selectedScene.getEditMode());
+					pm.palIndex = vm.selectedScene.getPalIndex();
+					vm.setSelectedKeyFrame(pm);
+				}
 			}
 		}
 	}
