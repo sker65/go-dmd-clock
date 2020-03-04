@@ -200,7 +200,14 @@ public class ProjectHandler extends AbstractCommandHandler {
 				vm.paletteMap.putAll(p.paletteMap);
 				for( Palette pal : p.getPalettes() ) {
 					if( !vm.paletteMap.containsKey(pal.index) ) vm.paletteMap.put(pal.index, pal);
-					else messageUtil.warn("duplicate palette", "project file contains conflicting palette definition. Pal No "+pal.index);
+					else {
+						int res = messageUtil.warn(0, "Warning",
+								"duplicate palette", "project file contains conflicting palette definition. Pal No "+pal.index+ "\nDo you want to overwrite ?",
+								new String[]{"", "KEEP", "OVERWRITE"},2);
+						if( res == 2 ) {
+							vm.paletteMap.put(pal.index, pal);
+						}
+					}
 				}
 				if( p.width == 0) {
 					p.width = 128;
