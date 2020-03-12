@@ -99,7 +99,7 @@ public class HashCmdHandler extends AbstractCommandHandler implements ViewBindin
 				f.planes.add(planes.get(i));
 			}
 		} 
-		if(  ( vm.selectedEditMode.enableDetectionMask ) && vm.selectedScene!=null) {
+		if( vm.selectedScene!=null && ( vm.selectedEditMode.enableDetectionMask )) {
 			selectHash(vm.selectedScene);
 		}
 		List<byte[]> hashes = f.getHashes();
