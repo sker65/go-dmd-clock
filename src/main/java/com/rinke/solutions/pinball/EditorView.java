@@ -210,6 +210,9 @@ public class EditorView implements MainView {
 	Button layerMask;
 	@GuiBinding( prop=SELECTION, propName="livePreviewActive") 
 	Button btnLivePreview;
+	
+	Spinner dotSizeSpinner;
+	Button btnSquareDots;
 	@GuiBinding( prop=ENABLED )
 	Button btnLink;
 
@@ -779,7 +782,7 @@ public class EditorView implements MainView {
 		
 		Group grpDetails = new Group(parent, SWT.NONE);
 		grpDetails.setLayoutData(new GridData(SWT.FILL, SWT.TOP, false, false, 1, 1));
-		grpDetails.setLayout(new GridLayout(17, false));
+		grpDetails.setLayout(new GridLayout(20, false));
 		
 		/*GridData gd_grpDetails = new GridData(SWT.LEFT, SWT.CENTER, false, true, 1, 1);
 		gd_grpDetails.heightHint = 27;
@@ -852,6 +855,22 @@ public class EditorView implements MainView {
 		btnLivePreview.setToolTipText("controls live preview to real display device");
 		btnLivePreview.setText("Live Preview");
 		// bound btnLivePreview.addListener(SWT.Selection, e -> ed.onLivePreviewSwitched(btnLivePreview.getSelection()));
+
+		Label lblDots = new Label(grpDetails, SWT.NONE);
+		lblDots.setText("   Dot Size:");
+
+	    dotSizeSpinner = new Spinner(grpDetails, SWT.BORDER);
+	    dotSizeSpinner.setToolTipText("select size of the dots");
+	    dotSizeSpinner.setMinimum(1);
+	    dotSizeSpinner.setMaximum(10);
+	    dotSizeSpinner.setSelection(10);
+	    dotSizeSpinner.addListener(SWT.Selection, e -> dmdWidget.setDotSize(dotSizeSpinner.getSelection()));
+
+		
+		btnSquareDots = new Button(grpDetails, SWT.CHECK);
+		btnSquareDots.setToolTipText("display with square dots");
+		btnSquareDots.setText("Square   ");
+		btnSquareDots.addListener(SWT.Selection, e -> dmdWidget.setSquareDots(btnSquareDots.getSelection()));
 				
 		Button btnIncPitch = new Button(grpDetails, SWT.NONE);
 		btnIncPitch.setText("+");
@@ -1174,6 +1193,9 @@ public class EditorView implements MainView {
 		new Label(grpPalettes, SWT.NONE);
 		btnSwapPal.addListener(SWT.Selection, e->dispatchCmd("swapSwatch"));
 		
+        new Label(grpPalettes, SWT.NONE);
+        new Label(grpPalettes, SWT.NONE);
+        new Label(grpPalettes, SWT.NONE);
         new Label(grpPalettes, SWT.NONE);
 	}
 

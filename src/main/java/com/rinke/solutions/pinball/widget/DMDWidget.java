@@ -41,6 +41,8 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 	private int bytesPerRow;
 	int margin = 20;
 	int pitch = 7;
+	int spacing = 0;
+	boolean solid = false;
 	int pressedButton = 0;
 	private DrawTool drawTool = null;//new RectTool();//new SetPixelTool();
 	private DrawTool previousDrawTool;
@@ -195,6 +197,17 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 		this.pitch = p;
 	}
 	
+	public void setDotSize(int s) {
+		
+		this.spacing = 10-s;
+		redraw();
+	}
+
+	public void setSquareDots(boolean s) {
+		this.solid = s;
+		redraw();
+	}
+
 	@Override
 	public void setBounds(Rectangle rect) {
 		super.setBounds(rect);
@@ -382,7 +395,10 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
                 	Color c = resourceManager.createColor(new RGB(r,g,b));
                 	gcImage.setBackground(c);
                 }
-                gcImage.fillOval(margin + col * pitch, margin + row * pitch, pitch, pitch);
+                if (solid)
+                    gcImage.fillRectangle(margin + col * pitch, margin + row * pitch, pitch, pitch);
+                else
+                	gcImage.fillOval(margin + col * pitch, margin + row * pitch, pitch-spacing, pitch-spacing);
             }
 		}
 	}
