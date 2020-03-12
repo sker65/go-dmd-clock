@@ -200,6 +200,12 @@ public class DMD extends Observable {
     public void writeOr(Frame src) {
         if (src != null) {
         	//if( src.planes.size()!=3) {
+        		if(frame.planes.get(0).data.length != src.planes.get(0).data.length) {
+        			while( 0 < frame.planes.size() ) {
+        	            frame.planes.remove(frame.planes.size()-1);
+        	    	}
+        		}
+        	
         		if( frame.planes.size() < src.planes.size() ) {
         			frame.planes.clear();
         		}
