@@ -44,8 +44,8 @@ public class HashCmdHandler extends AbstractCommandHandler implements ViewBindin
 		vm.setBtnAddFrameSeqEnabled(selectedRecording != null && selectedFrameSeq != null && selectedHashIndex != -1);
 		vm.setBtnAddEventEnabled(selectedRecording != null && selectedHashIndex != -1);
 		vm.setBtnSetHashEnabled( vm.selectedScene != null && vm.selectedEditMode.haveLocalMask && selectedHashIndex != -1);
-		vm.setBtnPreviewNextEnabled(vm.selectedScene != null && vm.selectedEditMode.haveLocalMask && selectedHashIndex != -1);
-		vm.setBtnPreviewPrevEnabled(vm.selectedScene != null && vm.selectedEditMode.haveLocalMask && selectedHashIndex != -1);
+		vm.setBtnPreviewNextEnabled(vm.selectedScene != null && vm.selectedEditMode.haveLocalMask);
+		vm.setBtnPreviewPrevEnabled(vm.selectedScene != null && vm.selectedEditMode.haveLocalMask);
 
 	}
 

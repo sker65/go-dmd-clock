@@ -93,6 +93,7 @@ public class AnimationHandler implements Runnable {
 				//if( scale.isDisposed() ) return;
 
 				Animation ani = anis.get(index); 
+				Animation linkedAnimation = null; 
 				updateScale(ani);
 				
 				if( !forceRerender  && stop && ani.actFrame == lastRenderedFrame ) return;
@@ -115,11 +116,22 @@ public class AnimationHandler implements Runnable {
 				if( ani instanceof CompiledAnimation ) {
 					CompiledAnimation cani = (CompiledAnimation)ani;
 					RecordingLink link = cani.getRecordingLink();
-					if( mode.pullFrameDataFromAssociatedRecording && link != null && vm.detectionMaskActive ) {
+					if( mode.pullFrameDataFromAssociatedRecording && link != null) {
 						// calc offset
-						int frameNo = link.startFrame + actFrame;
-						Animation linkedAnimation = vm.recordings.get(link.associatedRecordingName);
-						res = linkedAnimation.render(frameNo, dmd, stop);
+						int frameNo = link.startFrame + actFrame + vm.rawFrameOffset;
+						linkedAnimation = vm.recordings.get(link.associatedRecordingName);
+						if (frameNo < 0)
+							frameNo = 0;
+						if (frameNo >= linkedAnimation.end)
+							frameNo = linkedAnimation.end;
+						linkedAnimation.render(frameNo, dmd, stop);
+	                	if(vm.previewDMD == null) {
+	    					DMD previewDMD = new DMD(vm.dmdSize);
+	    					vm.setPreviewDMD(previewDMD);
+	    				}
+	                	RawAnimation rani = (RawAnimation)linkedAnimation;
+	                	rani.renderSubframes(vm.previewDMD, frameNo);
+						res = ani.render(dmd,stop);
 					} else {
 						res = ani.render(dmd,stop);
 					}
