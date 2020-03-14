@@ -120,10 +120,14 @@ public class AnimationHandler implements Runnable {
 						// calc offset
 						int frameNo = link.startFrame + actFrame + vm.rawFrameOffset;
 						linkedAnimation = vm.recordings.get(link.associatedRecordingName);
-						if (frameNo < 0)
+						if (frameNo < 0) {
 							frameNo = 0;
-						if (frameNo >= linkedAnimation.end)
+							vm.rawFrameOffset++;
+							}
+						if (frameNo >= linkedAnimation.end) {
 							frameNo = linkedAnimation.end;
+							vm.rawFrameOffset--;
+							}
 						linkedAnimation.render(frameNo, dmd, stop);
 	                	if(vm.previewDMD == null) {
 	    					DMD previewDMD = new DMD(vm.dmdSize);

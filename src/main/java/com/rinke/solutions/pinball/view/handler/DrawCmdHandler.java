@@ -137,6 +137,8 @@ public class DrawCmdHandler extends AbstractCommandHandler implements EventHandl
 				vm.setMaskSpinnerEnabled(modeToSet.enableDetectionMaskSpinner);
 				vm.setSmartDrawEnabled(!modeToSet.enableColorMaskDrawing);
 				recordingsCmdHandler.setEnableHashButtons(modeToSet.enableDetectionMask);
+				vm.setBtnPreviewNextEnabled(modeToSet.pullFrameDataFromAssociatedRecording);
+				vm.setBtnPreviewPrevEnabled(modeToSet.pullFrameDataFromAssociatedRecording);
 			}
 			
 			// to force update on master detail
