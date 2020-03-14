@@ -211,6 +211,7 @@ public class DrawCmdHandler extends AbstractCommandHandler implements EventHandl
 			animationHandler.updateScale(ani);
 			vm.setDmdDirty(true);
 			vm.setDirty(true);
+			vm.setBtnNextEnabled(ani.actFrame<ani.end);
 		}
 	}
 
@@ -229,6 +230,7 @@ public class DrawCmdHandler extends AbstractCommandHandler implements EventHandl
 				vm.setDirty(true);
 			}
 			vm.setBtnDelFrameEnabled(ani.frames.size()>1);
+			vm.setBtnNextEnabled(ani.actFrame<ani.end);
 		}
 	}
 	
