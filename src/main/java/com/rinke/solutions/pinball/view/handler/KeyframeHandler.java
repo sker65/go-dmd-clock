@@ -333,6 +333,8 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 			vm.setSelectedKeyFrame(null);
 		}
 		vm.setBtnSetHashEnabled(nk != null);
+		vm.setBtnPreviewNextEnabled(nk != null);
+		vm.setBtnPreviewPrevEnabled(nk != null);
 		vm.setDeleteKeyFrameEnabled(nk != null);
 		vm.setSetKeyFramePalEnabled(nk != null && SwitchMode.PALETTE.equals(nk.switchMode));
 	}

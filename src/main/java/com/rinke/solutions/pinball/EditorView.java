@@ -260,6 +260,8 @@ public class EditorView implements MainView {
 	@GuiBinding(prop=SELECTION) Spinner spinnerDeviceId;
 	@GuiBinding(prop=SELECTION) Spinner spinnerEventId;
 	@GuiBinding(prop=ENABLED) Button btnAddEvent;
+	@GuiBinding(prop=ENABLED)Button btnPreviewPrev;
+	@GuiBinding(prop=ENABLED)Button btnPreviewNext;
 	Composite grpKeyframe;
 	Text textProperty;
 	
@@ -1306,6 +1308,18 @@ public class EditorView implements MainView {
 		previewDmd.setLayoutData(gd_previewDmd);
 		previewDmd.setDrawingEnabled(false);
 		previewDmd.setMaskOut(true);
+		
+		Label lblNav = new Label(grpKeyframe, SWT.NONE);
+
+		btnPreviewPrev = new Button(grpKeyframe, SWT.NONE);
+		btnPreviewPrev.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+		btnPreviewPrev.setText("<");
+		btnPreviewPrev.addListener(SWT.Selection, e->dispatchCmd(PREVIEW_PREV_FRAME));
+
+		btnPreviewNext = new Button(grpKeyframe, SWT.NONE);
+		btnPreviewNext.setLayoutData(new GridData(SWT.NONE, SWT.CENTER, false, false, 1, 1));
+		btnPreviewNext.setText(">");
+		btnPreviewNext.addListener(SWT.Selection, e->dispatchCmd(PREVIEW_NEXT_FRAME));
 
 		new Label(grpKeyframe, SWT.NONE);
 		

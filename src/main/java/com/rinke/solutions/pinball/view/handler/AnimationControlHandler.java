@@ -101,6 +101,20 @@ public class AnimationControlHandler extends AbstractCommandHandler implements V
 		}
 	}
 	
+	public void onPreviewPrevFrame() {
+		if(vm.minFrame < vm.selectedFrame) {
+		vm.setSelectedFrame(vm.selectedFrame-vm.frameIncrement);
+		vm.setSelection(null);
+		}
+	}
+	
+	public void onPreviewNextFrame() {
+		if((vm.selectedFrame + vm.frameIncrement ) <= vm.maxFrame) {
+		vm.setSelectedFrame(vm.selectedFrame+vm.frameIncrement);
+		vm.setSelection(null);
+		}
+	}
+	
 	public void onCopyAndMoveToNextFrame() {
 		if (vm.selectedScene != null) {
 			CompiledAnimation ani = vm.selectedScene;

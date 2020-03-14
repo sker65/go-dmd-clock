@@ -49,6 +49,8 @@ public class Commands {
 	public static final String MARK_START = "markStart";
 	public static final String NEXT_FRAME = "nextFrame";
 	public static final String PREV_FRAME = "prevFrame";
+	public static final String PREVIEW_NEXT_FRAME = "previewNextFrame";
+	public static final String PREVIEW_PREV_FRAME = "previewPrevFrame";
 	public static final String START_STOP = "startStop";
 	public static final String DELETE_PALETTE = "deletePalette";
 	public static final String RENAME_PALETTE = "renamePalette";
