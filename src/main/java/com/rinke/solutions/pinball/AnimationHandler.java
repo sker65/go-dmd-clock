@@ -154,6 +154,7 @@ public class AnimationHandler implements Runnable {
     				}
                 	RawAnimation rani = (RawAnimation)ani;       	
                 	Frame tmp = rani.renderSubframes(vm.previewDMD, actFrame);
+                    tmp.setMask(getCurrentMask(vm.detectionMaskActive));
                 	vm.previewDMD.setFrame(tmp);
                 }
                 
