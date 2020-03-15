@@ -181,6 +181,7 @@ public class ViewModel extends AbstractModel {
 	public boolean animationIsPlaying;
 	@ViewBinding public int minFrame;
 	@ViewBinding public int selectedFrame;
+	@ViewBinding public int selectedLinkFrame;
 	public int linkedFrameOffset = 0;
 	@ViewBinding public int maxFrame;
 	public int frameIncrement;
@@ -284,6 +285,10 @@ public class ViewModel extends AbstractModel {
 		firePropertyChange("selectedFrame", this.selectedFrame, this.selectedFrame = selectedFrame);
 	}
 
+	public void setSelectedLinkFrame(int selectedLinkFrame) {
+		firePropertyChange("selectedLinkFrame", this.selectedLinkFrame, this.selectedLinkFrame = selectedLinkFrame);
+	}
+	
 	public void setMaxFrame(int maxFrame) {
 		firePropertyChange("maxFrame", this.maxFrame, this.maxFrame = maxFrame);
 	}

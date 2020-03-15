@@ -109,6 +109,7 @@ public class AnimationHandler implements Runnable {
 				}
 				log.debug("rendering ani: {}@{}", ani.getDesc(), ani.getActFrame());
 				int actFrame = ani.getActFrame();
+        		vm.setSelectedLinkFrame(actFrame);
 				
 				// now there is more logic here:
 				Frame res = ani.render(dmd,stop);
@@ -135,6 +136,7 @@ public class AnimationHandler implements Runnable {
 	    					vm.setPreviewDMD(previewDMD);
 	    				}
                 		
+                		vm.setSelectedLinkFrame(frameNo);
                 		previewRes = linkedAnimation.render(frameNo,vm.previewDMD,stop);
                 		
 	                	if( linkedAnimation instanceof RawAnimation && vm.previewDMD != null) {

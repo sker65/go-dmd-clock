@@ -136,6 +136,7 @@ public class EditorView implements MainView {
 
 	@GuiBinding( prop=LABEL, propName="timecode" ) Label lblTcval;
 	@GuiBinding( prop=LABEL, propName="selectedFrame" ) Label lblFrameNo;
+	@GuiBinding( prop=LABEL, propName="selectedLinkFrame" ) Label lblLinkFrameNo;
 	@GuiBinding( prop=LABEL, propName="hashVal" ) Label lblHashVal;
 	@GuiBinding( prop=LABEL, propName="linkVal" ) Label lblLinkVal;
 
@@ -1308,15 +1309,26 @@ public class EditorView implements MainView {
 		previewDmd.setLayoutData(gd_previewDmd);
 		previewDmd.setDrawingEnabled(false);
 		previewDmd.setMaskOut(true);
-		
-		Label lblNav = new Label(grpKeyframe, SWT.NONE);
 
-		btnPreviewPrev = new Button(grpKeyframe, SWT.NONE);
+		Composite navigationGrp = new Composite(grpKeyframe, SWT.NONE);
+		navigationGrp.setLayout(new GridLayout(4, false));
+		navigationGrp.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 4, 1));
+		Label lblLinkFrame = new Label(navigationGrp, SWT.NONE);
+		lblLinkFrame.setText("LinkFrame:");
+		
+		GridData gd_navigation2 = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+		gd_navigation2.widthHint = 66;
+		gd_navigation2.minimumWidth = 60;
+		lblLinkFrameNo = new Label(navigationGrp, SWT.NONE);
+		lblLinkFrameNo.setLayoutData(gd_navigation2);
+		lblLinkFrameNo.setText("---");
+						
+		btnPreviewPrev = new Button(navigationGrp, SWT.NONE);
 		btnPreviewPrev.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
 		btnPreviewPrev.setText("<");
 		btnPreviewPrev.addListener(SWT.Selection, e->dispatchCmd(PREVIEW_PREV_FRAME));
 
-		btnPreviewNext = new Button(grpKeyframe, SWT.NONE);
+		btnPreviewNext = new Button(navigationGrp, SWT.NONE);
 		btnPreviewNext.setLayoutData(new GridData(SWT.NONE, SWT.CENTER, false, false, 1, 1));
 		btnPreviewNext.setText(">");
 		btnPreviewNext.addListener(SWT.Selection, e->dispatchCmd(PREVIEW_NEXT_FRAME));

@@ -84,6 +84,9 @@ public class DrawCmdHandler extends AbstractCommandHandler implements EventHandl
 			break;
 		case FRAMECHANGE:
 			hashCmdHandler.updateHashes(evt.frame);
+			if(vm.previewDMD != null) {
+				vm.previewDMD.setMask(vm.dmd.getFrame().mask);
+			}
 			break;
 		}
 		vm.setDmdDirty(true);
