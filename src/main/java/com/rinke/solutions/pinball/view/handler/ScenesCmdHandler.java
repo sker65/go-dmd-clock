@@ -42,6 +42,7 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 	
 	public void onSelectedSceneChanged(CompiledAnimation o, CompiledAnimation nextScene) {
 		log.info("onSceneSelectionChanged: {}", nextScene);
+		vm.linkedFrameOffset = 0;
 		Animation current = o;
 		// detect changes
 		if( current == null && nextScene == null ) return;

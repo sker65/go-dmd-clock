@@ -88,7 +88,7 @@ public class AnimationControlHandler extends AbstractCommandHandler implements V
 	}
 
 	public void onPrevFrame() {
-		vm.rawFrameOffset=0;
+		vm.linkedFrameOffset=0;
 		if(vm.minFrame < vm.selectedFrame) {
 		vm.setSelectedFrame(vm.selectedFrame-vm.frameIncrement);
 		vm.setSelection(null);
@@ -96,7 +96,7 @@ public class AnimationControlHandler extends AbstractCommandHandler implements V
 	}
 	
 	public void onNextFrame() {
-		vm.rawFrameOffset=0;
+		vm.linkedFrameOffset=0;
 		if((vm.selectedFrame + vm.frameIncrement ) <= vm.maxFrame) {
 		vm.setSelectedFrame(vm.selectedFrame+vm.frameIncrement);
 		vm.setSelection(null);
@@ -104,12 +104,12 @@ public class AnimationControlHandler extends AbstractCommandHandler implements V
 	}
 	
 	public void onPreviewPrevFrame() {
-		vm.rawFrameOffset--;
+		vm.linkedFrameOffset--;
 		animationHandler.forceRerender();
 	}
 	
 	public void onPreviewNextFrame() {
-		vm.rawFrameOffset++;
+		vm.linkedFrameOffset++;
 		animationHandler.forceRerender();
 	}
 	

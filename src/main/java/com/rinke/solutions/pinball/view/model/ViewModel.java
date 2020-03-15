@@ -181,7 +181,7 @@ public class ViewModel extends AbstractModel {
 	public boolean animationIsPlaying;
 	@ViewBinding public int minFrame;
 	@ViewBinding public int selectedFrame;
-	public int rawFrameOffset = 0;
+	public int linkedFrameOffset = 0;
 	@ViewBinding public int maxFrame;
 	public int frameIncrement;
 	

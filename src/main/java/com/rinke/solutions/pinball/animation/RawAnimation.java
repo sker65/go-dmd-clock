@@ -91,7 +91,7 @@ public class RawAnimation extends Animation {
 		return frames != null ? frames.stream().mapToInt(f->f.planes.size()).max().orElse(0) : 0;
 	}
 
-	public void renderSubframes(DMD dmd, int actFrame) {
+	public Frame renderSubframes(DMD dmd, int actFrame) {
 		Frame f = new Frame();
 		int planesToRender = planesPerFrame;
 		if (planesToRender > 4 && planesToRender < 15)
@@ -99,7 +99,7 @@ public class RawAnimation extends Animation {
 		for(int i = 0; i < planesToRender; i++) {
 			f.planes.add(planes.get(actFrame*planesPerFrame + i));
 		}
-		dmd.setFrame(f);
+		return f;
 	}
 
 }

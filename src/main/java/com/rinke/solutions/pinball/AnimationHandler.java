@@ -112,29 +112,38 @@ public class AnimationHandler implements Runnable {
 				
 				// now there is more logic here:
 				Frame res = null;
+				Frame previewRes = null;
 				EditMode mode = vm.selectedEditMode;
 				if( ani instanceof CompiledAnimation ) {
 					CompiledAnimation cani = (CompiledAnimation)ani;
 					RecordingLink link = cani.getRecordingLink();
 					if( mode.pullFrameDataFromAssociatedRecording && link != null) {
 						// calc offset
-						int frameNo = link.startFrame + actFrame + vm.rawFrameOffset;
+						int frameNo = link.startFrame + actFrame + vm.linkedFrameOffset;
 						linkedAnimation = vm.recordings.get(link.associatedRecordingName);
 						if (frameNo < 0) {
 							frameNo = 0;
-							vm.rawFrameOffset++;
+							vm.linkedFrameOffset++;
 							}
 						if (frameNo >= linkedAnimation.end) {
 							frameNo = linkedAnimation.end;
-							vm.rawFrameOffset--;
+							vm.linkedFrameOffset--;
 							}
-						linkedAnimation.render(frameNo, dmd, stop);
-	                	if(vm.previewDMD == null) {
+                		if(vm.previewDMD == null) {
 	    					DMD previewDMD = new DMD(vm.dmdSize);
 	    					vm.setPreviewDMD(previewDMD);
 	    				}
-	                	RawAnimation rani = (RawAnimation)linkedAnimation;
-	                	rani.renderSubframes(vm.previewDMD, frameNo);
+	                	if( linkedAnimation instanceof RawAnimation && vm.previewDMD != null) {
+	                		linkedAnimation.render(frameNo, dmd, stop);
+	                		RawAnimation rani = (RawAnimation)linkedAnimation;
+	                		previewRes = rani.renderSubframes(vm.previewDMD, frameNo);
+	                	} else {
+	                		previewRes = linkedAnimation.render(frameNo,vm.previewDMD,stop);
+	                	}
+
+                        previewRes.setMask(getCurrentMask(vm.detectionMaskActive));
+	                	vm.previewDMD.setFrame(previewRes);
+	                	
 						res = ani.render(dmd,stop);
 					} else {
 						res = ani.render(dmd,stop);
@@ -144,8 +153,10 @@ public class AnimationHandler implements Runnable {
 				}
 				
                 if( ani instanceof RawAnimation && vm.previewDMD != null ) {
-                	RawAnimation rani = (RawAnimation)ani;
-                	rani.renderSubframes(vm.previewDMD, actFrame);
+                	RawAnimation rani = (RawAnimation)ani;       	
+                	Frame tmp = rani.renderSubframes(vm.previewDMD, actFrame);
+            		vm.previewDMD.clear();
+                    vm.previewDMD.writeOr(tmp);
                 }
                 
                 lastRenderedFrame = ani.actFrame;
