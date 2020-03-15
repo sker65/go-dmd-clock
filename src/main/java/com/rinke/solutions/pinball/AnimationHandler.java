@@ -111,7 +111,7 @@ public class AnimationHandler implements Runnable {
 				int actFrame = ani.getActFrame();
 				
 				// now there is more logic here:
-				Frame res = null;
+				Frame res = ani.render(dmd,stop);
 				Frame previewRes = null;
 				EditMode mode = vm.selectedEditMode;
 				if( ani instanceof CompiledAnimation ) {
@@ -129,27 +129,22 @@ public class AnimationHandler implements Runnable {
 							frameNo = linkedAnimation.end;
 							vm.linkedFrameOffset--;
 							}
+						
                 		if(vm.previewDMD == null) {
 	    					DMD previewDMD = new DMD(vm.dmdSize);
 	    					vm.setPreviewDMD(previewDMD);
 	    				}
+                		
+                		previewRes = linkedAnimation.render(frameNo,vm.previewDMD,stop);
+                		
 	                	if( linkedAnimation instanceof RawAnimation && vm.previewDMD != null) {
-	                		linkedAnimation.render(frameNo, dmd, stop);
 	                		RawAnimation rani = (RawAnimation)linkedAnimation;
 	                		previewRes = rani.renderSubframes(vm.previewDMD, frameNo);
-	                	} else {
-	                		previewRes = linkedAnimation.render(frameNo,vm.previewDMD,stop);
 	                	}
 
                         previewRes.setMask(getCurrentMask(vm.detectionMaskActive));
 	                	vm.previewDMD.setFrame(previewRes);
-	                	
-						res = ani.render(dmd,stop);
-					} else {
-						res = ani.render(dmd,stop);
 					}
-				} else {
-					res = ani.render(dmd,stop);
 				}
 				
                 if( ani instanceof RawAnimation && vm.previewDMD != null ) {
