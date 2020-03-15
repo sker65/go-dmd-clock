@@ -74,6 +74,8 @@ public class RecordingsCmdHandler extends AbstractListCmdHandler implements View
 				
 				setEnableHashButtons(true);
 
+				vm.setPreviewDMD(null);
+				
 				setPlayingAni(a, recordingsPosMap.getOrDefault(a.getDesc(), 0));
 				vm.setDmdDirty(true);
 				
@@ -91,13 +93,6 @@ public class RecordingsCmdHandler extends AbstractListCmdHandler implements View
 					//TODO v.goDmdGroup.transitionCombo.select(0);
 				}
 
-				if( a instanceof RawAnimation) {
-					DMD previewDMD = new DMD(vm.dmdSize);
-					vm.setPreviewDMD(previewDMD);
-				} else {
-					vm.setPreviewDMD(null);
-				}
-				
 				vm.dmd.setNumberOfPlanes(numberOfPlanes);
 				vm.setPaletteToolPlanes(vm.detectionMaskActive || vm.layerMaskActive ? 1 :numberOfPlanes);
 

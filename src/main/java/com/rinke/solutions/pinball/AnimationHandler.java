@@ -147,11 +147,14 @@ public class AnimationHandler implements Runnable {
 					}
 				}
 				
-                if( ani instanceof RawAnimation && vm.previewDMD != null ) {
+                if(ani instanceof RawAnimation) {
+            		if(vm.previewDMD == null) {
+    					DMD previewDMD = new DMD(vm.dmdSize);
+    					vm.setPreviewDMD(previewDMD);
+    				}
                 	RawAnimation rani = (RawAnimation)ani;       	
                 	Frame tmp = rani.renderSubframes(vm.previewDMD, actFrame);
-            		vm.previewDMD.clear();
-                    vm.previewDMD.writeOr(tmp);
+                	vm.previewDMD.setFrame(tmp);
                 }
                 
                 lastRenderedFrame = ani.actFrame;
