@@ -216,8 +216,12 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 
 	String checkForDuplicateKeyFrames(PalMapping palMapping) {
 		for (PalMapping p : vm.keyframes.values()) {
-			if (Arrays.equals(p.crc32, palMapping.crc32))
-				return p.name;
+			if (Arrays.equals(p.crc32, palMapping.crc32)) {
+				if (!palMapping.switchMode.equals(SwitchMode.EVENT) && !p.switchMode.equals(SwitchMode.EVENT))
+					return p.name;
+				if (palMapping.switchMode.equals(p.switchMode))
+					return p.name;
+			}
 		}
 		return null;
 	}
