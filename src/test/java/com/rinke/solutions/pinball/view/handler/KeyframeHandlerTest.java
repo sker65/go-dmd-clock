@@ -53,6 +53,7 @@ public class KeyframeHandlerTest extends HandlerTest {
 	public void testCheckForDuplicateKeyFrames() throws Exception {
 		PalMapping p = new PalMapping(0, "foo");
 		p.crc32 = new byte[] { 1, 2, 3, 4 };
+		p.switchMode = SwitchMode.REPLACE;
 		String check = uut.checkForDuplicateKeyFrames(p);
 		assertEquals(null, check);
 		vm.keyframes.put(p.name,p);
