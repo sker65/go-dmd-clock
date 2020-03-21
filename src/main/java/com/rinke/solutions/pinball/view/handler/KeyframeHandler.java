@@ -72,6 +72,10 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 			if( namePrompt.isOkay() ) prompt = namePrompt.getPrompt();
 			else return;
 			
+			if (SwitchMode.EVENT.equals(switchMode)) {
+				prompt = "!"+ namePrompt.getPrompt();
+			}
+			
 			if( vm.keyframes.containsKey(prompt) ) {
 				messageUtil.error("Keyframe Name exists", "A keyframe '"+prompt+"' already exists");
 			}
