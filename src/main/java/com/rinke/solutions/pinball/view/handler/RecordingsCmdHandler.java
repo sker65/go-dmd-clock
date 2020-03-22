@@ -112,6 +112,7 @@ public class RecordingsCmdHandler extends AbstractListCmdHandler implements View
 			vm.setBtnDelBookmarkEnabled(a!=null);
 			vm.setBtnNewBookmarkEnabled(a!=null);
 			vm.setDeleteRecordingEnabled(a!=null);
+			vm.setBtnCheckKeyframeEnabled(a!=null);
 			
 			hashCmdHandler.updateKeyFrameButtons(a, vm.selectedFrameSeq, vm.selectedHashIndex);
 	}

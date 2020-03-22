@@ -263,6 +263,7 @@ public class EditorView implements MainView {
 	@GuiBinding(prop=ENABLED) Button btnAddEvent;
 	@GuiBinding(prop=ENABLED)Button btnPreviewPrev;
 	@GuiBinding(prop=ENABLED)Button btnPreviewNext;
+	@GuiBinding(prop=ENABLED)Button btnCheckKeyframe;
 	Composite grpKeyframe;
 	Text textProperty;
 	
@@ -1311,7 +1312,7 @@ public class EditorView implements MainView {
 		previewDmd.setMaskOut(true);
 
 		Composite navigationGrp = new Composite(grpKeyframe, SWT.NONE);
-		navigationGrp.setLayout(new GridLayout(4, false));
+		navigationGrp.setLayout(new GridLayout(6, false));
 		navigationGrp.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 4, 1));
 		Label lblLinkFrame = new Label(navigationGrp, SWT.NONE);
 		lblLinkFrame.setText("LinkFrame:");
@@ -1332,8 +1333,15 @@ public class EditorView implements MainView {
 		btnPreviewNext.setLayoutData(new GridData(SWT.NONE, SWT.CENTER, false, false, 1, 1));
 		btnPreviewNext.setText(">");
 		btnPreviewNext.addListener(SWT.Selection, e->dispatchCmd(PREVIEW_NEXT_FRAME));
-
-		new Label(grpKeyframe, SWT.NONE);
+		new Label(navigationGrp, SWT.NONE);
+		
+		btnCheckKeyframe = new Button(navigationGrp, SWT.NONE);
+		btnCheckKeyframe.setToolTipText("Checks which Keyframe triggers the current frame");
+		btnCheckKeyframe.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+		btnCheckKeyframe.setText("Check Keyframe");
+		btnCheckKeyframe.addListener(SWT.Selection, e->dispatchCmd(CHECK_KEYFRAME));
+		
+        new Label(grpKeyframe, SWT.NONE);
 		
 		btnSetHash = new Button(grpKeyframe, SWT.NONE);
 		btnSetHash.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
@@ -1450,6 +1458,9 @@ public class EditorView implements MainView {
 		btnAddEvent = new Button(grpKeyframe, SWT.NONE);
 		btnAddEvent.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
 		btnAddEvent.setText("Event");
+		new Label(grpKeyframe, SWT.NONE);
+		new Label(grpKeyframe, SWT.NONE);
+		new Label(grpKeyframe, SWT.NONE);
 		btnAddEvent.addListener(SWT.Selection, e->dispatchCmd(ADD_KEYFRAME,SwitchMode.EVENT));
 		
 		CTabItem tbtmGodmd = new CTabItem(tabFolder, SWT.NONE);

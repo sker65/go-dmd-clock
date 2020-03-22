@@ -161,6 +161,7 @@ public class ViewModel extends AbstractModel {
 	@ViewBinding public boolean btnAddEventEnabled;
 	@ViewBinding public boolean btnPreviewNextEnabled;
 	@ViewBinding public boolean btnPreviewPrevEnabled;
+	@ViewBinding public boolean btnCheckKeyframeEnabled;
 	@ViewBinding public String btnAddFrameSeqLabel = "Color Scene";
 	@ViewBinding public boolean btnSetScenePalEnabled;
 	
@@ -407,6 +408,10 @@ public class ViewModel extends AbstractModel {
 
 	public void setBtnPreviewPrevEnabled(boolean btnPreviewPrevEnabled) {
 		firePropertyChange("btnPreviewPrevEnabled", this.btnPreviewPrevEnabled, this.btnPreviewPrevEnabled = btnPreviewPrevEnabled);
+	}
+
+	public void setBtnCheckKeyframeEnabled(boolean btnCheckKeyframeEnabled) {
+		firePropertyChange("btnCheckKeyframeEnabled", this.btnCheckKeyframeEnabled, this.btnCheckKeyframeEnabled = btnCheckKeyframeEnabled);
 	}
 
 	public void setBtnAddEventEnabled(boolean btnAddEventEnabled) {

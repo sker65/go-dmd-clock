@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map.Entry;
 
 import lombok.extern.slf4j.Slf4j;
@@ -215,6 +216,29 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 				}
 			}
 		}
+	}
+	
+	public void onCheckKeyframe() {
+		List<String> res = new ArrayList<>();
+		for( PalMapping pm : vm.keyframes.values()) {
+			//pm.maskNumber
+			vm.setDetectionMaskActive(pm.withMask);
+			if( pm.withMask ) {
+				vm.dmd.setMask(vm.masks.get(pm.maskNumber));
+				vm.setSelectedMaskNumber(pm.maskNumber);
+			}
+			hashCmdHandler.updateHashes(vm.dmd.getFrame());
+			for (int idx = 0;idx < vm.hashes.size();idx++) {
+				if(Arrays.equals(pm.crc32, vm.hashes.get(idx))) {
+					res.add(" "+pm.name);
+					break;
+				}
+			}
+		}
+		if (res.size() != 0)
+			messageUtil.warn("Keyframe found", "The selected frame gets triggered by Keyframe:\n"+res);
+		else
+			messageUtil.warn("No Keyframe found", "No Keyframe found for the selected frame.");
 	}
 
 
