@@ -1312,32 +1312,32 @@ public class EditorView implements MainView {
 		previewDmd.setMaskOut(true);
 
 		Composite navigationGrp = new Composite(grpKeyframe, SWT.NONE);
-		navigationGrp.setLayout(new GridLayout(6, false));
+		navigationGrp.setLayout(new GridLayout(5, false));
 		navigationGrp.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 4, 1));
 		Label lblLinkFrame = new Label(navigationGrp, SWT.NONE);
-		lblLinkFrame.setText("LinkFrame:");
+		lblLinkFrame.setText("Frame:");
 		
 		GridData gd_navigation2 = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
-		gd_navigation2.widthHint = 66;
-		gd_navigation2.minimumWidth = 60;
+		gd_navigation2.widthHint = 52;
+		gd_navigation2.minimumWidth = 52;
 		lblLinkFrameNo = new Label(navigationGrp, SWT.NONE);
 		lblLinkFrameNo.setLayoutData(gd_navigation2);
 		lblLinkFrameNo.setText("---");
 						
 		btnPreviewPrev = new Button(navigationGrp, SWT.NONE);
-		btnPreviewPrev.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+		btnPreviewPrev.setLayoutData(new GridData(SWT.NONE, SWT.NONE, false, false, 1, 1));
 		btnPreviewPrev.setText("<");
 		btnPreviewPrev.addListener(SWT.Selection, e->dispatchCmd(PREVIEW_PREV_FRAME));
 
 		btnPreviewNext = new Button(navigationGrp, SWT.NONE);
-		btnPreviewNext.setLayoutData(new GridData(SWT.NONE, SWT.CENTER, false, false, 1, 1));
+		btnPreviewNext.setLayoutData(new GridData(SWT.NONE, SWT.NONE, false, false, 1, 1));
 		btnPreviewNext.setText(">");
 		btnPreviewNext.addListener(SWT.Selection, e->dispatchCmd(PREVIEW_NEXT_FRAME));
 		new Label(navigationGrp, SWT.NONE);
 		
 		btnCheckKeyframe = new Button(navigationGrp, SWT.NONE);
 		btnCheckKeyframe.setToolTipText("Checks which Keyframe triggers the current frame");
-		btnCheckKeyframe.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+		btnCheckKeyframe.setLayoutData(new GridData(SWT.NONE, SWT.NONE, false, false, 1, 1));
 		btnCheckKeyframe.setText("Check Keyframe");
 		btnCheckKeyframe.addListener(SWT.Selection, e->dispatchCmd(CHECK_KEYFRAME));
 		
