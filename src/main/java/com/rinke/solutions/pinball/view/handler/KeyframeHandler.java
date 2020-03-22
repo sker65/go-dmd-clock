@@ -235,6 +235,7 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 				}
 			}
 		}
+		vm.setDetectionMaskActive(false);
 		if (res.size() != 0)
 			messageUtil.warn("Keyframe found", "The selected frame gets triggered by Keyframe:\n"+res);
 		else
