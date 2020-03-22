@@ -309,8 +309,6 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 
 			log.debug("selected new palMapping {}", nk);
 
-			vm.setSelectedHashIndex(nk.hashIndex);
-
 			// current firmware always checks with and w/o mask
 			// btnMask.setSelection(selectedPalMapping.withMask);
 			// btnMask.notifyListeners(SWT.Selection, new Event());
@@ -350,7 +348,6 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 
 			vm.setSelectedFrame(nk.frameIndex);
 			vm.setDetectionMaskActive(nk.withMask);
-			vm.setSelectedHashIndex(nk.hashIndex);
 			if( nk.withMask ) {
 				vm.dmd.setMask(vm.masks.get(nk.maskNumber));
 				vm.setSelectedMaskNumber(nk.maskNumber);
@@ -358,6 +355,18 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 			
 			hashCmdHandler.updateHashes(vm.dmd.getFrame());
 			vm.setHashVal(HashCmdHandler.getPrintableHashes(nk.crc32));
+
+			if(Arrays.equals(nk.crc32, vm.hashes.get(nk.hashIndex))) {
+				vm.setSelectedHashIndex(nk.hashIndex);
+			} else {
+				for (int idx = 0;idx < vm.hashes.size();idx++) {
+					if(Arrays.equals(nk.crc32, vm.hashes.get(idx))) {
+						vm.setSelectedHashIndex(idx);
+						nk.hashIndex = idx;
+						break;
+					}
+				}
+			}
 			
 			if( vm.selectedRecording!=null )
 				vm.saveTimeCode = (int) vm.selectedRecording.getTimeCode(nk.frameIndex);
