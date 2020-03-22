@@ -1333,7 +1333,6 @@ public class EditorView implements MainView {
 		btnPreviewNext.setLayoutData(new GridData(SWT.NONE, SWT.NONE, false, false, 1, 1));
 		btnPreviewNext.setText(">");
 		btnPreviewNext.addListener(SWT.Selection, e->dispatchCmd(PREVIEW_NEXT_FRAME));
-		new Label(navigationGrp, SWT.NONE);
 		
 		btnCheckKeyframe = new Button(navigationGrp, SWT.NONE);
 		btnCheckKeyframe.setToolTipText("Checks which Keyframe triggers the current frame");
