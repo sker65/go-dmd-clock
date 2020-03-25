@@ -432,6 +432,11 @@ public class ProjectHandler extends AbstractCommandHandler {
 						// filter out unlocked masks		
 						frameSeq.masks = vm.scenes.get(p.frameSeqName).getMasks()
 								.stream().filter(m->m.locked).collect(Collectors.toList());
+						// due to a bug in the current firmware, it is mandatory to have a mask in any case
+						if (frameSeq.masks.size() == 0) {
+							frameSeq.masks.add(new Mask(vm.dmdSize.planeSize));
+							frameSeq.masks.get(0).locked = true;
+						}
 					}
 					// TODO make this an attribute of switch mode
 					frameSeq.reorderMask = (p.switchMode.equals(SwitchMode.FOLLOW) || p.switchMode.equals(SwitchMode.FOLLOWREPLACE ));
