@@ -105,13 +105,23 @@ public class AnimationControlHandler extends AbstractCommandHandler implements V
 	}
 	
 	public void onPreviewPrevFrame() {
-		vm.linkedFrameOffset--;
-		animationHandler.forceRerender();
+		if( vm.selectedEditMode.pullFrameDataFromAssociatedRecording ) {
+			vm.linkedFrameOffset--;
+			animationHandler.forceRerender();
+		} else if(vm.minFrame < vm.selectedFrame) {
+			vm.setSelectedFrame(vm.selectedFrame-vm.frameIncrement);
+			vm.setSelection(null);
+		}
 	}
 	
 	public void onPreviewNextFrame() {
-		vm.linkedFrameOffset++;
-		animationHandler.forceRerender();
+		if( vm.selectedEditMode.pullFrameDataFromAssociatedRecording ) {
+			vm.linkedFrameOffset++;
+			animationHandler.forceRerender();
+		} else if((vm.selectedFrame + vm.frameIncrement ) <= vm.maxFrame) {
+			vm.setSelectedFrame(vm.selectedFrame+vm.frameIncrement);
+			vm.setSelection(null);
+		}
 	}
 	
 	public void onCopyAndMoveToNextFrame() {
