@@ -172,7 +172,7 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 				"Use only on old projects !", 
 				"This function corrects the palette color values of old projects",
 				new String[]{"", "Cancel", "Proceed"},2);
-		if( res == 0 ) return;
+		if( res != 2 ) return;
 		for (Palette pal : vm.paletteMap.values()) {
 			for(int i = 0; i < vm.getNumberOfColors(); i++ ) {
 				RGB col = pal.colors[i];
