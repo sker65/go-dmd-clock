@@ -78,11 +78,7 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 				vm.setLinkVal("-");
 			}
 			
-			// warum mask auch gleich active setzen
-			// was formerly vm.setDetectionMaskActive(nextScene.getEditMode().useLocalMask);
-			vm.setMaskSpinnerEnabled(m.enableLayerMask);
-
-			// just to enasure a reasonable default
+			// just to ensure a reasonable default
 			if( nextScene.getEditMode() == null || nextScene.getEditMode().equals(EditMode.FIXED) ) {
 				// old animation may be saved with wrong edit mode
 				nextScene.setEditMode(EditMode.REPLACE);
