@@ -100,7 +100,7 @@ public class MaskHandlerTest extends HandlerTest  {
 		vm.setSelectedScene(getScene("foo"));
 		vm.dmd.setMask(mask);
 		vm.dmd.addUndoBuffer();
-		uut.commitMaskIfNeeded(false);
+		uut.commitMaskIfNeeded(true);
 		assertTrue( vm.dirty );
 	}
 
