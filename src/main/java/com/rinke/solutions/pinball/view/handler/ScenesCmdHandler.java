@@ -70,7 +70,7 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 			vm.setDetectionMaskActive(false);
 			vm.setSelectedMaskNumber(0);
 			vm.setLayerMaskActive(false);
-			vm.setBtnLinkEnabled(m.haveLocalMask);
+			vm.setBtnLinkEnabled(true);
 			if( nextScene.getRecordingLink() != null) {
 				RecordingLink rl = nextScene.getRecordingLink();
 				vm.setLinkVal(rl.associatedRecordingName+":"+rl.startFrame);

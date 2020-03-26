@@ -893,7 +893,7 @@ public class EditorView implements MainView {
 		
 		lblLinkVal = new Label(grpDetails, SWT.NONE);
 		GridData gd_lblLinkVal = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
-		gd_lblLinkVal.widthHint = 139;
+		gd_lblLinkVal.widthHint = 200;
 		lblLinkVal.setLayoutData(gd_lblLinkVal);
 		lblLinkVal.setText("---");
 		
