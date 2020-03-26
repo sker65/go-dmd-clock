@@ -69,7 +69,7 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 		} else {
 			vm.setPaletteToolPlanes(vm.dmd.getNumberOfPlanes());
 			commitMaskIfNeeded(preferDetectionMask);
-			if (!vm.detectionMaskActive)
+			if (!vm.detectionMaskActive && !vm.layerMaskActive)
 				mask = null;
 		}
 		vm.dmd.setMask(mask);
