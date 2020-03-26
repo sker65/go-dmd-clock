@@ -216,6 +216,8 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 				}
 			}
 		}
+		vm.dmd.clear();
+		vm.setSelectedScene(null);
 	}
 	
 	public void onCheckKeyframe() {
