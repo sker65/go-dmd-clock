@@ -190,7 +190,7 @@ public class DeviceConfig extends Dialog implements View {
         deviceModecomboViewer.setContentProvider(ArrayContentProvider.getInstance());
         deviceModecomboViewer.setInput(DeviceMode.values());
         deviceModeCombo.select(0);
-        deviceModeCombo.addListener(SWT.Selection, e->connector.switchToMode(deviceModeCombo.getSelectionIndex(),null));
+        deviceModeCombo.addListener(SWT.Selection, e->connector.switchToMode(deviceModeCombo.getSelectionIndex()));
         
         Label lblNewLabel_1 = new Label(grpConfig, SWT.NONE);
         lblNewLabel_1.setText("Default Palette");
@@ -203,7 +203,7 @@ public class DeviceConfig extends Dialog implements View {
         comboViewerDefaultPalette.setContentProvider(ArrayContentProvider.getInstance());
         comboViewerDefaultPalette.setInput(DefaultPalette.values());
         comboDefaultPalette.select(0);
-        comboDefaultPalette.addListener(SWT.Selection, e->connector.switchToPal(comboDefaultPalette.getSelectionIndex(), null));
+        comboDefaultPalette.addListener(SWT.Selection, e->connector.switchToPal(comboDefaultPalette.getSelectionIndex()));
         
         Label lblBrightness = new Label(grpConfig, SWT.NONE);
         lblBrightness.setText("Brightness");

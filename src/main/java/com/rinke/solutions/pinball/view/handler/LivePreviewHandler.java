@@ -29,7 +29,6 @@ public class LivePreviewHandler extends AbstractCommandHandler implements ViewBi
 		super(vm);
 	}
 
-	ConnectionHandle handle;
 	Pin2DmdConnector connector;
 	
 	@Autowired MessageUtil messageUtil;
@@ -72,17 +71,13 @@ public class LivePreviewHandler extends AbstractCommandHandler implements ViewBi
 	 * @param frame
 	 */
 	public void onFrameChanged(Frame frame) {
-		if (vm.livePreviewActive && handle != null) {
-			connector.sendFrame(frame, handle);
+		if (vm.livePreviewActive) {
+			connector.sendFrame(frame);
 		}
 	}
 	
 	public void onPin2dmdAdressChanged(String oldAddr, String newAddr) {
 		log.info("onPin2dmdAdressChanged {} -> {}", oldAddr, newAddr);
-		if (handle != null) {
-			connector.release(handle);
-			connector = null;
-		}
 		if( newAddr != null ) {
 			connector = ConnectorFactory.create(newAddr);
 		}
@@ -91,49 +86,30 @@ public class LivePreviewHandler extends AbstractCommandHandler implements ViewBi
 	public void onUploadPalette(Palette pal) {
 		log.info("uploading palette: {}", pal.index);
 		if( pal != null ) {
-			if( handle != null) {
-				connector.upload(pal,handle);
-			} else {
-				ConnectionHandle h = connector.connect(vm.pin2dmdAdress);
-				connector.upload(pal,h);
-				connector.release(handle);
-			}
+			connector.upload(pal);
 		}
 	}
 
 	public void onLivePreviewActiveChanged(boolean old, boolean livePreviewIsOn) {
 		if (livePreviewIsOn) {
 			try {
-				connector.switchToMode(DeviceMode.PinMame.ordinal(), null);
-				handle = connector.connect(vm.pin2dmdAdress);
-				if (handle != null) {
-					for( Palette pal : vm.paletteMap.values() ) {
-						log.debug("uploading palette: {}", pal);
-						try {
-							Thread.sleep(100);
-						} catch (InterruptedException e) {}
-						connector.upload(pal,handle);
-					}
-					// upload actual palette
-					connector.switchToPal(vm.selectedPalette.index, handle);
-					setEnableUsbTooling(!livePreviewIsOn);
-				} else {
-					messageUtil.warn("PIN2DMD device not found","Please check USB connection");
+				connector.switchToMode(DeviceMode.PinMame.ordinal());
+				for( Palette pal : vm.paletteMap.values() ) {
+					log.debug("uploading palette: {}", pal);
+					try {
+						Thread.sleep(100);
+					} catch (InterruptedException e) {}
+					connector.upload(pal);
 				}
+				// upload actual palette
+				connector.switchToPal(vm.selectedPalette.index);
+				setEnableUsbTooling(!livePreviewIsOn);
 			} catch (RuntimeException ex) {
 				messageUtil.warn("usb problem", "Message was: " + ex.getMessage());
 				// TODO veto v.btnLivePreview.setSelection(false);
 			}
 		} else {
-			if (handle != null) {
-				try {
-					connector.release(handle);
-					setEnableUsbTooling(!livePreviewIsOn);
-				} catch (RuntimeException ex) {
-					messageUtil.warn("usb problem", "Message was: " + ex.getMessage());
-				}
-				handle = null;
-			}
+			setEnableUsbTooling(!livePreviewIsOn);
 		}
 
 	}
@@ -144,16 +120,15 @@ public class LivePreviewHandler extends AbstractCommandHandler implements ViewBi
 	}
 	
 	public void onSelectedPaletteChanged(Palette o, Palette newPalette) {
-		if (vm.livePreviewActive && handle != null) {
+		if (vm.livePreviewActive && connector != null) {
 	//		connector.upload(vm.selectedPalette,handle);
-			connector.switchToPal(newPalette.index, handle);
+			connector.switchToPal(newPalette.index);
 		}
 	}
 
 	public void sendFrame(Frame frame) {
-		if( connector != null && handle != null) {
-			connector.sendFrame(frame, handle);
-		}
+		if( connector != null )
+			connector.sendFrame(frame);
 	}
 
 }

@@ -109,7 +109,7 @@ public class Pin2DmdConnectorTest {
 		Frame frame = new Frame();
 		frame.planes.add(new Plane((byte) 1, new byte[512]));
 		frame.planes.add(new Plane((byte) 2, new byte[512]));
-		uut.sendFrame(frame, null);
+		uut.sendFrame(frame);
 	}
 
 	@Test
@@ -118,17 +118,17 @@ public class Pin2DmdConnectorTest {
 		frame.planes.add(new Plane((byte) 1, new byte[1536]));
 		frame.planes.add(new Plane((byte) 2, new byte[1536]));
 		uut.setDmdSize(DmdSize.Size192x64);
-		uut.sendFrame(frame, null);
+		uut.sendFrame(frame);
 	}
 
 	@Test
 	public void testSwitchToPal() throws Exception {
-		uut.switchToPal(1, null);
+		uut.switchToPal(1);
 	}
 
 	@Test
 	public void testSwitchToMode() throws Exception {
-		uut.switchToMode(0, null);
+		uut.switchToMode(0);
 	}
 
 }

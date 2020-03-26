@@ -8,16 +8,21 @@ import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
 
+import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.pinball.DmdSize;
 import com.rinke.solutions.pinball.PinDmdEditor;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.Plane;
+import com.rinke.solutions.pinball.util.MessageUtil;
+
 import static java.lang.Math.*;
 
 @Slf4j
 public abstract class Pin2DmdConnector {
+	
+	@Autowired MessageUtil messageUtil;
 
 	private static final int USB_BUFFER_SIZE = 512;
 
@@ -138,7 +143,8 @@ public abstract class Pin2DmdConnector {
     
 	public void upload(Palette palette) { 
 		log.info("uploading palette {}", palette);
-		upload(palette, null);
+	    byte[] bytes = fromPalette(palette);
+    	bulk(bytes);
     }
     
     /* (non-Javadoc)
@@ -222,7 +228,7 @@ public abstract class Pin2DmdConnector {
 	/* (non-Javadoc)
 	 * @see com.rinke.solutions.pinball.io.Pin2DmdConnector#sendFrame(com.rinke.solutions.pinball.model.Frame, org.apache.commons.lang3.tuple.Pair)
 	 */
-    public void sendFrame( Frame frame, ConnectionHandle usb ) {
+    public void sendFrame( Frame frame ) {
     	//LOG.info("sending frame to device: {}", frame);
     	int i = 0;
     	int headerSize = 4;
@@ -243,7 +249,7 @@ public abstract class Pin2DmdConnector {
 	        		i++;
 	        		if( i > 3 ) break; // max 4 planes
 	        	}
-	           	send(buffer, usb);
+	           	bulk(buffer);
 	    	} else {
 	    		if( bufferSize / planeSize == 2 ) {
 	    			bufferSize *= 2;				// double buffer size for 4 plane output
@@ -268,7 +274,7 @@ public abstract class Pin2DmdConnector {
 	            		if( i > 3 ) break;
 	            	}
 	        	}
-	           	send(buffer, usb);
+	           	bulk(buffer);
 	    	}
     	} else { // 0-7 red, 8-15 green, 16-23 blue
     		bufferSize = min(15,frame.planes.size()) * planeSize;
@@ -281,34 +287,26 @@ public abstract class Pin2DmdConnector {
         		System.arraycopy(Frame.transform(planeG), 0, buffer, headerSize+((j-3)*planeSize)+(5*planeSize), planeSize);
         		System.arraycopy(Frame.transform(planeB), 0, buffer, headerSize+((j-3)*planeSize)+(10*planeSize), planeSize);
         	}
-           	send(buffer, usb);
+           	bulk(buffer);
     	}
     }
     
     /* (non-Javadoc)
 	 * @see com.rinke.solutions.pinball.io.Pin2DmdConnector#switchToPal(int)
 	 */
-    public void switchToPal( int standardPalNumber, ConnectionHandle handle ) {
+    public void switchToPal(int standardPalNumber) {
     	byte[] res = buildBuffer(UsbCmd.SWITCH_PALETTE);
     	res[5] = (byte) standardPalNumber;
-	    if( handle == null ) {
-	    	bulk(res);
-	    } else {
-	    	send(res, handle);
-	    }
+	    bulk(res);
     }
 
     /* (non-Javadoc)
 	 * @see com.rinke.solutions.pinball.io.Pin2DmdConnector#switchToMode(int)
 	 */
-    public void switchToMode( int deviceMode, ConnectionHandle handle ) {
+    public void switchToMode( int deviceMode ) {
     	byte[] res = buildBuffer(UsbCmd.SWITCH_DEVICEMODE);
     	res[5] = (byte) deviceMode;
-	    if( handle == null ) {
-	    	bulk(res);
-	    } else {
-	    	send(res, handle);
-	    }
+    	bulk(res);
     }
 
 	public abstract ConnectionHandle connect(String address);
@@ -329,20 +327,12 @@ public abstract class Pin2DmdConnector {
 	    if (usb != null) {
 		    try {
 		    	send(data, usb);
-		    } finally {
-		    	release(usb);
+		    } catch(Exception e){
+		    }	
+		    finally {
+		    		release(usb);
 		    }
 	    }
-	}
-
-	public void upload(Palette palette, ConnectionHandle handle) { 
-	    byte[] bytes = fromPalette(palette);
-	    if( handle == null ) {
-	    	bulk(bytes);
-	    } else {
-	    	send(bytes, handle);
-	    }
-		
 	}
 
 	public void setDmdSize(DmdSize dmdSize) {
