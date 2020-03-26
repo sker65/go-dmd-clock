@@ -78,9 +78,9 @@ public class Animation {
 		COLMASK("ColorMask",					true,  false, false, false, false, false, false, false), 
 		FIXED("Fixed", 							false, true,  true, true, false, false, false, false), 
 		COLMASK_FOLLOW("ColorMask Sequence", 	true,  true,  true, false, false, true,  false,  false),
-		LAYEREDCOL("ColorMask Layered", 		true,  true,  true, true, false, true,  false, true),
+		LAYEREDCOL("ColorMask Layered", 		true,  true,  true, true, false, false,  false, true),
 		REPLACE_FOLLOW("Replace Sequence",		false, true,  true, false, false, true,  true,  false),
-		LAYEREDREPLACE("Replace Masked",		false, true,  false, false, true,  true,  false, true),
+		LAYEREDREPLACE("Replace Masked",		false, true,  false, false, true,  true,  false, false),
 		;
 
 		// label to display
