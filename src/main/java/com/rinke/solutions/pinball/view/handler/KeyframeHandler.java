@@ -412,7 +412,7 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 				vm.selectedKeyFrame.setDigest(hash);
 				vm.selectedKeyFrame.hashIndex = vm.selectedHashIndex;
 			} else {
-				if( vm.selectedEditMode.haveLocalMask ) {
+				if( vm.selectedEditMode.haveLocalMask || vm.selectedEditMode.haveSceneDetectionMasks) {
 					// Update hash in scene and lock mask (for scene masks)
 					vm.selectedScene.getActualFrame().setHash(hash);
 					vm.setHashVal(HashCmdHandler.getPrintableHashes(hash));

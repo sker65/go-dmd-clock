@@ -73,8 +73,8 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 				mask = null;
 		}
 		vm.dmd.setMask(mask);
-		vm.setDeleteColMaskEnabled(n);
-		vm.setBtnInvertEnabled(n);
+		vm.setDeleteColMaskEnabled(vm.detectionMaskActive);
+		vm.setBtnInvertEnabled(vm.detectionMaskActive);
 		animationHandler.forceRerender();
 		vm.setDmdDirty(true);
 		hashCmdHandler.updateHashes(vm.dmd.getFrame());
@@ -125,8 +125,8 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 	 */
 	 public void onDeleteColMask() {
 		EditMode m = vm.selectedEditMode;
-		if( m.haveSceneDetectionMasks ) {
-			if(vm.selectedScene != null && vm.selectedScene.getMask(vm.selectedMaskNumber).locked) {
+		if( m.haveSceneDetectionMasks ||  m.haveLocalMask ) {
+			if(vm.selectedScene != null && vm.dmd.getFrame().mask.locked) {
 				int res = messageUtil.warn(0, "Warning",
 						"Unlock Mask", 
 						"If you unlock this mask all hashes using this mask need to be set again !",
