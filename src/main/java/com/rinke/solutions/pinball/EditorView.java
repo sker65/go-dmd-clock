@@ -482,6 +482,10 @@ public class EditorView implements MainView {
 		mntmExtractColorsFrom.setAccelerator(SWT.MOD1 + 'E');
 		mntmExtractColorsFrom.addListener(SWT.Selection, e -> dispatchCmd("extractPalColorsFromFrame"));
 		
+		MenuItem mntmColorCorrectPalette = new MenuItem(menu_3, SWT.NONE);
+		mntmColorCorrectPalette.setText("Color Correct old Palettes");
+		mntmColorCorrectPalette.addListener(SWT.Selection, e -> dispatchCmd("colorCorrectPalette"));
+		
 		MenuItem mntmPickPaletteFrom = new MenuItem(menu_3, SWT.NONE);
 		mntmPickPaletteFrom.setText("Pick Palette from Frame");
 		mntmPickPaletteFrom.addListener(SWT.Selection, e -> dispatchCmd("pickPalette"));
