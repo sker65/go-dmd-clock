@@ -206,8 +206,10 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 			if (pm.frameSeqName != null) {
 				if (res == 2) {
 					vm.setSelectedScene(vm.scenes.get(pm.frameSeqName));
-					vm.selectedScene.setPalIndex(pm.palIndex);
-					vm.selectedScene.setEditMode(getEditModeFromSwitchMode(pm.switchMode));
+					if (vm.selectedScene != null) {
+						vm.selectedScene.setPalIndex(pm.palIndex);
+						vm.selectedScene.setEditMode(getEditModeFromSwitchMode(pm.switchMode));
+					}
 				} else if (res == 1) {
 					vm.setSelectedScene(vm.scenes.get(pm.frameSeqName));
 					pm.switchMode = getSwitchModeFromEditMode(vm.selectedScene.getEditMode());
