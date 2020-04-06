@@ -194,7 +194,7 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 			// die betreffende maske (global oder scenen maske) nicht gelockt ist
 			drawing = m.enableMaskDrawing && (vm.detectionMaskActive || vm.layerMaskActive );
 			if( m.enableDetectionMask ) {
-				if( m.haveSceneDetectionMasks ) {
+				if( m.haveSceneDetectionMasks || m.haveLocalMask) {
 					if(vm.selectedScene != null && vm.selectedScene.getMask(vm.selectedMaskNumber).locked) 
 						drawing = false;	
 				} else {

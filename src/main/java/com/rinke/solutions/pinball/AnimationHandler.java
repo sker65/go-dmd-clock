@@ -122,30 +122,32 @@ public class AnimationHandler implements Runnable {
 						// calc offset
 						int frameNo = link.startFrame + actFrame + vm.linkedFrameOffset;
 						linkedAnimation = vm.recordings.get(link.associatedRecordingName);
-						if (frameNo < 0) {
-							frameNo = 0;
-							vm.linkedFrameOffset++;
-							}
-						if (frameNo >= linkedAnimation.end) {
-							frameNo = linkedAnimation.end;
-							vm.linkedFrameOffset--;
-							}
-						
-                		if(vm.previewDMD == null) {
-	    					DMD previewDMD = new DMD(vm.dmdSize);
-	    					vm.setPreviewDMD(previewDMD);
-	    				}
-                		
-                		vm.setSelectedLinkFrame(frameNo);
-                		previewRes = linkedAnimation.render(frameNo,vm.previewDMD,stop);
-                		
-	                	if( linkedAnimation instanceof RawAnimation && vm.previewDMD != null) {
-	                		RawAnimation rani = (RawAnimation)linkedAnimation;
-	                		previewRes = rani.renderSubframes(vm.previewDMD, frameNo);
+						if (linkedAnimation != null) {
+							if (frameNo < 0) {
+								frameNo = 0;
+								vm.linkedFrameOffset++;
+								}
+							if (frameNo >= linkedAnimation.end) {
+								frameNo = linkedAnimation.end;
+								vm.linkedFrameOffset--;
+								}
+							
+	                		if(vm.previewDMD == null) {
+		    					DMD previewDMD = new DMD(vm.dmdSize);
+		    					vm.setPreviewDMD(previewDMD);
+		    				}
+	                		
+	                		vm.setSelectedLinkFrame(frameNo);
+	                		previewRes = linkedAnimation.render(frameNo,vm.previewDMD,stop);
+	                		
+		                	if( linkedAnimation instanceof RawAnimation && vm.previewDMD != null) {
+		                		RawAnimation rani = (RawAnimation)linkedAnimation;
+		                		previewRes = rani.renderSubframes(vm.previewDMD, frameNo);
+		                	}
+	
+	                        previewRes.setMask(getCurrentMask(vm.detectionMaskActive));
+		                	vm.previewDMD.setFrame(previewRes);
 	                	}
-
-                        previewRes.setMask(getCurrentMask(vm.detectionMaskActive));
-	                	vm.previewDMD.setFrame(previewRes);
 					}
 				}
 				
