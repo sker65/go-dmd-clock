@@ -112,6 +112,7 @@ public class ColorPickerPanel extends ResourceManagedCanvas implements MouseList
 	}
 
 	BufferedImage image = new BufferedImage(MAX_SIZE, MAX_SIZE, BufferedImage.TYPE_INT_ARGB);
+	Image colorImage = null;
 	
 	Insets imagePadding = new Insets(6,6,6,6);
 
@@ -149,8 +150,7 @@ public class ColorPickerPanel extends ResourceManagedCanvas implements MouseList
 //			g2.fill(new Ellipse2D.Float(0,0,size,size));
 //			g2.translate(-2,-2);
 //		}
-		Image i = new Image(display, convertToSWT(image));
-		g2.drawImage(i, 0, 0, size, size, 0, 0, size, size );
+		g2.drawImage(colorImage, 0, 0, size, size, 0, 0, size, size );
 		
 		g2.setForeground(display.getSystemColor(SWT.COLOR_BLACK));
 		if(mode.equals(Mode.SAT) || mode.equals(Mode.BRI)) {
@@ -165,6 +165,7 @@ public class ColorPickerPanel extends ResourceManagedCanvas implements MouseList
 		g2.drawOval(point.x-4,point.y-4,8,8);
 		
 		//g.translate(-imagePadding.left, -imagePadding.top);
+
 	}
 	
 	ImageData convertToSWT(BufferedImage bufferedImage) {
@@ -491,7 +492,10 @@ public class ColorPickerPanel extends ResourceManagedCanvas implements MouseList
 	/** Regenerates the image. */
 	private synchronized void regenerateImage() {
 		int size = Math.min(MAX_SIZE, Math.min(getWidth()-imagePadding.left-imagePadding.right,getHeight()-imagePadding.top-imagePadding.bottom));
-		
+		if( colorImage != null ) {
+			colorImage.dispose();
+		}
+
 		if(mode.is(Mode.BRI) || mode.is(Mode.SAT)) {
 			float bri2 = this.bri;
 			float sat2 = this.sat;
@@ -560,6 +564,7 @@ public class ColorPickerPanel extends ResourceManagedCanvas implements MouseList
 				image.getRaster().setDataElements(0, y, size, 1, row);
 			}
 		}
+		colorImage = new Image(display, convertToSWT(image));
 	}
 
 	@Override
