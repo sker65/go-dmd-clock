@@ -168,6 +168,7 @@ public class ColorPickerSlider extends ResourceManagedCanvas implements MouseLis
 		//g.setBackground(resourceManager.createColor(new RGB(255,200,33)));
 		g.fillRectangle(6, trackRect.y+3, 13, trackRect.height-ARROW_HALF-1);
 		pattern.dispose();
+		image.dispose();
 		// PlafPaintUtils.drawBevel(g2, r);
 	}
 
