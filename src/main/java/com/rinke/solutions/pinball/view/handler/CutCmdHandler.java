@@ -180,6 +180,10 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 	
 	public Animation cutScene(Animation animation, int start, int end, String name) {
 		CompiledAnimation cutScene = animation.cutScene(start, end, noOfPlanesWhenCutting);
+
+		//vm.getSelectedFrameSeq()
+		CompiledAnimation srcScene = vm.getSelectedScene();
+
 		do {
 			NamePrompt namePrompt = (NamePrompt) this.namePrompt;
 			namePrompt.setItemName("Scene");
@@ -214,8 +218,11 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 			if( vm.selectedRecording!=null ) keyframeHandler.onAddKeyframe(SwitchMode.REPLACE);
 		}
 
-		vm.setSelectedScene(cutScene);
-
+		if( vm.selectedRecording!=null )
+			vm.setSelectedScene(cutScene);
+		else
+			vm.setSelectedScene(srcScene);
+		
 		return cutScene;
 	}
 	
