@@ -414,7 +414,30 @@ public class ProjectHandler extends AbstractCommandHandler {
 		populateVmToProject(vm, project);
 		List<Mask> filteredMasks = project.masks.stream().filter(m->m.locked).collect(Collectors.toList());
 		project.masks = filteredMasks;
-
+		
+/*		//filter unused palettes from export
+		if (vm.keyframes.size() != 0) {
+	 		int size = project.paletteMap.size();
+			for (int i = 0; i < size; i++) {
+				Palette p = project.paletteMap.get(i);
+				if( p.type != PaletteType.DEFAULT ) {
+					// check if any keyframe is using this
+					boolean keyFrameFound = false;
+					for( PalMapping pm : vm.keyframes.values()) {
+						if( pm.palIndex == p.index ) {
+							if( !keyFrameFound ) {
+								keyFrameFound = true;
+							}
+						}
+					}
+					if(keyFrameFound == false ) {
+						project.paletteMap.remove(p.index);
+					}
+				}
+			}
+		}
+*/
+		
 		int aniVersionForExport = 4;
 		
 		// rebuild frame seq map	

@@ -494,6 +494,10 @@ public class EditorView implements MainView {
 		mntmFixPaletteAndMode.setText("Fix Palette and Mode");
 		mntmFixPaletteAndMode.addListener(SWT.Selection, e -> dispatchCmd("fixPaletteAndMode"));
 		
+		MenuItem mntmRemoveUnusedPalettes = new MenuItem(menu_3, SWT.NONE);
+		mntmRemoveUnusedPalettes.setText("Delete unused Palettes");
+		mntmRemoveUnusedPalettes.addListener(SWT.Selection, e -> dispatchCmd("deleteUnusedPalettes"));
+
 		MenuItem mntmRecentPalettesItem = new MenuItem(menu_3, SWT.CASCADE);
 		mntmRecentPalettesItem.setText("Recent Palettes");
 
