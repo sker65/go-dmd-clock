@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.Bean;
 import com.rinke.solutions.beans.Value;
+import com.rinke.solutions.pinball.Constants;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.AnimationQuantizer;
 import com.rinke.solutions.pinball.animation.Animation.EditMode;
@@ -16,6 +17,7 @@ import com.rinke.solutions.pinball.model.PalMapping.SwitchMode;
 import com.rinke.solutions.pinball.ui.NamePrompt;
 import com.rinke.solutions.pinball.ui.SplitPrompt;
 import com.rinke.solutions.pinball.model.Palette;
+import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.util.MessageUtil;
 import com.rinke.solutions.pinball.util.ObservableMap;
 import com.rinke.solutions.pinball.view.View;
@@ -45,10 +47,12 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 	
 	public void onSelectedRecordingChanged(Animation o, Animation n) {
 		vm.setMarkStartEnabled(n!=null||vm.selectedScene!=null);
+		vm.setAdd2SceneEnabled(n!=null||vm.selectedScene!=null);
 	}
 
 	public void onSelectedSceneChanged(Animation o, Animation n) {
 		vm.setMarkStartEnabled(n!=null||vm.selectedRecording!=null);
+		vm.setAdd2SceneEnabled(n!=null||vm.selectedRecording!=null);
 	}
 	
 	public void onSelectedFrameChanged(int o, int n) {
@@ -148,7 +152,17 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 		}
 		
 	}
-	
+
+	public void onAdd2Scene() {
+		// respect number of planes while cutting / copying
+		Animation src = getSourceAnimation();
+		if( src != null ) {
+			add2Scene(src, getSourceAnimation().actFrame);
+			log.info(" adding frame from {}", vm.cutInfo);
+		}
+		
+	}
+
 	public void onSplitScene() {
 		// respect number of planes while cutting / copying
 		Animation src = getSourceAnimation();
@@ -225,6 +239,32 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 		
 		return cutScene;
 	}
+
+	void add2Scene(Animation animation, int frameNo) {
+		
+		String name = "newScene";
+
+		CompiledAnimation newScene = null;
+
+		if(!vm.scenes.containsKey(name)) {
+			newScene = animation.cutScene(frameNo, frameNo, noOfPlanesWhenCutting);
+			newScene.setDesc(name);
+			newScene.setPalIndex(vm.selectedPalette.index);
+			newScene.setProjectAnimation(true);
+			newScene.setEditMode(EditMode.LAYEREDCOL);
+			vm.scenes.put(name, newScene);
+			vm.scenes.refresh();
+		} else {
+			newScene = vm.scenes.get(name); 
+			newScene.addFrame(newScene.actFrame, new Frame(newScene.frames.get(newScene.actFrame)));
+			newScene.actFrame++;
+			Frame srcFrame = vm.dmd.getFrame();
+			Frame destFrame = newScene.getActualFrame();
+			srcFrame.copyToWithMask(destFrame, Constants.DEFAULT_DRAW_MASK);
+		}
+		
+	}
+
 	
 	public Animation splitScene(Animation animation) {
 		CompiledAnimation splitScene = null;

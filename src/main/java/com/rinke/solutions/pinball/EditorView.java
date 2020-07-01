@@ -279,6 +279,7 @@ public class EditorView implements MainView {
 	@GuiBinding(prop=ENABLED) private Button btnDelBookmark;
 	@GuiBinding(prop=ENABLED, propName="drawingEnabled") private Button btnAddFrame;
 	@GuiBinding(prop=ENABLED) private Button btnDelFrame;
+	@GuiBinding(prop=ENABLED) private Button btnAdd2Scene;
 	@GuiBinding(prop=ENABLED) private Button btnSetHash;
 
 	private Config config;
@@ -1248,13 +1249,20 @@ public class EditorView implements MainView {
 		cutScene.addListener(SWT.Selection, e -> dispatchCmd(CUT_SCENE));
 
 		btnAddFrame = new Button(composite, SWT.NONE);
+		btnAddFrame.setToolTipText("Adds a frame at the current postion");
 		btnAddFrame.setText("Frame+");
 		btnAddFrame.addListener(SWT.Selection, e->dispatchCmd(ADD_FRAME));
 		
 		btnDelFrame = new Button(composite, SWT.NONE);
+		btnDelFrame.setToolTipText("Deletes a frame at the current postion");
 		btnDelFrame.setText("Frame-");
 		btnDelFrame.addListener(SWT.Selection, e->dispatchCmd(REMOVE_FRAME));
 		
+		btnAdd2Scene = new Button(composite, SWT.NONE);
+		btnAdd2Scene.setToolTipText("Adds the current frame to \"newScene\"");
+		btnAdd2Scene.setText("Add2Scene");
+		btnAdd2Scene.addListener(SWT.Selection, e->dispatchCmd(ADD2SCENE));
+
 		bookmarkComboViewer = new ComboViewer(composite, SWT.NONE);
 		bookmarkCombo = bookmarkComboViewer.getCombo();
 		GridData gd_combo_3 = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);

@@ -154,6 +154,7 @@ public class ViewModel extends AbstractModel {
 	@ViewBinding public boolean btnDelBookmarkEnabled;
 	@ViewBinding public boolean btnNewBookmarkEnabled;
 	@ViewBinding public boolean btnDelFrameEnabled;
+	@ViewBinding public boolean btnAdd2SceneEnabled;
 	
 	@ViewBinding public boolean btnSetHashEnabled;
 	@ViewBinding public boolean btnAddKeyframeEnabled;
@@ -394,6 +395,9 @@ public class ViewModel extends AbstractModel {
 		firePropertyChange("btnDelFrameEnabled", this.btnDelFrameEnabled, this.btnDelFrameEnabled = btnDelFrameEnabled);
 	}
 
+	public void setAdd2SceneEnabled(boolean btnAdd2SceneEnabled) {
+		firePropertyChange("btnAdd2SceneEnabled", this.btnAdd2SceneEnabled, this.btnAdd2SceneEnabled = btnAdd2SceneEnabled);
+	}
 	public void setBtnAddKeyframeEnabled(boolean btnAddKeyframeEnabled) {
 		firePropertyChange("btnAddKeyframeEnabled", this.btnAddKeyframeEnabled, this.btnAddKeyframeEnabled = btnAddKeyframeEnabled);
 	}
