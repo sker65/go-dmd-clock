@@ -261,6 +261,7 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 			Frame srcFrame = vm.dmd.getFrame();
 			Frame destFrame = newScene.getActualFrame();
 			srcFrame.copyToWithMask(destFrame, Constants.DEFAULT_DRAW_MASK);
+			newScene.frames.get(newScene.actFrame).delay = vm.delay;
 		}
 		
 	}
