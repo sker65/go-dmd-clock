@@ -236,9 +236,12 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 			
 			// if loaded colors with animations propagate as palette
 			boolean colorsMatch = false;
+			int aniPalIndex = ani.getPalIndex();
 			for (Palette p : palettes.values()) {
 				if (p.sameColors(aniColors)) {
 					colorsMatch = true;
+					if (aniPalIndex != p.index)
+						messageUtil.warn("Warning ! Duplicate Palette","Palette with colors in scene \"" + ani.getDesc() + "\" already exists. Setting scene palette to first occurance with same colors");
 					ani.setPalIndex(p.index);
 					break;
 				}
