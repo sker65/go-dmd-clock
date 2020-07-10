@@ -59,6 +59,24 @@ public abstract class Pin2DmdConnector {
         return res;
     }
 
+	protected byte[] buildPalBuffer(Palette palette) {
+        byte[] res = new byte[64];
+        res[0] = (byte)0x01;
+        res[1] = (byte)0xc3;
+        res[2] = (byte)0xe7; 
+        res[3] = (byte)0xFE; 
+        res[4] = (byte)0xED;
+        res[5] = (byte)0x10;
+        int j = 6;
+        for( int i =0; i < palette.colors.length;i++) {
+            res[j++] = (byte) palette.colors[i].red;
+            res[j++] = (byte) palette.colors[i].green;
+            res[j++] = (byte) palette.colors[i].blue;
+        }
+
+        return res;
+    }
+
     byte[] buildFrameBuffer(int size, int headerByte, int sizeByte) {
         byte[] res = new byte[size+4]; // add header size
         res[0] = (byte)0x81;
@@ -297,6 +315,11 @@ public abstract class Pin2DmdConnector {
     public void switchToPal(int standardPalNumber) {
     	byte[] res = buildBuffer(UsbCmd.SWITCH_PALETTE);
     	res[5] = (byte) standardPalNumber;
+	    bulk(res);
+    }
+    
+    public void setPal(Palette palette) {
+    	byte[] res = buildPalBuffer(palette);
 	    bulk(res);
     }
 

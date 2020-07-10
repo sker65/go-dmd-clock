@@ -94,7 +94,7 @@ public class LivePreviewHandler extends AbstractCommandHandler implements ViewBi
 		if (livePreviewIsOn) {
 			try {
 				connector.switchToMode(DeviceMode.PinMame.ordinal());
-				for( Palette pal : vm.paletteMap.values() ) {
+				/*for( Palette pal : vm.paletteMap.values() ) {
 					log.debug("uploading palette: {}", pal);
 					try {
 						Thread.sleep(100);
@@ -102,7 +102,8 @@ public class LivePreviewHandler extends AbstractCommandHandler implements ViewBi
 					connector.upload(pal);
 				}
 				// upload actual palette
-				connector.switchToPal(vm.selectedPalette.index);
+				connector.switchToPal(vm.selectedPalette.index);*/
+				connector.setPal(vm.paletteMap.get(vm.selectedPalette.index));
 				setEnableUsbTooling(!livePreviewIsOn);
 			} catch (RuntimeException ex) {
 				messageUtil.warn("usb problem", "Message was: " + ex.getMessage());
@@ -122,7 +123,9 @@ public class LivePreviewHandler extends AbstractCommandHandler implements ViewBi
 	public void onSelectedPaletteChanged(Palette o, Palette newPalette) {
 		if (vm.livePreviewActive && connector != null) {
 	//		connector.upload(vm.selectedPalette,handle);
-			connector.switchToPal(newPalette.index);
+	//		connector.switchToPal(newPalette.index);
+			connector.setPal(vm.paletteMap.get(newPalette.index));
+			connector.sendFrame(vm.dmd.getFrame());
 		}
 	}
 
