@@ -341,7 +341,7 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 
 			vm.setSelectedPaletteByIndex(nk.palIndex);
 			
-			if (nk.frameSeqName != null) {
+			if (nk.frameSeqName != null || nk.switchMode.equals(SwitchMode.EVENT)) {
 				vm.setSelectedFrameSeq(vm.scenes.get(nk.frameSeqName));
 				vm.setDurationEnabled(false);
 				vm.setFetchDurationEnabled(false);
