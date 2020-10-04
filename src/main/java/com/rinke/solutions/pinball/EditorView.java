@@ -1462,12 +1462,12 @@ public class EditorView implements MainView {
 		
 		spinnerDeviceId = new Spinner(composite_5, SWT.BORDER);
 		spinnerDeviceId.setMaximum(255);
-		spinnerDeviceId.setMinimum(0);
+		spinnerDeviceId.setMinimum(1);
 		// bound spinnerDeviceId.addModifyListener(e->ed.onEventSpinnerChanged(spinnerDeviceId, 8));
 		
 		spinnerEventId = new Spinner(composite_5, SWT.BORDER);
 		spinnerEventId.setMaximum(255);
-		spinnerEventId.setMinimum(0);
+		spinnerEventId.setMinimum(1);
 		// bound spinnerEventId.addModifyListener(e->ed.onEventSpinnerChanged(spinnerEventId, 0));
 		
 		btnAddEvent = new Button(grpKeyframe, SWT.NONE);
