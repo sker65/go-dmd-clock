@@ -74,7 +74,7 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 			else return;
 			
 			if (SwitchMode.EVENT.equals(switchMode)) {
-				prompt = "!"+ namePrompt.getPrompt();
+				prompt = "§"+ namePrompt.getPrompt();
 			}
 			
 			if( vm.keyframes.containsKey(prompt) ) {
