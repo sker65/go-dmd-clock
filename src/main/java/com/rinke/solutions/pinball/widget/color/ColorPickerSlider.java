@@ -307,14 +307,6 @@ public class ColorPickerSlider extends ResourceManagedCanvas implements MouseLis
             updateArrow(e.y);
         }
     }
-
-    @Override
-    public void dispose() {
-        if( pattern != null ) pattern.dispose();
-        if( trackImage != null ) trackImage.dispose();
-        super.dispose();
-    }
-
 	@Override
 	public void dispose() {
 		if( pattern != null ) pattern.dispose();
