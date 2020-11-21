@@ -59,7 +59,7 @@ public class ColorPickerSlider extends ResourceManagedCanvas implements MouseLis
 	int[] intArray = new int[Toolkit.getDefaultToolkit().getScreenSize().height];
 	BufferedImage bi = new BufferedImage(1, intArray.length,
 			BufferedImage.TYPE_INT_RGB);
-	int lastMode = -1;
+	
 
 	private Rectangle thumbRect = new Rectangle(0, 0, 20, 15);
 	private Rectangle trackRect = new Rectangle(0, 0, 20, 150);
@@ -111,64 +111,71 @@ public class ColorPickerSlider extends ResourceManagedCanvas implements MouseLis
 	Mode getMode() {
 		return colorPicker!=null?colorPicker.getMode():Mode.HUE;
 	}
-
+	
+	private Mode lastMode = null;
+	private Image trackImage = null;
+	private Pattern pattern = null;
+	
 	public synchronized void paintTrack(GC g, Display display) {
 		Mode mode = getMode();
-		int height = trackRect.height+3;
-		if (mode == Mode.HUE || mode == Mode.BRI
-				|| mode == Mode.SAT) {
-			float[] hsb = colorPicker!=null?colorPicker.getHSB():new float[]{0.3f,0.3f,0.3f};
-			if (mode == Mode.HUE) {
-				for (int y = 0; y < height; y++) {
-					float hue = ((float) y) / ((float) height);
-					intArray[height-y-1] = HSBtoRGB(hue, 1f, 1f);
-				}
-			} else if (mode == Mode.SAT) {
-				for (int y = 0; y < height; y++) {
-					float sat = 1 - ((float) y) / ((float) height);
-					intArray[y] = HSBtoRGB(hsb[0], sat, hsb[2]);
+		if( !mode.equals(lastMode) || trackImage == null ) {
+			if( trackImage != null ) trackImage.dispose();
+			if( pattern != null ) pattern.dispose();
+			int height = trackRect.height+3;
+			if (mode == Mode.HUE || mode == Mode.BRI
+					|| mode == Mode.SAT) {
+				float[] hsb = colorPicker!=null?colorPicker.getHSB():new float[]{0.3f,0.3f,0.3f};
+				if (mode == Mode.HUE) {
+					for (int y = 0; y < height; y++) {
+						float hue = ((float) y) / ((float) height);
+						intArray[height-y-1] = HSBtoRGB(hue, 1f, 1f);
+					}
+				} else if (mode == Mode.SAT) {
+					for (int y = 0; y < height; y++) {
+						float sat = 1 - ((float) y) / ((float) height);
+						intArray[y] = HSBtoRGB(hsb[0], sat, hsb[2]);
+					}
+				} else {
+					for (int y = 0; y < height; y++) {
+						float bri = 1 - ((float) y) / ((float) height);
+						intArray[y] = HSBtoRGB(hsb[0], hsb[1], bri);
+					}
 				}
 			} else {
-				for (int y = 0; y < height; y++) {
-					float bri = 1 - ((float) y) / ((float) height);
-					intArray[y] = HSBtoRGB(hsb[0], hsb[1], bri);
+				int[] rgb = colorPicker.getRGB();
+				if (mode == Mode.RED) {
+					for (int y = 0; y < height; y++) {
+						int red = 255 - (int) (y * 255 / height + .49);
+						intArray[y] = (red << 16) + (rgb[1] << 8) + (rgb[2]);
+					}
+				} else if (mode == Mode.GREEN) {
+					for (int y = 0; y < height; y++) {
+						int green = 255 - (int) (y * 255 / height + .49);
+						intArray[y] = (rgb[0] << 16) + (green << 8) + (rgb[2]);
+					}
+				} else if (mode == Mode.BLUE) {
+					for (int y = 0; y < height; y++) {
+						int blue = 255 - (int) (y * 255 / height + .49);
+						intArray[y] = (rgb[0] << 16) + (rgb[1] << 8) + (blue);
+					}
 				}
 			}
-		} else {
-			int[] rgb = colorPicker.getRGB();
-			if (mode == Mode.RED) {
-				for (int y = 0; y < height; y++) {
-					int red = 255 - (int) (y * 255 / height + .49);
-					intArray[y] = (red << 16) + (rgb[1] << 8) + (rgb[2]);
-				}
-			} else if (mode == Mode.GREEN) {
-				for (int y = 0; y < height; y++) {
-					int green = 255 - (int) (y * 255 / height + .49);
-					intArray[y] = (rgb[0] << 16) + (green << 8) + (rgb[2]);
-				}
-			} else if (mode == Mode.BLUE) {
-				for (int y = 0; y < height; y++) {
-					int blue = 255 - (int) (y * 255 / height + .49);
-					intArray[y] = (rgb[0] << 16) + (rgb[1] << 8) + (blue);
-				}
-			}
+			// if(slider.hasFocus()) {
+			// PlafPaintUtils.paintFocus(g2,r,3);
+			// }
+
+			// http://www.java2s.com/Tutorial/Java/0280__SWT/ConvertbetweenSWTImageandAWTBufferedImage.htm
+
+			bi.getRaster().setDataElements(0, 0, 1, height, intArray);
+			trackImage = new Image(display, convertToSWT(bi));
+			pattern = new Pattern(display,trackImage);
 		}
-		// if(slider.hasFocus()) {
-		// PlafPaintUtils.paintFocus(g2,r,3);
-		// }
-
-		// http://www.java2s.com/Tutorial/Java/0280__SWT/ConvertbetweenSWTImageandAWTBufferedImage.htm
-
-		bi.getRaster().setDataElements(0, 0, 1, height, intArray);
-		Image image = new Image(display, convertToSWT(bi));
-		Pattern pattern = new Pattern(display,image);
+			
 		g.setForeground(display.getSystemColor(SWT.COLOR_BLACK));
 		g.drawRectangle(5, trackRect.y+2, 14, trackRect.height-ARROW_HALF);
 		g.setBackgroundPattern(pattern);
 		//g.setBackground(resourceManager.createColor(new RGB(255,200,33)));
 		g.fillRectangle(6, trackRect.y+3, 13, trackRect.height-ARROW_HALF-1);
-		pattern.dispose();
-		// PlafPaintUtils.drawBevel(g2, r);
 	}
 
 	ImageData convertToSWT(BufferedImage bufferedImage) {
@@ -299,6 +306,13 @@ public class ColorPickerSlider extends ResourceManagedCanvas implements MouseLis
 		if( but == 1 ) {
 			updateArrow(e.y);
 		}
+	}
+
+	@Override
+	public void dispose() {
+		if( pattern != null ) pattern.dispose();
+		if( trackImage != null ) trackImage.dispose();
+		super.dispose();
 	}
 
 }
