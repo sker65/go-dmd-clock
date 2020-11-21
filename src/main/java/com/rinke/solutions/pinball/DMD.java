@@ -118,6 +118,11 @@ public class DMD extends Observable {
 	}
 
 	public void setNumberOfPlanes(int n) {
+		if(frame.planes.size() != 0 && frame.planes.get(0).data.length != this.planeSize) {
+			while( 0 < frame.planes.size() ) {
+	            frame.planes.remove(frame.planes.size()-1);
+	    	}
+		}
 		if( n == frame.planes.size() ) return;
 		log.trace("dmd setNumberOfSubframes {}", n );
     	while( n < frame.planes.size() ) {

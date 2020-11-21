@@ -39,7 +39,7 @@ import com.rinke.solutions.pinball.widget.color.ColorPicker.ColorModifiedListene
 @Slf4j
 public class PaletteTool extends AbstractModel implements ColorModifiedListener {
 	
-	final ToolItem colBtn[] = new ToolItem[16];
+	final ToolItem colBtn[] = new ToolItem[32];
 	Palette palette;
 	private Display display;
 
@@ -49,46 +49,49 @@ public class PaletteTool extends AbstractModel implements ColorModifiedListener 
 	private int selectedColor;
 	byte[] visible = { 1, 1, 0, 0, 1, 0, 0, 0, 
 			           0, 0, 0, 0, 0, 0, 0, 1 };
-	private ToolBar paletteBar;
+    private ToolBar paletteBar16;
+    private ToolBar paletteBar32;
 
 	/** used to reused images in col buttons. */
 	Map<RGB, Image> colImageCache = new HashMap<>();
-	List<ColorChangedListerner> colorChangedListeners = new ArrayList<>();
-	List<ColorIndexChangedListerner> indexChangedListeners = new ArrayList<>();
+	List<ColorChangedListener> colorChangedListeners = new ArrayList<>();
+	List<ColorIndexChangedListener> indexChangedListeners = new ArrayList<>();
 	ColorPicker colorPicker = new ColorPicker(Display.getDefault(), null);
 	// just for the sake of POJO spec
 	@Getter private int numberOfPlanes;
 
 	@FunctionalInterface
-	public static interface ColorChangedListerner {
+	public static interface ColorChangedListener {
 		public void paletteChanged(Palette palette );
 	}
 	
 	@FunctionalInterface
-	public static interface ColorIndexChangedListerner {
+	public static interface ColorIndexChangedListener {
 		public void indexChanged(int index);
 	}
 
-	public void addListener(ColorChangedListerner listener) {
+	public void addListener(ColorChangedListener listener) {
 		if( listener != null ) colorChangedListeners.add(listener);
 	}
 	
 	// draw tools bind to this to get actual color index
-	public void addIndexListener(ColorIndexChangedListerner listener) {
+	public void addIndexListener(ColorIndexChangedListener listener) {
 		indexChangedListeners.add(listener);
 	}
 
 	public void redraw() {
-		paletteBar.redraw();
+        paletteBar16.redraw();
+        paletteBar32.redraw();
 	}
 
-	public PaletteTool(Shell shell, Composite parent, int flags, Palette palette) {
-		this.palette = palette;
+    public PaletteTool(Shell shell, Composite parent16, Composite parent32, int flags, Palette palette) {
+ 		this.palette = palette;
 		resManager = new LocalResourceManager(JFaceResources.getResources(),
-				parent);
-		paletteBar = new ToolBar(parent, flags);
-		createColorButtons(paletteBar, palette);
-		colorPicker.addListener(this);
+                parent16);
+        paletteBar16 = new ToolBar(parent16, flags);
+        paletteBar32 = new ToolBar(parent32, flags);
+        createColorButtons(paletteBar16, paletteBar32, palette);
+        colorPicker.addListener(this);
 	}
 
 	public void setNumberOfPlanes(int planes) {
@@ -96,16 +99,16 @@ public class PaletteTool extends AbstractModel implements ColorModifiedListener 
 		log.info("setting number of planes: {}",planes);
 		switch (planes) {
 		case 1:
-			for (int i = 0; i < colBtn.length; i++)
+			for (int i = 0; i < palette.numberOfColors; i++)
 				colBtn[i].setEnabled(i<2);
 			break;
 		case 2: // 2 planes -> 4 colors
-			for (int i = 0; i < colBtn.length; i++)
+			for (int i = 0; i < palette.numberOfColors; i++)
 				colBtn[i].setEnabled(visible[i] == 1);
 			break;
 		case 4: // 4 planes -> 16 colors
 		case Constants.MAX_BIT_PER_COLOR_CHANNEL*3: // 15 planes -> rgb mode
-			for (int i = 0; i < colBtn.length; i++)
+			for (int i = 0; i < palette.numberOfColors; i++)
 				colBtn[i].setEnabled(true);
 			break;
 		}
@@ -132,10 +135,14 @@ public class PaletteTool extends AbstractModel implements ColorModifiedListener 
 		return image;
 	}
 
-	private void createColorButtons(ToolBar toolBar, Palette pal) {
-		for (int i = 0; i < colBtn.length; i++) {
-			colBtn[i] = new ToolItem(toolBar, SWT.RADIO);
+    private void createColorButtons(ToolBar toolBar16,ToolBar toolBar32, Palette pal) {
+        for (int i = 0; i < pal.numberOfColors; i++) {
+            if (i < 16)
+                colBtn[i] = new ToolItem(toolBar16, SWT.RADIO);
+            else
+                colBtn[i] = new ToolItem(toolBar32, SWT.RADIO);
 			colBtn[i].setSelection(i==0);
+			colBtn[i].setToolTipText("Ctrl-Click to edit\nShift-Click to swap");
 			colBtn[i].setData(Integer.valueOf(i));
 			colBtn[i].setImage(getSquareImage(display, toSwtRGB(pal.colors[i])));
 			colBtn[i].addListener(SWT.Selection, e -> {
@@ -157,7 +164,12 @@ public class PaletteTool extends AbstractModel implements ColorModifiedListener 
 					swapColor(oldCol,selectedColor);
 				}
 			});
-			if( i % 4 == 3 && i < colBtn.length-1) new ToolItem(toolBar, SWT.SEPARATOR);
+            if( i % 4 == 3 && i < pal.numberOfColors-1) {
+                if (i<16) 
+                    new ToolItem(toolBar16, SWT.SEPARATOR);
+                else
+                    new ToolItem(toolBar32, SWT.SEPARATOR);
+            }
 		}
 	}
 	
@@ -184,7 +196,7 @@ public class PaletteTool extends AbstractModel implements ColorModifiedListener 
 
 	public void setPalette(Palette palette) {
 		this.palette = palette;
-		for (int i = 0; i < colBtn.length; i++) {
+		for (int i = 0; i < palette.numberOfColors; i++) {
 			colBtn[i].setImage(getSquareImage(display, toSwtRGB(palette.colors[i])));
 		}
 	}
@@ -227,6 +239,11 @@ public class PaletteTool extends AbstractModel implements ColorModifiedListener 
 	}
 
 	public void setSelectedColor(int selectedColor) {
+		//avoid multiple selections in palette
+		for (int i = 0; i < palette.numberOfColors; i++) {
+			colBtn[i].setSelection(false);
+		}
+		colBtn[selectedColor].setSelection(true);
 		firePropertyChange("selectedColor", this.selectedColor, this.selectedColor = selectedColor);
 	}
 

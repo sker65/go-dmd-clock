@@ -55,6 +55,8 @@ public class MenuHandler extends AbstractCommandHandler implements ViewBindingHa
 	}
 
 	public void onExportGif() {
+		if(vm.selectedScene == null)
+			return;
 		Animation ani = vm.playingAnis.get(0);
 		if( ani != null ) {
 			gifExporter.setAni(ani);
@@ -98,7 +100,7 @@ public class MenuHandler extends AbstractCommandHandler implements ViewBindingHa
 	public void onNewProject() {
 		// init palette
 		vm.paletteMap.clear();
-		Palette.getDefaultPalettes().stream().forEach(p->vm.paletteMap.put(p.index, p));
+		Palette.getDefaultPalettes(vm.numberOfColors).stream().forEach(p->vm.paletteMap.put(p.index, p));
 		vm.setSelectedPalette(vm.paletteMap.get(0));
 
 		// init masks

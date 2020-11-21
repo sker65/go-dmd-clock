@@ -93,6 +93,7 @@ public class AnimationHandler implements Runnable {
 				//if( scale.isDisposed() ) return;
 
 				Animation ani = anis.get(index); 
+				Animation linkedAnimation = null; 
 				updateScale(ani);
 				
 				if( !forceRerender  && stop && ani.actFrame == lastRenderedFrame ) return;
@@ -108,28 +109,57 @@ public class AnimationHandler implements Runnable {
 				}
 				log.debug("rendering ani: {}@{}", ani.getDesc(), ani.getActFrame());
 				int actFrame = ani.getActFrame();
+        		vm.setSelectedLinkFrame(actFrame);
 				
 				// now there is more logic here:
-				Frame res = null;
+				Frame res = ani.render(dmd,stop);
+				Frame previewRes = null;
 				EditMode mode = vm.selectedEditMode;
 				if( ani instanceof CompiledAnimation ) {
 					CompiledAnimation cani = (CompiledAnimation)ani;
 					RecordingLink link = cani.getRecordingLink();
-					if( mode.pullFrameDataFromAssociatedRecording && link != null && vm.detectionMaskActive ) {
+					if( mode.pullFrameDataFromAssociatedRecording && link != null) {
 						// calc offset
-						int frameNo = link.startFrame + actFrame;
-						Animation linkedAnimation = vm.recordings.get(link.associatedRecordingName);
-						res = linkedAnimation.render(frameNo, dmd, stop);
-					} else {
-						res = ani.render(dmd,stop);
+						int frameNo = link.startFrame + actFrame + vm.linkedFrameOffset;
+						linkedAnimation = vm.recordings.get(link.associatedRecordingName);
+						if (linkedAnimation != null) {
+							if (frameNo < 0) {
+								frameNo = 0;
+								vm.linkedFrameOffset++;
+								}
+							if (frameNo >= linkedAnimation.end) {
+								frameNo = linkedAnimation.end;
+								vm.linkedFrameOffset--;
+								}
+							
+	                		if(vm.previewDMD == null) {
+		    					DMD previewDMD = new DMD(vm.dmdSize);
+		    					vm.setPreviewDMD(previewDMD);
+		    				}
+	                		
+	                		vm.setSelectedLinkFrame(frameNo);
+	                		previewRes = linkedAnimation.render(frameNo,vm.previewDMD,stop);
+	                		
+		                	if( linkedAnimation instanceof RawAnimation && vm.previewDMD != null) {
+		                		RawAnimation rani = (RawAnimation)linkedAnimation;
+		                		previewRes = rani.renderSubframes(vm.previewDMD, frameNo);
+		                	}
+	
+	                        previewRes.setMask(getCurrentMask(vm.detectionMaskActive));
+		                	vm.previewDMD.setFrame(previewRes);
+	                	}
 					}
-				} else {
-					res = ani.render(dmd,stop);
 				}
 				
-                if( ani instanceof RawAnimation && vm.previewDMD != null ) {
-                	RawAnimation rani = (RawAnimation)ani;
-                	rani.renderSubframes(vm.previewDMD, actFrame);
+                if(ani instanceof RawAnimation) {
+            		if(vm.previewDMD == null) {
+    					DMD previewDMD = new DMD(vm.dmdSize);
+    					vm.setPreviewDMD(previewDMD);
+    				}
+                	RawAnimation rani = (RawAnimation)ani;       	
+                	Frame tmp = rani.renderSubframes(vm.previewDMD, actFrame);
+                    tmp.setMask(getCurrentMask(vm.detectionMaskActive));
+                	vm.previewDMD.setFrame(tmp);
                 }
                 
                 lastRenderedFrame = ani.actFrame;
@@ -162,7 +192,7 @@ public class AnimationHandler implements Runnable {
 
                 if( ani.hasEnded() ) {
 					if( !ani.isMutable() ){
-						ani.restart();
+//						ani.restart();
 						if( showClock) setClockActive(true);
 						index++;
 						if( index >= anis.size()) {
@@ -233,18 +263,20 @@ public class AnimationHandler implements Runnable {
 	 */
 	public Mask getCurrentMask(boolean preferDetectionMask) {
 		Mask maskToUse = null; 
-		if( vm.selectedScene!=null) {
-			if( vm.selectedEditMode.haveLocalMask ) {
-				maskToUse = vm.selectedScene.getCurrentMask();
+		if(vm.selectedEditMode != null) {
+			if( vm.selectedScene!=null) {
+				if( vm.selectedEditMode.haveLocalMask ) {
+					maskToUse = vm.selectedScene.getCurrentMask();
+				}
+				if( vm.selectedEditMode.haveSceneDetectionMasks && preferDetectionMask ){
+					maskToUse = vm.selectedScene.getMask(vm.selectedMaskNumber); 
+				}
 			}
-			if( vm.selectedEditMode.haveSceneDetectionMasks && preferDetectionMask ){
-				maskToUse = vm.selectedScene.getMask(vm.selectedMaskNumber); 
+			if( vm.selectedEditMode.enableDetectionMask && !vm.selectedEditMode.haveSceneDetectionMasks
+					&& !vm.selectedEditMode.haveLocalMask) {
+				// use one of the global masks
+				if( preferDetectionMask ) maskToUse = vm.masks.get(vm.selectedMaskNumber);
 			}
-		}
-		if( vm.selectedEditMode.enableDetectionMask && !vm.selectedEditMode.haveSceneDetectionMasks
-				&& !vm.selectedEditMode.haveLocalMask) {
-			// use one of the global masks
-			if( preferDetectionMask ) maskToUse = vm.masks.get(vm.selectedMaskNumber);
 		}
 		return maskToUse;
 	}

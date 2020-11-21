@@ -20,9 +20,11 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import static java.nio.file.StandardCopyOption.*;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
@@ -167,6 +169,8 @@ public class ProjectHandler extends AbstractCommandHandler {
 		}
 	}
 
+	private int index = 0;
+	
 	public void onLoadProjectWithProgress(String filename, Worker w) {
 		log.info("load project from {}", filename);
 		// TODO clear view model
@@ -196,7 +200,14 @@ public class ProjectHandler extends AbstractCommandHandler {
 				vm.paletteMap.putAll(p.paletteMap);
 				for( Palette pal : p.getPalettes() ) {
 					if( !vm.paletteMap.containsKey(pal.index) ) vm.paletteMap.put(pal.index, pal);
-					else messageUtil.warn("duplicate palette", "project file contains conflicting palette definition. Pal No "+pal.index);
+					else {
+						int res = messageUtil.warn(0, "Warning",
+								"duplicate palette", "project file contains conflicting palette definition. Pal No "+pal.index+ "\nDo you want to overwrite ?",
+								new String[]{"", "KEEP", "OVERWRITE"},2);
+						if( res == 2 ) {
+							vm.paletteMap.put(pal.index, pal);
+						}
+					}
 				}
 				if( p.width == 0) {
 					p.width = 128;
@@ -209,7 +220,12 @@ public class ProjectHandler extends AbstractCommandHandler {
 				vm.recordings.clear();
 				vm.scenes.clear();
 				vm.inputFiles.clear();
-				vm.inputFiles.addAll(p.inputFiles);
+				for (String file : p.inputFiles) {
+					String basefile = FilenameUtils.getBaseName(file)
+			                + "." + FilenameUtils.getExtension(file);
+					vm.inputFiles.add(basefile);	
+				}
+				//vm.addAll(p.inputFiles);
 				
 				// mask
 				vm.masks.clear();
@@ -222,24 +238,50 @@ public class ProjectHandler extends AbstractCommandHandler {
 			p.inputFiles.remove(new File(aniFilename).getName()); // simple name
 			String msg = "";
 			int i = 1;
+			index = 0;
 			for (String file : p.inputFiles) {
+				String basefile = vm.inputFiles.get(index);
 				if( w!=null) w.notify(10 + i*(80/p.inputFiles.size()), "loading ani "+file);
 				dispatcher.syncExec(()->{
-					try {
-						List<Animation> anis = aniAction.loadAni(buildRelFilename(filename, file), true, false, progress);
+					try { // load from project folder
+						List<Animation> anis = aniAction.loadAni(buildRelFilename(filename, basefile), true, false, progress);
 						if( !anis.isEmpty() ) {
 							Animation firstAni = anis.get(0);
-							if( p.recordingNameMap.containsKey(file)) {
-								firstAni.setDesc(p.recordingNameMap.get(file));
+							if( p.recordingNameMap.containsKey(basefile)) {
+								firstAni.setDesc(p.recordingNameMap.get(basefile));
 							}
 						}
 					} catch( RuntimeException e) {
-						log.error("problem loading {}", file, e);
-						//msg +="\nProblem loading "+file+": "+e.getMessage();
+						log.error("problem loading {}", vm.inputFiles.get(i), e);
+						try { // try full path 
+							List<Animation> anis = aniAction.loadAni(buildRelFilename(filename, file), true, false, progress);
+							if( !anis.isEmpty() ) {
+								try { // found file but not in project directory => copy
+									Files.copy(Paths.get(buildRelFilename(filename, file)),Paths.get(buildRelFilename(filename, basefile)) , REPLACE_EXISTING);
+								} catch (IOException f) {
+									log.error("problem moving {}", basefile, f);
+								}
+								Animation firstAni = anis.get(0);
+								if( p.recordingNameMap.containsKey(file)) {
+									firstAni.setDesc(p.recordingNameMap.get(file));
+								}
+							}
+						} catch( RuntimeException f) {
+							log.error("problem loading {}", file, f);
+							int res = messageUtil.warn(0, "Warning",
+									"Project file not found", 
+									"Project file " + file + " missing. Please copy the file to the project folder or remove from project.",
+									new String[]{"", "CONTINUE", "REMOVE"},2);
+							if( res != 2 ) return;
+							int j = vm.inputFiles.indexOf(basefile);
+							if (j != -1) vm.inputFiles.remove(j);
+							index--;
+						}
 					}
 				});
+				index++;
 			}
-			if( w!=null) w.notify(90, "loading prject ani "+aniFilename);
+			if( w!=null) w.notify(90, "loading project ani "+aniFilename);
 
 			dispatcher.syncExec(()->{
 				List<Animation> loadedWithProject = aniAction.loadAni(aniFilename, true, false, progress);
@@ -314,14 +356,18 @@ public class ProjectHandler extends AbstractCommandHandler {
 	}
 
 	public void onExportRealPinProject() {
-		licenseManager.requireOneOf( Capability.REALPIN, Capability.GODMD, Capability.XXL_DISPLAY);
-		String filename = fileChooserUtil.choose(SWT.SAVE, bareName(vm.projectFilename), new String[] { "*.pal" }, new String[] { "Export pal" });
-		if (filename != null) {
-			if(!noExportWarning ) messageUtil.warn("Warning", "Please don´t publish projects with copyrighted material / frames");
-			onExportProject(filename, f -> new FileOutputStream(f), true);
-			if( !filename.endsWith("pin2dmd.pal")) {
-				if(!noExportWarning ) messageUtil.warn("Hint", "Remember to rename your export file to pin2dmd.pal if you want to use it" + " in a real pinballs sdcard of pin2dmd.");
+		if(licenseManager.getLicense() != null) {
+			licenseManager.requireOneOf( Capability.REALPIN, Capability.GODMD, Capability.XXL_DISPLAY);
+			String filename = fileChooserUtil.choose(SWT.SAVE, bareName(vm.projectFilename), new String[] { "*.pal" }, new String[] { "Export pal" });
+			if (filename != null) {
+				if(!noExportWarning ) messageUtil.warn("Warning", "Please don´t publish projects with copyrighted material / frames");
+				onExportProject(filename, f -> new FileOutputStream(f), true);
+				if( !filename.endsWith("pin2dmd.pal")) {
+					if(!noExportWarning ) messageUtil.warn("Hint", "Remember to rename your export file to pin2dmd.pal if you want to use it" + " in a real pinballs sdcard of pin2dmd.");
+				}
 			}
+		} else {
+			messageUtil.warn("Warning", "Feature only available with valid license file");
 		}
 	}
 	
@@ -359,11 +405,39 @@ public class ProjectHandler extends AbstractCommandHandler {
 		log.info("export project {} file {}", realPin?"real":"vpin", filename);
 		if( realPin) licenseManager.requireOneOf(Capability.VPIN, Capability.REALPIN, Capability.GODMD, Capability.XXL_DISPLAY);
 
+		if(vm.selectedScene!=null) {
+			vm.selectedScene.commitDMDchanges(vm.dmd); 
+			vm.setDirty(vm.dirty|vm.selectedScene.isDirty());
+		}
+
 		Project project = new Project();
 		populateVmToProject(vm, project);
 		List<Mask> filteredMasks = project.masks.stream().filter(m->m.locked).collect(Collectors.toList());
 		project.masks = filteredMasks;
-
+		
+/*		//filter unused palettes from export
+		if (vm.keyframes.size() != 0) {
+	 		int size = project.paletteMap.size();
+			for (int i = 0; i < size; i++) {
+				Palette p = project.paletteMap.get(i);
+				if( p.type != PaletteType.DEFAULT ) {
+					// check if any keyframe is using this
+					boolean keyFrameFound = false;
+					for( PalMapping pm : vm.keyframes.values()) {
+						if( pm.palIndex == p.index ) {
+							if( !keyFrameFound ) {
+								keyFrameFound = true;
+							}
+						}
+					}
+					if(keyFrameFound == false ) {
+						project.paletteMap.remove(p.index);
+					}
+				}
+			}
+		}
+*/
+		
 		int aniVersionForExport = 4;
 		
 		// rebuild frame seq map	
@@ -381,6 +455,11 @@ public class ProjectHandler extends AbstractCommandHandler {
 						// filter out unlocked masks		
 						frameSeq.masks = vm.scenes.get(p.frameSeqName).getMasks()
 								.stream().filter(m->m.locked).collect(Collectors.toList());
+						// due to a bug in the current firmware, it is mandatory to have a mask in any case
+						if (frameSeq.masks.size() == 0) {
+							frameSeq.masks.add(new Mask(vm.dmdSize.planeSize));
+							frameSeq.masks.get(0).locked = true;
+						}
 					}
 					// TODO make this an attribute of switch mode
 					frameSeq.reorderMask = (p.switchMode.equals(SwitchMode.FOLLOW) || p.switchMode.equals(SwitchMode.FOLLOWREPLACE ));
@@ -509,6 +588,11 @@ public class ProjectHandler extends AbstractCommandHandler {
 		log.info("write project to {}", filename);
 		String aniFilename = replaceExtensionTo("ani", filename);
 		
+		if(vm.selectedScene!=null) {
+			vm.selectedScene.commitDMDchanges(vm.dmd); 
+			vm.setDirty(vm.dirty|vm.selectedScene.isDirty());
+		}
+
 		if( vm.loadedAniVersion!= 0 && vm.loadedAniVersion < CURRENT_PRJ_ANI_VERSION ) {
 			int res = messageUtil.warn(0, "Warning",
 					"Older ani file format", 

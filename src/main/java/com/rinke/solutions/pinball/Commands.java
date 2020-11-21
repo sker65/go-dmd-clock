@@ -29,6 +29,7 @@ public class Commands {
 	public static final String UNDO = "undo";
 	public static final String REDO = "redo";
 	public static final String SELECT_ALL = "selectAll";
+	public static final String REPLACE = "replace";
 	public static final String PASTE_HOOVER = "pasteHoover";
 	public static final String PASTE = "paste";
 	public static final String COPY = "copy";
@@ -44,10 +45,14 @@ public class Commands {
 	public static final String NEW_BOOKMARK = "newBookmark";
 	public static final String REMOVE_FRAME = "removeFrame";
 	public static final String ADD_FRAME = "addFrame";
+	public static final String ADD2SCENE = "add2Scene";
 	public static final String MARK_END = "markEnd";
 	public static final String MARK_START = "markStart";
 	public static final String NEXT_FRAME = "nextFrame";
 	public static final String PREV_FRAME = "prevFrame";
+	public static final String PREVIEW_NEXT_FRAME = "previewNextFrame";
+	public static final String PREVIEW_PREV_FRAME = "previewPrevFrame";
+	public static final String CHECK_KEYFRAME = "checkKeyframe";
 	public static final String START_STOP = "startStop";
 	public static final String DELETE_PALETTE = "deletePalette";
 	public static final String RENAME_PALETTE = "renamePalette";
@@ -73,6 +78,7 @@ public class Commands {
 	public static final String SAVE_ANI_WITH_FC = "saveAniWithFC";
 	public static final String LOAD_ANI_WITH_FC = "loadAniWithFC";
 	public static final String CUT_SCENE = "cutScene";
+	public static final String SPLIT_SCENE = "splitScene";
 	
 	public static final String UNLOCK_SCENE_MASKS = "unlockSceneMasks";
 	public static final String CONVERT_SCENE_TO_RGB = "convertSceneToRGB";

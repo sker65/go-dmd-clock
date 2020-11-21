@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map.Entry;
 
 import lombok.extern.slf4j.Slf4j;
@@ -16,8 +17,11 @@ import com.rinke.solutions.beans.Bean;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.Animation.EditMode;
 import com.rinke.solutions.pinball.model.PalMapping;
+import com.rinke.solutions.pinball.model.PaletteType;
 import com.rinke.solutions.pinball.model.PalMapping.SwitchMode;
+import com.rinke.solutions.pinball.ui.NamePrompt;
 import com.rinke.solutions.pinball.util.MessageUtil;
+import com.rinke.solutions.pinball.view.View;
 import com.rinke.solutions.pinball.view.model.ViewModel;
 
 @Bean
@@ -28,6 +32,7 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 	MessageUtil messageUtil;
 	@Autowired HashCmdHandler hashCmdHandler;
 	@Autowired MaskHandler maskHandler;
+	@Autowired View namePrompt;
 
 	public KeyframeHandler(ViewModel vm) {
 		super(vm);
@@ -59,7 +64,30 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 		EditMode editMode = ani==null?null:ani.getEditMode();
 		if( switchMode == null ) switchMode = getSwitchModeFromEditMode(editMode);
 
-		PalMapping palMapping = new PalMapping(0, getName(switchMode, ani) );
+		String prompt = getName(switchMode, ani);
+		do {
+			NamePrompt namePrompt = (NamePrompt) this.namePrompt;
+			namePrompt.setItemName("Keyframe");
+			namePrompt.setPrompt(prompt);
+			namePrompt.open();
+			if( namePrompt.isOkay() ) prompt = namePrompt.getPrompt();
+			else return;
+			
+			if (SwitchMode.EVENT.equals(switchMode)) {
+				prompt = "|"+ namePrompt.getPrompt();
+			}
+			
+			if( vm.keyframes.containsKey(prompt) ) {
+				messageUtil.error("Keyframe Name exists", "A keyframe '"+prompt+"' already exists");
+			}
+		} while(vm.keyframes.containsKey(prompt));
+		
+		if (vm.selectedHashIndex == -1) {
+			messageUtil.error("No Hash Selected", "Please select a hash");
+			return;
+		} 
+		
+		PalMapping palMapping = new PalMapping(0, prompt );
 		palMapping.setDigest(vm.hashes.get(vm.selectedHashIndex));
 	
 		if( ani != null ) {
@@ -78,6 +106,10 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 		if( switchMode.equals(SwitchMode.EVENT)) {
 			palMapping.durationInMillis = (vm.selectedSpinnerDeviceId<<8) + vm.selectedSpinnerEventId;
 		} else {
+			if (SwitchMode.PALETTE.equals(switchMode)) {
+				vm.setDuration(0);
+				vm.setSelectedFrameSeq(null);
+			}	
 			palMapping.durationInMillis = vm.duration;
 		}
 		if (vm.showMask) {
@@ -99,11 +131,15 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 			//vm.setDetectionMaskActive(false);
 			palMapping.targetFrameIndex = 0; // how will this look like
 		}
-		if (!checkForDuplicateKeyFrames(palMapping)) {
+		String duplicateName = checkForDuplicateKeyFrames(palMapping);
+		if (duplicateName == null) {
 			vm.keyframes.put(palMapping.name,palMapping);
 		} else {
-			messageUtil.warn("duplicate hash", "There is already another Keyframe that uses the same hash");
+			messageUtil.warn("duplicate hash", "There is already Keyframe \"" + duplicateName + "\" that uses the same hash");
 		}
+		vm.setSelectedKeyFrame(palMapping);
+		vm.setSelectedPalette(vm.paletteMap.values().stream()
+				.filter(p->p.type.equals(PaletteType.DEFAULT)).findFirst().orElse(vm.selectedPalette));
 	}
 	
 	/**
@@ -113,9 +149,15 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 	 * @return name
 	 */
 	 String getName(SwitchMode switchMode, Animation ani) {
-		String name = "KeyFrame " + ( ani!=null 
-				&&  !switchMode.equals(SwitchMode.PALETTE) 
-				&& !switchMode.equals(SwitchMode.EVENT) ? ani.getDesc():Integer.toString(vm.keyframes.size()+1) );
+//		String name = "KeyFrame " + ( ani!=null 
+//				&&  !switchMode.equals(SwitchMode.PALETTE) 
+//				&& !switchMode.equals(SwitchMode.EVENT) ? ani.getDesc():Integer.toString(vm.keyframes.size()+1) );
+	 	String name = "";
+		if (ani!=null && !switchMode.equals(SwitchMode.PALETTE) && !switchMode.equals(SwitchMode.EVENT)) {
+			name = name + ani.getDesc();
+		} else {
+			name = "KeyFrame ";
+		}
 		int i = 0;
 		String res = name;
 		while( vm.keyframes.containsKey(res)) {
@@ -138,13 +180,83 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 		}
 		return switchMode;
 	}
-
-	boolean checkForDuplicateKeyFrames(PalMapping palMapping) {
-		for (PalMapping p : vm.keyframes.values()) {
-			if (Arrays.equals(p.crc32, palMapping.crc32))
-				return true;
+	
+	private EditMode getEditModeFromSwitchMode(SwitchMode switchMode) {
+		EditMode editMode = EditMode.FIXED;
+		switch(switchMode) {
+			case ADD: editMode = EditMode.COLMASK; break;
+			case REPLACE: editMode = EditMode.REPLACE; break;
+			case LAYEREDCOL: editMode = EditMode.LAYEREDCOL; break;
+			case FOLLOWREPLACE: editMode = EditMode.REPLACE_FOLLOW; break;
+			case LAYEREDREPLACE: editMode = EditMode.LAYEREDREPLACE; break;
+			case FOLLOW: editMode = EditMode.COLMASK_FOLLOW; break;
+			default: break;
 		}
-		return false;
+		return editMode;
+	}
+
+	
+	public void onFixPaletteAndMode() {
+		int res = messageUtil.warn(0, "Warning",
+				"Use only on corrupted projects !", 
+				"This function synchronizes the mode and palette of the scenes and the keyframes.\n Take the mode and palette settings from :",
+				new String[]{"Cancel", "Scenes", "Keyframes"},2);
+		if( res == 0 ) return;
+		for( PalMapping pm : vm.keyframes.values()) {
+			if (pm.frameSeqName != null) {
+				if (res == 2) {
+					vm.setSelectedScene(vm.scenes.get(pm.frameSeqName));
+					if (vm.selectedScene != null) {
+						vm.selectedScene.setPalIndex(pm.palIndex);
+						vm.selectedScene.setEditMode(getEditModeFromSwitchMode(pm.switchMode));
+					}
+				} else if (res == 1) {
+					vm.setSelectedScene(vm.scenes.get(pm.frameSeqName));
+					pm.switchMode = getSwitchModeFromEditMode(vm.selectedScene.getEditMode());
+					pm.palIndex = vm.selectedScene.getPalIndex();
+					vm.setSelectedKeyFrame(pm);
+				}
+			}
+		}
+		vm.dmd.clear();
+		vm.setSelectedScene(null);
+	}
+	
+	public void onCheckKeyframe() {
+		List<String> res = new ArrayList<>();
+		for( PalMapping pm : vm.keyframes.values()) {
+			//pm.maskNumber
+			vm.setDetectionMaskActive(pm.withMask);
+			if( pm.withMask ) {
+				vm.dmd.setMask(vm.masks.get(pm.maskNumber));
+				vm.setSelectedMaskNumber(pm.maskNumber);
+			}
+			hashCmdHandler.updateHashes(vm.dmd.getFrame());
+			for (int idx = 0;idx < vm.hashes.size();idx++) {
+				if(Arrays.equals(pm.crc32, vm.hashes.get(idx))) {
+					res.add(" "+pm.name);
+					break;
+				}
+			}
+		}
+		vm.setDetectionMaskActive(false);
+		if (res.size() != 0)
+			messageUtil.warn("Keyframe found", "The selected frame gets triggered by Keyframe:\n"+res);
+		else
+			messageUtil.warn("No Keyframe found", "No Keyframe found for the selected frame.");
+	}
+
+
+	String checkForDuplicateKeyFrames(PalMapping palMapping) {
+		for (PalMapping p : vm.keyframes.values()) {
+			if (Arrays.equals(p.crc32, palMapping.crc32)) {
+				if (!palMapping.switchMode.equals(SwitchMode.EVENT) && !p.switchMode.equals(SwitchMode.EVENT))
+					return p.name;
+				if (palMapping.switchMode.equals(p.switchMode))
+					return p.name;
+			}
+		}
+		return null;
 	}
 
 	public void onDeleteKeyframe() {
@@ -202,8 +314,6 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 
 			log.debug("selected new palMapping {}", nk);
 
-			vm.setSelectedHashIndex(nk.hashIndex);
-
 			// current firmware always checks with and w/o mask
 			// btnMask.setSelection(selectedPalMapping.withMask);
 			// btnMask.notifyListeners(SWT.Selection, new Event());
@@ -231,20 +341,37 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 
 			vm.setSelectedPaletteByIndex(nk.palIndex);
 			
-			if (nk.frameSeqName != null)
+			if (nk.frameSeqName != null || nk.switchMode.equals(SwitchMode.EVENT)) {
 				vm.setSelectedFrameSeq(vm.scenes.get(nk.frameSeqName));
+				vm.setDurationEnabled(false);
+				vm.setFetchDurationEnabled(false);
+			} else {
+				vm.setSelectedFrameSeq(null);
+				vm.setDurationEnabled(true);
+				vm.setFetchDurationEnabled(true);
+			}
 
 			vm.setSelectedFrame(nk.frameIndex);
 			vm.setDetectionMaskActive(nk.withMask);
-			vm.setSelectedHashIndex(nk.hashIndex);
 			if( nk.withMask ) {
 				vm.dmd.setMask(vm.masks.get(nk.maskNumber));
 				vm.setSelectedMaskNumber(nk.maskNumber);
 			}
 			
 			hashCmdHandler.updateHashes(vm.dmd.getFrame());
-			
-			vm.setMaskSpinnerEnabled(nk.withMask);
+			vm.setHashVal(HashCmdHandler.getPrintableHashes(nk.crc32));
+
+			if(Arrays.equals(nk.crc32, vm.hashes.get(nk.hashIndex))) {
+				vm.setSelectedHashIndex(nk.hashIndex);
+			} else {
+				for (int idx = 0;idx < vm.hashes.size();idx++) {
+					if(Arrays.equals(nk.crc32, vm.hashes.get(idx))) {
+						vm.setSelectedHashIndex(idx);
+						nk.hashIndex = idx;
+						break;
+					}
+				}
+			}
 			
 			if( vm.selectedRecording!=null )
 				vm.saveTimeCode = (int) vm.selectedRecording.getTimeCode(nk.frameIndex);
@@ -252,9 +379,10 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 			vm.setSelectedKeyFrame(null);
 		}
 		vm.setBtnSetHashEnabled(nk != null);
+		vm.setBtnPreviewNextEnabled(nk != null);
+		vm.setBtnPreviewPrevEnabled(nk != null);
 		vm.setDeleteKeyFrameEnabled(nk != null);
 		vm.setSetKeyFramePalEnabled(nk != null && SwitchMode.PALETTE.equals(nk.switchMode));
-		vm.setFetchDurationEnabled(nk != null);
 	}
 	
 	private static final int FRAME_RATE = 40;
@@ -286,11 +414,13 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 				vm.selectedKeyFrame.setDigest(hash);
 				vm.selectedKeyFrame.hashIndex = vm.selectedHashIndex;
 			} else {
-				if( vm.selectedEditMode.haveLocalMask ) {
+				if( vm.selectedEditMode.haveLocalMask || vm.selectedEditMode.haveSceneDetectionMasks) {
 					// Update hash in scene and lock mask (for scene masks)
 					vm.selectedScene.getActualFrame().setHash(hash);
 					vm.setHashVal(HashCmdHandler.getPrintableHashes(hash));
 					if( vm.detectionMaskActive ) {
+						maskHandler.commitMaskIfNeeded(true);
+						vm.selectedScene.getMask(vm.selectedMaskNumber).locked = true;
 						vm.dmd.getFrame().mask.locked = true;
 						vm.setDmdDirty(true);
 					}

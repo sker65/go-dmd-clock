@@ -14,6 +14,7 @@ import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.AnimationType;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.model.Frame;
+import com.rinke.solutions.pinball.ui.NamePrompt;
 import com.rinke.solutions.pinball.view.model.ViewModel;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -24,12 +25,16 @@ public class CutCmdHandlerTest extends HandlerTest {
 	@Mock
 	private PaletteHandler paletteHandler;
 	
+	@Mock private NamePrompt namePrompt;
+	
 	@InjectMocks
 	private CutCmdHandler uut = new CutCmdHandler(vm);
 	
 	@Before
 	public void setup() {
 		vm.setSelectedScene(getScene("foo"));
+		when(namePrompt.isOkay()).thenReturn(true);
+		when(namePrompt.getPrompt()).thenReturn("1");
 	}
 
 	@Test

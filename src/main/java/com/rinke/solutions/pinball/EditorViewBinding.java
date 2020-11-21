@@ -60,6 +60,10 @@ public class EditorViewBinding extends AbstractCommandHandler implements ViewBin
 		editorView.getClipboardHandler().onPasteHoover();
 	}
 	
+	public void onReplace() {
+		editorView.getClipboardHandler().onReplace();
+	}
+	
 	private void updateTitle(String t, boolean dirty) {
 		editorView.getShell().setText(frameTextPrefix + " - " + (dirty?"* ":"") + (t==null?"":t));
 	}

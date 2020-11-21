@@ -58,21 +58,21 @@ public class PaletteHandlerTest extends HandlerTest  {
 	}
 
 	@Test
-	public void testCheckOverride() throws Exception {
+	public void testCheckOverwrite() throws Exception {
 		Map<Integer,Palette> palettes = new HashMap<>();
 		List<Palette> palettesImported = new ArrayList<>();
-		String override = uut.checkOverride(palettes, palettesImported);
-		assertThat(override, equalTo(""));
+		String overwrite = uut.checkOverwrite(palettes, palettesImported);
+		assertThat(overwrite, equalTo(""));
 
 		palettes.put(0,new Palette(Palette.defaultColors(), 0, "foo"));
 		palettesImported.add(new Palette(Palette.defaultColors(), 1, "foo"));
-		override = uut.checkOverride(palettes, palettesImported);
-		assertThat(override, equalTo(""));
+		overwrite = uut.checkOverwrite(palettes, palettesImported);
+		assertThat(overwrite, equalTo(""));
 
 		palettes.put(2,new Palette(Palette.defaultColors(), 2, "foo2"));
 		palettesImported.add(new Palette(Palette.defaultColors(), 2, "foo2"));
-		override = uut.checkOverride(palettes, palettesImported);
-		assertThat(override, equalTo("2, "));
+		overwrite = uut.checkOverwrite(palettes, palettesImported);
+		assertThat(overwrite, equalTo("2, "));
 	}
 
 	@Test
@@ -132,7 +132,7 @@ public class PaletteHandlerTest extends HandlerTest  {
 
 	@Test
 	public void testOnNewPalette() throws Exception {
-		uut.onNewPalette();
+//		uut.onNewPalette();
 	}
 
 	@Test

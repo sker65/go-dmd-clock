@@ -42,6 +42,7 @@ public class ViewModel extends AbstractModel {
 	}
 
 	public int numberOfHashButtons = 4;
+	public int numberOfColors = 16;
 	public boolean dirty;
 	public DmdSize dmdSize;
 	public String pin2dmdAdress;
@@ -74,7 +75,7 @@ public class ViewModel extends AbstractModel {
 		
 		setProjectFilename(null);
 		setDirty(false);
-		Palette.getDefaultPalettes().stream().forEach(p->paletteMap.put(p.index, p));
+		Palette.getDefaultPalettes(numberOfColors).stream().forEach(p->paletteMap.put(p.index, p));
 		setMaxNumberOfMasks(noOfMasks);
 		setSelectedPalette(paletteMap.values().iterator().next());
 		resetMask(ds, noOfMasks);
@@ -92,6 +93,7 @@ public class ViewModel extends AbstractModel {
 	@ViewBinding public boolean deleteSceneEnabled;
 	@ViewBinding public boolean deleteKeyFrameEnabled;
 	@ViewBinding public boolean fetchDurationEnabled;
+	@ViewBinding public boolean durationEnabled;
 	@ViewBinding public boolean setKeyFramePalEnabled;
 	@ViewBinding public boolean drawingEnabled;
 	@ViewBinding public boolean copyToNextEnabled;
@@ -102,21 +104,27 @@ public class ViewModel extends AbstractModel {
 	@ViewBinding public boolean deleteColMaskEnabled;
 	@ViewBinding public boolean btnLinkEnabled;
 	
-	@ViewBinding public int duration;
+	public int duration;
 	
 	@ViewBinding public int paletteToolPlanes;
 	public int lastTimeCode;
 	public int saveTimeCode;
 	
-	@ViewBinding public int selectedMaskNumber;
 	@ViewBinding public boolean detectionMaskEnabled;
 	@ViewBinding public boolean layerMaskEnabled;
 	@ViewBinding public boolean detectionMaskActive;
 	@ViewBinding public boolean layerMaskActive;
 	@ViewBinding public boolean showMask;
 	
+	@ViewBinding public int selectedMaskNumber;
 	@ViewBinding public boolean maskSpinnerEnabled;
 	@ViewBinding public int maxNumberOfMasks;
+	
+	@ViewBinding public int selectedToolSize = 1;
+	@ViewBinding public boolean toolSizeSpinnerEnabled;
+	
+	@ViewBinding public boolean smartDrawEnabled;
+	@ViewBinding public boolean smartDrawActive;
 
 	public ObservableList<Mask> masks = new ObservableList<>(new ArrayList<>());
 	
@@ -146,17 +154,21 @@ public class ViewModel extends AbstractModel {
 	@ViewBinding public boolean btnDelBookmarkEnabled;
 	@ViewBinding public boolean btnNewBookmarkEnabled;
 	@ViewBinding public boolean btnDelFrameEnabled;
+	@ViewBinding public boolean btnAdd2SceneEnabled;
 	
 	@ViewBinding public boolean btnSetHashEnabled;
 	@ViewBinding public boolean btnAddKeyframeEnabled;
 	@ViewBinding public boolean btnAddFrameSeqEnabled;
 	@ViewBinding public boolean btnAddEventEnabled;
+	@ViewBinding public boolean btnPreviewNextEnabled;
+	@ViewBinding public boolean btnPreviewPrevEnabled;
+	@ViewBinding public boolean btnCheckKeyframeEnabled;
 	@ViewBinding public String btnAddFrameSeqLabel = "Color Scene";
 	@ViewBinding public boolean btnSetScenePalEnabled;
 	
 	@ViewBinding public boolean livePreviewActive;
 	@ViewBinding public boolean mntmUploadPalettesEnabled;
-	@ViewBinding public boolean mntmUploadProjectEnabled;
+	@ViewBinding public boolean mntmUploadProjectEnabled = true;
 	
 	@ViewBinding public boolean cutEnabled = true;
 	@ViewBinding public boolean copyEnabled = true;
@@ -171,6 +183,8 @@ public class ViewModel extends AbstractModel {
 	public boolean animationIsPlaying;
 	@ViewBinding public int minFrame;
 	@ViewBinding public int selectedFrame;
+	@ViewBinding public int selectedLinkFrame;
+	public int linkedFrameOffset = 0;
 	@ViewBinding public int maxFrame;
 	public int frameIncrement;
 	
@@ -199,7 +213,7 @@ public class ViewModel extends AbstractModel {
 	// try to bound it to scenes as well
 	//@ViewBinding public ObservableList<Animation> frameSeqList = new ObservableList<>(new ArrayList<>());
 	
-	@ViewBinding public Palette selectedPalette = Palette.getDefaultPalettes().get(0);
+	@ViewBinding public Palette selectedPalette = Palette.getDefaultPalettes(numberOfColors).get(0);
 	@ViewBinding public ObservableMap<Integer,Palette> paletteMap = new ObservableMap<>(new LinkedHashMap<>());
 	@ViewBinding public int selectedColor;
 	
@@ -241,6 +255,10 @@ public class ViewModel extends AbstractModel {
 		firePropertyChange("fetchDurationEnabled", this.fetchDurationEnabled, this.fetchDurationEnabled = fetchDurationEnabled);
 	}
 
+	public void setDurationEnabled(boolean durationEnabled) {
+		firePropertyChange("durationEnabled", this.durationEnabled, this.durationEnabled = durationEnabled);
+	}
+
 	public void setSetKeyFramePalEnabled(boolean setKeyFramePalEnabled) {
 		firePropertyChange("setKeyFramePalEnabled", this.setKeyFramePalEnabled, this.setKeyFramePalEnabled = setKeyFramePalEnabled);
 	}
@@ -269,6 +287,10 @@ public class ViewModel extends AbstractModel {
 		firePropertyChange("selectedFrame", this.selectedFrame, this.selectedFrame = selectedFrame);
 	}
 
+	public void setSelectedLinkFrame(int selectedLinkFrame) {
+		firePropertyChange("selectedLinkFrame", this.selectedLinkFrame, this.selectedLinkFrame = selectedLinkFrame);
+	}
+	
 	public void setMaxFrame(int maxFrame) {
 		firePropertyChange("maxFrame", this.maxFrame, this.maxFrame = maxFrame);
 	}
@@ -373,12 +395,27 @@ public class ViewModel extends AbstractModel {
 		firePropertyChange("btnDelFrameEnabled", this.btnDelFrameEnabled, this.btnDelFrameEnabled = btnDelFrameEnabled);
 	}
 
+	public void setAdd2SceneEnabled(boolean btnAdd2SceneEnabled) {
+		firePropertyChange("btnAdd2SceneEnabled", this.btnAdd2SceneEnabled, this.btnAdd2SceneEnabled = btnAdd2SceneEnabled);
+	}
 	public void setBtnAddKeyframeEnabled(boolean btnAddKeyframeEnabled) {
 		firePropertyChange("btnAddKeyframeEnabled", this.btnAddKeyframeEnabled, this.btnAddKeyframeEnabled = btnAddKeyframeEnabled);
 	}
 
 	public void setBtnAddFrameSeqEnabled(boolean btnAddFrameSeqEnabled) {
 		firePropertyChange("btnAddFrameSeqEnabled", this.btnAddFrameSeqEnabled, this.btnAddFrameSeqEnabled = btnAddFrameSeqEnabled);
+	}
+
+	public void setBtnPreviewNextEnabled(boolean btnPreviewNextEnabled) {
+		firePropertyChange("btnPreviewNextEnabled", this.btnPreviewNextEnabled, this.btnPreviewNextEnabled = btnPreviewNextEnabled);
+	}
+
+	public void setBtnPreviewPrevEnabled(boolean btnPreviewPrevEnabled) {
+		firePropertyChange("btnPreviewPrevEnabled", this.btnPreviewPrevEnabled, this.btnPreviewPrevEnabled = btnPreviewPrevEnabled);
+	}
+
+	public void setBtnCheckKeyframeEnabled(boolean btnCheckKeyframeEnabled) {
+		firePropertyChange("btnCheckKeyframeEnabled", this.btnCheckKeyframeEnabled, this.btnCheckKeyframeEnabled = btnCheckKeyframeEnabled);
 	}
 
 	public void setBtnAddEventEnabled(boolean btnAddEventEnabled) {
@@ -425,10 +462,6 @@ public class ViewModel extends AbstractModel {
 		firePropertyChange("previewDmdPalette", this.previewDmdPalette, this.previewDmdPalette = previewDmdPalette);
 	}
 
-	public void setSelectedMaskNumber(int selectedMaskNumber) {
-		firePropertyChange("selectedMaskNumber", this.selectedMaskNumber, this.selectedMaskNumber = selectedMaskNumber);
-	}
-
 	public void setBtnInvertEnabled(boolean btnInvertEnabled) {
 		firePropertyChange("btnInvertEnabled", this.btnInvertEnabled, this.btnInvertEnabled = btnInvertEnabled);
 	}
@@ -448,7 +481,32 @@ public class ViewModel extends AbstractModel {
 	public void setMaskSpinnerEnabled(boolean maskSpinnerEnabled) {
 		firePropertyChange("maskSpinnerEnabled", this.maskSpinnerEnabled, this.maskSpinnerEnabled = maskSpinnerEnabled);
 	}
+	
+	public void setSelectedMaskNumber(int selectedMaskNumber) {
+		firePropertyChange("selectedMaskNumber", this.selectedMaskNumber, -1); //hack to commit mask before change
+		firePropertyChange("selectedMaskNumber", this.selectedMaskNumber, this.selectedMaskNumber = selectedMaskNumber);
+	}
+	
+	public void setMaxNumberOfMasks(int maxNumberOfMasks) {
+		firePropertyChange("maxNumberOfMasks", this.maxNumberOfMasks, this.maxNumberOfMasks = maxNumberOfMasks);
+	}
 
+	public void setSelectedToolSize(int selectedToolSize) {
+		firePropertyChange("selectedToolSize", this.selectedToolSize, this.selectedToolSize = selectedToolSize);
+	}
+	
+	public void setToolSizeSpinnerEnabled(boolean toolSizeSpinnerEnabled) {
+		firePropertyChange("toolSizeSpinnerEnabled", this.toolSizeSpinnerEnabled, this.toolSizeSpinnerEnabled = toolSizeSpinnerEnabled);
+	}
+	
+	public void setSmartDrawEnabled(boolean smartDrawEnabled) {
+		firePropertyChange("smartDrawEnabled", this.smartDrawEnabled, this.smartDrawEnabled = smartDrawEnabled);
+	}
+	
+	public void setSmartDrawActive(boolean smartDrawActive) {
+		firePropertyChange("smartDrawActive", this.smartDrawActive, this.smartDrawActive = smartDrawActive);
+	}
+	
 	public void setBtnSetScenePalEnabled(boolean btnSetScenePalEnabled) {
 		firePropertyChange("btnSetScenePalEnabled", this.btnSetScenePalEnabled, this.btnSetScenePalEnabled = btnSetScenePalEnabled);
 	}
@@ -528,10 +586,6 @@ public class ViewModel extends AbstractModel {
 
 	public void setRecentAnimations(String recentAnimations) {
 		firePropertyChange("recentAnimations", this.recentAnimations, this.recentAnimations = recentAnimations);
-	}
-
-	public void setMaxNumberOfMasks(int maxNumberOfMasks) {
-		firePropertyChange("maxNumberOfMasks", this.maxNumberOfMasks, this.maxNumberOfMasks = maxNumberOfMasks);
 	}
 
 	public void setBookmarksMap(Map<String, Set<Bookmark>> bookmarksMap) {

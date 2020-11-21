@@ -31,11 +31,13 @@ import com.rinke.solutions.pinball.animation.ProgressEventListener;
 import com.rinke.solutions.pinball.model.Model;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.RGB;
+import com.rinke.solutions.pinball.ui.IProgress;
 import com.rinke.solutions.pinball.ui.Progress;
 import com.rinke.solutions.pinball.util.FileChooserUtil;
 import com.rinke.solutions.pinball.util.MessageUtil;
 import com.rinke.solutions.pinball.view.handler.AbstractCommandHandler;
 import com.rinke.solutions.pinball.view.model.ViewModel;
+import org.apache.commons.io.FilenameUtils;
 
 @Slf4j
 @Bean
@@ -43,6 +45,7 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 	
 	@Autowired MessageUtil messageUtil;
 	@Autowired FileChooserUtil fileChooserUtil;
+	
 	@Setter private Shell shell;
 	private AniReader reader;
 		
@@ -50,7 +53,7 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 		super(vm);
 	}
 	
-	protected Progress getProgress() {
+	protected IProgress getProgress() {
 		return shell!=null ? new Progress(shell) : new Progress(Display.getCurrent().getActiveShell());
 	}
 
@@ -70,7 +73,7 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 	public void storeAnimations(Collection<Animation> anis, String filename, int version, boolean saveAll) {
 		java.util.List<Animation> anisToSave = anis.stream().filter(a -> saveAll || a.isDirty()).collect(Collectors.toList());
 		if( anisToSave.isEmpty() ) return;// Pair.of(0, Collections.emptyMap());
-		Progress progress = getProgress();
+		IProgress progress = getProgress();
 		AniWriter aniWriter = new AniWriter(anisToSave, filename, version, vm.paletteMap, progress);
 		if( progress != null ) {
 			progress.open(aniWriter);
@@ -146,8 +149,10 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 		if (populateProject) {
 			if (!append)
 				vm.inputFiles.clear();
-			if (!vm.inputFiles.contains(filename))
-				vm.inputFiles.add(filename);
+			String baseFilename = FilenameUtils.getBaseName(filename)
+	                + "." + FilenameUtils.getExtension(filename);
+			//if (!vm.inputFiles.contains(baseFilename))
+				vm.inputFiles.add(baseFilename);
 		}
 
 		// animationHandler.setAnimations(sourceAnis);
@@ -231,9 +236,12 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 			
 			// if loaded colors with animations propagate as palette
 			boolean colorsMatch = false;
+			int aniPalIndex = ani.getPalIndex();
 			for (Palette p : palettes.values()) {
 				if (p.sameColors(aniColors)) {
 					colorsMatch = true;
+					if (aniPalIndex != p.index)
+						messageUtil.warn("Warning ! Duplicate Palette","Palette with colors in scene \"" + ani.getDesc() + "\" already exists. Setting scene palette to first occurance with same colors");
 					ani.setPalIndex(p.index);
 					break;
 				}

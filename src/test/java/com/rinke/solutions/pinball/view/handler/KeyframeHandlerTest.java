@@ -19,6 +19,7 @@ import com.rinke.solutions.pinball.model.Mask;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.PalMapping.SwitchMode;
 import com.rinke.solutions.pinball.model.Palette;
+import com.rinke.solutions.pinball.ui.NamePrompt;
 import com.rinke.solutions.pinball.util.MessageUtil;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -26,6 +27,9 @@ public class KeyframeHandlerTest extends HandlerTest {
 	
 	@Mock
 	MessageUtil messageUtil;
+	
+	@Mock
+	NamePrompt namePrompt;
 	
 	@Mock
 	HashCmdHandler hashCmdHandler;
@@ -41,15 +45,20 @@ public class KeyframeHandlerTest extends HandlerTest {
 	public void setup() {
 		vm.hashes.add(new byte[] { 1, 2, 3, 4 });
 		vm.selectedRecording = getScene("foo");
+		when(namePrompt.isOkay()).thenReturn(true);
+		when(namePrompt.getPrompt()).thenReturn("Keyframe 1");
 	}
 
 	@Test
 	public void testCheckForDuplicateKeyFrames() throws Exception {
 		PalMapping p = new PalMapping(0, "foo");
 		p.crc32 = new byte[] { 1, 2, 3, 4 };
-		assertFalse(uut.checkForDuplicateKeyFrames(p));
+		p.switchMode = SwitchMode.REPLACE;
+		String check = uut.checkForDuplicateKeyFrames(p);
+		assertEquals(null, check);
 		vm.keyframes.put(p.name,p);
-		assertTrue(uut.checkForDuplicateKeyFrames(p));
+		check = uut.checkForDuplicateKeyFrames(p);
+		assertEquals("foo", check);
 	}
 
 	@Test
@@ -257,7 +266,7 @@ public class KeyframeHandlerTest extends HandlerTest {
 	@Test
 	public void testGetName() throws Exception {
 		String n = uut.getName(SwitchMode.PALETTE, null);
-		assertEquals("KeyFrame 1", n);
+		assertEquals("KeyFrame ", n);
 	}
 
 	@Test
@@ -265,6 +274,6 @@ public class KeyframeHandlerTest extends HandlerTest {
 		vm.keyframes.put("KeyFrame 1", getKeyframe());
 		CompiledAnimation scene = getScene("1");
 		String n = uut.getName(SwitchMode.ADD, scene);
-		assertEquals("KeyFrame 1 1", n);	}
+		assertEquals("1", n);	}
 
 }

@@ -66,6 +66,7 @@ public class RecordingsCmdHandler extends AbstractListCmdHandler implements View
 				vm.setLayerMaskActive(false);
 				vm.setLayerMaskEnabled(false);
 				vm.setDetectionMaskEnabled(true);
+				vm.setDetectionMaskActive(false);
 				vm.setMaskSpinnerEnabled(true);
 				
 				vm.setSuggestedEditMode(EditMode.FIXED);
@@ -73,6 +74,8 @@ public class RecordingsCmdHandler extends AbstractListCmdHandler implements View
 				
 				setEnableHashButtons(true);
 
+				vm.setPreviewDMD(null);
+				
 				setPlayingAni(a, recordingsPosMap.getOrDefault(a.getDesc(), 0));
 				vm.setDmdDirty(true);
 				
@@ -90,15 +93,8 @@ public class RecordingsCmdHandler extends AbstractListCmdHandler implements View
 					//TODO v.goDmdGroup.transitionCombo.select(0);
 				}
 
-				if( a instanceof RawAnimation) {
-					DMD previewDMD = new DMD(vm.dmdSize);
-					vm.setPreviewDMD(previewDMD);
-				} else {
-					vm.setPreviewDMD(null);
-				}
-				
 				vm.dmd.setNumberOfPlanes(numberOfPlanes);
-				vm.setNumberOfPlanes(vm.detectionMaskActive || vm.layerMaskActive ? 1 :numberOfPlanes);
+				vm.setPaletteToolPlanes(vm.detectionMaskActive || vm.layerMaskActive ? 1 :numberOfPlanes);
 
 				Set<Bookmark> set = vm.bookmarksMap.get(a.getDesc());
 				vm.bookmarks.clear();
@@ -116,6 +112,7 @@ public class RecordingsCmdHandler extends AbstractListCmdHandler implements View
 			vm.setBtnDelBookmarkEnabled(a!=null);
 			vm.setBtnNewBookmarkEnabled(a!=null);
 			vm.setDeleteRecordingEnabled(a!=null);
+			vm.setBtnCheckKeyframeEnabled(a!=null);
 			
 			hashCmdHandler.updateKeyFrameButtons(a, vm.selectedFrameSeq, vm.selectedHashIndex);
 	}
@@ -132,7 +129,17 @@ public class RecordingsCmdHandler extends AbstractListCmdHandler implements View
 		}
 		if( res.isEmpty() ) {
 			vm.bookmarksMap.remove(vm.selectedRecording.getDesc());
+			String filename = vm.selectedRecording.getName();
+			int i = vm.inputFiles.indexOf(filename);
 			onRemove(vm.selectedRecording, vm.recordings);
+			// if not used anymore delete from file list
+			boolean nameExists = false;
+			for (Animation r: vm.recordings.values()) {
+				String name = r.getName();
+				if (name.equals(filename))
+					nameExists = true;
+			}
+			if ( nameExists != true && (i != -1)) vm.inputFiles.remove(i);
 		} else {
 			messageUtil.warn("Recording cannot be deleted", "It is used by "+res);
 		}

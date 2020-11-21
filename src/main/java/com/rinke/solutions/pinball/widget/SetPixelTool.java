@@ -9,6 +9,7 @@ public class SetPixelTool extends DrawTool {
 	@Override
 	public boolean mouseMove(int x, int y) {
 		if( pressedButton > 0 ) {
+			drawSquare(x,y,x+toolSize-1,y+toolSize-1);
 			dmd.setPixel(x, y, actualColor);
 			return true;
 		}
@@ -18,7 +19,17 @@ public class SetPixelTool extends DrawTool {
 	@Override
 	public boolean mouseDown(int x, int y) {
 		dmd.addUndoBuffer();
+		drawSquare(x,y,x+toolSize-1,y+toolSize-1);
 		dmd.setPixel(x, y, actualColor);
 		return true;
+	}
+	
+	private void drawSquare(int x1, int y1, int x2, int y2) {
+		int tmp;
+		if( x2 < x1 ) { tmp = x2; x2=x1; x1=tmp; }
+		if( y2 < y1 ) { tmp = y2; y2=y1; y1=tmp; }
+		for( int x=x1; x <= x2; x++) {
+			for(int y = y1; y<=y2; y++) dmd.setPixel(x, y, actualColor);
+		}
 	}
 }

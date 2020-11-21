@@ -12,6 +12,10 @@ import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.widgets.Display;
 
 import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.Bean;
@@ -32,10 +36,12 @@ import com.rinke.solutions.pinball.model.PaletteType;
 import com.rinke.solutions.pinball.model.Plane;
 import com.rinke.solutions.pinball.model.RGB;
 import com.rinke.solutions.pinball.ui.ConfigDialog;
+import com.rinke.solutions.pinball.ui.NamePrompt;
 import com.rinke.solutions.pinball.ui.PalettePicker;
 import com.rinke.solutions.pinball.util.Config;
 import com.rinke.solutions.pinball.util.FileChooserUtil;
 import com.rinke.solutions.pinball.util.MessageUtil;
+import com.rinke.solutions.pinball.view.View;
 import com.rinke.solutions.pinball.view.model.ViewModel;
 
 @Slf4j
@@ -46,9 +52,16 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 	@Autowired FileChooserUtil fileChooserUtil;
 	@Autowired MessageUtil messageUtil;
 	@Autowired PalettePicker palettePicker;
+	@Autowired View namePrompt;
 	
 	@Value(key=Config.COLOR_ACCURACY,defaultValue="0")
     private int colorAccuracy;
+	
+	private RGB colorBuf0 = null;
+	private RGB colorBuf1 = null;
+	private RGB colorBuf2 = null;
+	private RGB colorBuf3 = null;
+
 
 	public PaletteHandler(ViewModel vm) {
 		super(vm);
@@ -58,9 +71,6 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 		if (newName.contains(" - ")) {
 			vm.selectedPalette.name = newName.split(" - ")[1];
 			vm.paletteMap.refresh();
-			int idx = vm.selectedPalette.index;
-			vm.setSelectedPalette(null);	// to force refresh
-			vm.setSelectedPaletteByIndex(idx);
 		} else {
 			messageUtil.warn("Illegal palette name", "Palette names must consist of palette index and name.\nName format therefore must be '<idx> - <name>'");
 			vm.setEditedPaletteName(vm.selectedPalette.index + " - " + vm.selectedPalette.name);
@@ -96,6 +106,7 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 		if( newPalette != null) {
 			log.info("new palette is {}", vm.selectedPalette);
 			vm.setSelectedPaletteType(vm.selectedPalette.type);
+			vm.setPaletteDirty(true);
 		}
 	}
 	
@@ -124,6 +135,57 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 				vm.setPaletteDirty(true);
 			}
 		}
+	}
+	
+	
+	int revertGamma(int val){
+
+		int gamma8[] = {
+			0, 0, 0, 0 , 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1,
+			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+			1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2,
+			2, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5,
+			5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 9, 9, 9, 10,
+			10, 10, 11, 11, 11, 12, 12, 13, 13, 13, 14, 14, 15, 15, 16, 16,
+			17, 17, 18, 18, 19, 19, 20, 20, 21, 21, 22, 22, 23, 24, 24, 25,
+			25, 26, 27, 27, 28, 29, 29, 30, 31, 32, 32, 33, 34, 35, 35, 36,
+			37, 38, 39, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 50,
+			51, 52, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 66, 67, 68,
+			69, 70, 72, 73, 74, 75, 77, 78, 79, 81, 82, 83, 85, 86, 87, 89,
+			90, 92, 93, 95, 96, 98, 99, 101, 102, 104, 105, 107, 109, 110, 112, 114,
+			115, 117, 119, 120, 122, 124, 126, 127, 129, 131, 133, 135, 137, 138, 140, 142,
+			144, 146, 148, 150, 152, 154, 156, 158, 160, 162, 164, 167, 169, 171, 173, 175,
+			177, 180, 182, 184, 186, 189, 191, 193, 196, 198, 200, 203, 205, 208, 210, 213,
+			215, 218, 220, 223, 225, 228, 231, 233, 236, 239, 241, 244, 247, 249, 252, 255 };
+
+		for (int retval = 0; retval < 256; retval++){
+			if (gamma8[retval] >= val)
+				return retval;
+		}
+		return 0;
+
+	}
+	
+	public void onColorCorrectPalette() {
+
+		int res = messageUtil.warn(0, "Warning",
+				"Use only on old projects !", 
+				"This function corrects the palette color values of old projects",
+				new String[]{"", "Cancel", "Proceed"},2);
+		if( res != 2 ) return;
+		for (Palette pal : vm.paletteMap.values()) {
+			for(int i = 0; i < vm.getNumberOfColors(); i++ ) {
+				RGB col = pal.colors[i];
+				col.red = revertGamma(col.red);
+				col.green = revertGamma(col.green);;
+				col.blue = revertGamma(col.blue);;
+			}
+		}
+		vm.setPaletteDirty(true);
+		if (vm.selectedRecording != null || vm.selectedScene != null) {
+			vm.setDmdDirty(true);
+		}
+		vm.setDirty(true);
 	}
 	
 	List<RGB> extractColorsFromScene(CompiledAnimation scene, int accuracy) {
@@ -282,19 +344,47 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 	}
 	
 	public void onNewPalette() {
-		String name = vm.editedPaletteName;
-		if (!isNewPaletteName(name)) {
-			name = "new" + UUID.randomUUID().toString().substring(0, 4);
+		if (vm.livePreviewActive ) {
+			vm.setLivePreviewActive(false);
 		}
-		Palette newPal =  new Palette(vm.selectedPalette.colors, getHighestIndex(vm.paletteMap)+1, name);
+		
+		String name = "pal " + UUID.randomUUID().toString().substring(0, 4);
+		
+		NamePrompt namePrompt = (NamePrompt) this.namePrompt;
+		namePrompt.setItemName("Palette");
+		namePrompt.setPrompt(name);
+		namePrompt.open();
+		if( namePrompt.isOkay() ) name = namePrompt.getPrompt();
+		else return;
+		
+		//Palette newPal =  new Palette(vm.selectedPalette.colors, getHighestIndex(vm.paletteMap)+1, name);
+		Palette newPal =  new Palette(vm.selectedPalette.colors, getNextFreeIndex(), name);
 		vm.paletteMap.put(newPal.index,newPal);
 		vm.setSelectedPalette(newPal);
+		vm.setSelectedColor(0);
+		vm.setPaletteDirty(true);
 		vm.setDirty(true);
 	}
 
 	private int getHighestIndex(Map<Integer, Palette> paletteMap) {
 		OptionalInt max = paletteMap.values().stream().mapToInt(p->p.index).max();
 		return max.orElse(0);
+	}
+	
+	private int getNextFreeIndex() {
+		int i = 0;
+		boolean exists = false;
+		do {
+			exists = false;			
+			for (Palette p : vm.paletteMap.values()) {
+				if (p.index == i) {
+					exists = true;
+					break;
+				}
+			}
+			i++;
+		} while ((exists == true) && (i < 256));
+		return i-1;
 	}
 
 	public void onSavePalette() {
@@ -322,13 +412,16 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 			palettesImported = Arrays.asList(pal);
 		}
 		if( palettesImported != null ) {
-			String override = checkOverride(vm.paletteMap, palettesImported);
-			if (!override.isEmpty()) {
-				int res = messageUtil.warn(SWT.ICON_WARNING | SWT.OK | SWT.IGNORE | SWT.ABORT,
-						"Override warning", "importing these palettes will override palettes: " + override + "\n");
-				if (res != SWT.ABORT) {
-					importPalettes(palettesImported, res == SWT.OK);
-				}
+			String overwrite = checkOverwrite(vm.paletteMap, palettesImported);
+			if (!overwrite.isEmpty()) {
+				int res = messageUtil.warn(0,"Warning",
+						"Palette conflict", "The following palettes already exist: " + overwrite + "\n", new String[]{"Cancel", "Replace", "Append"},2);
+				if (res == 1) 
+					importPalettes(palettesImported, true);
+				else if (res == 2)	
+					importPalettes(palettesImported, false);
+				else
+					return;
 			} else {
 				importPalettes(palettesImported, true);
 			}
@@ -347,45 +440,173 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 		return null;
 	}
 	
-	void importPalettes(java.util.List<Palette> palettesImported, boolean override) {
+	void importPalettes(java.util.List<Palette> palettesImported, boolean overwrite) {
 		for (Palette p : palettesImported) {
 			if (vm.paletteMap.containsKey(p.index)) {
-				if (override)
+				if (overwrite) {
 					vm.paletteMap.put(p.index, p);
+				} else {
+					vm.paletteMap.put(p.index = getNextFreeIndex(), p);
+				} 
+					
 			} else {
 				vm.paletteMap.put(p.index, p);
 			}
 		}
 	}
 
-	String checkOverride(java.util.Map<Integer,Palette> pm, java.util.List<Palette> palettesImported) {
+	String checkOverwrite(java.util.Map<Integer,Palette> pm, java.util.List<Palette> palettesImported) {
 		StringBuilder sb = new StringBuilder();
 		for (Palette pi : palettesImported) {
-			if (pi.index != 0 && pm.containsKey(pi.index)) {
+			if (pm.containsKey(pi.index)) {
 				sb.append(pi.index + ", ");
 			}
 		}
 		return sb.toString();
 	}
 	
+	public void onCreateGradients() {
+		if( vm.selectedPalette != null) {
+			int colorIndex = vm.getSelectedColor() | 3; // select last color of group.
+			RGB color = RGB.of( vm.selectedPalette.colors[colorIndex]);
+			RGB color66 = RGB.of( vm.selectedPalette.colors[colorIndex - 1] );
+            RGB color33 = RGB.of( vm.selectedPalette.colors[colorIndex - 2] );
+			RGB color0 = RGB.of( vm.selectedPalette.colors[colorIndex - 3]);
+			
+			color66.blue = (color0.blue / 3) + ((color.blue / 3) * 2);
+			color66.red = (color0.red / 3) + ((color.red / 3) * 2);
+			color66.green = (color0.green / 3) + ((color.green / 3) * 2);
+			
+			color33.blue = ((color0.blue / 3) * 2) + (color.blue / 3);
+			color33.red = ((color0.red / 3) * 2) + (color.red / 3);
+			color33.green = ((color0.green / 3) * 2) + (color.green / 3);
+
+			vm.selectedPalette.colors[colorIndex-1] = RGB.of(color66);
+			vm.selectedPalette.colors[colorIndex-2] = RGB.of(color33);
+			vm.setSelectedColor(colorIndex);
+			vm.setPaletteDirty(true);
+			if (vm.selectedRecording != null || vm.selectedScene != null) {
+				vm.setDmdDirty(true);
+			}
+			vm.setDirty(true);
+		}
+	}
+
+	public void onCopySwatch() {
+		if( vm.selectedPalette != null) {
+			int colorIndex = vm.getSelectedColor() | 3; // select last color of group.
+			colorBuf0 = RGB.of(vm.selectedPalette.colors[colorIndex]);
+			colorBuf1 = RGB.of(vm.selectedPalette.colors[colorIndex - 1]);
+			colorBuf2 = RGB.of(vm.selectedPalette.colors[colorIndex - 2]);
+			colorBuf3 = RGB.of(vm.selectedPalette.colors[colorIndex - 3]);
+		}
+	}
+
+	public void onPasteSwatch() {
+		if( vm.selectedPalette != null && colorBuf0 != null) {
+			int colorIndex = vm.getSelectedColor() | 3; // select last color of group.
+			vm.selectedPalette.colors[colorIndex] = RGB.of(colorBuf0);
+			vm.selectedPalette.colors[colorIndex - 1] = RGB.of(colorBuf1);
+			vm.selectedPalette.colors[colorIndex - 2] = RGB.of(colorBuf2);
+			vm.selectedPalette.colors[colorIndex - 3] = RGB.of(colorBuf3);
+
+			vm.setPaletteDirty(true);
+			if (vm.selectedRecording != null || vm.selectedScene != null) {
+				vm.setDmdDirty(true);
+			}
+			vm.setDirty(true);
+		}
+	}
+
+	public void onSwapSwatch() {
+		if( vm.selectedPalette != null && colorBuf0 != null) {
+			int colorIndex = vm.getSelectedColor() | 3; // select last color of group.
+			RGB color0 = RGB.of(vm.selectedPalette.colors[colorIndex]);
+			RGB color1 = RGB.of(vm.selectedPalette.colors[colorIndex - 1]);
+			RGB color2 = RGB.of(vm.selectedPalette.colors[colorIndex - 2]);
+			RGB color3 = RGB.of(vm.selectedPalette.colors[colorIndex - 3]);
+			
+			vm.selectedPalette.colors[colorIndex] = RGB.of(colorBuf0);
+			vm.selectedPalette.colors[colorIndex - 1] = RGB.of(colorBuf1);
+			vm.selectedPalette.colors[colorIndex - 2] = RGB.of(colorBuf2);
+			vm.selectedPalette.colors[colorIndex - 3] = RGB.of(colorBuf3);
+
+			colorBuf0 = RGB.of(color0);
+			colorBuf1 = RGB.of(color1);
+			colorBuf2 = RGB.of(color2);
+			colorBuf3 = RGB.of(color3);
+			
+			vm.setPaletteDirty(true);
+			if (vm.selectedRecording != null || vm.selectedScene != null) {
+				vm.setDmdDirty(true);
+			}
+			vm.setDirty(true);
+		}
+	}
+	
+	public void onDeleteUnusedPalettes() {
+		int size = vm.paletteMap.size();
+		for (int i = 0; i < size; i++) {
+			Palette p = vm.paletteMap.get(i);
+			if( p.type != PaletteType.DEFAULT ) {
+				// check if any scene is using this
+				boolean sceneFound = false;
+				for( Animation a: vm.scenes.values()) {
+					if( a.getPalIndex() == p.index ) {
+						if( !sceneFound ) {
+							sceneFound = true;
+						}
+					}
+				}
+				// check if any keyframe is using this
+				boolean keyFrameFound = false;
+				for( PalMapping pm : vm.keyframes.values()) {
+					if( pm.palIndex == p.index ) {
+						if( !keyFrameFound ) {
+							keyFrameFound = true;
+						}
+					}
+				}
+				if( sceneFound == false && keyFrameFound == false ) {
+					vm.paletteMap.remove(p.index);
+				}
+			} else {
+				vm.setSelectedPalette(p);
+			}
+		}
+		
+	}
+
 	public void onDeletePalette() {
 		if( vm.selectedPalette != null && vm.paletteMap.size()>1 ) {
 			// check if any scene is using this
 			List<String> res = new ArrayList<>();
+			boolean sceneFound = false;
 			for( Animation a: vm.scenes.values()) {
 				if( a.getPalIndex() == vm.selectedPalette.index ) {
-					res.add("Scene "+a.getDesc());
-				}
-			}
-			for( Animation a: vm.recordings.values()) {
-				if( a.getPalIndex() == vm.selectedPalette.index ) {
+					if( !sceneFound ) {
+						res.add("Scenes:\n");
+						sceneFound = true;
+					}
 					res.add(a.getDesc());
 				}
 			}
+			//res.add("\n\nRecordings:\n");
+			//for( Animation a: vm.recordings.values()) {
+			//	if( a.getPalIndex() == vm.selectedPalette.index ) {
+			//		res.add(a.getDesc());
+			//	}
+			//}
+			
 			// also check keyframes
+			boolean keyFrameFound = false;
 			for( PalMapping pm : vm.keyframes.values()) {
 				if( pm.palIndex == vm.selectedPalette.index ) {
-					res.add("KeyFrame "+pm.name);
+					if( !keyFrameFound ) {
+						res.add("\n\nKeyframes:\n");
+						keyFrameFound = true;
+					}
+					res.add(pm.name);
 				}
 			}
 			if( res.isEmpty() ) {
@@ -399,7 +620,11 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 				// select first
 				vm.setSelectedPalette(vm.paletteMap.values().iterator().next());
 			} else {
-				messageUtil.warn("Palette cannot be deleted", "It is used by: "+res);
+				messageUtil.warn("Palette cannot be deleted", "It is used by the following resources: \n"+res);
+				Clipboard clipboard=new Clipboard(Display.getCurrent());
+				TextTransfer transfer=TextTransfer.getInstance();
+				clipboard.setContents(new Object[]{res.toString()},new Transfer[]{transfer});
+				clipboard.dispose();
 			}
 		}
 	}

@@ -69,7 +69,7 @@ public class About extends Dialog implements View {
 	    
 	    
 		shlAboutPindmdEditor = new Shell(getParent(), getStyle());
-		shlAboutPindmdEditor.setSize(385, 259);
+		shlAboutPindmdEditor.setSize(385, 310);
 		shlAboutPindmdEditor.setText("About pin2dmd editor");
 
 		ResourceManager resManager = 
@@ -95,15 +95,15 @@ public class About extends Dialog implements View {
 		
 		Button btnOk = new Button(shlAboutPindmdEditor, SWT.NONE);
 		btnOk.addListener(SWT.Selection, e->shlAboutPindmdEditor.close());
-		btnOk.setBounds(147, 199, 94, 28);
+		btnOk.setBounds(148, 243, 94, 28);
 		btnOk.setText("OK");
 		
 		Link lblBySteve = new Link(shlAboutPindmdEditor, SWT.NONE);
 		lblBySteve.setBounds(211, 22, 144, 103);
-		lblBySteve.setText("by Steve\n(C) 2016-2018\n\n\n<a href=\"https://github.com/sker65/go-dmd-clock\">https://github.com/sker65/go-dmd-clock</a>");
+		lblBySteve.setText("by Steve\r\n(C) 2016-2020\r\n\r\n\r\n<a href=\"https://github.com/sker65/go-dmd-clock\">https://github.com/sker65/go-dmd-clock</a>");
 		
 		Label lblVersion = new Label(shlAboutPindmdEditor, SWT.NONE);
-		lblVersion.setBounds(72, 126, 283, 67);
+		lblVersion.setBounds(72, 126, 283, 111);
 		String lbl = VersionUtil.getVersion()+"\nPluginPath: "+pluginsPath+"\nLoaded Plugins:";
 		for( String p : plugins ) {
 			lbl += "\n"+p;

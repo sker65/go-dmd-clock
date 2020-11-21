@@ -41,7 +41,14 @@ public class LineTool extends DrawTool {
 	    }
 	    int numerator = longest >> 1 ;
 	    for (int i=0;i<=longest;i++) {
-	    	dmd.setPixel(x, y, actualColor);
+	    	if (toolSize==1) {
+	    		dmd.setPixel(x, y, actualColor);
+	    	} else {
+		    	int j = i & (1 << (toolSize-2));
+		    	if (j == (1 << (toolSize-2))) {
+		    		dmd.setPixel(x, y, actualColor);
+		    	}
+	    	}
 	        numerator += shortest ;
 	        if (!(numerator<longest)) {
 	            numerator -= longest ;

@@ -84,6 +84,9 @@ public class DrawCmdHandler extends AbstractCommandHandler implements EventHandl
 			break;
 		case FRAMECHANGE:
 			hashCmdHandler.updateHashes(evt.frame);
+			if(vm.previewDMD != null) {
+				vm.previewDMD.setMask(vm.dmd.getFrame().mask);
+			}
 			break;
 		}
 		vm.setDmdDirty(true);
@@ -97,7 +100,7 @@ public class DrawCmdHandler extends AbstractCommandHandler implements EventHandl
 	public void onDrawingEnabledChanged(boolean o, boolean n) {
 		vm.setCopyToNextEnabled(n);
 		vm.setCopyToPrevEnabled(n);
-		vm.setDeleteColMaskEnabled(n);
+		vm.setToolSizeSpinnerEnabled(n);
 		vm.setBtnDelFrameEnabled(n);
 	}
 
@@ -134,8 +137,11 @@ public class DrawCmdHandler extends AbstractCommandHandler implements EventHandl
 			if( modeToSet != null ) {
 				vm.setDetectionMaskEnabled(modeToSet.enableDetectionMask);
 				vm.setLayerMaskEnabled(modeToSet.enableLayerMask);
-				vm.setMaskSpinnerEnabled(modeToSet.haveSceneDetectionMasks);
+				vm.setMaskSpinnerEnabled(modeToSet.enableDetectionMaskSpinner);
+				vm.setSmartDrawEnabled(!modeToSet.enableColorMaskDrawing);
 				recordingsCmdHandler.setEnableHashButtons(modeToSet.enableDetectionMask);
+				vm.setBtnPreviewNextEnabled(modeToSet.pullFrameDataFromAssociatedRecording);
+				vm.setBtnPreviewPrevEnabled(modeToSet.pullFrameDataFromAssociatedRecording);
 			}
 			
 			// to force update on master detail
@@ -169,11 +175,17 @@ public class DrawCmdHandler extends AbstractCommandHandler implements EventHandl
 	public void setDrawMaskByEditMode(EditMode mode) {
 		if( mode.enableMaskDrawing && (vm.detectionMaskActive || vm.layerMaskActive ) ) {
 			// only draw on mask
+			vm.setSmartDrawEnabled(false);
 			vm.dmd.setDrawMask( 0b00000001);
 		} else {
-			vm.setDeleteColMaskEnabled(mode.enableColorMaskDrawing);
+			//vm.setDeleteColMaskEnabled(mode.enableColorMaskDrawing);
 			// either col mask drawing or normal drawing
 			// bit 0 ist mask plane in dmd
+			if( vm.selectedScene != null ) {
+				vm.setSmartDrawEnabled(mode.enableColorMaskDrawing ? false : true);
+			} else {
+				vm.setSmartDrawEnabled(false);
+			}
 			vm.dmd.setDrawMask(mode.enableColorMaskDrawing ? 0b11111000 : Constants.DEFAULT_DRAW_MASK);
 		}
 	}
@@ -197,28 +209,45 @@ public class DrawCmdHandler extends AbstractCommandHandler implements EventHandl
 	}
 	
 	public void onAddFrame() {
-		CompiledAnimation ani = vm.selectedScene;
-		log.info("adding frame at {}", ani.actFrame);
-		ani.addFrame(ani.actFrame, new Frame(ani.frames.get(ani.actFrame)));
-		animationHandler.updateScale(ani);
-		vm.setDmdDirty(true);
-		vm.setDirty(true);
+		if (vm.selectedScene != null) {
+			CompiledAnimation ani = vm.selectedScene;
+			log.info("adding frame at {}", ani.actFrame);
+			ani.addFrame(ani.actFrame, new Frame(ani.frames.get(ani.actFrame)));
+			animationHandler.updateScale(ani);
+			vm.setDmdDirty(true);
+			vm.setDirty(true);
+			vm.setBtnNextEnabled(ani.actFrame<ani.end);
+		}
 	}
 
 	public void onRemoveFrame() {
-		CompiledAnimation ani = vm.selectedScene;
-		if( ani.frames.size()>1 ) {
-			ani.removeFrame(ani.actFrame);
-			if( ani.actFrame >= ani.end ) {
-				animationHandler.setPos(ani.end);
-				vm.setSelectedFrame(ani.end);
-			} else {
-				animationHandler.setPos(ani.actFrame);
+		if (vm.selectedScene != null) {
+			CompiledAnimation ani = vm.selectedScene;
+			if( ani.frames.size()>1 ) {
+				ani.removeFrame(ani.actFrame);
+				if( ani.actFrame >= ani.end ) {
+					animationHandler.setPos(ani.end);
+					vm.setSelectedFrame(ani.end);
+				} else {
+					animationHandler.setPos(ani.actFrame);
+				}
+				animationHandler.updateScale(ani);
+				vm.setDirty(true);
 			}
-			animationHandler.updateScale(ani);
-			vm.setDirty(true);
+			vm.setBtnDelFrameEnabled(ani.frames.size()>1);
+			vm.setBtnNextEnabled(ani.actFrame<ani.end);
 		}
-		vm.setBtnDelFrameEnabled(ani.frames.size()>1);
 	}
+	
+	public void onSmartDrawActiveChanged(boolean old, boolean n) {
+		if( vm.selectedScene != null ) {
+			vm.dmd.setDrawMask(n ? 0b11111000 : Constants.DEFAULT_DRAW_MASK);
+		} 
+	}
+
+	
+	public void onToolSizeChanged(int newToolSize) {
+    //    log.info("tool size {}", newToolSize);
+    } 
 	
 }

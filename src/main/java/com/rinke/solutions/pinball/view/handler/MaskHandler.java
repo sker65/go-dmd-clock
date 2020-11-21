@@ -1,16 +1,28 @@
 package com.rinke.solutions.pinball.view.handler;
 
 import com.rinke.solutions.beans.Autowired;
+
 import com.rinke.solutions.beans.Bean;
 import com.rinke.solutions.pinball.AnimationHandler;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.Animation.EditMode;
 import com.rinke.solutions.pinball.model.Mask;
+import com.rinke.solutions.pinball.util.MessageUtil;
 import com.rinke.solutions.pinball.view.model.ViewModel;
+import com.rinke.solutions.pinball.model.PalMapping;
+import org.eclipse.swt.widgets.Display; 
+import org.eclipse.swt.dnd.Clipboard; 
+import org.eclipse.swt.dnd.TextTransfer; 
+import org.eclipse.swt.dnd.Transfer; 
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Bean
 public class MaskHandler extends AbstractCommandHandler implements ViewBindingHandler {
 
+	@Autowired 
+	MessageUtil messageUtil;
 	@Autowired
 	HashCmdHandler hashCmdHandler;
 	@Autowired
@@ -23,12 +35,20 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 	}
 	
 	public void onDetectionMaskActiveChanged(boolean old, boolean n) {
+		if(vm.selectedScene!=null && n) {
+			vm.selectedScene.commitDMDchanges(vm.dmd); 
+			vm.setDirty(vm.dirty|vm.selectedScene.isDirty());
+		}
 		if( n ) vm.setLayerMaskActive(false);
 		updateMaskChange(n, true);
 		vm.setShowMask(n);
 	}
 	
 	public void onLayerMaskActiveChanged(boolean old, boolean n) {
+		if(vm.selectedScene!=null && n) {
+			vm.selectedScene.commitDMDchanges(vm.dmd); 
+			vm.setDirty(vm.dirty|vm.selectedScene.isDirty());
+		}
 		if( n ) vm.setDetectionMaskActive(false);
 		updateMaskChange(n, false);
 		vm.setShowMask(n);
@@ -49,10 +69,12 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 		} else {
 			vm.setPaletteToolPlanes(vm.dmd.getNumberOfPlanes());
 			commitMaskIfNeeded(preferDetectionMask);
-			mask = null;
+			if (!vm.detectionMaskActive && !vm.layerMaskActive)
+				mask = null;
 		}
 		vm.dmd.setMask(mask);
-		vm.setBtnInvertEnabled(n);
+		vm.setDeleteColMaskEnabled(vm.detectionMaskActive);
+		vm.setBtnInvertEnabled(vm.detectionMaskActive);
 		animationHandler.forceRerender();
 		vm.setDmdDirty(true);
 		hashCmdHandler.updateHashes(vm.dmd.getFrame());
@@ -62,28 +84,32 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 		updateDrawingEnabled();
 	}
 
-	public void onSelectedMaskNumberChanged(int old, int newMaskNumber) {
-		if (vm.selectedEditMode.enableDetectionMask) {
-			Mask maskToUse = null;
-			if( vm.selectedEditMode.haveSceneDetectionMasks ){
-				maskToUse = vm.selectedScene.getMask(vm.selectedMaskNumber); 
-			} else {
-				// fill up global masks
-				while( vm.masks.size()-1 < newMaskNumber ) {
-					vm.masks.add(new Mask(vm.dmdSize.planeSize));
+	public void onSelectedMaskNumberChanged(int oldMaskNumber, int newMaskNumber) {
+		if (newMaskNumber == -1) {
+			commitMaskIfNeeded(true);
+		} else {
+			if (vm.selectedEditMode.enableDetectionMask) {
+				Mask maskToUse = null;
+				if( vm.selectedEditMode.haveSceneDetectionMasks ){
+					maskToUse = vm.selectedScene.getMask(vm.selectedMaskNumber); 
+				} else {
+					// fill up global masks
+					while( vm.masks.size()-1 < newMaskNumber ) {
+						vm.masks.add(new Mask(vm.dmdSize.planeSize));
+					}
+					maskToUse = vm.masks.get(newMaskNumber);
 				}
-				maskToUse = vm.masks.get(newMaskNumber);
-			}
-			vm.dmd.setMask(maskToUse);
-			updateDrawingEnabled();
-		}
-		if( vm.selectedEditMode.enableLayerMask ) {
-			if( vm.selectedScene != null) {
-				vm.dmd.setMask(vm.selectedScene.getMask(newMaskNumber));
+				vm.dmd.setMask(maskToUse);
 				updateDrawingEnabled();
 			}
+			if( vm.selectedEditMode.enableLayerMask ) {
+				if( vm.selectedScene != null) {
+					vm.dmd.setMask(vm.selectedScene.getMask(newMaskNumber));
+					updateDrawingEnabled();
+				}
+			}
+			vm.setDmdDirty(true);
 		}
-		vm.setDmdDirty(true);
 	}
 
 	private boolean isEditable(java.util.List<Animation> a) {
@@ -98,13 +124,66 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 	 * depending on draw mask (presence of a mask) this is plane 2,3 or 3,4
 	 */
 	 public void onDeleteColMask() {
-		vm.dmd.addUndoBuffer();
-		vm.dmd.fill((vm.layerMaskActive||vm.detectionMaskActive)?(byte)0xFF:0);
-		vm.setDmdDirty(true);
+		EditMode m = vm.selectedEditMode;
+		if( m.haveSceneDetectionMasks ||  m.haveLocalMask ) {
+			if(vm.selectedScene != null && vm.dmd.getFrame().mask.locked) {
+				int res = messageUtil.warn(0, "Warning",
+						"Unlock Mask", 
+						"If you unlock this mask all hashes using this mask need to be set again !",
+						new String[]{"", "OK", "Cancel"},2);
+				if( res == 1 ) {
+					vm.dmd.getFrame().mask.locked = false;
+					vm.setDmdDirty(true);
+					updateDrawingEnabled();
+				}
+				
+			} else { 				
+				vm.dmd.addUndoBuffer();
+				vm.dmd.fill((vm.layerMaskActive||vm.detectionMaskActive)?(byte)0xFF:0);
+			}
+			vm.setDmdDirty(true);
+		} else {
+			if (!(vm.dmd.getFrame().mask.locked)) {
+				vm.dmd.addUndoBuffer();
+				vm.dmd.fill((vm.layerMaskActive||vm.detectionMaskActive)?(byte)0xFF:0);
+				vm.setDmdDirty(true);
+			} else {
+				if (vm.selectedScene == null) {
+					//Show which keyframes use the mask here
+					List<String> res = new ArrayList<>();
+					for( PalMapping pm : vm.keyframes.values()) {
+						if( pm.maskNumber == vm.selectedMaskNumber ) {
+							res.add(" "+pm.name);
+						}
+					}
+					messageUtil.warn("Mask cannot be deleted", "It is used by the following Keyframes:\n"+res);
+					Clipboard clipboard=new Clipboard(Display.getCurrent());
+					TextTransfer transfer=TextTransfer.getInstance();
+					clipboard.setContents(new Object[]{res.toString()},new Transfer[]{transfer});
+					clipboard.dispose();
+				}
+			}
+		}
+		
 	}
 
 	public void onInvertMask() {
-		vm.dmd.invertMask();
+		EditMode m = vm.selectedEditMode;
+		if( m.haveSceneDetectionMasks ) {
+			if(vm.selectedScene != null && !vm.selectedScene.getMask(vm.selectedMaskNumber).locked) {
+				vm.dmd.invertMask();
+			} else {
+				messageUtil.warn("Mask Locked", 
+						"This mask is already used and cannot be modified");
+			}
+		} else {
+			if (!(vm.dmd.getFrame().mask.locked)) {
+				vm.dmd.invertMask();
+			} else {
+				messageUtil.warn("Mask Locked", 
+						"This mask is already used and cannot be modified");
+			}
+		}
 	}
 
 	public void updateDrawingEnabled() {
@@ -115,7 +194,7 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 			// die betreffende maske (global oder scenen maske) nicht gelockt ist
 			drawing = m.enableMaskDrawing && (vm.detectionMaskActive || vm.layerMaskActive );
 			if( m.enableDetectionMask ) {
-				if( m.haveSceneDetectionMasks ) {
+				if( m.haveSceneDetectionMasks || m.haveLocalMask) {
 					if(vm.selectedScene != null && vm.selectedScene.getMask(vm.selectedMaskNumber).locked) 
 						drawing = false;	
 				} else {

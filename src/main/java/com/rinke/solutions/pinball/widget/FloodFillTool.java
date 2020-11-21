@@ -14,10 +14,24 @@ public class FloodFillTool extends DrawTool {
 		if( oldColor != actualColor ) {
 			dmd.addUndoBuffer();
 			depth = 0;
-			fill( oldColor, x, y);
+			if (toolSize > 2) {
+				replaceColor(oldColor);
+			} else {
+				fill( oldColor, x, y);
+			}
 			return true;
 		}
 		return false;
+	}
+
+	private void replaceColor(int oldColor) {
+		for( int x=0; x < dmd.getWidth(); x++) {
+			for(int y = 0; y < dmd.getHeight(); y++) {
+				if (dmd.getPixelWithoutMask(x, y) == oldColor) {
+					dmd.setPixel(x, y, actualColor);
+				}
+			}
+		}
 	}
 
 	private void fill(int oldColor, int x, int y) {
@@ -32,6 +46,12 @@ public class FloodFillTool extends DrawTool {
 				if( x<dmd.getWidth()-1) fill(oldColor, x+1,y);
 				if( y> 0 ) fill(oldColor,x,y-1);
 				if( y< dmd.getHeight()-1) fill(oldColor,x,y+1);
+				if (toolSize > 1) {
+					if( x>0 ) fill( oldColor, x-1, y-1);
+					if( x<dmd.getWidth()-1) fill(oldColor, x+1,y+1);
+					if( y> 0 ) fill(oldColor,x+1,y-1);
+					if( y< dmd.getHeight()-1) fill(oldColor,x-1,y+1);
+				}
 			}
 		}
 		depth--;

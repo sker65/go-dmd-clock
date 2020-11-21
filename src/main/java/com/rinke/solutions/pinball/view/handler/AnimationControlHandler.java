@@ -39,7 +39,8 @@ public class AnimationControlHandler extends AbstractCommandHandler implements V
 		commitChanges();
 		animationHandler.setPos(n);
 		update(vm.minFrame, n, vm.maxFrame, vm.animationIsPlaying);
-		if( vm.selectedScene != null && vm.selectedEditMode.haveLocalMask) {
+		if( vm.selectedScene != null && (vm.selectedEditMode.haveLocalMask || vm.selectedEditMode.haveSceneDetectionMasks)) {
+			maskHandler.updateMaskChange(false, true);
 			vm.setHashVal(HashCmdHandler.getPrintableHashes(vm.selectedScene.frames.get(vm.selectedScene.actFrame).crc32));
 		} else {
 			vm.setHashVal("-");
@@ -88,30 +89,60 @@ public class AnimationControlHandler extends AbstractCommandHandler implements V
 	}
 
 	public void onPrevFrame() {
+		vm.linkedFrameOffset=0;
+		if(vm.minFrame < vm.selectedFrame) {
 		vm.setSelectedFrame(vm.selectedFrame-vm.frameIncrement);
 		vm.setSelection(null);
+		}
 	}
 	
 	public void onNextFrame() {
+		vm.linkedFrameOffset=0;
+		if((vm.selectedFrame + vm.frameIncrement ) <= vm.maxFrame) {
 		vm.setSelectedFrame(vm.selectedFrame+vm.frameIncrement);
 		vm.setSelection(null);
+		}
+	}
+	
+	public void onPreviewPrevFrame() {
+		if( vm.selectedEditMode.pullFrameDataFromAssociatedRecording ) {
+			vm.linkedFrameOffset--;
+			animationHandler.forceRerender();
+		} else if(vm.minFrame < vm.selectedFrame) {
+			vm.setSelectedFrame(vm.selectedFrame-vm.frameIncrement);
+			vm.setSelection(null);
+		}
+	}
+	
+	public void onPreviewNextFrame() {
+		if( vm.selectedEditMode.pullFrameDataFromAssociatedRecording ) {
+			vm.linkedFrameOffset++;
+			animationHandler.forceRerender();
+		} else if((vm.selectedFrame + vm.frameIncrement ) <= vm.maxFrame) {
+			vm.setSelectedFrame(vm.selectedFrame+vm.frameIncrement);
+			vm.setSelection(null);
+		}
 	}
 	
 	public void onCopyAndMoveToNextFrame() {
-		onNextFrame();
-		CompiledAnimation ani = vm.selectedScene;
-		if( !ani.hasEnded() ) {
-			ani.frames.get(ani.actFrame-1).copyToWithMask(vm.dmd.getFrame(), vm.dmd.getDrawMask());
-			vm.setDmdDirty(true);
+		if (vm.selectedScene != null) {
+			CompiledAnimation ani = vm.selectedScene;
+			if( !ani.hasEnded() ) {
+				onNextFrame();
+				ani.frames.get(ani.actFrame-1).copyToWithMask(vm.dmd.getFrame(), vm.dmd.getDrawMask());
+				vm.setDmdDirty(true);
+			}
 		}
 	}
 	
 	public void onCopyAndMoveToPrevFrame() {
-		onPrevFrame();
-		CompiledAnimation ani = vm.selectedScene;
-		if( ani.getActFrame() >= ani.getStart() ) {
-			ani.frames.get(ani.actFrame+1).copyToWithMask(vm.dmd.getFrame(), vm.dmd.getDrawMask());
-			vm.setDmdDirty(true);
+		if (vm.selectedScene != null) {
+			onPrevFrame();
+			CompiledAnimation ani = vm.selectedScene;
+			if( ani.getActFrame() >= ani.getStart() ) {
+				ani.frames.get(ani.actFrame+1).copyToWithMask(vm.dmd.getFrame(), vm.dmd.getDrawMask());
+				vm.setDmdDirty(true);
+			}
 		}
 	}
 

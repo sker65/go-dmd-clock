@@ -34,7 +34,7 @@ public class BookmarkHandler extends AbstractCommandHandler implements ViewBindi
 	public void onDelBookmark() {
 		if( vm.selectedRecording != null ) {
 			Set<Bookmark> set = vm.bookmarksMap.get(vm.selectedRecording.getDesc());
-			if( set != null ) {
+			if( set != null && vm.selectedBookmark != null ) {
 				set.remove(vm.selectedBookmark);
 				vm.bookmarks.clear();
 				vm.bookmarks.addAll(set);

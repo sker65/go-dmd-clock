@@ -7,14 +7,20 @@ import lombok.extern.slf4j.Slf4j;
 import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.Bean;
 import com.rinke.solutions.beans.Value;
+import com.rinke.solutions.pinball.Constants;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.AnimationQuantizer;
 import com.rinke.solutions.pinball.animation.Animation.EditMode;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.animation.CompiledAnimation.RecordingLink;
 import com.rinke.solutions.pinball.model.PalMapping.SwitchMode;
+import com.rinke.solutions.pinball.ui.NamePrompt;
+import com.rinke.solutions.pinball.ui.SplitPrompt;
 import com.rinke.solutions.pinball.model.Palette;
+import com.rinke.solutions.pinball.model.Frame;
+import com.rinke.solutions.pinball.util.MessageUtil;
 import com.rinke.solutions.pinball.util.ObservableMap;
+import com.rinke.solutions.pinball.view.View;
 import com.rinke.solutions.pinball.view.model.ViewModel;
 
 @Bean
@@ -31,6 +37,9 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 	@Autowired PaletteHandler paletteHandler;
 	@Autowired BookmarkHandler bookmarkHandler;
 	@Autowired KeyframeHandler keyframeHandler;
+	@Autowired MessageUtil messageUtil;
+	@Autowired View namePrompt;
+	@Autowired View splitPrompt;
 	
 	public CutCmdHandler(ViewModel vm) {
 		super(vm);
@@ -38,10 +47,12 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 	
 	public void onSelectedRecordingChanged(Animation o, Animation n) {
 		vm.setMarkStartEnabled(n!=null||vm.selectedScene!=null);
+		vm.setAdd2SceneEnabled(n!=null||vm.selectedScene!=null);
 	}
 
 	public void onSelectedSceneChanged(Animation o, Animation n) {
 		vm.setMarkStartEnabled(n!=null||vm.selectedRecording!=null);
+		vm.setAdd2SceneEnabled(n!=null||vm.selectedRecording!=null);
 	}
 	
 	public void onSelectedFrameChanged(int o, int n) {
@@ -141,6 +152,26 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 		}
 		
 	}
+
+	public void onAdd2Scene() {
+		// respect number of planes while cutting / copying
+		Animation src = getSourceAnimation();
+		if( src != null ) {
+			add2Scene(src, getSourceAnimation().actFrame);
+			log.info(" adding frame from {}", vm.cutInfo);
+		}
+		
+	}
+
+	public void onSplitScene() {
+		// respect number of planes while cutting / copying
+		Animation src = getSourceAnimation();
+		if( src != null ) {
+			splitScene(src);
+			log.info("splitting scene {}", src.getDesc());
+		}
+		
+	}
 	
 	/**
 	 * creates a unique key name for scenes
@@ -148,18 +179,38 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 	 * @return the new unique name
 	 */
 	public <T extends Animation> String buildUniqueName(ObservableMap<String, T> anis) {
-		int no = anis.size();
-		String name = "Scene " + no;
+		return buildUniqueNameWithPrefix(anis,"Scene", anis.size());
+	}
+	
+	public <T extends Animation> String buildUniqueNameWithPrefix(ObservableMap<String, T> anis, String prefix, int startIdx) {
+		int no = startIdx;
+		String name = prefix + " " + no;
 		while( anis.containsKey(name)) {
 			no++;
-			name = "Scene " + no;
+			name = prefix+ " " + no;
 		}
 		return name;
 	}
 	
 	public Animation cutScene(Animation animation, int start, int end, String name) {
 		CompiledAnimation cutScene = animation.cutScene(start, end, noOfPlanesWhenCutting);
-		
+
+		//vm.getSelectedFrameSeq()
+		CompiledAnimation srcScene = vm.getSelectedScene();
+
+		do {
+			NamePrompt namePrompt = (NamePrompt) this.namePrompt;
+			namePrompt.setItemName("Scene");
+			namePrompt.setPrompt(name);
+			namePrompt.open();
+			if( namePrompt.isOkay() ) name = namePrompt.getPrompt();
+			else return null;
+			
+			if( vm.scenes.containsKey(name) ) {
+				messageUtil.error("Scene Name exists", "A scene '"+name+"' already exists");
+			}
+		} while(vm.scenes.containsKey(name));
+
 		if( addPalWhenCut )
 			paletteHandler.copyPalettePlaneUpgrade(name);
 		
@@ -181,9 +232,83 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 			if( vm.selectedRecording!=null ) keyframeHandler.onAddKeyframe(SwitchMode.REPLACE);
 		}
 
-		vm.setSelectedScene(cutScene);
-
+		if( vm.selectedRecording!=null )
+			vm.setSelectedScene(cutScene);
+		else
+			vm.setSelectedScene(srcScene);
+		
 		return cutScene;
 	}
+
+	void add2Scene(Animation animation, int frameNo) {
+		
+		String name = "newScene";
+
+		CompiledAnimation newScene = null;
+
+		if(!vm.scenes.containsKey(name)) {
+			newScene = animation.cutScene(frameNo, frameNo, noOfPlanesWhenCutting);
+			newScene.setDesc(name);
+			newScene.setPalIndex(vm.selectedPalette.index);
+			newScene.setProjectAnimation(true);
+			newScene.setEditMode(EditMode.LAYEREDCOL);
+			vm.scenes.put(name, newScene);
+			vm.scenes.refresh();
+		} else {
+			newScene = vm.scenes.get(name); 
+			newScene.addFrame(newScene.actFrame, new Frame(newScene.frames.get(newScene.actFrame)));
+			newScene.actFrame++;
+			Frame srcFrame = vm.dmd.getFrame();
+			Frame destFrame = newScene.getActualFrame();
+			srcFrame.copyToWithMask(destFrame, Constants.DEFAULT_DRAW_MASK);
+			newScene.frames.get(newScene.actFrame).delay = vm.delay;
+		}
+		
+	}
+
+	
+	public Animation splitScene(Animation animation) {
+		CompiledAnimation splitScene = null;
+		String namePrefix = animation.getDesc();
+		int splitSize = 0;
+		do {
+			SplitPrompt splitPrompt = (SplitPrompt) this.splitPrompt;
+			splitPrompt.setItemName("Scene");
+			splitPrompt.setPrompt(namePrefix);
+			splitPrompt.open();
+			if( splitPrompt.isOkay() ) namePrefix = splitPrompt.getPrompt();
+			else return null;
+			splitSize = splitPrompt.getSize() + 1;
+			if( vm.scenes.containsKey(namePrefix+" 1") ) {
+				messageUtil.error("Scene Name exists", "A scene '"+namePrefix+" 1"+"' already exists");
+			}
+		} while(vm.scenes.containsKey(namePrefix+" 1"));
+		int start = 0;
+		int end = 0;
+		do {
+			end = start + splitSize - 1;
+			if (end > animation.end)
+				end = animation.end;
+			String name = buildUniqueNameWithPrefix(vm.scenes,namePrefix, 1);
+			splitScene = animation.cutScene(start, end, noOfPlanesWhenCutting);
+			
+			splitScene.setDesc(name);
+			splitScene.setPalIndex(vm.selectedPalette.index);
+			splitScene.setProjectAnimation(true);
+			splitScene.setEditMode(EditMode.COLMASK);
+					
+			vm.scenes.put(name, splitScene);
+			start += splitSize;
+		} while (end < animation.end);
+
+		vm.scenes.refresh();
+
+		vm.setSelectedFrameSeq(splitScene);
+
+		vm.setSelectedScene(splitScene);
+			
+		return splitScene;
+	}
+
 
 }

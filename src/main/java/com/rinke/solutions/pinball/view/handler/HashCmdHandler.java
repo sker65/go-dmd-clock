@@ -43,7 +43,10 @@ public class HashCmdHandler extends AbstractCommandHandler implements ViewBindin
 		vm.setBtnAddKeyframeEnabled(selectedRecording != null && selectedHashIndex != -1);
 		vm.setBtnAddFrameSeqEnabled(selectedRecording != null && selectedFrameSeq != null && selectedHashIndex != -1);
 		vm.setBtnAddEventEnabled(selectedRecording != null && selectedHashIndex != -1);
-		vm.setBtnSetHashEnabled( vm.selectedScene != null && vm.selectedEditMode.haveLocalMask && selectedHashIndex != -1);
+		vm.setBtnSetHashEnabled( vm.selectedScene != null && selectedHashIndex != -1  && (vm.selectedEditMode.haveLocalMask || vm.selectedEditMode.haveSceneDetectionMasks));
+		vm.setBtnPreviewNextEnabled(vm.selectedScene != null && (vm.selectedEditMode.haveLocalMask || vm.selectedEditMode.haveSceneDetectionMasks));
+		vm.setBtnPreviewPrevEnabled(vm.selectedScene != null && (vm.selectedEditMode.haveLocalMask || vm.selectedEditMode.haveSceneDetectionMasks));
+
 	}
 
 	public void onSelectedHashIndexChanged(int old, int n) {
@@ -90,7 +93,7 @@ public class HashCmdHandler extends AbstractCommandHandler implements ViewBindin
 		if( frame == null ) return;
 		Frame f = new Frame(frame);
 	
-		// if preview DMD uses its own dmd instance (e.g. for raw recodring) use
+		// if preview DMD uses its own dmd instance (e.g. for raw recording) use
 		// plane from that instance instead
 		if( vm.previewDMD != null ) {
 			f.planes.clear();
@@ -99,7 +102,7 @@ public class HashCmdHandler extends AbstractCommandHandler implements ViewBindin
 				f.planes.add(planes.get(i));
 			}
 		} 
-		if(  ( vm.selectedEditMode.enableDetectionMask ) && vm.selectedScene!=null) {
+		if( vm.selectedScene!=null && ( vm.selectedEditMode.enableDetectionMask )) {
 			selectHash(vm.selectedScene);
 		}
 		List<byte[]> hashes = f.getHashes();

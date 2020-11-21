@@ -42,6 +42,7 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 	
 	public void onSelectedSceneChanged(CompiledAnimation o, CompiledAnimation nextScene) {
 		log.info("onSceneSelectionChanged: {}", nextScene);
+		vm.linkedFrameOffset = 0;
 		Animation current = o;
 		// detect changes
 		if( current == null && nextScene == null ) return;
@@ -57,17 +58,20 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 			vm.cutInfo.reset();
 			vm.setSelection(null);
 			vm.setSelectedRecording(null);
-			
+			vm.setPreviewDMD(null);
 			vm.setSelectedKeyFrame(null);
 			
 		//	v.goDmdGroup.updateAnimation(nextScene);
 			
 			EditMode m = nextScene.getEditMode();
 			vm.setDetectionMaskEnabled(m.enableDetectionMask);
+			vm.setMaskSpinnerEnabled(m.enableDetectionMaskSpinner);
 			vm.setLayerMaskEnabled(m.enableLayerMask);
 			vm.setDetectionMaskActive(false);
+			vm.setSelectedMaskNumber(0);
 			vm.setLayerMaskActive(false);
-			vm.setBtnLinkEnabled(m.haveLocalMask);
+			vm.setBtnLinkEnabled(true);
+			vm.setBtnDelFrameEnabled(nextScene.frames.size()>1);
 			if( nextScene.getRecordingLink() != null) {
 				RecordingLink rl = nextScene.getRecordingLink();
 				vm.setLinkVal(rl.associatedRecordingName+":"+rl.startFrame);
@@ -75,11 +79,7 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 				vm.setLinkVal("-");
 			}
 			
-			// warum mask auch gleich active setzen
-			// was formerly vm.setDetectionMaskActive(nextScene.getEditMode().useLocalMask);
-			vm.setMaskSpinnerEnabled(m.enableLayerMask);
-
-			// just to enasure a reasonable default
+			// just to ensure a reasonable default
 			if( nextScene.getEditMode() == null || nextScene.getEditMode().equals(EditMode.FIXED) ) {
 				// old animation may be saved with wrong edit mode
 				nextScene.setEditMode(EditMode.REPLACE);
@@ -113,7 +113,8 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 
 			setPlayingAni(nextScene, vm.scenesPosMap.getOrDefault(nextScene.getDesc(), 0));
 			maskHandler.updateDrawingEnabled();
-			if( m.haveLocalMask ) {
+			if( m.haveLocalMask || m.haveSceneDetectionMasks) {
+				maskHandler.updateMaskChange(false, true);
 				vm.setHashVal(HashCmdHandler.getPrintableHashes(nextScene.getActualFrame().crc32));
 			} else {
 				vm.setHashVal("");
@@ -135,7 +136,7 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 		if( a!=null) {
 			for( PalMapping pm : vm.keyframes.values()) {
 				if( a.getDesc().equals(pm.frameSeqName) ) {
-					res.add( a.getDesc() );
+					res.add( pm.name );
 				}
 			}
 		}

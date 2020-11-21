@@ -18,6 +18,7 @@ import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.animation.EventHandler;
 import com.rinke.solutions.pinball.animation.Animation.EditMode;
 import com.rinke.solutions.pinball.model.Frame;
+import com.rinke.solutions.pinball.model.Plane;
 import com.rinke.solutions.pinball.view.handler.HandlerTest;
 import com.rinke.solutions.pinball.view.model.ViewModel;
 
@@ -87,6 +88,7 @@ public class AnimationHandlerTest extends HandlerTest{
 		Frame f = new Frame();
 		f.delay = 10;
 		f.timecode = 20;
+		f.planes.add( new Plane((byte)f.planes.size(),new byte[512]));
 		scene.frames.add(f);
 		scene.start = 0;
 		scene.end = 2;
