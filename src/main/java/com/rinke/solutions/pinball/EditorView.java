@@ -691,7 +691,7 @@ public class EditorView implements MainView {
 	 */
 	public void createContents() {
 		
-		 // for the sake of window builder
+		 // uncomment this for the sake of window builder
 //			shell = new Shell();
 //			shell.setSize(1400, 1075);
 //			this.vm = new ViewModel();
