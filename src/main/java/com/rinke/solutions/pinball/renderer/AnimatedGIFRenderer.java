@@ -63,13 +63,14 @@ public class AnimatedGIFRenderer extends Renderer {
 			LOG.info("found " + noi + " images");
 			this.maxFrame = noi;
 			
-			Map<Integer, Integer> grayCounts = new HashMap<>();
+			//Map<Integer, Integer> grayCounts = new HashMap<>();
 			
 			IIOMetadata streamMetadata = reader.getStreamMetadata("javax_imageio_1.0", Sets.newHashSet("Palette") );
 			NodeList snodes = streamMetadata.getAsTree("javax_imageio_1.0").getChildNodes();
 			snodes = find("Chroma/Palette", snodes);
 			
 			palette = buildPaletteFromNodes(snodes);
+			LOG.info("build palette with "+palette.numberOfColors+" colors");
 			//System.out.println(palette);
 			int frameNo = 0;
 			while (frameNo < noi) {
@@ -93,33 +94,38 @@ public class AnimatedGIFRenderer extends Renderer {
 	            Node tree = metadata.getAsTree("javax_imageio_gif_image_1.0");
 
 	            NodeList children = tree.getChildNodes();
+	            int delay = 100;
 
 	            for (int j = 0; j < children.getLength(); j++) {
 
 	                Node nodeItem = children.item(j);
 
 	                if(nodeItem.getNodeName().equals("ImageDescriptor")){
-
 	                    Map<String, Integer> imageAttr = new HashMap<String, Integer>();
-
+                        NamedNodeMap attr = nodeItem.getAttributes();
 	                    for (int k = 0; k < imageatt.length; k++) {
-
-	                        NamedNodeMap attr = nodeItem.getAttributes();
-
 	                        Node attnode = attr.getNamedItem(imageatt[k]);
-
 	                        imageAttr.put(imageatt[k], Integer.valueOf(attnode.getNodeValue()));
-
+	                      //  System.out.println("Attribute: "+imageatt[k]+" val: "+attnode.getNodeValue());
 	                    }
-
 
 	                    if(frameNo==0){
 	                        master = new BufferedImage(imageAttr.get("imageWidth"), imageAttr.get("imageHeight"), BufferedImage.TYPE_INT_ARGB);
-
 	                    }
 	                    master.getGraphics().drawImage(image, imageAttr.get("imageLeftPosition"), imageAttr.get("imageTopPosition"), null);
 
-
+	                } else if( nodeItem.getNodeName().equals("GraphicControlExtension") ) {
+	                	
+	                	NamedNodeMap attributes = nodeItem.getAttributes();
+	                	Node dn = attributes.getNamedItem("delayTime");
+	                	if( dn != null ) {
+	                		delay = Integer.valueOf(dn.getNodeValue()) * 10;
+	                		LOG.info("setting delay for frame "+frameNo+" to "+delay);
+	                	}
+	                	/*for(int l = 0; l < attributesLen; l++) {
+	                		Node n = attributes.item(l);
+	                		System.out.println("node: "+n.getNodeName()+" val: "+n.getNodeValue());
+	                	}*/
 	                }
 	            }
 	            BufferedImage toScan = master;
@@ -170,13 +176,14 @@ public class AnimatedGIFRenderer extends Renderer {
 							+ grayCounts.get(v));
 				}
 				frames.add(new Frame(f1, f2));*/
-
-	            if( palette.numberOfColors < 256 ) {
-	            	frames.add(ImageUtil.convertToFrameWithPalette(toScan, dmd, palette, false));
+	            Frame f = null;
+	            if( palette.numberOfColors <= 256 ) {
+	            	f = ImageUtil.convertToFrameWithPalette(toScan, dmd, palette, false);
 	            } else {
-	            	frames.add(ImageUtil.convertToFrame(toScan, dmd.getWidth(), dmd.getHeight(),5));
+	            	f = ImageUtil.convertToFrame(toScan, dmd.getWidth(), dmd.getHeight(),5);
 	            }
-
+	            f.delay = delay;
+	            frames.add(f);
 				frameNo++;
 			}
 
