@@ -33,6 +33,7 @@ public class AniWriter extends Worker {
 	private List<Animation> anis;
 	private Map<String,Integer> offsetMap = new HashMap<>();
 	private String header = ANIM;
+	public boolean writeLinearPlane = false;
 	
 	public AniWriter(List<Animation> anis, String filename, int version, Map<Integer,Palette> palettes, ProgressEventListener progressEvt) {
 		this.anis = anis;
@@ -44,6 +45,15 @@ public class AniWriter extends Worker {
 
 	public static void write(List<Animation> anis, String filename, int version, Map<Integer,Palette> palettes) {
 		new AniWriter(anis,filename,version,palettes, null).run();
+	}
+	
+	private int getPixel(int x, int y, Frame frame, int bytesPerRow) {
+		byte mask = (byte) (0b10000000 >> (x % 8));
+		int v = 0;
+		for (int plane = 0; plane < frame.planes.size(); plane++) {
+			v += (frame.planes.get(plane).data[x / 8 + y * bytesPerRow] & mask) != 0 ? (1 << plane) : 0;
+		}
+		return v;
 	}
 
 	public void innerRun() {
@@ -118,7 +128,12 @@ public class AniWriter extends Worker {
 				log.info("writing {} frames", numberOfFrames);
 				for(int i = 0; i<numberOfFrames;i++) {
 					dmd = new DMD(a.width,a.height);
-					os.writeShort(dmd.getPlaneSize());
+					int planeSize = dmd.getPlaneSize();
+					if( writeLinearPlane ) {
+						planeSize = a.width*a.height; // one byte per pixel in just one plane
+					}
+					os.writeShort(planeSize);
+					
 					notify(aniIndex*aniProgressInc + (int)((float)i/numberOfFrames * aniProgressInc), "writing animation "+a.getDesc());
 					Frame frame =  a.render(dmd,false);
 
@@ -127,13 +142,42 @@ public class AniWriter extends Worker {
 					if(version >= 4 ) {
 						os.write(frame.crc32);
 					}
-					os.writeByte(frame.hasMask()?frame.planes.size()+1:frame.planes.size());
+					int numberOfPlanes = frame.hasMask()?frame.planes.size()+1:frame.planes.size();
+					if( writeLinearPlane ) {
+						numberOfPlanes = 1;
+					}
+					os.writeByte(numberOfPlanes);
 					
 					if( version < 3 ) {
 						writePlanes(os, frame);
 					} else {
+						// for indexed color with goDMD we optionally choose a one byte per pixel model with
+						// up to 256 colors in palette (up to 8 planes)
+						// plane marker in this case will be 0xFF linear
+						if( writeLinearPlane ) {
+							int bytesPerRow = dmd.getBytesPerRow();
+							int w = dmd.getWidth();
+							int h = dmd.getHeight();
+							byte[] data = new byte[planeSize];
+							// create 8 plane zero fill
+							for(int x = 0; x < w; x++) {
+								for(int y = 0; y < h; y++) {
+									data[x+y*w] = (byte) getPixel(x, y, frame, bytesPerRow);
+								}
+							}
+							Frame linearFrame = new Frame();
+							linearFrame.delay = frame.delay;
+							//int planeSize = dmd.getPlaneSize();
+							//for( int j = 0; j < 8; j++) {
+							//	byte[] sdata = new byte[planeSize];
+							//	System.arraycopy(data, planeSize*j, sdata, 0, planeSize);
+							//	linearFrame.planes.add(new Plane((byte)0xff, sdata));
+							//}
+							linearFrame.planes.add(new Plane((byte)0xAA, data));
+							frame = linearFrame;
+						}
 						// for version 3 add optional compression
-						boolean compress = ( frame.planes.size() > 5 ); // 4 planes and mask will not compressed
+						boolean compress = ( frame.planes.size() > 5 ) || frame.planes.get(0).data.length>1024; // 4 planes and mask will not compressed
 						os.writeBoolean(compress);
 						if( !compress ) {
 							int size = writePlanes(os, frame);
@@ -150,7 +194,7 @@ public class AniWriter extends Worker {
 							ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray());
 							HeatShrinkEncoder enc = new HeatShrinkEncoder(10,5);
 							enc.encode(bis, b2);
-							log.info("writing compressed planes: {} / {}", b2.size(), bos.size());
+							log.info("writing {} compressed planes: {} / {}", frame.planes.size(), b2.size(), bos.size());
 							planesCompressed += b2.size();
 							planesRaw += bos.size();
 							os.writeInt(b2.size());

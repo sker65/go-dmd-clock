@@ -741,11 +741,11 @@ public class EditorView implements MainView {
 	 */
 	public void createContents() {
 		
-		// uncomment this for the sake of window builder
-		//	shell = new Shell();
-		//	shell.setSize(1534, 920);
-		//	this.vm = new ViewModel();
-		//	vm.dmd = new DMD(192, 64);
+		 // uncomment this for the sake of window builder
+//			shell = new Shell();
+//			shell.setSize(1400, 1075);
+//			this.vm = new ViewModel();
+//			vm.dmd = new DMD(192, 64);
 			
 		shell.setMaximized(true);
 		
