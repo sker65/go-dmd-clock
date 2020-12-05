@@ -411,6 +411,10 @@ public class ProjectHandler extends AbstractCommandHandler {
 		}
 
 		Project project = new Project();
+		int size = project.paletteMap.size();
+		for (int i = 0; i < size; i++) {
+			project.paletteMap.remove(i);
+		}
 		populateVmToProject(vm, project);
 		List<Mask> filteredMasks = project.masks.stream().filter(m->m.locked).collect(Collectors.toList());
 		project.masks = filteredMasks;
