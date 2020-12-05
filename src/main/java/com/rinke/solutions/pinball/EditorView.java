@@ -923,7 +923,7 @@ public class EditorView implements MainView {
 		
 		Group grpDrawing = new Group(parent, SWT.NONE);
 		GridData gd_grpDrawing = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
-		gd_grpDrawing.heightHint = 122;
+		gd_grpDrawing.heightHint = 96;
 		gd_grpDrawing.widthHint = 541;
 		grpDrawing.setLayoutData(gd_grpDrawing);
 		grpDrawing.setLayout(new GridLayout(7, false));
@@ -1102,7 +1102,7 @@ public class EditorView implements MainView {
 	private void createPalettesGroup(Composite parent) {
 		Group grpPalettes = new Group(parent, SWT.NONE);
 		GridData gd_grpPalettes = new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1);
-		gd_grpPalettes.heightHint = 105;
+		gd_grpPalettes.heightHint = 142;
 		gd_grpPalettes.widthHint = 481;
 		grpPalettes.setLayoutData(gd_grpPalettes);
 		GridLayout gl_grpPalettes = new GridLayout(5, false);
@@ -1153,12 +1153,12 @@ public class EditorView implements MainView {
 		btnDeletePalette.setText("Delete");
 		btnDeletePalette.addListener(SWT.Selection, e->dispatchCmd(DELETE_PALETTE));
 
-		Composite grpPal = new Composite(grpPalettes, SWT.NONE);
-		grpPal.setLayout(new GridLayout(1, false));
-		GridData gd_grpPal = new GridData(SWT.LEFT, SWT.TOP, false, false, 3, 1);
-		gd_grpPal.widthHint = 333;
-		gd_grpPal.heightHint = 22;
-		grpPal.setLayoutData(gd_grpPal);
+		Composite grpPal1 = new Composite(grpPalettes, SWT.NONE);
+		grpPal1.setLayout(new GridLayout(1, false));
+		GridData gd_grpPal1 = new GridData(SWT.LEFT, SWT.TOP, false, false, 3, 1);
+		gd_grpPal1.widthHint = 333;
+		gd_grpPal1.heightHint = 22;
+		grpPal1.setLayoutData(gd_grpPal1);
 		
 		ToolBar bar = new ToolBar(grpPalettes, SWT.NONE);
 		bar.setLayout(new GridLayout(1, false));
@@ -1179,14 +1179,32 @@ public class EditorView implements MainView {
         
         //Label lblCtrlclick = new Label(grpPalettes, SWT.NONE);
         //lblCtrlclick.setText("Ctrl-Click to edit");
+        Composite grpPal2 = new Composite(grpPalettes, SWT.NONE);
+        grpPal2.setLayout(new GridLayout(1, false));
+        GridData gd_grpPal2 = new GridData(SWT.LEFT, SWT.TOP, false, false, 3, 1);
+        gd_grpPal2.widthHint = 333;
+        gd_grpPal2.heightHint = 22;
+        grpPal2.setLayoutData(gd_grpPal2);
+        new Label(grpPalettes, SWT.NONE);
+        new Label(grpPalettes, SWT.NONE);
+
         Composite grpPal3 = new Composite(grpPalettes, SWT.NONE);
         grpPal3.setLayout(new GridLayout(1, false));
         GridData gd_grpPal3 = new GridData(SWT.LEFT, SWT.TOP, false, false, 3, 1);
         gd_grpPal3.widthHint = 333;
         gd_grpPal3.heightHint = 22;
         grpPal3.setLayoutData(gd_grpPal3);
+        new Label(grpPalettes, SWT.NONE);
+        new Label(grpPalettes, SWT.NONE);
 
-        paletteTool = new PaletteTool(shell, grpPal, grpPal3, SWT.FLAT | SWT.RIGHT, vm.selectedPalette);
+        Composite grpPal4 = new Composite(grpPalettes, SWT.NONE);
+        grpPal4.setLayout(new GridLayout(1, false));
+        GridData gd_grpPal4 = new GridData(SWT.LEFT, SWT.TOP, false, false, 3, 1);
+        gd_grpPal4.widthHint = 333;
+        gd_grpPal4.heightHint = 22;
+        grpPal4.setLayoutData(gd_grpPal4);
+        
+        paletteTool = new PaletteTool(shell, grpPal1, grpPal2, grpPal3, grpPal4, SWT.FLAT | SWT.RIGHT, vm.selectedPalette);
         
 		ToolItem btnCopyPal = new ToolItem(bar, SWT.NONE);
 		btnCopyPal.setToolTipText("Copy colors of the selected group to clipboard");
@@ -1277,6 +1295,17 @@ public class EditorView implements MainView {
 
 		btnDelBookmark = new Button(composite, SWT.NONE);
 		btnDelBookmark.setText("Del");
+        new Label(composite, SWT.NONE);
+        new Label(composite, SWT.NONE);
+        new Label(composite, SWT.NONE);
+        new Label(composite, SWT.NONE);
+        new Label(composite, SWT.NONE);
+        new Label(composite, SWT.NONE);
+        new Label(composite, SWT.NONE);
+        new Label(composite, SWT.NONE);
+        new Label(composite, SWT.NONE);
+        new Label(composite, SWT.NONE);
+        new Label(composite, SWT.NONE);
         new Label(composite, SWT.NONE);
 		btnDelBookmark.addListener(SWT.Selection, e->dispatchCmd(DEL_BOOKMARK));
 		

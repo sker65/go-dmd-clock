@@ -42,7 +42,7 @@ public class ViewModel extends AbstractModel {
 	}
 
 	public int numberOfHashButtons = 4;
-	public int numberOfColors = 16;
+	public int numberOfColors = 64;
 	public boolean dirty;
 	public DmdSize dmdSize;
 	public String pin2dmdAdress;

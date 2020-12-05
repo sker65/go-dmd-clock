@@ -39,7 +39,7 @@ import com.rinke.solutions.pinball.widget.color.ColorPicker.ColorModifiedListene
 @Slf4j
 public class PaletteTool extends AbstractModel implements ColorModifiedListener {
 	
-	final ToolItem colBtn[] = new ToolItem[32];
+	final ToolItem colBtn[] = new ToolItem[64];
 	Palette palette;
 	private Display display;
 
@@ -51,7 +51,9 @@ public class PaletteTool extends AbstractModel implements ColorModifiedListener 
 			           0, 0, 0, 0, 0, 0, 0, 1 };
     private ToolBar paletteBar16;
     private ToolBar paletteBar32;
-
+    private ToolBar paletteBar48;
+    private ToolBar paletteBar64;
+    
 	/** used to reused images in col buttons. */
 	Map<RGB, Image> colImageCache = new HashMap<>();
 	List<ColorChangedListener> colorChangedListeners = new ArrayList<>();
@@ -82,15 +84,19 @@ public class PaletteTool extends AbstractModel implements ColorModifiedListener 
 	public void redraw() {
         paletteBar16.redraw();
         paletteBar32.redraw();
+        paletteBar48.redraw();
+        paletteBar64.redraw();
 	}
 
-    public PaletteTool(Shell shell, Composite parent16, Composite parent32, int flags, Palette palette) {
+    public PaletteTool(Shell shell, Composite parent16, Composite parent32, Composite parent48,Composite parent64, int flags, Palette palette) {
  		this.palette = palette;
 		resManager = new LocalResourceManager(JFaceResources.getResources(),
                 parent16);
         paletteBar16 = new ToolBar(parent16, flags);
         paletteBar32 = new ToolBar(parent32, flags);
-        createColorButtons(paletteBar16, paletteBar32, palette);
+        paletteBar48 = new ToolBar(parent48, flags);
+        paletteBar64 = new ToolBar(parent64, flags);
+        createColorButtons(paletteBar16, paletteBar32, paletteBar48, paletteBar64, palette);
         colorPicker.addListener(this);
 	}
 
@@ -135,13 +141,18 @@ public class PaletteTool extends AbstractModel implements ColorModifiedListener 
 		return image;
 	}
 
-    private void createColorButtons(ToolBar toolBar16,ToolBar toolBar32, Palette pal) {
+    private void createColorButtons(ToolBar toolBar16,ToolBar toolBar32,ToolBar toolBar48,ToolBar toolBar64, Palette pal) {
         for (int i = 0; i < pal.numberOfColors; i++) {
             if (i < 16)
                 colBtn[i] = new ToolItem(toolBar16, SWT.RADIO);
-            else
+            else if (i < 32)
                 colBtn[i] = new ToolItem(toolBar32, SWT.RADIO);
-			colBtn[i].setSelection(i==0);
+            else if (i < 48)
+                colBtn[i] = new ToolItem(toolBar48, SWT.RADIO);
+            else if (i < 64)
+                colBtn[i] = new ToolItem(toolBar64, SWT.RADIO);
+
+            colBtn[i].setSelection(i==0);
 			colBtn[i].setToolTipText("Ctrl-Click to edit\nShift-Click to swap");
 			colBtn[i].setData(Integer.valueOf(i));
 			colBtn[i].setImage(getSquareImage(display, toSwtRGB(pal.colors[i])));
@@ -167,8 +178,12 @@ public class PaletteTool extends AbstractModel implements ColorModifiedListener 
             if( i % 4 == 3 && i < pal.numberOfColors-1) {
                 if (i<16) 
                     new ToolItem(toolBar16, SWT.SEPARATOR);
-                else
+                else if (i<32) 
                     new ToolItem(toolBar32, SWT.SEPARATOR);
+                else if (i<48) 
+                    new ToolItem(toolBar48, SWT.SEPARATOR);
+                else if (i<64) 
+                    new ToolItem(toolBar64, SWT.SEPARATOR);
             }
 		}
 	}
