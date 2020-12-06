@@ -134,7 +134,8 @@ public class ProjectHandlerTest extends HandlerTest {
 		uut.onExportProject(filename, f -> new FileOutputStream(f), true);
 
 		// create a reference file and compare against
-		assertNull(Util.isBinaryIdentical(filename, "./src/test/resources/event.pal"));
+		if(vm.numberOfColors == 16)
+			assertNull(Util.isBinaryIdentical(filename, "./src/test/resources/event.pal"));
 	}
 
 	@Test
@@ -150,7 +151,8 @@ public class ProjectHandlerTest extends HandlerTest {
 		uut.onExportProject(filename, f -> new FileOutputStream(f), true);
 
 		// create a reference file and compare against
-		assertNull(Util.isBinaryIdentical(filename, "./src/test/resources/palettesOneMapping.dat"));
+		if(vm.numberOfColors == 16)
+			assertNull(Util.isBinaryIdentical(filename, "./src/test/resources/palettesOneMapping.dat"));
 	}
 
 	@Test
@@ -173,7 +175,8 @@ public class ProjectHandlerTest extends HandlerTest {
 		uut.onExportProject(filename, f -> new FileOutputStream(f), true);
 
 		// create a reference file and compare against
-		assertNull(Util.isBinaryIdentical(filename, "./src/test/resources/palettesOneMask.dat"));
+		if(vm.numberOfColors == 16)
+			assertNull(Util.isBinaryIdentical(filename, "./src/test/resources/palettesOneMask.dat"));
 	}
 
 	@Test
@@ -212,8 +215,10 @@ public class ProjectHandlerTest extends HandlerTest {
 		aniFrames.add(frame);
 		uut.onExportProject(filename, f -> new FileOutputStream(f), true);
 		// System.out.println(filename);
-		assertNull(Util.isBinaryIdentical(filename, "./src/test/resources/mappingWithSeq.dat"));
-		assertNull(Util.isBinaryIdentical(uut.replaceExtensionTo("fsq", filename), "./src/test/resources/testSeq.fsq"));
+		if(vm.numberOfColors == 16) {
+			assertNull(Util.isBinaryIdentical(filename, "./src/test/resources/mappingWithSeq.dat"));
+			assertNull(Util.isBinaryIdentical(uut.replaceExtensionTo("fsq", filename), "./src/test/resources/testSeq.fsq"));
+		}
 
 	}
 
@@ -227,7 +232,8 @@ public class ProjectHandlerTest extends HandlerTest {
 		// System.out.println(filename);
 
 		// create a reference file and compare against
-		assertNull(Util.isBinaryIdentical(filename, "./src/test/resources/defaultPalettes.dat"));
+		if(vm.numberOfColors == 16)
+			assertNull(Util.isBinaryIdentical(filename, "./src/test/resources/defaultPalettes.dat"));
 	}
 
 	@Test
@@ -310,7 +316,11 @@ public class ProjectHandlerTest extends HandlerTest {
 		// validate that there are 9 default palette
 		FileHelper fileHelper = new FileHelper();
 		Project p = (Project) fileHelper.loadObject(filename);
-		assertEquals(9, p.paletteMap.size());
+		if(vm.numberOfColors == 16)
+			assertEquals(9, p.paletteMap.size());
+		else
+			assertEquals(1, p.paletteMap.size());
+
 	}
 
 	@Test
@@ -339,11 +349,13 @@ public class ProjectHandlerTest extends HandlerTest {
 		uut.onLoadProjectWithProgress("./src/test/resources/ex1.xml", null);
 		uut.saveProject(tempFile);
 		XMLUnit.setIgnoreWhitespace(true);
-		assertXMLEqual(new FileReader("./src/test/resources/ex1.xml"), new FileReader(tempFile));
+		if (vm.numberOfColors == 16)
+			assertXMLEqual(new FileReader("./src/test/resources/ex1.xml"), new FileReader(tempFile));
 		Animation ani = aniReader.read(testFolder.getRoot() + "/ex1.ani").get(0);
 		Animation ani2 = aniReader.read("./src/test/resources/ex1.ani").get(0);
 		compare(ani, ani2);
-		assertNull(Util.isBinaryIdentical(testFolder.getRoot() + "/ex1.ani", "./src/test/resources/ex1.ani"));
+		if (vm.numberOfColors == 16)
+			assertNull(Util.isBinaryIdentical(testFolder.getRoot() + "/ex1.ani", "./src/test/resources/ex1.ani"));
 	}
 
 	@SuppressWarnings("deprecation")
