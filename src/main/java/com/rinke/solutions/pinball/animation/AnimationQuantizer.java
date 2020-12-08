@@ -9,11 +9,11 @@ import com.rinke.solutions.pinball.model.RGB;
 
 public class AnimationQuantizer {
 
-	public CompiledAnimation quantize(String name, CompiledAnimation in, Palette pal) {
+	public CompiledAnimation quantize(String name, CompiledAnimation in, Palette pal, int noOfPlanesWhenCutting) {
 		CompiledAnimation result = new CompiledAnimation(AnimationType.COMPILED, name, 
 				in.start, in.end,in.skip, 0, 0, in.width, in.height);
 		for( Frame inFrame : in.frames ) {
-			Frame qFrame = quantizeFrame(inFrame, pal, in.width, in.height);
+			Frame qFrame = quantizeFrame(inFrame, pal, in.width, in.height, noOfPlanesWhenCutting);
 			qFrame.delay = inFrame.delay;
 			qFrame.timecode = inFrame.timecode;
 			qFrame.crc32 = inFrame.crc32;
@@ -60,8 +60,8 @@ public class AnimationQuantizer {
 		return ((rgb.red>>(8-bitPerChannel)) << (bitPerChannel*2)) | ((rgb.green>>(8-bitPerChannel)) << bitPerChannel) | (rgb.blue>>(8-bitPerChannel));
 	}
 
-	private Frame quantizeFrame(Frame in, Palette pal, int w, int h) {
-		int noOfPlanes = Constants.DEFAULT_NO_OF_PLANES; // default
+	private Frame quantizeFrame(Frame in, Palette pal, int w, int h, int noOfPlanesWhenCutting) {
+		int noOfPlanes = noOfPlanesWhenCutting; //Constants.DEFAULT_NO_OF_PLANES; // default
 		int planeSize = in.planes.get(0).data.length;
 		// if( pal.numberOfColors == 16 ) 
 		int bytesPerRow = w / 8;

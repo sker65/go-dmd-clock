@@ -86,7 +86,7 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 		if( src != null ) {
 			AnimationQuantizer quantizer = new AnimationQuantizer();
 			String name = getUniqueName(src.getDesc()+"_q",vm.scenes.keySet());
-			CompiledAnimation newScene = quantizer.quantize(name, src, vm.selectedPalette);
+			CompiledAnimation newScene = quantizer.quantize(name, src, vm.selectedPalette, noOfPlanesWhenCutting);
 			newScene.setDesc(name);
 			newScene.setPalIndex(vm.selectedPalette.index);
 			newScene.setProjectAnimation(true);
