@@ -282,6 +282,7 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 	
 	public void onExtractPalColorsFromFrame() {
 		palettePicker.setAccuracy(colorAccuracy);
+		palettePicker.setMaxNumberOfColors(vm.numberOfColors);
 		palettePicker.setColorListProvider(p->extractColorsFromFrame(vm.dmd, p));
 		palettePicker.open();
 		colorAccuracy = palettePicker.getAccuracy();

@@ -314,6 +314,10 @@ public class PalettePicker extends Dialog implements View {
 	public void setAccuracy(int colorAccuracy) {
 		this.accuracy = colorAccuracy;
 	}
+	
+	public void setMaxNumberOfColors(int numberOfColors) {
+		this.maxColors = numberOfColors;
+	}
 
 	public int getAccuracy() {
 		return accuracy;
