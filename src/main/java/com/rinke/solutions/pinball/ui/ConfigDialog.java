@@ -46,7 +46,7 @@ public class ConfigDialog extends Dialog implements View {
     public boolean okPressed;
 
     private ComboViewer dmdSizeViewer;
-    private ComboViewer colorViewer;
+    private Spinner spinnerNoColors;
 	private Group grpDmd;
 	private Button btnOk;
 	private Button btnAutosaveActive;
@@ -103,6 +103,7 @@ public class ConfigDialog extends Dialog implements View {
         autosaveInterval.setSelection(config.getInteger(Config.AUTOSAVE_INTERVAL, 10));
         btnCreateKeyFrame.setSelection(config.getBoolean(Config.AUTOKEYFRAME, false));
         spinnerNoPlanes.setSelection(config.getInteger(Config.NOOFPLANES, 4));
+        spinnerNoColors.setSelection(config.getInteger(Config.NOOFCOLORS, 64));
         btnUseOldExport.setSelection(config.getBoolean(Config.OLDEXPORT, false));
         btnCreatePaletteAfter.setSelection(config.getBoolean(Config.ADDPALWHENCUT, false));
         btnCreateBookmarkAfter.setSelection(config.getBoolean(Config.CREATEBOOKCUT, false));
@@ -191,11 +192,11 @@ public class ConfigDialog extends Dialog implements View {
         lblColor.setText("Colors: ");
         lblColor.setBounds(10, 48, 41, 14);
         
-        colorViewer = new ComboViewer(grpDmd, SWT.READ_ONLY);
-        Combo comboColor = colorViewer.getCombo();
-        comboColor.setItems(new String[] {"16", "64"});
-        comboColor.setBounds(69, 45, 127, 23);
-        comboColor.select(1);        
+        spinnerNoColors = new Spinner(grpDmd, SWT.BORDER);
+        spinnerNoColors.setBounds(69, 45, 127, 23);
+        spinnerNoColors.setMinimum(16);
+        spinnerNoColors.setMaximum(64);
+        spinnerNoColors.setIncrement(48);;
         
         grpAutosave.setLayoutData(fd_grpAutosave);
         grpAutosave.setText("Save");
@@ -311,6 +312,7 @@ public class ConfigDialog extends Dialog implements View {
         config.put(Config.AUTOSAVE_INTERVAL, autosaveInterval.getSelection()); 
         config.put(Config.AUTOKEYFRAME, btnCreateKeyFrame.getSelection()); 
         config.put(Config.NOOFPLANES, spinnerNoPlanes.getSelection());
+        config.put(Config.NOOFCOLORS, spinnerNoColors.getSelection());
         config.put(Config.OLDEXPORT, btnUseOldExport.getSelection());
         config.put(Config.ADDPALWHENCUT, btnCreatePaletteAfter.getSelection());
         config.put(Config.CREATEBOOKCUT, btnCreateBookmarkAfter.getSelection());

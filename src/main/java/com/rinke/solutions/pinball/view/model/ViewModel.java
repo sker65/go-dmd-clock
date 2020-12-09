@@ -13,6 +13,7 @@ import java.util.TreeSet;
 import lombok.Getter;
 
 import com.rinke.solutions.beans.Bean;
+import com.rinke.solutions.beans.Value;
 import com.rinke.solutions.databinding.ViewBinding;
 import com.rinke.solutions.pinball.CutInfo;
 import com.rinke.solutions.pinball.DMD;
@@ -42,7 +43,7 @@ public class ViewModel extends AbstractModel {
 	}
 
 	public int numberOfHashButtons = 4;
-	public int numberOfColors = 64;
+	@Value public int numberOfColors = 64;
 	public boolean has4PlanesRecording = false;
 	
 	public boolean dirty;
