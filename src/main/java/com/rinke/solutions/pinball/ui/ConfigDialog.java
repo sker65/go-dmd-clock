@@ -161,6 +161,7 @@ public class ConfigDialog extends Dialog implements View {
         
         grpDmd = new Group(grpTest, SWT.NONE);
         FormData fd_grpDmd = new FormData();
+        fd_grpDmd.right = new FormAttachment(0, 223);
         fd_grpDmd.bottom = new FormAttachment(100, -34);
         fd_grpDmd.top = new FormAttachment(0, 10);
         fd_grpDmd.left = new FormAttachment(0, 10);
@@ -169,7 +170,7 @@ public class ConfigDialog extends Dialog implements View {
         
         dmdSizeViewer = new ComboViewer(grpDmd, SWT.READ_ONLY);
         Combo combo = dmdSizeViewer.getCombo();
-        combo.setBounds(69, 16, 110, 23);
+        combo.setBounds(69, 16, 127, 23);
         dmdSizeViewer.setContentProvider(ArrayContentProvider.getInstance());
 		dmdSizeViewer.setLabelProvider(new LabelProviderAdapter<DmdSize>(o -> o.label ));
 		dmdSizeViewer.setInput(DmdSize.values());
@@ -181,10 +182,10 @@ public class ConfigDialog extends Dialog implements View {
 		
         Group grpAutosave = new Group(grpTest, SWT.NONE);
         FormData fd_grpAutosave = new FormData();
+        fd_grpAutosave.left = new FormAttachment(grpDmd, 15);
+        fd_grpAutosave.right = new FormAttachment(100, -28);
         fd_grpAutosave.bottom = new FormAttachment(100, -34);
         fd_grpAutosave.top = new FormAttachment(0, 10);
-        fd_grpAutosave.right = new FormAttachment(100, -28);
-        fd_grpAutosave.left = new FormAttachment(grpDmd, 22);
         
         Label lblColor = new Label(grpDmd, SWT.RIGHT);
         lblColor.setText("Colors: ");
@@ -193,8 +194,8 @@ public class ConfigDialog extends Dialog implements View {
         colorViewer = new ComboViewer(grpDmd, SWT.READ_ONLY);
         Combo comboColor = colorViewer.getCombo();
         comboColor.setItems(new String[] {"16", "64"});
-        comboColor.setBounds(69, 45, 110, 23);
-        
+        comboColor.setBounds(69, 45, 127, 23);
+        comboColor.select(1);        
         
         grpAutosave.setLayoutData(fd_grpAutosave);
         grpAutosave.setText("Save");
