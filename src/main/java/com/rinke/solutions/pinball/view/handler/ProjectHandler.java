@@ -57,6 +57,7 @@ import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.PaletteType;
 import com.rinke.solutions.pinball.model.Plane;
 import com.rinke.solutions.pinball.model.Project;
+import com.rinke.solutions.pinball.model.RGB;
 import com.rinke.solutions.pinball.ui.IProgress;
 import com.rinke.solutions.pinball.ui.Progress;
 import com.rinke.solutions.pinball.util.Config;
@@ -197,15 +198,49 @@ public class ProjectHandler extends AbstractCommandHandler {
 			dispatcher.syncExec( () -> {
 				// populate palettes
 				vm.paletteMap.clear();
-				vm.paletteMap.putAll(p.paletteMap);
-				for( Palette pal : p.getPalettes() ) {
-					if( !vm.paletteMap.containsKey(pal.index) ) vm.paletteMap.put(pal.index, pal);
-					else {
-						int res = messageUtil.warn(0, "Warning",
-								"duplicate palette", "project file contains conflicting palette definition. Pal No "+pal.index+ "\nDo you want to overwrite ?",
-								new String[]{"", "KEEP", "OVERWRITE"},2);
-						if( res == 2 ) {
-							vm.paletteMap.put(pal.index, pal);
+				if (p.paletteMap.get(0).numberOfColors == 16) {
+					int res = messageUtil.warn(0, "Warning",
+							"16 color project file", 
+							"This project has 16 color palettes.\nDo you want to "
+									+ "convert it to 64 color format,\nthat may not work with the older version of the editor ?",
+							new String[]{"", "Cancel", "Convert"},2);
+					if( res != 2 ) { 
+						vm.numberOfColors = 16; 
+						vm.paletteMap.putAll(p.paletteMap);
+						for( Palette pal : p.getPalettes() ) {
+							if( !vm.paletteMap.containsKey(pal.index) ) vm.paletteMap.put(pal.index, pal);
+							else {
+								int r = messageUtil.warn(0, "Warning",
+										"duplicate palette", "project file contains conflicting palette definition. Pal No "+pal.index+ "\nDo you want to overwrite ?",
+										new String[]{"", "KEEP", "OVERWRITE"},2);
+								if( r == 2 ) {
+									vm.paletteMap.put(pal.index, pal);
+								}
+							}
+						}
+					} else {
+						vm.numberOfColors = 64; 
+						for (Palette pal : p.paletteMap.values()) {
+							int index = pal.index;
+							String name = pal.name;
+							RGB rgb[] = new RGB[64];
+							for( int j = 0; j<16; j++) {
+								rgb[j] = pal.colors[j];
+								rgb[j+16] = pal.colors[j];
+								rgb[j+32] = pal.colors[j];
+								rgb[j+48] = pal.colors[j];
+							}
+							Palette newPal = new Palette(rgb,index,name);
+                            if( !vm.paletteMap.containsKey(index) ) vm.paletteMap.put(index, newPal);
+                            else {
+                                int r = messageUtil.warn(0, "Warning",
+                                        "duplicate palette", "project file contains conflicting palette definition. Pal No "+pal.index+ "\nDo you want to overwrite ?",
+                                        new String[]{"", "KEEP", "OVERWRITE"},2);
+                                if( r == 2 ) {
+                                	vm.paletteMap.put(index, newPal);
+                                }
+                            }
+							
 						}
 					}
 				}

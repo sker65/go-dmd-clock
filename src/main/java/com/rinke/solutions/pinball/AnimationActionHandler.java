@@ -24,6 +24,7 @@ import com.rinke.solutions.pinball.animation.AniReader;
 import com.rinke.solutions.pinball.animation.AniWriter;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.Animation.EditMode;
+import com.rinke.solutions.pinball.animation.CompiledAnimation.RecordingLink;
 import com.rinke.solutions.pinball.animation.AnimationFactory;
 import com.rinke.solutions.pinball.animation.AnimationType;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
@@ -31,6 +32,8 @@ import com.rinke.solutions.pinball.animation.ProgressEventListener;
 import com.rinke.solutions.pinball.model.Model;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.RGB;
+import com.rinke.solutions.pinball.model.Frame;
+import com.rinke.solutions.pinball.model.Plane;
 import com.rinke.solutions.pinball.ui.IProgress;
 import com.rinke.solutions.pinball.ui.Progress;
 import com.rinke.solutions.pinball.util.FileChooserUtil;
@@ -196,6 +199,12 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 					int r = messageUtil.warn(SWT.OK | SWT.CANCEL, "Size mismatch", "size of animation does not match to project dmd size");
 					if( r == SWT.CANCEL ) break;
 				} else {
+					if (vm.numberOfColors == 64 && cani.frames.get(0).planes.size() < 6) {
+						for( Frame inFrame : cani.frames ) {
+							while(inFrame.planes.size() < 6)
+								inFrame.planes.add(new Plane((byte)inFrame.planes.size(),new byte[planeSize]));
+						}
+					}
 					populateAni(cani, vm.scenes);
 				}
 			} else {
@@ -234,6 +243,17 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 			// sanitize number of color per palette when importing
 			RGB[] aniColors = getSaveSizeRGBArray(ani.getAniColors());
 			
+			if (vm.numberOfColors != aniColors.length) {
+				RGB rgb[] = new RGB[64];
+				for( int j = 0; j<16; j++) {
+					rgb[j] = aniColors[j];
+					rgb[j+16] = aniColors[j];
+					rgb[j+32] = aniColors[j];
+					rgb[j+48] = aniColors[j];
+				}
+				aniColors = rgb;
+				ani.setAniColors(rgb);
+			}
 			// if loaded colors with animations propagate as palette
 			boolean colorsMatch = false;
 			int aniPalIndex = ani.getPalIndex();
