@@ -27,7 +27,7 @@ import com.rinke.solutions.pinball.view.model.ViewModel;
 @Slf4j
 public class CutCmdHandler extends AbstractCommandHandler implements ViewBindingHandler {
 
-	@Value(defaultValue="4") 
+	@Value(defaultValue="6") 
 	int noOfPlanesWhenCutting;
 	
 	@Value boolean addPalWhenCut;
