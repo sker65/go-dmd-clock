@@ -43,6 +43,8 @@ public class ViewModel extends AbstractModel {
 
 	public int numberOfHashButtons = 4;
 	public int numberOfColors = 64;
+	public boolean has4PlanesRecording = false;
+	
 	public boolean dirty;
 	public DmdSize dmdSize;
 	public String pin2dmdAdress;

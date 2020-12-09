@@ -208,6 +208,13 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 					populateAni(cani, vm.scenes);
 				}
 			} else {
+				if (!vm.has4PlanesRecording) {
+					lani.init(dmd);
+					if( lani.end == 0) lani.end = lani.getRenderer().getFrames().size()-1;
+					int noPlanes = lani.getRenderer().getNumberOfPlanes();
+					if (noPlanes == 4) 
+						vm.has4PlanesRecording = true;
+				}
 				populateAni(ani, vm.recordings);
 			}	
 			

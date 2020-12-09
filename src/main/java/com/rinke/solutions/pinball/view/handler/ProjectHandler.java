@@ -253,6 +253,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 				vm.setDmdSize(newSize);
 				vm.setProjectFilename(filename);
 				vm.recordings.clear();
+				vm.has4PlanesRecording = false;
 				vm.scenes.clear();
 				vm.inputFiles.clear();
 				for (String file : p.inputFiles) {
