@@ -198,7 +198,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 			dispatcher.syncExec( () -> {
 				// populate palettes
 				vm.paletteMap.clear();
-				if (p.paletteMap.get(0).numberOfColors == 16) {
+				if (p.paletteMap.get(0).numberOfColors == 16 && vm.numberOfColors == 64) {
 					int res = messageUtil.warn(0, "Warning",
 							"16 color project file", 
 							"This project has 16 color palettes.\nDo you want to "
