@@ -243,7 +243,21 @@ public class ProjectHandler extends AbstractCommandHandler {
 							
 						}
 					}
+				} else {
+					vm.paletteMap.putAll(p.paletteMap);
+					for( Palette pal : p.getPalettes() ) {
+						if( !vm.paletteMap.containsKey(pal.index) ) vm.paletteMap.put(pal.index, pal);
+						else {
+							int r = messageUtil.warn(0, "Warning",
+									"duplicate palette", "project file contains conflicting palette definition. Pal No "+pal.index+ "\nDo you want to overwrite ?",
+									new String[]{"", "KEEP", "OVERWRITE"},2);
+							if( r == 2 ) {
+								vm.paletteMap.put(pal.index, pal);
+							}
+						}
+					}
 				}
+				
 				if( p.width == 0) {
 					p.width = 128;
 					p.height = 32; // default for older projects
