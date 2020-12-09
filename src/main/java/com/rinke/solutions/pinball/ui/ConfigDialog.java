@@ -46,6 +46,7 @@ public class ConfigDialog extends Dialog implements View {
     public boolean okPressed;
 
     private ComboViewer dmdSizeViewer;
+    private ComboViewer colorViewer;
 	private Group grpDmd;
 	private Button btnOk;
 	private Button btnAutosaveActive;
@@ -164,19 +165,19 @@ public class ConfigDialog extends Dialog implements View {
         fd_grpDmd.top = new FormAttachment(0, 10);
         fd_grpDmd.left = new FormAttachment(0, 10);
         grpDmd.setLayoutData(fd_grpDmd);
-        grpDmd.setText("DMD");
+        grpDmd.setText("Project");
         
         dmdSizeViewer = new ComboViewer(grpDmd, SWT.READ_ONLY);
         Combo combo = dmdSizeViewer.getCombo();
-        combo.setBounds(60, 16, 119, 22);
+        combo.setBounds(69, 16, 110, 23);
         dmdSizeViewer.setContentProvider(ArrayContentProvider.getInstance());
 		dmdSizeViewer.setLabelProvider(new LabelProviderAdapter<DmdSize>(o -> o.label ));
 		dmdSizeViewer.setInput(DmdSize.values());
 		dmdSizeViewer.setSelection(new StructuredSelection(dmdSize));
 		
 		Label lblSize = new Label(grpDmd, SWT.RIGHT);
-		lblSize.setBounds(10, 19, 41, 14);
-		lblSize.setText("Size: ");
+		lblSize.setBounds(10, 19, 53, 14);
+		lblSize.setText("DMDSize: ");
 		
         Group grpAutosave = new Group(grpTest, SWT.NONE);
         FormData fd_grpAutosave = new FormData();
@@ -184,6 +185,17 @@ public class ConfigDialog extends Dialog implements View {
         fd_grpAutosave.top = new FormAttachment(0, 10);
         fd_grpAutosave.right = new FormAttachment(100, -28);
         fd_grpAutosave.left = new FormAttachment(grpDmd, 22);
+        
+        Label lblColor = new Label(grpDmd, SWT.RIGHT);
+        lblColor.setText("Colors: ");
+        lblColor.setBounds(10, 48, 41, 14);
+        
+        colorViewer = new ComboViewer(grpDmd, SWT.READ_ONLY);
+        Combo comboColor = colorViewer.getCombo();
+        comboColor.setItems(new String[] {"16", "64"});
+        comboColor.setBounds(69, 45, 110, 23);
+        
+        
         grpAutosave.setLayoutData(fd_grpAutosave);
         grpAutosave.setText("Save");
         
