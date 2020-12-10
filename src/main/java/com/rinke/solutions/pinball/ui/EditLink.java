@@ -67,7 +67,7 @@ public class EditLink extends Dialog implements EditLinkView {
 	private void createContents() {
 		if (contentCreadted) return;
 		shlEditlink = new Shell(getParent(), getStyle());
-		shlEditlink.setSize(315, 169);
+		shlEditlink.setSize(350, 200);
 		shlEditlink.setText("EditLink");
 		
 		Button btnOk = new Button(shlEditlink, SWT.NONE);
@@ -107,7 +107,10 @@ public class EditLink extends Dialog implements EditLinkView {
 		okClicked = true;
 		IStructuredSelection selection = (IStructuredSelection) comboViewer.getSelection();
 		Animation ani = (Animation) selection.getFirstElement();
-		this.recordingLink = new RecordingLink(ani.getDesc() , Integer.parseInt(txtStartFrame.getText()));
+		if (this.recordingLink != null)
+			this.recordingLink = new RecordingLink(ani.getDesc() , Integer.parseInt(txtStartFrame.getText()));
+		else 
+			this.recordingLink = null;
 		close();
 	}
 	
