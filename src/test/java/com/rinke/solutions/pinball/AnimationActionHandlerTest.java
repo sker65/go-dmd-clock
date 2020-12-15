@@ -70,7 +70,7 @@ public class AnimationActionHandlerTest extends HandlerTest{
 	@Test
 	public void testLoadAniGifWithSmallPalette() throws Exception {
 		uut.loadAni("./src/test/resources/renderer/ezgif-645182047.gif", true, true, null);
-		if (vm.numberOfColors == 16) {
+		if (vm.numberOfColors == 16) { //TODO !!! fix Test
 			assertEquals(10, vm.paletteMap.size() );
 			assertEquals(16, vm.paletteMap.get(9).numberOfColors);
 		}
@@ -79,7 +79,7 @@ public class AnimationActionHandlerTest extends HandlerTest{
 	@Ignore
 	public void testLoadAniGifBigSmallPalette() throws Exception {
 		uut.loadAni("./src/test/resources/renderer/wave-ball-preloader.gif", true, true, null);
-		if (vm.numberOfColors == 16) {
+		if (vm.numberOfColors == 16) { //TODO !!! fix Test
 			assertEquals(10, vm.paletteMap.size() );
 			assertEquals(16, vm.paletteMap.get(9).numberOfColors);
 		}

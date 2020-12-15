@@ -95,7 +95,7 @@ public class KeyframeHandlerTest extends HandlerTest {
 		uut.onSelectedKeyFrameChanged(null, p);
 		assertEquals(vm.selectedRecording, rec);
 		assertEquals(vm.selectedFrameSeq, scene);
-		if (vm.numberOfColors == 16)
+		if (vm.numberOfColors == 16) //TODO !!! fix Test
 			assertEquals(4, vm.selectedPalette.index);
 	}
 
