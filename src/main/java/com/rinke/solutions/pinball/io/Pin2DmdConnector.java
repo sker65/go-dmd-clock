@@ -269,22 +269,13 @@ public abstract class Pin2DmdConnector {
 	        	}
 	           	bulk(buffer);
 	    	} else {
-	    		if( bufferSize / planeSize == 2 ) {
-	    			bufferSize *= 2;				// double buffer size for 4 plane output
-	    		}
 	        	if( frame.planes.size() == 2 ) {
-	        		byte[] buffer = buildFrameBuffer(bufferSize, 0xE7, 0);
-	        		byte[] planeAnd = new byte[planeSize];
-	        		byte[] plane0 = frame.planes.get(0).data;
-	        		byte[] plane1 = frame.planes.get(1).data;
-	        		
-	        		for (int j = 0; j < plane0.length; j++) {
-	    				planeAnd[j] =  (byte) (plane0[j] & plane1[j]);
-	    			}
-	        		System.arraycopy(Frame.transform(plane0), 0, buffer, headerSize+0*planeSize, planeSize);
-	        		System.arraycopy(Frame.transform(plane1), 0, buffer, headerSize+2*planeSize, planeSize);
-	        		System.arraycopy(Frame.transform(planeAnd), 0, buffer, headerSize+1*planeSize, planeSize);
-	        		System.arraycopy(Frame.transform(planeAnd), 0, buffer, headerSize+3*planeSize, planeSize);
+	        		byte[] buffer = buildFrameBuffer(bufferSize, 0xE8, bufferSize/512);
+		    		for( Plane p : frame.planes) {
+		        		System.arraycopy(Frame.transform(p.data), 0, buffer, headerSize+i*planeSize, planeSize);
+		        		i++;
+		        		if( i > 1 ) break; // max 2 planes
+		        	}
 		           	bulk(buffer);
 	        	} else if( frame.planes.size() == 4 ) {
 	        		byte[] buffer = buildFrameBuffer(bufferSize, 0xE7, 0);
