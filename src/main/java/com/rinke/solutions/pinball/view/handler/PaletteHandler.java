@@ -221,9 +221,11 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 	 */
 	private boolean inList(List<RGB> colors, RGB col, int accuracy) {
 		for( RGB c : colors) {
-			float d = getColorDistance(c, col); 
-			//System.out.println(d);
-			if( d < (0.001f + 2f * accuracy) ) return true; 
+			if (c != null) {
+				float d = getColorDistance(c, col); 
+				//System.out.println(d);
+				if( d < (0.001f + 2f * accuracy) ) return true; 
+			}
 		}
 		return false;
 	}

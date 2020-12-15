@@ -122,7 +122,7 @@ public class PalettePicker extends Dialog implements View {
 	 */
 	private void createContents() {
 		shell = new Shell(getParent(), getStyle());
-		shell.setSize(450, 475);
+		shell.setSize(475, 490);
 		shell.setText("Palette Picker");
 		
 		Button btnUpdatePalette = new Button(shell, SWT.NONE);
@@ -140,7 +140,7 @@ public class PalettePicker extends Dialog implements View {
 		grpColorsInScene.setBounds(10, 10, 430, 377);
 		
 		toolBar = new ToolBar(grpColorsInScene, SWT.FLAT | SWT.WRAP | SWT.RIGHT);
-		toolBar.setBounds(10, 10, 406, 340);
+		toolBar.setBounds(15, 15, 410, 360);
 		
 		lblSelectedColors = new Label(shell, SWT.NONE);
 		lblSelectedColors.setBounds(194, 395, 117, 14);
@@ -163,7 +163,7 @@ public class PalettePicker extends Dialog implements View {
 		scale.addListener(SWT.Selection, e->{ accuracy = scale.getSelection(); updateColorButtons(); });
 		
 		Label lblColorAccuracy = new Label(shell, SWT.NONE);
-		lblColorAccuracy.setBounds(24, 415, 103, 20);
+		lblColorAccuracy.setBounds(24, 415, 90, 20);
 		lblColorAccuracy.setText("Color Accuracy");
 
 		Button btnAll = new Button(shell, SWT.NONE);
