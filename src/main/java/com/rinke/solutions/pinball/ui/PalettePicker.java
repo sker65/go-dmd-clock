@@ -207,24 +207,30 @@ public class PalettePicker extends Dialog implements View {
 			
 		}
 		updateLabels();
+		int k = 0;
 		for (int i = 0; i < colBtn.length; i++) {
 			if( colBtn[i] == null ) {
 				colBtn[i] = new ToolItem(toolBar, SWT.CHECK);
 				// colBtn[i].setData(new );
 				colBtn[i].addListener(SWT.Selection, e->colSelected(e));
 			}
-			if( i < colors.size() ) {
+			if( k < colors.size() && colors.get(k) != null ) {
 				//colBtn[i].setEnabled(true);
 				colBtn[i].setText("");
-				colBtn[i].setSelection(selectedColors.containsKey(colors.get(i)));
-				colBtn[i].setData(colors.get(i));
-				colBtn[i].setImage(getSquareImage(display, toSwtRGB(colors.get(i))));
+				colBtn[i].setSelection(selectedColors.containsKey(colors.get(k)));
+				colBtn[i].setData(colors.get(k));
+				colBtn[i].setImage(getSquareImage(display, toSwtRGB(colors.get(k))));
+				String toolTip = String.format("R: %d\nG: %d\nB: %d", colors.get(k).red,colors.get(k).green,colors.get(k).blue);
+				colBtn[i].setToolTipText(toolTip);
+				k++;
 			} else {
-				colBtn[i].setText("X");
-				colBtn[i].setSelection(false);
-				colBtn[i].setData(null);
-				if( colBtn[i].getImage()!= null ) colBtn[i].setImage(null);
-				//colBtn[i].setEnabled(true);
+				if (k < colors.size()) {
+						colBtn[i].setText("X");
+						colBtn[i].setSelection(false);
+						colBtn[i].setData(null);
+						if( colBtn[i].getImage()!= null ) colBtn[i].setImage(null);
+						k++;
+				}
 			}
 		}
 	}

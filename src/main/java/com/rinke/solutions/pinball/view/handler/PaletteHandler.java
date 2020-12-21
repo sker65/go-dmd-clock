@@ -285,7 +285,10 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 	public void onExtractPalColorsFromFrame() {
 		palettePicker.setAccuracy(colorAccuracy);
 		palettePicker.setMaxNumberOfColors(vm.numberOfColors);
-		palettePicker.setColorListProvider(p->extractColorsFromFrame(vm.dmd, p));
+		if (vm.dmd.getNumberOfPlanes() == 24 && vm.previewDMD != null && (vm.previewDMD.getNumberOfPlanes() == 2 || vm.previewDMD.getNumberOfPlanes() == 4))
+			palettePicker.setColorListProvider(p->extractColorsFromFrameAndSort(vm.dmd, vm.previewDMD, p));
+		else
+			palettePicker.setColorListProvider(p->extractColorsFromFrame(vm.dmd, p));
 		palettePicker.open();
 		colorAccuracy = palettePicker.getAccuracy();
 		if( palettePicker.getResult() != null && vm.selectedPalette != null ) {
@@ -296,6 +299,29 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 			vm.setPaletteDirty(true);
 		}
 	}
+	
+	List<RGB> extractColorsFromFrameAndSort (DMD dmd, DMD previewDMD, int accuracy) {
+		List<RGB> res = new ArrayList<>();
+		List<RGB> sortedRes = new ArrayList<>();
+		int numberOfShades = (int) Math.pow(2,previewDMD.getNumberOfPlanes());
+		for (int i = 0; i < numberOfShades; i++) {
+			for( int x = 0; x < previewDMD.getWidth(); x++) {
+				for(int y = 0; y < previewDMD.getHeight(); y++) {
+					if (i == previewDMD.getPixelWithoutMask(x, y)) {
+						int rgb = dmd.getPixelWithoutMask(x, y);
+						RGB col = RGB.fromInt(rgb);
+						if( !inList(res, col, accuracy) ) {
+							res.add(col);
+						}
+					}
+				}
+			}
+			res.add(null);
+		}
+		
+		return res;
+	}
+
 
 	List<RGB> extractColorsFromFrame(DMD dmd, int accuracy) {
 		List<RGB> res = new ArrayList<>();
