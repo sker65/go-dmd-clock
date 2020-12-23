@@ -283,18 +283,25 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 	}
 	
 	public void onExtractPalColorsFromFrame() {
+		int i = 0;
 		palettePicker.setAccuracy(colorAccuracy);
 		palettePicker.setMaxNumberOfColors(vm.numberOfColors);
-		if (vm.dmd.getNumberOfPlanes() == 24 && vm.previewDMD != null && (vm.previewDMD.getNumberOfPlanes() == 2 || vm.previewDMD.getNumberOfPlanes() == 4))
+		if (vm.dmd.getNumberOfPlanes() == 24 && vm.previewDMD != null && (vm.previewDMD.getNumberOfPlanes() == 2 || vm.previewDMD.getNumberOfPlanes() == 4)) {
 			palettePicker.setColorListProvider(p->extractColorsFromFrameAndSort(vm.dmd, vm.previewDMD, p));
-		else
+			i = vm.getSelectedColor(); 
+			}
+		else {
 			palettePicker.setColorListProvider(p->extractColorsFromFrame(vm.dmd, p));
+			}
 		palettePicker.open();
 		colorAccuracy = palettePicker.getAccuracy();
 		if( palettePicker.getResult() != null && vm.selectedPalette != null ) {
-			int i = 0;
 			for( RGB c : palettePicker.getResult()) {
-				if( i < vm.selectedPalette.numberOfColors ) vm.selectedPalette.colors[i++] = c;
+				if (c == null) {
+					i++;
+				} else {
+					if( i < vm.selectedPalette.numberOfColors ) vm.selectedPalette.colors[i++] = c;
+				}
 			}
 			vm.setPaletteDirty(true);
 		}

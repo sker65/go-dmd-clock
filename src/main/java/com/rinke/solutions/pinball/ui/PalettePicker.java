@@ -90,12 +90,14 @@ public class PalettePicker extends Dialog implements View {
 	}
 	
 	private void selectAll() {
+		deselectAll();
 		for (int j = 0; j < colBtn.length; j++) {
 			ToolItem i = colBtn[j];
 			if( selectedColors.size() < maxColors ) {
 				if( i.getImage() != null ) {
 					RGB c = (RGB)i.getData();
-					selectedColors.put(c, c);
+					selectedColors.add(c);
+					numOfSelectedColors++;
 					i.setSelection(true);
 				}
 			}
@@ -108,6 +110,7 @@ public class PalettePicker extends Dialog implements View {
 			i.setSelection(false);
 		}
 		selectedColors.clear();
+		numOfSelectedColors = 0;
 		updateLabels();
 	}
 
@@ -185,7 +188,21 @@ public class PalettePicker extends Dialog implements View {
 	}
 
 	private void updatePalette() {
-		result = selectedColors.values();
+		selectedColors.clear();
+		numOfSelectedColors=0;
+		for (int j = 0; j < colBtn.length; j++) {
+			ToolItem i = colBtn[j];
+			if( i.getImage() != null ) {
+				if (i.getSelection()) {
+					RGB c = (RGB)i.getData();
+					selectedColors.add(c);
+					numOfSelectedColors++;
+				}
+			} else {
+				selectedColors.add(null);
+			}
+		}
+		result = selectedColors;
 		close();
 	}
 
@@ -200,7 +217,7 @@ public class PalettePicker extends Dialog implements View {
 	private void updateColorButtons() {
 		if( colorListProvider != null ) {
 			colors = colorListProvider.refreshColors(accuracy);
-			for (Iterator<RGB> i = selectedColors.keySet().iterator(); i.hasNext();) {
+			for (Iterator<RGB> i = selectedColors.iterator(); i.hasNext();) {
 				RGB rgb = i.next();
 				if( !colors.contains(rgb) ) i.remove();
 			}
@@ -217,7 +234,7 @@ public class PalettePicker extends Dialog implements View {
 			if( k < colors.size() && colors.get(k) != null ) {
 				//colBtn[i].setEnabled(true);
 				colBtn[i].setText("");
-				colBtn[i].setSelection(selectedColors.containsKey(colors.get(k)));
+				colBtn[i].setSelection(selectedColors.contains(colors.get(k)));
 				colBtn[i].setData(colors.get(k));
 				colBtn[i].setImage(getSquareImage(display, toSwtRGB(colors.get(k))));
 				String toolTip = String.format("R: %d\nG: %d\nB: %d", colors.get(k).red,colors.get(k).green,colors.get(k).blue);
@@ -235,7 +252,9 @@ public class PalettePicker extends Dialog implements View {
 		}
 	}
 	
-	Map<RGB,RGB> selectedColors = new HashMap<>();
+	List<RGB> selectedColors = new ArrayList<>();
+	int numOfSelectedColors = 0;
+	//Map<RGB,RGB> selectedColors = new HashMap<>();
 	
 	private void colSelected(Event evt) {
 		//System.out.println(item.getData() + " : " + item.getSelection());
@@ -243,9 +262,11 @@ public class PalettePicker extends Dialog implements View {
 		boolean selection = ((ToolItem) evt.widget).getSelection();
 		if( rgb != null ) {
 			if( selection /* && selectedColors.size() < maxColors*/) {
-				selectedColors.put(rgb, rgb);
+				selectedColors.add(rgb);
+				numOfSelectedColors++;
 			} else {
 				selectedColors.remove(rgb);
+				numOfSelectedColors--;
 			}
 		}
 		//disableCol( selectedColors.size() < maxColors );
@@ -265,7 +286,7 @@ public class PalettePicker extends Dialog implements View {
 	}
 
 	public void updateLabels() {
-		lblSelectedColors.setText(String.format("Selected Colors: %d", selectedColors.size()));
+		lblSelectedColors.setText(String.format("Selected Colors: %d", numOfSelectedColors));
 		lblTotal.setText(String.format("Total: %d", colors.size()));
 	}
 	
