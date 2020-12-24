@@ -188,6 +188,7 @@ public class PalettePicker extends Dialog implements View {
 	}
 
 	private void updatePalette() {
+		boolean colorFound = false;
 		selectedColors.clear();
 		numOfSelectedColors=0;
 		for (int j = 0; j < colBtn.length; j++) {
@@ -197,9 +198,13 @@ public class PalettePicker extends Dialog implements View {
 					RGB c = (RGB)i.getData();
 					selectedColors.add(c);
 					numOfSelectedColors++;
+					colorFound = true;
 				}
 			} else {
-				selectedColors.add(null);
+				if(!colorFound) {
+					selectedColors.add(null);
+				}
+				colorFound = false;
 			}
 		}
 		result = selectedColors;
