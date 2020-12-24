@@ -222,7 +222,7 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 		vm.setSelectedScene(null);
 	}
 	
-	public void onCheckKeyframe() {
+	public List<String> checkAndFixKeyframes(){
 		List<String> res = new ArrayList<>();
 		for( PalMapping pm : vm.keyframes.values()) {
 			//pm.maskNumber
@@ -231,17 +231,46 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 				vm.dmd.setMask(vm.masks.get(pm.maskNumber));
 				vm.setSelectedMaskNumber(pm.maskNumber);
 			}
+			
 			hashCmdHandler.updateHashes(vm.dmd.getFrame());
 			for (int idx = 0;idx < vm.hashes.size();idx++) {
 				if(Arrays.equals(pm.crc32, vm.hashes.get(idx))) {
 					res.add(" "+pm.name);
+					if (pm.frameIndex == 0) {
+						pm.frameIndex = vm.getSelectedFrame();
+						pm.animationName = vm.selectedRecording.getDesc();
+					}
 					break;
 				}
 			}
+			
+			if(pm.frameIndex == 0) {
+				vm.setDetectionMaskActive(true);
+				for (int msk = 0; msk < vm.masks.size(); msk++) {
+					vm.dmd.setMask(vm.masks.get(msk));
+					vm.setSelectedMaskNumber(msk);
+					hashCmdHandler.updateHashes(vm.dmd.getFrame());
+					for (int idx = 0;idx < vm.hashes.size();idx++) {
+						if(Arrays.equals(pm.crc32, vm.hashes.get(idx))) {
+							res.add(" "+pm.name);
+							pm.frameIndex = vm.getSelectedFrame();
+							pm.animationName = vm.selectedRecording.getDesc();
+							pm.withMask = true;
+							pm.maskNumber = msk;
+						}
+					}
+				}
+				vm.setDetectionMaskActive(false);
+			}
 		}
-		vm.setDetectionMaskActive(false);
-		if (res.size() != 0)
+		return res;
+	}
+	
+	public void onCheckKeyframe() {
+		List<String> res = checkAndFixKeyframes();
+		if (res.size() != 0) {
 			messageUtil.warn("Keyframe found", "The selected frame gets triggered by Keyframe:\n"+res);
+			}
 		else
 			messageUtil.warn("No Keyframe found", "No Keyframe found for the selected frame.");
 	}
