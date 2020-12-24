@@ -203,7 +203,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 							"16 color project file", 
 							"This project has 16 color palettes.\nDo you want to "
 									+ "convert it to 64 color format,\nthat may not work with the older version of the editor ?",
-							new String[]{"", "Cancel", "Convert"},2);
+							new String[]{"", "Continue", "Convert"},2);
 					if( res != 2 ) { 
 						vm.numberOfColors = 16; 
 						vm.paletteMap.putAll(p.paletteMap);
