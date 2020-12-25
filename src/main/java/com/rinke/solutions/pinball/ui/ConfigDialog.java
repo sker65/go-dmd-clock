@@ -308,6 +308,10 @@ public class ConfigDialog extends Dialog implements View {
 		log.info("ok pressed");
 		okPressed = true;
 		dmdSize = (DmdSize) ((StructuredSelection) dmdSizeViewer.getSelection()).getFirstElement();
+		if (spinnerNoPlanes.getSelection() == 4 && spinnerNoColors.getSelection() == 64)
+			spinnerNoPlanes.setSelection(6);
+		if (spinnerNoPlanes.getSelection() == 6 && spinnerNoColors.getSelection() == 16)
+			spinnerNoPlanes.setSelection(4);
         config.put(Config.AUTOSAVE, btnAutosaveActive.getSelection());
         config.put(Config.AUTOSAVE_INTERVAL, autosaveInterval.getSelection()); 
         config.put(Config.AUTOKEYFRAME, btnCreateKeyFrame.getSelection()); 
