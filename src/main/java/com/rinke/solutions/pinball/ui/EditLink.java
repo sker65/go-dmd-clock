@@ -107,7 +107,7 @@ public class EditLink extends Dialog implements EditLinkView {
 		okClicked = true;
 		IStructuredSelection selection = (IStructuredSelection) comboViewer.getSelection();
 		Animation ani = (Animation) selection.getFirstElement();
-		if (this.recordingLink != null)
+		if (selection.size() != 0)
 			this.recordingLink = new RecordingLink(ani.getDesc() , Integer.parseInt(txtStartFrame.getText()));
 		else 
 			this.recordingLink = null;
