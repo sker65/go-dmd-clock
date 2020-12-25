@@ -115,8 +115,12 @@ public class PaletteTool extends AbstractModel implements ColorModifiedListener 
 				colBtn[i].setEnabled(visible[i] == 1);
 			break;
 		case 4: // 4 planes -> 16 colors
+			for (int i = 0; i < 16; i++)
+				colBtn[i].setEnabled(true);
+			break;
 		case 6: // 6 planes -> 64 colors
 		case Constants.MAX_BIT_PER_COLOR_CHANNEL*3: // 15 planes -> rgb mode
+		case Constants.TRUE_COLOR_BIT_PER_CHANNEL*3: // 24 planes
 			for (int i = 0; i < palette.numberOfColors; i++)
 				colBtn[i].setEnabled(true);
 			break;
