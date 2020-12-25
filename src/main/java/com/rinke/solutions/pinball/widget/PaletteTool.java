@@ -145,7 +145,7 @@ public class PaletteTool extends AbstractModel implements ColorModifiedListener 
 	}
 
     private void createColorButtons(ToolBar toolBar16,ToolBar toolBar32,ToolBar toolBar48,ToolBar toolBar64, Palette pal) {
-        for (int i = 0; i < pal.numberOfColors; i++) {
+        for (int i = 0; i < colBtn.length; i++) {
             if (i < 16)
                 colBtn[i] = new ToolItem(toolBar16, SWT.RADIO);
             else if (i < 32)
@@ -158,7 +158,10 @@ public class PaletteTool extends AbstractModel implements ColorModifiedListener 
             colBtn[i].setSelection(i==0);
 			colBtn[i].setToolTipText("Ctrl-Click to edit\nShift-Click to swap");
 			colBtn[i].setData(Integer.valueOf(i));
-			colBtn[i].setImage(getSquareImage(display, toSwtRGB(pal.colors[i])));
+			if (i < pal.colors.length)
+				colBtn[i].setImage(getSquareImage(display, toSwtRGB(pal.colors[i])));
+			else 
+				colBtn[i].setImage(getSquareImage(display, new RGB(255,255,255)));
 			colBtn[i].addListener(SWT.Selection, e -> {
 				int col = (Integer) e.widget.getData();
 				int oldCol = selectedColor;
@@ -178,7 +181,7 @@ public class PaletteTool extends AbstractModel implements ColorModifiedListener 
 					swapColor(oldCol,selectedColor);
 				}
 			});
-            if( i % 4 == 3 && i < pal.numberOfColors-1) {
+            if( i % 4 == 3 && i < colBtn.length-1) {
                 if (i<16) 
                     new ToolItem(toolBar16, SWT.SEPARATOR);
                 else if (i<32) 
