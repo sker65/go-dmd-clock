@@ -273,7 +273,21 @@ public class ProjectHandler extends AbstractCommandHandler {
 				for (String file : p.inputFiles) {
 					String basefile = FilenameUtils.getBaseName(file)
 			                + "." + FilenameUtils.getExtension(file);
-					vm.inputFiles.add(basefile);	
+					if (Files.exists(Paths.get(buildRelFilename(filename, file)),java.nio.file.LinkOption.NOFOLLOW_LINKS)) {
+						if (file.equals(basefile))
+							vm.inputFiles.add(basefile);
+						else {
+							try { // found file but not in project directory => copy
+								Files.copy(Paths.get(buildRelFilename(filename, file)),Paths.get(buildRelFilename(filename, basefile)) , REPLACE_EXISTING);
+								vm.inputFiles.add(basefile);
+							} catch (IOException f) {
+								log.error("problem moving {}", basefile, f);
+								vm.inputFiles.add(file);
+							}
+						}
+					} else {
+						messageUtil.warn("Project file not found", "Project file " + basefile + " missing. Please copy the file to the project folder and reload project.");
+					}
 				}
 				//vm.addAll(p.inputFiles);
 				
@@ -303,30 +317,6 @@ public class ProjectHandler extends AbstractCommandHandler {
 						}
 					} catch( RuntimeException e) {
 						log.error("problem loading {}", vm.inputFiles.get(i), e);
-						try { // try full path 
-							List<Animation> anis = aniAction.loadAni(buildRelFilename(filename, file), true, false, progress);
-							if( !anis.isEmpty() ) {
-								try { // found file but not in project directory => copy
-									Files.copy(Paths.get(buildRelFilename(filename, file)),Paths.get(buildRelFilename(filename, basefile)) , REPLACE_EXISTING);
-								} catch (IOException f) {
-									log.error("problem moving {}", basefile, f);
-								}
-								Animation firstAni = anis.get(0);
-								if( p.recordingNameMap.containsKey(file)) {
-									firstAni.setDesc(p.recordingNameMap.get(file));
-								}
-							}
-						} catch( RuntimeException f) {
-							log.error("problem loading {}", file, f);
-							int res = messageUtil.warn(0, "Warning",
-									"Project file not found", 
-									"Project file " + file + " missing. Please copy the file to the project folder or remove from project.",
-									new String[]{"", "CONTINUE", "REMOVE"},2);
-							if( res != 2 ) return;
-							int j = vm.inputFiles.indexOf(basefile);
-							if (j != -1) vm.inputFiles.remove(j);
-							index--;
-						}
 					}
 				});
 				index++;
