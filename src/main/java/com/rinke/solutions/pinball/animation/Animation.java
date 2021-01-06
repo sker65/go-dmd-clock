@@ -336,7 +336,7 @@ public class Animation {
 		int maxFrame = renderer.getMaxFrame(basePath+name, dmd);
 		if( doPostInit ) postInit(renderer);
 		
-		if(  maxFrame > 0 && end == 0) end = maxFrame-1;
+		if(  maxFrame > 0 && end <= 0) end = maxFrame-1;
 		if (actFrame <= end) {
 			ended = false;
 			last = renderFrame(basePath+name, dmd, actFrame);
