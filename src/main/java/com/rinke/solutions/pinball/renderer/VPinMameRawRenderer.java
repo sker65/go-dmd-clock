@@ -89,8 +89,7 @@ public class VPinMameRawRenderer extends Renderer {
 						else
 							v += ( planes.get(planeIdx+i).data[byteIdx] >> 7-bit ) & 1;
 					}
-					if( v > vmax ) vmax = v;
-					switch (v){
+					switch (planesPerFrame){
 						case 6:
 						v = color6planes_map[v];
 						break;
@@ -103,6 +102,7 @@ public class VPinMameRawRenderer extends Renderer {
 						default:
 						break;
 					}
+					if( v > vmax ) vmax = v;
 					if( (v & 1) != 0 ) 
 						res.planes.get(0).data[byteIdx] |= mask;
 					if( (v & 2) != 0 )
