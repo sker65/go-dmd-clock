@@ -29,6 +29,11 @@ public class VPinMameRawRenderer extends Renderer {
 		return actFrame < frames.size() ? frames.get(actFrame).timecode : 0;
 	}
 	
+	int color6planes_map[] = { 0, 1, 2, 2, 2, 2, 3 };
+	int color8planes_map[] = { 0, 1, 2, 2, 2, 2, 2, 2, 3};
+	int color12planes_map[] = { 0, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3 };
+	
+	
 	void readImage(String filename, DMD dmd) {
 		BufferedInputStream stream = null;
 		int r = 0;
@@ -66,11 +71,12 @@ public class VPinMameRawRenderer extends Renderer {
 					if( r == -1 || r < bytesPerPlane ) break;
 				}
 				res = new Frame(
-						new byte[dmd.getPlaneSize()],
-						new byte[dmd.getPlaneSize()],
-						new byte[dmd.getPlaneSize()],
-						new byte[dmd.getPlaneSize()]
-						);
+					new byte[dmd.getPlaneSize()],
+					new byte[dmd.getPlaneSize()],
+					new byte[dmd.getPlaneSize()],
+					new byte[dmd.getPlaneSize()]
+					);
+
 				// aggregate to frame
 				for( int pix = 0; pix < width*height; pix++) {
 					int bit = (pix % 8);
@@ -78,9 +84,25 @@ public class VPinMameRawRenderer extends Renderer {
 					int mask = (0b10000000 >> bit);
 					int v = 0;
 					for( int i = 0; i<planesPerFrame; i++) {
-						v += ( planes.get(planeIdx+i).data[byteIdx] >> bit ) & 1;
+						if (planesPerFrame<6)
+							v += ( planes.get(planeIdx+i).data[byteIdx] >> bit ) & 1;
+						else
+							v += ( planes.get(planeIdx+i).data[byteIdx] >> 7-bit ) & 1;
 					}
 					if( v > vmax ) vmax = v;
+					switch (v){
+						case 6:
+						v = color6planes_map[v];
+						break;
+						case 8:
+						v = color8planes_map[v];
+						break;
+						case 12:
+						v = color12planes_map[v];
+						break;
+						default:
+						break;
+					}
 					if( (v & 1) != 0 ) 
 						res.planes.get(0).data[byteIdx] |= mask;
 					if( (v & 2) != 0 )
@@ -90,10 +112,10 @@ public class VPinMameRawRenderer extends Renderer {
 					if( (v & 8) != 0 )
 						res.planes.get(3).data[byteIdx] |= mask;
 				}
-				// transform plane data (reverse bit order)
-				for( int i = 0; i <planesPerFrame; i++) {
-					planes.get(planeIdx+i).data = Frame.transform(planes.get(planeIdx+i).data);
-				}
+				if (planesPerFrame<6)
+					for( int i = 0; i <planesPerFrame; i++) {
+						planes.get(planeIdx+i).data = Frame.transform(planes.get(planeIdx+i).data); // transform plane data (reverse bit order)
+					}
 				res.timecode = currentTimecode -firstTimecode;
 				if( firstTimecode == 0 ) firstTimecode = currentTimecode; // offset basis for timecodes
 				if( lastTimecode != 0) {
