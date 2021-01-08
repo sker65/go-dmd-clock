@@ -303,7 +303,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 			String msg = "";
 			int i = 1;
 			index = 0;
-			for (String file : p.inputFiles) {
+			for (String file : vm.inputFiles) {
 				String basefile = vm.inputFiles.get(index);
 				if( w!=null) w.notify(10 + i*(80/p.inputFiles.size()), "loading ani "+file);
 				dispatcher.syncExec(()->{
