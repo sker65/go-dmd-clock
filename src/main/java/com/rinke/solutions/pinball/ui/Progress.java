@@ -74,7 +74,7 @@ public class Progress extends Dialog implements IProgress {
 	 */
 	private void createContents() {
 		shell = new Shell(getParent(), getStyle());
-		shell.setSize(495, 157);
+		shell.setSize(520, 170);
 		shell.setText(getText());
 		
 		progressBar = new ProgressBar(shell, SWT.NONE);
