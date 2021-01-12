@@ -32,6 +32,7 @@ public class VPinMameRawRenderer extends Renderer {
 	int color6planes_map[] = { 0, 1, 2, 2, 2, 2, 3 };
 	int color8planes_map[] = { 0, 1, 2, 2, 2, 2, 2, 2, 3};
 	int color12planes_map[] = { 0, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3 };
+	int color5planes_map[] = {0,1,2,3,3};
 	
 	
 	void readImage(String filename, DMD dmd) {
@@ -84,12 +85,12 @@ public class VPinMameRawRenderer extends Renderer {
 					int mask = (0b10000000 >> bit);
 					int v = 0;
 					for( int i = 0; i<planesPerFrame; i++) {
-						if (planesPerFrame<6)
-							v += ( planes.get(planeIdx+i).data[byteIdx] >> bit ) & 1;
-						else
-							v += ( planes.get(planeIdx+i).data[byteIdx] >> 7-bit ) & 1;
+						v += ( planes.get(planeIdx+i).data[byteIdx] >> bit ) & 1;
 					}
 					switch (planesPerFrame){
+						case 4:
+						v = color5planes_map[v];
+						break;
 						case 6:
 						v = color6planes_map[v];
 						break;
@@ -112,10 +113,9 @@ public class VPinMameRawRenderer extends Renderer {
 					if( (v & 8) != 0 )
 						res.planes.get(3).data[byteIdx] |= mask;
 				}
-				if (planesPerFrame<6)
-					for( int i = 0; i <planesPerFrame; i++) {
-						planes.get(planeIdx+i).data = Frame.transform(planes.get(planeIdx+i).data); // transform plane data (reverse bit order)
-					}
+				for( int i = 0; i <planesPerFrame; i++) {
+					planes.get(planeIdx+i).data = Frame.transform(planes.get(planeIdx+i).data); // transform plane data (reverse bit order)
+				}
 				res.timecode = currentTimecode -firstTimecode;
 				if( firstTimecode == 0 ) firstTimecode = currentTimecode; // offset basis for timecodes
 				if( lastTimecode != 0) {
