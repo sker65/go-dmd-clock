@@ -842,7 +842,7 @@ public class EditorView implements MainView {
 		txtDelayVal.setText("");
 		txtDelayVal.addKeyListener(new KeyAdapter() {
 			public void keyPressed(KeyEvent event) {
-				if( event.keyCode == SWT.CR ) {
+				if( event.keyCode == SWT.CR || event.keyCode == SWT.KEYPAD_CR ) {
 					if( vm.selectedScene!=null ) {
 						dispatchCmd(UPDATE_DELAY);
 						vm.setDirty(true);
@@ -1433,7 +1433,7 @@ public class EditorView implements MainView {
 		txtDuration.setText("0");
 		txtDuration.addKeyListener(new KeyAdapter() {
 			public void keyPressed(KeyEvent event) {
-				if( event.keyCode == SWT.CR ) {
+				if( event.keyCode == SWT.CR || event.keyCode == SWT.KEYPAD_CR ) {
 					vm.setDuration(Integer.parseInt(txtDuration.getText()));
 				}
 			}
