@@ -123,7 +123,8 @@ public class HashCmdHandler extends AbstractCommandHandler implements ViewBindin
 				enabled[i]=false;
 				if( vm.selectedHashIndex == i ) vm.setSelectedHashIndex(-1);
 			} else {
-				if( hasMask && i == vm.selectedHashIndex) {
+				//if( hasMask && i == vm.selectedHashIndex) {
+				if(vm.selectedKeyFrame != null && vm.detectionMaskActive && hash.equals(HashCmdHandler.getPrintableHashes(vm.selectedKeyFrame.crc32))) {
 					lbls[i]=String.format("M%d %s", maskNumber, hash);
 				} else {
 					lbls[i]=hash;
