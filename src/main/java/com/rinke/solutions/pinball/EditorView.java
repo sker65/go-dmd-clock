@@ -1160,33 +1160,21 @@ public class EditorView implements MainView {
 		gd_grpPal1.heightHint = 22;
 		grpPal1.setLayoutData(gd_grpPal1);
 		
-		ToolBar bar = new ToolBar(grpPalettes, SWT.NONE);
-		bar.setLayout(new GridLayout(1, false));
-        bar.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 2, 1));
+        Label lblColorTools = new Label(grpPalettes, SWT.NONE);
+        lblColorTools.setAlignment(SWT.CENTER);
+        lblColorTools.setText("4 Color");
+        new Label(grpPalettes, SWT.NONE);
         
-		ToolItem btnGradient = new ToolItem(bar, SWT.NONE);
-		btnGradient.setToolTipText("Creates color gradients between the first and last color in the selected group");
-		btnGradient.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/gradient.png")));
-		btnGradient.addListener(SWT.Selection, e->dispatchCmd("createGradients"));
-
-		//btnPick = new ToolItem(bar, SWT.NONE);
-        //btnPick.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/color-picker.png")));
-        //btnPick.addListener(SWT.Selection, e->dispatchCmd("pickPalette"));
-        
-        //ToolItem btnPick2 = new ToolItem(bar, SWT.NONE);
-        //btnPick2.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/color-picker2.png")));
-        //btnPick2.addListener(SWT.Selection, e->dispatchCmd("extractPalColorsFromFrame"));
-        
-        //Label lblCtrlclick = new Label(grpPalettes, SWT.NONE);
-        //lblCtrlclick.setText("Ctrl-Click to edit");
         Composite grpPal2 = new Composite(grpPalettes, SWT.NONE);
         grpPal2.setLayout(new GridLayout(1, false));
         GridData gd_grpPal2 = new GridData(SWT.LEFT, SWT.TOP, false, false, 3, 1);
         gd_grpPal2.widthHint = 333;
         gd_grpPal2.heightHint = 22;
         grpPal2.setLayoutData(gd_grpPal2);
-        new Label(grpPalettes, SWT.NONE);
-        new Label(grpPalettes, SWT.NONE);
+
+		ToolBar bar1 = new ToolBar(grpPalettes, SWT.NONE);
+		bar1.setLayout(new GridLayout(1, false));
+        bar1.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 2, 1));
 
         Composite grpPal3 = new Composite(grpPalettes, SWT.NONE);
         grpPal3.setLayout(new GridLayout(1, false));
@@ -1194,7 +1182,10 @@ public class EditorView implements MainView {
         gd_grpPal3.widthHint = 333;
         gd_grpPal3.heightHint = 22;
         grpPal3.setLayoutData(gd_grpPal3);
-        new Label(grpPalettes, SWT.NONE);
+        
+        Label lblColorTools16 = new Label(grpPalettes, SWT.NONE);
+        lblColorTools16.setAlignment(SWT.CENTER);
+        lblColorTools16.setText("16 Color");
         new Label(grpPalettes, SWT.NONE);
 
         Composite grpPal4 = new Composite(grpPalettes, SWT.NONE);
@@ -1204,30 +1195,62 @@ public class EditorView implements MainView {
         gd_grpPal4.heightHint = 22;
         grpPal4.setLayoutData(gd_grpPal4);
         
+		ToolBar bar2 = new ToolBar(grpPalettes, SWT.NONE);
+		bar2.setLayout(new GridLayout(1, false));
+        bar2.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 2, 1));
+        new Label(grpPalettes, SWT.NONE);
+        new Label(grpPalettes, SWT.NONE);
+        
         paletteTool = new PaletteTool(shell, grpPal1, grpPal2, grpPal3, grpPal4, SWT.FLAT | SWT.RIGHT, vm.selectedPalette);
         
-		ToolItem btnCopyPal = new ToolItem(bar, SWT.NONE);
+		ToolItem btnGradient = new ToolItem(bar1, SWT.NONE);
+		btnGradient.setToolTipText("Creates color gradients between the first and last color in the selected group");
+		btnGradient.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/gradient.png")));
+		btnGradient.addListener(SWT.Selection, e->dispatchCmd("createGradients"));
+
+		ToolItem btnCopyPal = new ToolItem(bar1, SWT.NONE);
 		btnCopyPal.setToolTipText("Copy colors of the selected group to clipboard");
 		btnCopyPal.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/copypal.png")));
 		new Label(grpPalettes, SWT.NONE);
 		btnCopyPal.addListener(SWT.Selection, e->dispatchCmd("copySwatch"));
 
-		ToolItem btnPastePal = new ToolItem(bar, SWT.NONE);
+		ToolItem btnPastePal = new ToolItem(bar1, SWT.NONE);
 		btnPastePal.setToolTipText("Paste colors of clipboard to the selected group");
 		btnPastePal.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/pastepal.png")));
 		new Label(grpPalettes, SWT.NONE);
 		btnPastePal.addListener(SWT.Selection, e->dispatchCmd("pasteSwatch"));
 		
-		ToolItem btnSwapPal = new ToolItem(bar, SWT.NONE);
+		ToolItem btnSwapPal = new ToolItem(bar1, SWT.NONE);
 		btnSwapPal.setToolTipText("Swap colors of the selected group with the content of the clipboard");
 		btnSwapPal.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/swappal.png")));
 		new Label(grpPalettes, SWT.NONE);
 		btnSwapPal.addListener(SWT.Selection, e->dispatchCmd("swapSwatch"));
 		
-        new Label(grpPalettes, SWT.NONE);
-        new Label(grpPalettes, SWT.NONE);
-        new Label(grpPalettes, SWT.NONE);
-        new Label(grpPalettes, SWT.NONE);
+		ToolItem btnGradient16 = new ToolItem(bar2, SWT.NONE);
+		btnGradient16.setToolTipText("Creates color gradients between the first and last color in the selected group");
+		btnGradient16.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/gradient.png")));
+		btnGradient16.addListener(SWT.Selection, e->dispatchCmd("createGradients16"));
+
+		ToolItem btnCopyPal16 = new ToolItem(bar2, SWT.NONE);
+		btnCopyPal16.setToolTipText("Copy colors of the selected group to clipboard");
+		btnCopyPal16.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/copypal.png")));
+		new Label(grpPalettes, SWT.NONE);
+		btnCopyPal16.addListener(SWT.Selection, e->dispatchCmd("copySwatch16"));
+
+		ToolItem btnPastePal16 = new ToolItem(bar2, SWT.NONE);
+		btnPastePal16.setToolTipText("Paste colors of clipboard to the selected group");
+		btnPastePal16.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/pastepal.png")));
+		new Label(grpPalettes, SWT.NONE);
+		btnPastePal16.addListener(SWT.Selection, e->dispatchCmd("pasteSwatch16"));
+		
+		ToolItem btnSwapPal16 = new ToolItem(bar2, SWT.NONE);
+		btnSwapPal16.setToolTipText("Swap colors of the selected group with the content of the clipboard");
+		btnSwapPal16.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/swappal.png")));
+		new Label(grpPalettes, SWT.NONE);
+		new Label(grpPalettes, SWT.NONE);
+		new Label(grpPalettes, SWT.NONE);
+		btnSwapPal16.addListener(SWT.Selection, e->dispatchCmd("swapSwatch16"));
+
 	}
 
 	private void createStartStopControl(Composite parent) {
