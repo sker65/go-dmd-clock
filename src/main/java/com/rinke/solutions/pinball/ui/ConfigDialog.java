@@ -34,6 +34,7 @@ import com.rinke.solutions.pinball.io.ConnectorFactory;
 import com.rinke.solutions.pinball.io.Pin2DmdConnector;
 import com.rinke.solutions.pinball.io.Pin2DmdConnector.ConnectionHandle;
 import com.rinke.solutions.pinball.util.Config;
+import com.rinke.solutions.pinball.util.MessageUtil;
 import com.rinke.solutions.pinball.view.View;
 
 @Slf4j
@@ -62,6 +63,7 @@ public class ConfigDialog extends Dialog implements View {
     private String address;
 	
 	@Autowired Config config;
+	@Autowired MessageUtil messageUtil;
 	private Button btnNoExportWarnings;
 	private Button btnNoQuitWarning;
     
@@ -102,8 +104,8 @@ public class ConfigDialog extends Dialog implements View {
         btnAutosaveActive.setSelection(config.getBoolean(Config.AUTOSAVE, false));
         autosaveInterval.setSelection(config.getInteger(Config.AUTOSAVE_INTERVAL, 10));
         btnCreateKeyFrame.setSelection(config.getBoolean(Config.AUTOKEYFRAME, false));
-        spinnerNoPlanes.setSelection(config.getInteger(Config.NOOFPLANES, 6));
-        spinnerNoColors.setSelection(config.getInteger(Config.NOOFCOLORS, 64));
+        spinnerNoPlanes.setSelection(config.getInteger(Config.NOOFPLANES, 4));
+        spinnerNoColors.setSelection(config.getInteger(Config.NOOFCOLORS, 16));
         btnUseOldExport.setSelection(config.getBoolean(Config.OLDEXPORT, false));
         btnCreatePaletteAfter.setSelection(config.getBoolean(Config.ADDPALWHENCUT, false));
         btnCreateBookmarkAfter.setSelection(config.getBoolean(Config.CREATEBOOKCUT, false));
@@ -323,6 +325,9 @@ public class ConfigDialog extends Dialog implements View {
         config.put(Config.BACKUP, btnBackupOnSave.getSelection());
         config.put(Config.NO_QUIT_WARNING, btnNoQuitWarning.getSelection());
         config.put(Config.NO_EXPORT_WARNING, btnNoExportWarnings.getSelection());
+		messageUtil.warn(SWT.ICON_ERROR | SWT.OK,
+				"Config changes",
+				"The configuration has changed ! Please reload the editor. ");
 		shell.close();
 	}
 }
