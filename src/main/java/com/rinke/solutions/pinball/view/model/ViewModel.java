@@ -44,6 +44,7 @@ public class ViewModel extends AbstractModel {
 
 	public int numberOfHashButtons = 4;
 	@Value public int numberOfColors = 16;
+	@Value public int noOfPlanesWhenCutting = 4;
 	public boolean has4PlanesRecording = false;
 	
 	public boolean dirty;

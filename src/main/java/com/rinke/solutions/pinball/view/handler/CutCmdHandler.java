@@ -26,9 +26,6 @@ import com.rinke.solutions.pinball.view.model.ViewModel;
 @Bean
 @Slf4j
 public class CutCmdHandler extends AbstractCommandHandler implements ViewBindingHandler {
-
-	@Value(defaultValue="4") 
-	int noOfPlanesWhenCutting;
 	
 	@Value boolean addPalWhenCut;
 	@Value boolean createBookmarkAfterCut;
@@ -86,7 +83,7 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 		if( src != null ) {
 			AnimationQuantizer quantizer = new AnimationQuantizer();
 			String name = getUniqueName(src.getDesc()+"_q",vm.scenes.keySet());
-			CompiledAnimation newScene = quantizer.quantize(name, src, vm.selectedPalette, noOfPlanesWhenCutting);
+			CompiledAnimation newScene = quantizer.quantize(name, src, vm.selectedPalette, vm.noOfPlanesWhenCutting);
 			newScene.setDesc(name);
 			newScene.setPalIndex(vm.selectedPalette.index);
 			newScene.setProjectAnimation(true);
@@ -193,7 +190,7 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 	}
 	
 	public Animation cutScene(Animation animation, int start, int end, String name) {
-		CompiledAnimation cutScene = animation.cutScene(start, end, noOfPlanesWhenCutting);
+		CompiledAnimation cutScene = animation.cutScene(start, end, vm.noOfPlanesWhenCutting);
 
 		//vm.getSelectedFrameSeq()
 		CompiledAnimation srcScene = vm.getSelectedScene();
@@ -247,7 +244,7 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 		CompiledAnimation newScene = null;
 
 		if(!vm.scenes.containsKey(name)) {
-			newScene = animation.cutScene(frameNo, frameNo, noOfPlanesWhenCutting);
+			newScene = animation.cutScene(frameNo, frameNo, vm.noOfPlanesWhenCutting);
 			newScene.setDesc(name);
 			newScene.setPalIndex(vm.selectedPalette.index);
 			newScene.setProjectAnimation(true);
@@ -290,7 +287,7 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 			if (end > animation.end)
 				end = animation.end;
 			String name = buildUniqueNameWithPrefix(vm.scenes,namePrefix, 1);
-			splitScene = animation.cutScene(start, end, noOfPlanesWhenCutting);
+			splitScene = animation.cutScene(start, end, vm.noOfPlanesWhenCutting);
 			
 			splitScene.setDesc(name);
 			splitScene.setPalIndex(vm.selectedPalette.index);

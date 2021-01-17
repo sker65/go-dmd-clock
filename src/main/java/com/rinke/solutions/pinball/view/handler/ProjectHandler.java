@@ -206,6 +206,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 							new String[]{"", "Continue", "Convert"},2);
 					if( res != 2 ) { 
 						vm.numberOfColors = 16; 
+						vm.noOfPlanesWhenCutting = 4;
 						vm.paletteMap.putAll(p.paletteMap);
 						for( Palette pal : p.getPalettes() ) {
 							if( !vm.paletteMap.containsKey(pal.index) ) vm.paletteMap.put(pal.index, pal);
@@ -220,6 +221,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 						}
 					} else {
 						vm.numberOfColors = 64; 
+						vm.noOfPlanesWhenCutting = 6;
 						for (Palette pal : p.paletteMap.values()) {
 							int index = pal.index;
 							String name = pal.name;
@@ -245,6 +247,10 @@ public class ProjectHandler extends AbstractCommandHandler {
 					}
 				} else {
 					vm.paletteMap.putAll(p.paletteMap);
+					if (p.paletteMap.get(0).numberOfColors == 64 && p.noOfPlanesWhenCutting == 4)
+						vm.noOfPlanesWhenCutting = 6;
+					else
+						vm.noOfPlanesWhenCutting = p.noOfPlanesWhenCutting;
 					for( Palette pal : p.getPalettes() ) {
 						if( !vm.paletteMap.containsKey(pal.index) ) vm.paletteMap.put(pal.index, pal);
 						else {
@@ -654,6 +660,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 		Project p = new Project();
 		p.paletteMap.clear(); // TODO remove that in the CTOR
 		populateVmToProject(vm, p);
+		p.noOfPlanesWhenCutting = vm.noOfPlanesWhenCutting;
 		
 		String baseName = new File(aniFilename).getName();
 		String baseNameWithoutExtension = baseName.substring(0, baseName.indexOf('.'));
