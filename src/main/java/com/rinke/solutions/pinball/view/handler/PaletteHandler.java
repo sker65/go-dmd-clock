@@ -732,31 +732,32 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 		int size = vm.paletteMap.size();
 		for (int i = 0; i < size; i++) {
 			Palette p = vm.paletteMap.get(i);
-			if( p.type != PaletteType.DEFAULT ) {
-				// check if any scene is using this
-				boolean sceneFound = false;
-				for( Animation a: vm.scenes.values()) {
-					if( a.getPalIndex() == p.index ) {
-						if( !sceneFound ) {
-							sceneFound = true;
+			if( p != null )
+				if( p.type != PaletteType.DEFAULT ) {
+					// check if any scene is using this
+					boolean sceneFound = false;
+					for( Animation a: vm.scenes.values()) {
+						if( a.getPalIndex() == p.index ) {
+							if( !sceneFound ) {
+								sceneFound = true;
+							}
 						}
 					}
-				}
-				// check if any keyframe is using this
-				boolean keyFrameFound = false;
-				for( PalMapping pm : vm.keyframes.values()) {
-					if( pm.palIndex == p.index ) {
-						if( !keyFrameFound ) {
-							keyFrameFound = true;
+					// check if any keyframe is using this
+					boolean keyFrameFound = false;
+					for( PalMapping pm : vm.keyframes.values()) {
+						if( pm.palIndex == p.index ) {
+							if( !keyFrameFound ) {
+								keyFrameFound = true;
+							}
 						}
 					}
+					if( sceneFound == false && keyFrameFound == false ) {
+						vm.paletteMap.remove(p.index);
+					}
+				} else {
+					vm.setSelectedPalette(p);
 				}
-				if( sceneFound == false && keyFrameFound == false ) {
-					vm.paletteMap.remove(p.index);
-				}
-			} else {
-				vm.setSelectedPalette(p);
-			}
 		}
 		
 	}
