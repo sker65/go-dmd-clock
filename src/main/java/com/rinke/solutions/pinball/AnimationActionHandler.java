@@ -250,13 +250,15 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 			// sanitize number of color per palette when importing
 			RGB[] aniColors = getSaveSizeRGBArray(ani.getAniColors());
 			
-			if (vm.numberOfColors != aniColors.length) {
-				RGB rgb[] = new RGB[64];
-				for( int j = 0; j<16; j++) {
-					rgb[j] = aniColors[j];
-					rgb[j+16] = aniColors[j];
-					rgb[j+32] = aniColors[j];
-					rgb[j+48] = aniColors[j];
+			if (aniColors.length < vm.numberOfColors) {
+				RGB rgb[] = new RGB[vm.numberOfColors];
+				int k = 0; 
+				while (k < vm.numberOfColors) {
+					for( int j = 0; j<aniColors.length; j++) {
+						rgb[k++] = aniColors[j];
+						if (k == vm.numberOfColors)
+							break;
+					}
 				}
 				aniColors = rgb;
 				ani.setAniColors(rgb);
