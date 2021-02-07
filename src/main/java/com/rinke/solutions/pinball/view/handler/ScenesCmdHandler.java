@@ -69,8 +69,6 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 			vm.setLayerMaskEnabled(m.enableLayerMask);
 			vm.setDetectionMaskActive(false);
 			vm.setSelectedMaskNumber(0);
-			vm.setSmartDrawEnabled(false);
-			vm.setSmartDrawActive(false);
 			vm.setLayerMaskActive(false);
 			vm.setBtnLinkEnabled(true);
 			vm.setBtnDelFrameEnabled(nextScene.frames.size()>1);
