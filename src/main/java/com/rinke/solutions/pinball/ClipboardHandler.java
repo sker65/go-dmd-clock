@@ -108,7 +108,17 @@ public class ClipboardHandler {
 				}
 			}
 		} else {
-			if( dmd.getNumberOfPlanes() > 5) {
+			if( dmd.getNumberOfPlanes() == 24) {
+				imageData = new ImageData(width, height, 24, new PaletteData(0xFF , 0xFF00 , 0xFF0000));
+				for( int x = 0; x < width; x++) {
+					for( int y = 0; y < height; y++ ) {
+						if( Rect.selected(sel, x, y) ) {
+							int rgb = dmd.getPixel(x, y);
+							imageData.setPixel(x, y, rgb);
+						}
+					}
+				}
+			} else if( dmd.getNumberOfPlanes() > 5) {
 				// for 32k color
 				imageData = new ImageData(width, height, 24, new PaletteData(0xFF , 0xFF00 , 0xFF0000));
 				for( int x = 0; x < width; x++) {
@@ -225,7 +235,14 @@ public class ClipboardHandler {
 			if (dmdWidget.isShowMask()) {
 				frame.copyToWithMask(dmd.getFrame(), 0b0001);
 			} else {
-				frame.copyToWithMask(dmd.getFrame(), dmd.getDrawMask());
+		    	if (dmd.getFrame().planes.size() == 24 && frame.planes.size() == 24) {
+		    		for( int i = 0; i < frame.planes.size(); i++) {
+						int size = frame.planes.get(i).data.length;
+						System.arraycopy( frame.planes.get(i).data, 0, dmd.getFrame().planes.get(i).data, 0, size);
+		    		}
+		    	} else {
+		    		frame.copyToWithMask(dmd.getFrame(), dmd.getDrawMask());
+				}
 			}
 		} else {
 			ImageData imageData = (ImageData) clipboard.getContents("ImageTransfer");
