@@ -73,6 +73,7 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 			vm.selectedKeyFrame.frameSeqName = ani.getDesc();
 			vm.selectedKeyFrame.switchMode = switchMode;
 			vm.selectedKeyFrame.palIndex = ani.getPalIndex();
+			messageUtil.warn("Keyframe updated", "Selected keyframe updated with new scene");
 			return;
 		}
 
@@ -455,6 +456,7 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 				if (duplicateName == null) {
 					vm.selectedKeyFrame.setDigest(hash);
 					vm.selectedKeyFrame.hashIndex = vm.selectedHashIndex;
+					messageUtil.warn("Keyframe updated", "Selected keyframe updated with new hash");
 				} else {
 					messageUtil.warn("duplicate hash", "There is already Keyframe \"" + duplicateName + "\" that uses the same hash");
 				}
