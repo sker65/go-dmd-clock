@@ -64,6 +64,18 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 		EditMode editMode = ani==null?null:ani.getEditMode();
 		if( switchMode == null ) switchMode = getSwitchModeFromEditMode(editMode);
 
+		if (vm.selectedHashIndex == -1) {
+			messageUtil.error("No Hash Selected", "Please select a hash");
+			return;
+		} 
+		
+		if (Arrays.equals(vm.selectedKeyFrame.crc32,vm.hashes.get(vm.selectedHashIndex)) && !vm.selectedKeyFrame.frameSeqName.contentEquals(vm.selectedFrameSeq.getDesc()) && !SwitchMode.EVENT.equals(switchMode)) {
+			vm.selectedKeyFrame.frameSeqName = ani.getDesc();
+			vm.selectedKeyFrame.switchMode = switchMode;
+			vm.selectedKeyFrame.palIndex = ani.getPalIndex();
+			return;
+		}
+
 		String prompt = getName(switchMode, ani);
 		do {
 			NamePrompt namePrompt = (NamePrompt) this.namePrompt;
@@ -82,10 +94,6 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 			}
 		} while(vm.keyframes.containsKey(prompt));
 		
-		if (vm.selectedHashIndex == -1) {
-			messageUtil.error("No Hash Selected", "Please select a hash");
-			return;
-		} 
 		
 		PalMapping palMapping = new PalMapping(0, prompt );
 		palMapping.setDigest(vm.hashes.get(vm.selectedHashIndex));
