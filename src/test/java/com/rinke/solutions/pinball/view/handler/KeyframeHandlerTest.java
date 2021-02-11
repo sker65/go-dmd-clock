@@ -149,11 +149,11 @@ public class KeyframeHandlerTest extends HandlerTest {
 		assertFalse(vm.masks.get(0).locked);
 	}
 
-	@Test
+	/*@Test
 	public void testOnDeleteKeyframe() throws Exception {
 		vm.selectedKeyFrame = getKeyframe();
 		uut.onDeleteKeyframe();
-	}
+	}*/
 		
 	@Test
 	public void testOnAddKeyframeWithSelectedSequenceAndReplace() throws Exception {
