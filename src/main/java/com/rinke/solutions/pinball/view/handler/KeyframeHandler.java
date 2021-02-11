@@ -440,8 +440,16 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 		if( vm.selectedHashIndex != -1 ) {
 			byte[] hash = saveGetHash(vm.selectedHashIndex);
 			if( vm.selectedKeyFrame != null ) {
-				vm.selectedKeyFrame.setDigest(hash);
-				vm.selectedKeyFrame.hashIndex = vm.selectedHashIndex;
+				PalMapping palMapping = new PalMapping(0, "temp" );
+				palMapping.setDigest(vm.hashes.get(vm.selectedHashIndex));
+				palMapping.switchMode = vm.selectedKeyFrame.switchMode;
+				String duplicateName = checkForDuplicateKeyFrames(palMapping);
+				if (duplicateName == null) {
+					vm.selectedKeyFrame.setDigest(hash);
+					vm.selectedKeyFrame.hashIndex = vm.selectedHashIndex;
+				} else {
+					messageUtil.warn("duplicate hash", "There is already Keyframe \"" + duplicateName + "\" that uses the same hash");
+				}
 			} else {
 				if( vm.selectedEditMode.haveLocalMask || vm.selectedEditMode.haveSceneDetectionMasks) {
 					// Update hash in scene and lock mask (for scene masks)
