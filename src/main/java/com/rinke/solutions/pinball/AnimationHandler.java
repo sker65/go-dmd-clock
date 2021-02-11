@@ -220,7 +220,7 @@ public class AnimationHandler implements Runnable {
 		if( clockActive||anis.isEmpty() ) {
 			return 100;
 		}
-		return anis.get(index).getRefreshDelay();
+		return anis.get(index).getRefreshDelay() / vm.playSpeed;
 	}
 
 	/** 

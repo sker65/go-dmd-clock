@@ -185,6 +185,8 @@ public class ViewModel extends AbstractModel {
 	// animation stuff
 	public ObservableList<Animation> playingAnis = new ObservableList<Animation>(new ArrayList<>());
 	public boolean animationIsPlaying;
+	public int playSpeed = 1;
+	
 	@ViewBinding public int minFrame;
 	@ViewBinding public int selectedFrame;
 	@ViewBinding public int selectedLinkFrame;
@@ -556,6 +558,10 @@ public class ViewModel extends AbstractModel {
 		firePropertyChange("livePreviewActive", this.livePreviewActive, this.livePreviewActive = livePreviewActive);
 	}
 
+	public void setPlaySpeed(int playSpeed) {
+		firePropertyChange("playSpeed", this.playSpeed, this.playSpeed = playSpeed);
+	}
+	
 	public void setMntmUploadPalettesEnabled(boolean mntmUploadPalettesEnabled) {
 		firePropertyChange("mntmUploadPalettesEnabled", this.mntmUploadPalettesEnabled, this.mntmUploadPalettesEnabled = mntmUploadPalettesEnabled);
 	}

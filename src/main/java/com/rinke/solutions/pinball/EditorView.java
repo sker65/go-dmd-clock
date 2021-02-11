@@ -212,6 +212,7 @@ public class EditorView implements MainView {
 	@GuiBinding( prop=SELECTION, propName="livePreviewActive") 
 	Button btnLivePreview;
 	
+	Spinner speedSpinner;
 	Spinner dotSizeSpinner;
 	Button btnSquareDots;
 	@GuiBinding( prop=ENABLED )
@@ -869,7 +870,17 @@ public class EditorView implements MainView {
 		btnLivePreview.setText("Live Preview");
 		// bound btnLivePreview.addListener(SWT.Selection, e -> ed.onLivePreviewSwitched(btnLivePreview.getSelection()));
 
-		Label lblDots = new Label(grpDetails, SWT.NONE);
+		Label lblSpeed = new Label(grpDetails, SWT.NONE);
+		lblSpeed.setText("   Play Speed:");
+
+	    speedSpinner = new Spinner(grpDetails, SWT.BORDER);
+	    speedSpinner.setToolTipText("select playback speed");
+	    speedSpinner.setMinimum(1);
+	    speedSpinner.setMaximum(10);
+	    speedSpinner.setSelection(1);
+	    speedSpinner.addListener(SWT.Selection, e -> vm.setPlaySpeed(speedSpinner.getSelection()+1));
+	    
+	    Label lblDots = new Label(grpDetails, SWT.NONE);
 		lblDots.setText("   Dot Size:");
 
 	    dotSizeSpinner = new Spinner(grpDetails, SWT.BORDER);
