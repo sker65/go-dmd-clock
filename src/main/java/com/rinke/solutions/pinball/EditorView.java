@@ -637,7 +637,7 @@ public class EditorView implements MainView {
 		viewerCol2.getColumn().setWidth(colWidth);
 		viewerCol2.setLabelProvider(new IconLabelProvider<Animation>(shell, ani -> ani.getIconAndText() ));
 
-		keyframeTableViewer = new TableViewer(listComp, SWT.SINGLE | SWT.BORDER | SWT.V_SCROLL);
+		keyframeTableViewer = new TableViewer(listComp, SWT.MULTI | SWT.BORDER | SWT.V_SCROLL);
 		Table keyframeList = keyframeTableViewer.getTable();
 		GridData gd_keyframeList = new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1);
 		gd_keyframeList.heightHint = listHeight;
