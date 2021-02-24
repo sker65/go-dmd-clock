@@ -408,20 +408,20 @@ public class EditorView implements MainView {
 		mntmAnimations.setMenu(menu_2);
 
 		MenuItem mntmLoadAnimation = new MenuItem(menu_2, SWT.NONE);
-		mntmLoadAnimation.setText("Load Scene(s)");
+		mntmLoadAnimation.setText("Import Scene(s)");
 		mntmLoadAnimation.addListener(SWT.Selection, e -> dispatchCmd(LOAD_ANI_WITH_FC,true, true));
 		
 		MenuItem mntmLoadRecordings = new MenuItem(menu_2, SWT.NONE);
-		mntmLoadRecordings.setText("Load Recording(s)");
+		mntmLoadRecordings.setText("Load Recording(s)/Scene(s)");
 		mntmLoadRecordings.addListener(SWT.Selection, e -> dispatchCmd(LOAD_ANI_WITH_FC,true,false));
 		
 		MenuItem mntmSaveAnimation = new MenuItem(menu_2, SWT.NONE);
 		mntmSaveAnimation.setText("Save Scene(s) ...");
-		mntmSaveAnimation.addListener(SWT.Selection, e -> dispatchCmd(SAVE_ANI_WITH_FC,1));
+		mntmSaveAnimation.addListener(SWT.Selection, e -> dispatchCmd(SAVE_ANI_WITH_FC,6));
 		
 		MenuItem mntmSaveSingleAnimation = new MenuItem(menu_2, SWT.NONE);
 		mntmSaveSingleAnimation.setText("Save single Scene");
-		mntmSaveSingleAnimation.addListener(SWT.Selection, e -> dispatchCmd(SAVE_SINGLE_ANI_WITH_FC,1));
+		mntmSaveSingleAnimation.addListener(SWT.Selection, e -> dispatchCmd(SAVE_SINGLE_ANI_WITH_FC,6));
 		
 		separator(menu_2);
 
