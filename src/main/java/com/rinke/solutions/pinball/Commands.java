@@ -58,6 +58,7 @@ public class Commands {
 	public static final String RENAME_PALETTE = "renamePalette";
 	public static final String NEW_PALETTE = "newPalette";
 	public static final String SET_KEYFRAME_PALETTE = "setKeyframePalette";
+	public static final String FIX_KEYFRAME = "fixKeyframe";
 	public static final String SORT_KEY_FRAMES = "sortKeyFrames";
 	public static final String DELETE_KEYFRAME = "deleteKeyframe";
 	public static final String FETCH_DURATION = "fetchDuration";

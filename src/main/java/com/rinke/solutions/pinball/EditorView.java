@@ -706,7 +706,7 @@ public class EditorView implements MainView {
 		btnSetScenePal.addListener(SWT.Selection, e -> dispatchCmd(SET_SCENE_PALETTE));
 
 		Composite composite_2 = new Composite(listComp, SWT.NONE);
-		GridLayout gl_composite_2 = new GridLayout(3, false);
+		GridLayout gl_composite_2 = new GridLayout(4, false);
 		gl_composite_2.verticalSpacing = 0;
 		gl_composite_2.marginWidth = 0;
 		gl_composite_2.marginHeight = 0;
@@ -729,6 +729,11 @@ public class EditorView implements MainView {
 		setKeyFramePal.setText("Pal");
 		setKeyFramePal.setEnabled(false);
 		setKeyFramePal.addListener(SWT.Selection, e -> dispatchCmd(SET_KEYFRAME_PALETTE));
+		
+		Button btnFixKeyFrames = new Button(composite_2, SWT.NONE);
+		btnFixKeyFrames.setToolTipText("Fix keyframe from scene");
+		btnFixKeyFrames.setText("Fix");
+		btnFixKeyFrames.addListener(SWT.Selection, e -> dispatchCmd(FIX_KEYFRAME));
 		
 		return listComp;
 

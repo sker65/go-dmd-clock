@@ -231,6 +231,14 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 		vm.setSelectedScene(null);
 	}
 	
+	public void onFixKeyframe() {
+		if (vm.selectedKeyFrame.frameSeqName != null) {
+			Animation ani = vm.scenes.get(vm.selectedKeyFrame.frameSeqName);
+			vm.selectedKeyFrame.switchMode = getSwitchModeFromEditMode(ani.getEditMode());
+			vm.selectedKeyFrame.palIndex = ani.getPalIndex();
+		}
+	}
+	
 	public List<String> checkAndFixKeyframes(){
 		List<String> res = new ArrayList<>();
 		for( PalMapping pm : vm.keyframes.values()) {
