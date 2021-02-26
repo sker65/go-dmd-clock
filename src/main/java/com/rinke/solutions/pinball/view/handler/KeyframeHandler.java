@@ -232,7 +232,7 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 	}
 	
 	public void onFixKeyframe() {
-		if (vm.selectedKeyFrame.frameSeqName != null) {
+		if (vm.selectedKeyFrame != null && vm.selectedKeyFrame.frameSeqName != null) {
 			Animation ani = vm.scenes.get(vm.selectedKeyFrame.frameSeqName);
 			vm.selectedKeyFrame.switchMode = getSwitchModeFromEditMode(ani.getEditMode());
 			vm.selectedKeyFrame.palIndex = ani.getPalIndex();
@@ -429,6 +429,7 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 		vm.setBtnPreviewNextEnabled(nk != null);
 		vm.setBtnPreviewPrevEnabled(nk != null);
 		vm.setDeleteKeyFrameEnabled(nk != null);
+		vm.setSetFixKeyFramesEnabled(nk != null && !SwitchMode.PALETTE.equals(nk.switchMode));
 		vm.setSetKeyFramePalEnabled(nk != null && SwitchMode.PALETTE.equals(nk.switchMode));
 	}
 	

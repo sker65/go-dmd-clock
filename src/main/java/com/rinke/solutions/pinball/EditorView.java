@@ -276,6 +276,7 @@ public class EditorView implements MainView {
 	@GuiBinding(prop=ENABLED) private Button btnInvert;
 	@GuiBinding(prop=ENABLED) private Button btnSetScenePal;
 	@GuiBinding(prop=ENABLED) private Button setKeyFramePal;
+	@GuiBinding(prop=ENABLED) private Button setFixKeyFrames;
 	@GuiBinding(prop=ENABLED) private Button btnNewBookmark;
 	@GuiBinding(prop=ENABLED) private Button btnDelBookmark;
 	@GuiBinding(prop=ENABLED, propName="drawingEnabled") private Button btnAddFrame;
@@ -730,10 +731,11 @@ public class EditorView implements MainView {
 		setKeyFramePal.setEnabled(false);
 		setKeyFramePal.addListener(SWT.Selection, e -> dispatchCmd(SET_KEYFRAME_PALETTE));
 		
-		Button btnFixKeyFrames = new Button(composite_2, SWT.NONE);
-		btnFixKeyFrames.setToolTipText("Fix keyframe from scene");
-		btnFixKeyFrames.setText("Fix");
-		btnFixKeyFrames.addListener(SWT.Selection, e -> dispatchCmd(FIX_KEYFRAME));
+		setFixKeyFrames = new Button(composite_2, SWT.NONE);
+		setFixKeyFrames.setToolTipText("Fix keyframe from scene");
+		setFixKeyFrames.setText("Fix");
+		setFixKeyFrames.setEnabled(false);
+		setFixKeyFrames.addListener(SWT.Selection, e -> dispatchCmd(FIX_KEYFRAME));
 		
 		return listComp;
 

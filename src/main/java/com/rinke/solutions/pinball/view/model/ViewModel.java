@@ -99,6 +99,7 @@ public class ViewModel extends AbstractModel {
 	@ViewBinding public boolean fetchDurationEnabled;
 	@ViewBinding public boolean durationEnabled;
 	@ViewBinding public boolean setKeyFramePalEnabled;
+	@ViewBinding public boolean setFixKeyFramesEnabled;
 	@ViewBinding public boolean drawingEnabled;
 	@ViewBinding public boolean copyToNextEnabled;
 	@ViewBinding public boolean copyToPrevEnabled;
@@ -269,6 +270,10 @@ public class ViewModel extends AbstractModel {
 		firePropertyChange("setKeyFramePalEnabled", this.setKeyFramePalEnabled, this.setKeyFramePalEnabled = setKeyFramePalEnabled);
 	}
 
+	public void setSetFixKeyFramesEnabled(boolean setFixKeyFramesEnabled) {
+		firePropertyChange("setFixKeyFramesEnabled", this.setFixKeyFramesEnabled, this.setFixKeyFramesEnabled = setFixKeyFramesEnabled);
+	}
+	
 	public void setDrawingEnabled(boolean drawingEnabled) {
 		firePropertyChange("drawingEnabled", this.drawingEnabled, this.drawingEnabled = drawingEnabled);
 	}
