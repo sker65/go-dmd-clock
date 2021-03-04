@@ -510,6 +510,26 @@ public class ProjectHandler extends AbstractCommandHandler {
 							frameSeq.masks.add(new Mask(vm.dmdSize.planeSize));
 							frameSeq.masks.get(0).locked = true;
 						}
+						
+						if (realPin && !useOldExport) {
+							int noOfFrames = vm.scenes.get(p.frameSeqName).frames.size();
+							int crcMask = frameSeq.masks.size() - 1;
+							
+							int k = 0;
+							for (int i = 0; i < noOfFrames; i++) {
+								if (i % (vm.dmdSize.planeSize / 4) == 0) {
+									frameSeq.masks.add(new Mask(vm.dmdSize.planeSize));
+									if (i>0)
+										frameSeq.masks.get(crcMask).data = Frame.transform(frameSeq.masks.get(crcMask).data); // transform plane data (reverse bit order)
+									crcMask++;
+									frameSeq.masks.get(crcMask).locked = true;
+									k = 0;
+									}
+								System.arraycopy(vm.scenes.get(p.frameSeqName).frames.get(i).crc32, 0, frameSeq.masks.get(crcMask).data, k++*4, 4);
+							}
+							frameSeq.masks.get(crcMask).data = Frame.transform(frameSeq.masks.get(crcMask).data); // transform plane data (reverse bit order)
+							frameSeq.masks.get(crcMask).locked = true;
+						}
 					}
 					// TODO make this an attribute of switch mode
 					frameSeq.reorderMask = (p.switchMode.equals(SwitchMode.FOLLOW) || p.switchMode.equals(SwitchMode.FOLLOWREPLACE ));
@@ -619,7 +639,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 				if (!frameSeqMap.isEmpty()) {
 					log.info("exporter instance {} writing FSQ", exporter);
 					DataOutputStream dos = new DataOutputStream(streamProvider.buildStream(replaceExtensionTo("fsq", filename)));
-					map = exporter.writeFrameSeqTo(dos, frameSeqMap, useOldExport?1:2);
+					map = exporter.writeFrameSeqTo(dos, frameSeqMap, useOldExport?2:3);
 					dos.close();
 				}
 
