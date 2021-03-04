@@ -525,7 +525,12 @@ public class ProjectHandler extends AbstractCommandHandler {
 									frameSeq.masks.get(crcMask).locked = true;
 									k = 0;
 									}
-								System.arraycopy(vm.scenes.get(p.frameSeqName).frames.get(i).crc32, 0, frameSeq.masks.get(crcMask).data, k++*4, 4);
+								byte crc[] = {0,0,0,0};
+								crc[0] = vm.scenes.get(p.frameSeqName).frames.get(i).crc32[3];
+								crc[1] = vm.scenes.get(p.frameSeqName).frames.get(i).crc32[2];
+								crc[2] = vm.scenes.get(p.frameSeqName).frames.get(i).crc32[1];
+								crc[3] = vm.scenes.get(p.frameSeqName).frames.get(i).crc32[0];
+								System.arraycopy(crc, 0, frameSeq.masks.get(crcMask).data, k++*4, 4);
 							}
 							frameSeq.masks.get(crcMask).data = Frame.transform(frameSeq.masks.get(crcMask).data); // revert bit order for CRCs
 							frameSeq.masks.get(crcMask).locked = true;
