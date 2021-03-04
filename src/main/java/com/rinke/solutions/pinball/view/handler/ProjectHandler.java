@@ -518,16 +518,16 @@ public class ProjectHandler extends AbstractCommandHandler {
 							int k = 0;
 							for (int i = 0; i < noOfFrames; i++) {
 								if (i % (vm.dmdSize.planeSize / 4) == 0) {
-									frameSeq.masks.add(new Mask(vm.dmdSize.planeSize));
+									frameSeq.masks.add(new Mask(vm.dmdSize.planeSize)); // add a new plane according to number of CRCs
 									if (i>0)
-										frameSeq.masks.get(crcMask).data = Frame.transform(frameSeq.masks.get(crcMask).data); // transform plane data (reverse bit order)
+										frameSeq.masks.get(crcMask).data = Frame.transform(frameSeq.masks.get(crcMask).data); // revert bit order for CRCs
 									crcMask++;
 									frameSeq.masks.get(crcMask).locked = true;
 									k = 0;
 									}
 								System.arraycopy(vm.scenes.get(p.frameSeqName).frames.get(i).crc32, 0, frameSeq.masks.get(crcMask).data, k++*4, 4);
 							}
-							frameSeq.masks.get(crcMask).data = Frame.transform(frameSeq.masks.get(crcMask).data); // transform plane data (reverse bit order)
+							frameSeq.masks.get(crcMask).data = Frame.transform(frameSeq.masks.get(crcMask).data); // revert bit order for CRCs
 							frameSeq.masks.get(crcMask).locked = true;
 						}
 					}
