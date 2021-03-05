@@ -242,13 +242,27 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 	public List<String> checkAndFixKeyframes(){
 		List<String> res = new ArrayList<>();
 		for( PalMapping pm : vm.keyframes.values()) {
-			//pm.maskNumber
-			vm.setDetectionMaskActive(pm.withMask);
-			if( pm.withMask ) {
-				vm.dmd.setMask(vm.masks.get(pm.maskNumber));
-				vm.setSelectedMaskNumber(pm.maskNumber);
-			}
 			
+			vm.setDetectionMaskActive(true);
+			for (int msk = 0; msk < vm.masks.size(); msk++) {
+				if (vm.masks.get(msk).locked) {
+					vm.dmd.setMask(vm.masks.get(msk));
+					vm.setSelectedMaskNumber(msk);
+					hashCmdHandler.updateHashes(vm.dmd.getFrame());
+					for (int idx = 0;idx < vm.hashes.size();idx++) {
+						if(Arrays.equals(pm.crc32, vm.hashes.get(idx))) {
+							res.add(" "+pm.name+String.format(" (M%d)", msk));
+							pm.frameIndex = vm.getSelectedFrame();
+							pm.animationName = vm.selectedRecording.getDesc();
+							pm.withMask = true;
+							pm.maskNumber = msk;
+							break;
+						}
+					}
+				}
+			}
+			vm.setDetectionMaskActive(false);
+
 			hashCmdHandler.updateHashes(vm.dmd.getFrame());
 			for (int idx = 0;idx < vm.hashes.size();idx++) {
 				if(Arrays.equals(pm.crc32, vm.hashes.get(idx))) {
@@ -260,25 +274,7 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 					break;
 				}
 			}
-			
-			if(pm.frameIndex == 0) {
-				vm.setDetectionMaskActive(true);
-				for (int msk = 0; msk < vm.masks.size(); msk++) {
-					vm.dmd.setMask(vm.masks.get(msk));
-					vm.setSelectedMaskNumber(msk);
-					hashCmdHandler.updateHashes(vm.dmd.getFrame());
-					for (int idx = 0;idx < vm.hashes.size();idx++) {
-						if(Arrays.equals(pm.crc32, vm.hashes.get(idx))) {
-							res.add(" "+pm.name);
-							pm.frameIndex = vm.getSelectedFrame();
-							pm.animationName = vm.selectedRecording.getDesc();
-							pm.withMask = true;
-							pm.maskNumber = msk;
-						}
-					}
-				}
-				vm.setDetectionMaskActive(false);
-			}
+
 		}
 		return res;
 	}
