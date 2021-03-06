@@ -280,7 +280,7 @@ public class ImageUtil {
 	public static Frame convertToFrame(BufferedImage dmdImage, int w, int h, int bitsPerChannel) {
 		if( bitsPerChannel > 8 ) bitsPerChannel = 8;
 		Frame res = new Frame(bitsPerChannel,w,h);
-		int mask =  ~(1<<bitsPerChannel) & 0xFF;
+		int mask =  0xFF>>(8-bitsPerChannel);
 
 		for (int x = 0; x < dmdImage.getWidth(); x++) {
 			for (int y = 0; y < dmdImage.getHeight(); y++) {
@@ -292,7 +292,7 @@ public class ImageUtil {
 				nrgb |= ( ( rgb >> (16-bitsPerChannel) ) & mask ) << bitsPerChannel;
 				nrgb |= ( ( rgb >> (24-bitsPerChannel) ) & mask ) << bitsPerChannel*2;
 				
-				for( int j = 0; j < bitsPerChannel * 3 ; j++) {
+				for( int j = 0; j < (bitsPerChannel * 3) ; j++) {
 					if( (nrgb & (1<<j)) != 0)
 						res.planes.get(j).data[y * (w/8) + x / 8] |= (0b10000000 >> (x % 8));
 				}

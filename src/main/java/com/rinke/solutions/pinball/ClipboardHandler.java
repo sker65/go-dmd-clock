@@ -85,7 +85,7 @@ public class ClipboardHandler {
 					pasteTool.setMaskOnly(dmdWidget.isShowMask());
 					dmdWidget.setDrawTool(pasteTool);
 				} else {
-					Frame res = ImageUtil.convertToFrame(bufferedImage, width, height, 5);
+					Frame res = ImageUtil.convertToFrame(bufferedImage, width, height, 8);
 					PasteTool pasteTool = new PasteTool(0, width, height,0,0);
 					pasteTool.setFrameToPaste(res);
 					pasteTool.setMaskOnly(dmdWidget.isShowMask());
@@ -255,7 +255,7 @@ public class ClipboardHandler {
 					ImageUtil.convertToFrameWithPalette(bufferedImage, dmd, palette, true);
 					//dmd.setFrame(res);
 				} else {
-					Frame res = ImageUtil.convertToFrame(bufferedImage, width, height, 5);
+					Frame res = ImageUtil.convertToFrame(bufferedImage, width, height, 8);
 					dmd.setFrame(res);
 				}
 			}
