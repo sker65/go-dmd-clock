@@ -294,9 +294,8 @@ public class ImageUtil {
 				
 				for( int j = 0; j < bitsPerChannel * 3 ; j++) {
 					if( (nrgb & (1<<j)) != 0)
-						res.planes.get(j).data[y * (w/8) + x / 8] |= (w >> (x % 8));
+						res.planes.get(j).data[y * (w/8) + x / 8] |= (0b10000000 >> (x % 8));
 				}
-
 			}
 		}
 		return res;
