@@ -46,7 +46,14 @@ public class AnimatedGIFRenderer extends Renderer {
                 "imageHeight"
             };
 		
-		DmdSize size = Integer.parseInt(props.getProperty("width", "128"))==128 ? DmdSize.Size128x32 : DmdSize.Size192x64;
+		DmdSize size = null;
+		if(Integer.parseInt(props.getProperty("width", "256"))==256)
+			size = DmdSize.Size256x64;
+		if(Integer.parseInt(props.getProperty("width", "192"))==192)
+			size = DmdSize.Size192x64;
+		if(Integer.parseInt(props.getProperty("width", "128"))==128)
+			size = DmdSize.Size128x32;
+		//DmdSize size = Integer.parseInt(props.getProperty("width", "128"))==128 ? DmdSize.Size128x32 : DmdSize.Size192x64;
 		boolean sizeSetFromImage = false;
 		
 		try {

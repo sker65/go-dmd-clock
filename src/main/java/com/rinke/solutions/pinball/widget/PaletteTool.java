@@ -221,7 +221,7 @@ public class PaletteTool extends AbstractModel implements ColorModifiedListener 
 
 	public void setPalette(Palette palette) {
 		this.palette = palette;
-		for (int i = 0; i < palette.numberOfColors; i++) {
+		for (int i = 0; i < colBtn.length; i++) {
 			colBtn[i].setImage(getSquareImage(display, toSwtRGB(palette.colors[i])));
 		}
 	}
@@ -265,7 +265,7 @@ public class PaletteTool extends AbstractModel implements ColorModifiedListener 
 
 	public void setSelectedColor(int selectedColor) {
 		//avoid multiple selections in palette
-		for (int i = 0; i < palette.numberOfColors; i++) {
+		for (int i = 0; i < colBtn.length; i++) {
 			colBtn[i].setSelection(false);
 		}
 		colBtn[selectedColor].setSelection(true);
