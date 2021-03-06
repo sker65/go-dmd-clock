@@ -1784,8 +1784,8 @@ public class EditorView implements MainView {
 		try {
 			URL resource = getClass().getResource("/init-dmd-"+dmd.getWidth()+".png");
 			master = ImageIO.read(resource);
-			Frame f = ImageUtil.convertToFrame(master, dmd.getWidth(), dmd.getHeight(), 5);
-			dmd.setNumberOfPlanes(15);
+			Frame f = ImageUtil.convertToFrame(master, dmd.getWidth(), dmd.getHeight(), 8);
+			dmd.setNumberOfPlanes(24);
 			dmd.writeOr(f);
 		} catch (Exception e) {
 		}

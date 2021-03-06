@@ -118,7 +118,7 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 		if( newPalette != null) {
 			log.info("new palette is {}", vm.selectedPalette);
 			vm.setSelectedPaletteType(vm.selectedPalette.type);
-			vm.setPaletteDirty(true);
+			//vm.setPaletteDirty(true);  // fix crash on load of small project files
 		}
 	}
 	
