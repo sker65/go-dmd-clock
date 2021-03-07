@@ -56,7 +56,7 @@ public class AutosaveHandler extends AbstractCommandHandler implements Runnable 
 		if( autosave ) {
 			String filename = getFilename();
 			log.info("auto save to {}", filename);
-			projectHandler.saveProject(filename);
+			projectHandler.saveProject(filename, false);
 		}
 	}
 	

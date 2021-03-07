@@ -52,14 +52,14 @@ public class AnimationActionHandlerTest extends HandlerTest{
 	@Test
 	public void testStoreAnimations() throws Exception {
 		Collection<Animation> anis = new ArrayList<>();
-		uut.storeAnimations(anis, testFolder.newFile("foo.ani").getAbsolutePath(), 1, true);
+		uut.storeAnimations(anis, testFolder.newFile("foo.ani").getAbsolutePath(), 1, true, true);
 	}
 
 	@Ignore
 	public void testStoreAnimationsWithFile() throws Exception {
 		Collection<Animation> anis = new ArrayList<>();
 		anis.add(getScene("foo"));
-		uut.storeAnimations(anis, testFolder.newFile("foo.ani").getAbsolutePath(), 1, true);
+		uut.storeAnimations(anis, testFolder.newFile("foo.ani").getAbsolutePath(), 1, true, true);
 	}
 
 	@Test

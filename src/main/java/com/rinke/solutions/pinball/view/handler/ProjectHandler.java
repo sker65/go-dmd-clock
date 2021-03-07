@@ -428,7 +428,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 	
 	public void onSaveProject() {
 		if( vm.projectFilename != null) {
-			saveProject(vm.projectFilename);
+			saveProject(vm.projectFilename, true);
 		} else {
 			onSaveAsProject();
 		}
@@ -437,7 +437,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 	public void onSaveAsProject() {
 		String filename = fileChooserUtil.choose(SWT.SAVE, vm.projectFilename, new String[] { "*.xml" }, new String[] { "Project XML" });
 		if (filename != null) {
-			saveProject(filename);
+			saveProject(filename, true);
 			vm.setProjectFilename(filename);
 		}
 	}
@@ -659,7 +659,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 		}		
 	}
 
-	public void saveProject(String filename) {
+	public void saveProject(String filename, boolean withProgress) {
 		log.info("write project to {}", filename);
 		String aniFilename = replaceExtensionTo("ani", filename);
 		
@@ -707,13 +707,13 @@ public class ProjectHandler extends AbstractCommandHandler {
 			Optional<Animation> optAni = vm.recordings.values().stream().filter(a -> a.getName().equals(path+File.separator+inFile)).findFirst();
 			optAni.ifPresent(a-> {
 				if( a.isDirty()) {
-					aniAction.storeAnimations(Arrays.asList(a), a.getName(), 4, false);
+					aniAction.storeAnimations(Arrays.asList(a), a.getName(), 4, false, withProgress);
 					a.setDirty(false);
 				}
 			});
 		}
 		
-		storeOrDeleteProjectAnimations(aniFilename);
+		storeOrDeleteProjectAnimations(aniFilename, withProgress);
 		boolean isUsingLayeredColMask = false;
 		for( PalMapping pm : vm.keyframes.values()) {
 			if( pm.switchMode.equals(SwitchMode.LAYEREDCOL)) {
@@ -762,11 +762,11 @@ public class ProjectHandler extends AbstractCommandHandler {
 		}
 	}
 
-	private void storeOrDeleteProjectAnimations(String aniFilename) {
+	private void storeOrDeleteProjectAnimations(String aniFilename, boolean withProgress) {
 		// only need to save ani's that are 'project' animations
 		List<Animation> prjAnis = vm.scenes.values().stream().filter(a->a.isProjectAnimation()).collect(Collectors.toList());
 		if( !prjAnis.isEmpty() ) {
-			aniAction.storeAnimations(prjAnis, aniFilename, CURRENT_PRJ_ANI_VERSION, true);
+			aniAction.storeAnimations(prjAnis, aniFilename, CURRENT_PRJ_ANI_VERSION, true, withProgress);
 		} else {
 			new File(aniFilename).delete(); // delete project ani file
 		}

@@ -312,7 +312,7 @@ public class ProjectHandlerTest extends HandlerTest {
 	public void testSaveProject() throws Exception {
 		when(messageUtil.warn(eq(0), anyString(), anyString(), anyString(), anyObject(), eq(2))).thenReturn(2);
 		String filename = testFolder.newFile("test.xml").getAbsolutePath();
-		uut.saveProject(filename);
+		uut.saveProject(filename, true);
 		// validate that there are 9 default palette
 		FileHelper fileHelper = new FileHelper();
 		Project p = (Project) fileHelper.loadObject(filename);
@@ -328,7 +328,7 @@ public class ProjectHandlerTest extends HandlerTest {
 		when(messageUtil.warn(eq(0), anyString(), anyString(), anyString(), anyObject(), eq(2))).thenReturn(2);
 		String filename = testFolder.newFile("test.xml").getAbsolutePath();
 		vm.paletteMap.clear();
-		uut.saveProject(filename);
+		uut.saveProject(filename, true);
 		// validate that there are no default palette
 		FileHelper fileHelper = new FileHelper();
 		Project p = (Project) fileHelper.loadObject(filename);
@@ -339,7 +339,7 @@ public class ProjectHandlerTest extends HandlerTest {
 	public void testSaveProjectWithBackup() throws Exception {
 		String filename = testFolder.newFile("test.xml").getAbsolutePath();
 		uut.backup = true;
-		uut.saveProject(filename);
+		uut.saveProject(filename, true);
 	}
 
 	@Test
@@ -348,7 +348,7 @@ public class ProjectHandlerTest extends HandlerTest {
 		vm.numberOfColors = 16;
 		String tempFile = testFolder.newFile("ex1.xml").getPath();
 		uut.onLoadProjectWithProgress("./src/test/resources/ex1.xml", null);
-		uut.saveProject(tempFile);
+		uut.saveProject(tempFile,true);
 		XMLUnit.setIgnoreWhitespace(true);
 		//assertXMLEqual(new FileReader("./src/test/resources/ex1.xml"), new FileReader(tempFile)); // TODO !!! Test fails because of numberOfColorsWhenCut parameter in XML
 		Animation ani = aniReader.read(testFolder.getRoot() + "/ex1.ani").get(0);

@@ -251,7 +251,7 @@ public class PinDmdEditor {
 			}
 		}
 		if (saveFile != null) {
-			projectHandler.saveProject(saveFile);
+			projectHandler.saveProject(saveFile, true);
 		}
 	}
 	

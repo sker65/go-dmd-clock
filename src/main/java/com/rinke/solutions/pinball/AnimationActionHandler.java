@@ -69,14 +69,16 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 		String filename = fileChooserUtil.choose(SWT.SAVE, defaultName, new String[] { "*.ani" }, new String[] { "Animations" });
 		if (filename != null) {
 			log.info("store animation to {}", filename);
-			storeAnimations(vm.recordings.values(), filename, version, true);
+			storeAnimations(vm.recordings.values(), filename, version, true, true);
 		}
 	}
 
-	public void storeAnimations(Collection<Animation> anis, String filename, int version, boolean saveAll) {
+	public void storeAnimations(Collection<Animation> anis, String filename, int version, boolean saveAll, boolean withProgress) {
 		java.util.List<Animation> anisToSave = anis.stream().filter(a -> saveAll || a.isDirty()).collect(Collectors.toList());
 		if( anisToSave.isEmpty() ) return;// Pair.of(0, Collections.emptyMap());
-		IProgress progress = getProgress();
+		IProgress progress = null;
+		if (withProgress)
+			progress =  getProgress();
 		AniWriter aniWriter = new AniWriter(anisToSave, filename, version, vm.paletteMap, progress);
 		if( progress != null ) {
 			progress.open(aniWriter);
@@ -306,7 +308,7 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 			String filename = fileChooserUtil.choose(SWT.SAVE, vm.selectedScene.getDesc(), new String[] { "*.ani" }, new String[] { "Animations" });
 			if (filename != null) {
 				log.info("store animation to {}", filename);
-				storeAnimations(Lists.newArrayList(vm.selectedScene), filename, version, true);
+				storeAnimations(Lists.newArrayList(vm.selectedScene), filename, version, true, true);
 			}
 		}
 	}
