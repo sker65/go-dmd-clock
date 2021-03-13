@@ -40,7 +40,10 @@ public class AnimationControlHandler extends AbstractCommandHandler implements V
 		animationHandler.setPos(n);
 		update(vm.minFrame, n, vm.maxFrame, vm.animationIsPlaying);
 		if( vm.selectedScene != null && (vm.selectedEditMode.haveLocalMask || vm.selectedEditMode.haveSceneDetectionMasks)) {
-			maskHandler.updateMaskChange(false, true);
+			if (vm.layerMaskActive)
+				maskHandler.updateMaskChange(false, false);
+			else
+				maskHandler.updateMaskChange(false, true);			
 			vm.setHashVal(HashCmdHandler.getPrintableHashes(vm.selectedScene.frames.get(vm.selectedScene.actFrame).crc32));
 		} else {
 			vm.setHashVal("-");
