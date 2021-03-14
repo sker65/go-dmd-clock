@@ -462,6 +462,7 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 				if (duplicateName == null) {
 					vm.selectedKeyFrame.setDigest(hash);
 					vm.selectedKeyFrame.hashIndex = vm.selectedHashIndex;
+					vm.selectedKeyFrame.frameIndex = vm.getSelectedFrame();
 					messageUtil.warn("Keyframe updated", "Selected keyframe updated with new hash");
 				} else {
 					messageUtil.warn("duplicate hash", "There is already Keyframe \"" + duplicateName + "\" that uses the same hash");
