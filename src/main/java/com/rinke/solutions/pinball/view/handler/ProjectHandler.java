@@ -501,7 +501,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 					if (p.switchMode.masking ) {
 						frameSeq.mask = 0b11111111111111111111111111111100;
 					}
-					if (p.switchMode.equals(SwitchMode.LAYEREDCOL) ) { // ref the scene local masks
+					if (p.switchMode.equals(SwitchMode.LAYEREDCOL) || p.switchMode.equals(SwitchMode.LAYEREDREPLACE) ) { // ref the scene local masks
 						// filter out unlocked masks		
 						frameSeq.masks = vm.scenes.get(p.frameSeqName).getMasks()
 								.stream().filter(m->m.locked).collect(Collectors.toList());
