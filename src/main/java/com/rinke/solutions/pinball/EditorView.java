@@ -803,7 +803,7 @@ public class EditorView implements MainView {
 		
 		Group grpDetails = new Group(parent, SWT.NONE);
 		grpDetails.setLayoutData(new GridData(SWT.FILL, SWT.TOP, false, false, 1, 1));
-		grpDetails.setLayout(new GridLayout(20, false));
+		grpDetails.setLayout(new GridLayout(24, false));
 		
 		/*GridData gd_grpDetails = new GridData(SWT.LEFT, SWT.CENTER, false, true, 1, 1);
 		gd_grpDetails.heightHint = 27;
