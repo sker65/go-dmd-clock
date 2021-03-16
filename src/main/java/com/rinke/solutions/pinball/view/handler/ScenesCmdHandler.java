@@ -141,7 +141,16 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 			}
 		}
 		if( res.isEmpty() ) {
+			String filename = vm.selectedScene.getName();
+			int i = vm.inputFiles.indexOf(filename);
 			onRemove(a, vm.scenes);
+			boolean nameExists = false;
+			for (Animation r: vm.recordings.values()) {
+				String name = r.getName();
+				if (name.equals(filename))
+					nameExists = true;
+			}
+			if ( nameExists != true && (i != -1)) vm.inputFiles.remove(i);
 		} else {
 			messageUtil.warn("Scene cannot be deleted", "It is used by "+res);
 		}
