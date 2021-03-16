@@ -796,15 +796,19 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 				}
 			}
 			if( res.isEmpty() ) {
-				vm.paletteMap.remove(vm.selectedPalette.index);
-				// ensure there is a default palette
-				int c = 0;
-				for( Palette p : vm.paletteMap.values()) {
-					if( p.type == PaletteType.DEFAULT ) c++;
+				if (vm.selectedPalette.index == 0)
+					messageUtil.warn("Error","Palette 0 cannot be deleted");
+				else {
+					vm.paletteMap.remove(vm.selectedPalette.index);
+					// ensure there is a default palette
+					int c = 0;
+					for( Palette p : vm.paletteMap.values()) {
+						if( p.type == PaletteType.DEFAULT ) c++;
+					}
+					if( c == 0 ) vm.paletteMap.get(0).type = PaletteType.DEFAULT;
+					// select first
+					vm.setSelectedPalette(vm.paletteMap.values().iterator().next());
 				}
-				if( c == 0 ) vm.paletteMap.get(0).type = PaletteType.DEFAULT;
-				// select first
-				vm.setSelectedPalette(vm.paletteMap.values().iterator().next());
 			} else {
 				messageUtil.warn("Palette cannot be deleted", "It is used by the following resources: \n"+res);
 				Clipboard clipboard=new Clipboard(Display.getCurrent());
