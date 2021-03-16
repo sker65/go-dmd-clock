@@ -158,11 +158,17 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 							res.add(" "+pm.name);
 						}
 					}
-					messageUtil.warn("Mask cannot be deleted", "It is used by the following Keyframes:\n"+res);
-					Clipboard clipboard=new Clipboard(Display.getCurrent());
-					TextTransfer transfer=TextTransfer.getInstance();
-					clipboard.setContents(new Object[]{res.toString()},new Transfer[]{transfer});
-					clipboard.dispose();
+					if (res.size() == 0) {
+						vm.masks.get(vm.selectedMaskNumber).locked = false;
+						vm.dmd.getFrame().mask.locked = false;
+						vm.setDmdDirty(true);
+					} else {
+						messageUtil.warn("Mask cannot be deleted", "It is used by the following Keyframes:\n"+res);
+						Clipboard clipboard=new Clipboard(Display.getCurrent());
+						TextTransfer transfer=TextTransfer.getInstance();
+						clipboard.setContents(new Object[]{res.toString()},new Transfer[]{transfer});
+						clipboard.dispose();
+					}
 				}
 			}
 		}
