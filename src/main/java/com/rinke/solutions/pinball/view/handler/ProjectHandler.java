@@ -346,6 +346,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 				});
 				
 				vm.bookmarksMap.putAll(p.bookmarksMap);
+				vm.setSelectedRecording(vm.recordings.values().iterator().next());
 				
 				vm.setDirty(false);
 				
