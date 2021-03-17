@@ -43,9 +43,9 @@ public class HashCmdHandler extends AbstractCommandHandler implements ViewBindin
 		vm.setBtnAddKeyframeEnabled(selectedRecording != null && selectedHashIndex != -1);
 		vm.setBtnAddFrameSeqEnabled(selectedRecording != null && selectedFrameSeq != null && selectedHashIndex != -1);
 		vm.setBtnAddEventEnabled(selectedRecording != null && selectedHashIndex != -1);
-		vm.setBtnSetHashEnabled((selectedRecording != null && selectedHashIndex != -1) || (vm.selectedScene != null && selectedHashIndex != -1  && (vm.selectedEditMode.haveLocalMask || vm.selectedEditMode.haveSceneDetectionMasks)));
-		vm.setBtnPreviewNextEnabled(vm.selectedScene != null && (vm.selectedEditMode.haveLocalMask || vm.selectedEditMode.haveSceneDetectionMasks));
-		vm.setBtnPreviewPrevEnabled(vm.selectedScene != null && (vm.selectedEditMode.haveLocalMask || vm.selectedEditMode.haveSceneDetectionMasks));
+		vm.setBtnSetHashEnabled((selectedRecording != null && selectedHashIndex != -1) || (vm.selectedScene != null && selectedHashIndex != -1  && (vm.selectedEditMode.haveLocalMask || vm.selectedEditMode.haveSceneDetectionMasks || vm.selectedEditMode.pullFrameDataFromAssociatedRecording )));
+		vm.setBtnPreviewNextEnabled(vm.selectedScene != null && (vm.selectedEditMode.haveLocalMask || vm.selectedEditMode.haveSceneDetectionMasks || vm.selectedEditMode.pullFrameDataFromAssociatedRecording ));
+		vm.setBtnPreviewPrevEnabled(vm.selectedScene != null && (vm.selectedEditMode.haveLocalMask || vm.selectedEditMode.haveSceneDetectionMasks || vm.selectedEditMode.pullFrameDataFromAssociatedRecording ));
 
 	}
 

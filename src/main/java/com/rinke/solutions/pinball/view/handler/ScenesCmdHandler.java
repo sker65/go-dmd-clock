@@ -113,7 +113,7 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 
 			setPlayingAni(nextScene, vm.scenesPosMap.getOrDefault(nextScene.getDesc(), 0));
 			maskHandler.updateDrawingEnabled();
-			if( m.haveLocalMask || m.haveSceneDetectionMasks) {
+			if( m.haveLocalMask || m.haveSceneDetectionMasks || vm.selectedEditMode.pullFrameDataFromAssociatedRecording) {
 				maskHandler.updateMaskChange(false, true);
 				vm.setHashVal(HashCmdHandler.getPrintableHashes(nextScene.getActualFrame().crc32));
 			} else {

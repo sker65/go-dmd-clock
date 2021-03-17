@@ -477,11 +477,11 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 					messageUtil.warn("duplicate hash", "There is already Keyframe \"" + duplicateName + "\" that uses the same hash");
 				}
 			} else {
-				if( vm.selectedEditMode.haveLocalMask || vm.selectedEditMode.haveSceneDetectionMasks) {
+				if( vm.selectedEditMode.haveLocalMask || vm.selectedEditMode.haveSceneDetectionMasks || vm.selectedEditMode.pullFrameDataFromAssociatedRecording) {
 					// Update hash in scene and lock mask (for scene masks)
 					vm.selectedScene.getActualFrame().setHash(hash);
 					vm.setHashVal(HashCmdHandler.getPrintableHashes(hash));
-					if( vm.detectionMaskActive ) {
+					if( vm.detectionMaskActive && vm.selectedEditMode.haveSceneDetectionMasks) {
 						maskHandler.commitMaskIfNeeded(true);
 						vm.selectedScene.getMask(vm.selectedMaskNumber).locked = true;
 						vm.dmd.getFrame().mask.locked = true;

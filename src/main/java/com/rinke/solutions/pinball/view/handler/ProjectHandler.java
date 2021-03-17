@@ -537,6 +537,22 @@ public class ProjectHandler extends AbstractCommandHandler {
 							frameSeq.masks.get(crcMask).locked = true;
 						}
 					}
+					if (p.switchMode.equals(SwitchMode.FOLLOW) || p.switchMode.equals(SwitchMode.FOLLOWREPLACE ) ) { // collect CRCs in mask of first frame.
+						if (realPin && !useOldExport) {
+							int noOfFrames = vm.scenes.get(p.frameSeqName).frames.size();
+							int k = 0;
+							for (int i = 0; i < noOfFrames; i++) {
+								byte crc[] = {0,0,0,0};
+								crc[0] = vm.scenes.get(p.frameSeqName).frames.get(i).crc32[3];
+								crc[1] = vm.scenes.get(p.frameSeqName).frames.get(i).crc32[2];
+								crc[2] = vm.scenes.get(p.frameSeqName).frames.get(i).crc32[1];
+								crc[3] = vm.scenes.get(p.frameSeqName).frames.get(i).crc32[0];
+								System.arraycopy(crc, 0, vm.scenes.get(p.frameSeqName).frames.get(1).mask.data, k++*4, 4); //copy crc data to second frame because masks get shifted later
+							}
+							vm.scenes.get(p.frameSeqName).frames.get(1).mask.data = Frame.transform(vm.scenes.get(p.frameSeqName).frames.get(1).mask.data); // revert bit order for CRCs
+						}
+					}
+					
 					// TODO make this an attribute of switch mode
 					frameSeq.reorderMask = (p.switchMode.equals(SwitchMode.FOLLOW) || p.switchMode.equals(SwitchMode.FOLLOWREPLACE ));
 					frameSeqMap.put(p.frameSeqName, frameSeq);

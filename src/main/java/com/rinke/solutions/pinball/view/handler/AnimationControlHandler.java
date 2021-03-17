@@ -39,7 +39,7 @@ public class AnimationControlHandler extends AbstractCommandHandler implements V
 		commitChanges();
 		animationHandler.setPos(n);
 		update(vm.minFrame, n, vm.maxFrame, vm.animationIsPlaying);
-		if( vm.selectedScene != null && (vm.selectedEditMode.haveLocalMask || vm.selectedEditMode.haveSceneDetectionMasks)) {
+		if( vm.selectedScene != null && (vm.selectedEditMode.haveLocalMask || vm.selectedEditMode.haveSceneDetectionMasks || vm.selectedEditMode.pullFrameDataFromAssociatedRecording)) {
 			if (vm.layerMaskActive)
 				maskHandler.updateMaskChange(false, false);
 			else
