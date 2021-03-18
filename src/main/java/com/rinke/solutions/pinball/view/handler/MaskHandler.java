@@ -110,6 +110,7 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 					updateDrawingEnabled();
 				}
 			}
+			animationHandler.forceRerender();
 			vm.setDmdDirty(true);
 		}
 	}
