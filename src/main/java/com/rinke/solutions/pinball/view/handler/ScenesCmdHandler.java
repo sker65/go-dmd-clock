@@ -141,8 +141,12 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 			}
 		}
 		if( res.isEmpty() ) {
-			String filename = vm.selectedScene.getName();
-			int i = vm.inputFiles.indexOf(filename);
+			String filename = null;
+			int i = -1;
+			if (vm.selectedScene != null) {
+				filename = vm.selectedScene.getName();
+				i = vm.inputFiles.indexOf(filename);
+			}
 			onRemove(a, vm.scenes);
 			boolean nameExists = false;
 			for (Animation r: vm.recordings.values()) {
