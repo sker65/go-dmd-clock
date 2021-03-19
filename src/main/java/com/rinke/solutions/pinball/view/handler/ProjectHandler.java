@@ -540,6 +540,12 @@ public class ProjectHandler extends AbstractCommandHandler {
 					if (p.switchMode.equals(SwitchMode.FOLLOW) || p.switchMode.equals(SwitchMode.FOLLOWREPLACE ) ) { // collect CRCs in mask of first frame.
 						if (realPin && !useOldExport) {
 							int noOfFrames = vm.scenes.get(p.frameSeqName).frames.size();
+							if (vm.scenes.get(p.frameSeqName).frames.get(1).mask == null) {
+								Mask mask = new Mask(vm.dmdSize.planeSize);
+								for(int frameNo = 0; frameNo < vm.scenes.get(p.frameSeqName).frames.size();frameNo++) {
+									vm.scenes.get(p.frameSeqName).frames.get(frameNo).mask = mask;
+								}
+							}
 							int k = 0;
 							for (int i = 0; i < noOfFrames; i++) {
 								byte crc[] = {0,0,0,0};
