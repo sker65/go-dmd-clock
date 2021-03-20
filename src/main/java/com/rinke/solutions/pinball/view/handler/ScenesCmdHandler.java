@@ -130,6 +130,40 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 		vm.setBtnSetScenePalEnabled(nextScene!=null);
 	}
 	
+	public void onDeleteUnusedScenes() {
+		
+		Iterator<CompiledAnimation> it = vm.scenes.values().iterator();
+		while(it.hasNext()) {
+			Animation a = it.next();
+			ArrayList<String> res = new ArrayList<>();
+			if( a!=null) {
+				for( PalMapping pm : vm.keyframes.values()) {
+					if( a.getDesc().equals(pm.frameSeqName) ) {
+						res.add( pm.name );
+					}
+				}
+				if( res.isEmpty() ) {
+					String filename = null;
+					int i = -1;
+					filename = a.getName();
+					i = vm.inputFiles.indexOf(filename);					
+					it.remove();
+					boolean nameExists = false;
+					for (Animation r: vm.recordings.values()) {
+						String name = r.getName();
+						if (name.equals(filename))
+							nameExists = true;
+					}
+					if ( nameExists != true && (i != -1)) {
+						vm.inputFiles.remove(i);
+					}
+				}
+			}
+		}
+		vm.scenes.refresh();
+		vm.setDirty(true);
+	}
+	
 	public void onDeleteScene() {
 		Animation a = vm.selectedScene;
 		ArrayList<String> res = new ArrayList<>();

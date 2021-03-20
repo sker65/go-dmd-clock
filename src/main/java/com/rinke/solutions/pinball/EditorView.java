@@ -446,6 +446,10 @@ public class EditorView implements MainView {
 		mntmUnlockSceneMasks.setText("Unlock Scene Masks");
 		mntmUnlockSceneMasks.addListener(SWT.Selection, e -> dispatchCmd(UNLOCK_SCENE_MASKS));
 		
+		MenuItem mntmDeleteUnusedScenes = new MenuItem(menu_2, SWT.NONE);
+		mntmDeleteUnusedScenes.setText("Delete Unused Scenes");
+		mntmDeleteUnusedScenes.addListener(SWT.Selection, e -> dispatchCmd(DELETE_UNUSED_SCENES));
+		
 		MenuItem mntmRecentAnimationsItem = new MenuItem(menu_2, SWT.CASCADE);
 		mntmRecentAnimationsItem.setText("Recent Animations");
 				
