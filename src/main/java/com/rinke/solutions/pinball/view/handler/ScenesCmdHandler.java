@@ -119,6 +119,10 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 			} else {
 				vm.setHashVal("");
 			}
+			
+			if (vm.selectedEditMode.pullFrameDataFromAssociatedRecording && vm.selectedScene.getRecordingLink() == null) {
+				messageUtil.warn("Warning", "Linked Recording missing !!\nCalculated hashes may be invalid.");
+			}
 						
 		} else {
 			vm.setDrawingEnabled(false);
