@@ -217,6 +217,9 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 		cutScene.setEditMode(EditMode.COLMASK);
 		if (vm.selectedRecording != null)
 			cutScene.setRecordingLink(new RecordingLink(animation.getDesc(), start));
+		else if (vm.selectedScene != null && vm.selectedScene.getRecordingLink() != null) {
+			cutScene.setRecordingLink(new RecordingLink(vm.selectedScene.getRecordingLink().associatedRecordingName,vm.selectedScene.getRecordingLink().startFrame+start));
+		}
 						
 		vm.scenes.put(name, cutScene);
 		vm.scenes.refresh();
