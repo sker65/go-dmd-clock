@@ -1420,12 +1420,24 @@ public class EditorView implements MainView {
 		btnPreviewPrev = new Button(navigationGrp, SWT.NONE);
 		btnPreviewPrev.setLayoutData(new GridData(SWT.NONE, SWT.NONE, false, false, 1, 1));
 		btnPreviewPrev.setText("<");
-		btnPreviewPrev.addListener(SWT.Selection, e->dispatchCmd(PREVIEW_PREV_FRAME));
+		btnPreviewPrev.setToolTipText("CTRL-click to control scene and recording");
+		btnPreviewPrev.addListener(SWT.Selection, e->{
+			if (( e.stateMask & SWT.CTRL) != 0)
+				dispatchCmd(PREV_FRAME);
+			else
+				dispatchCmd(PREVIEW_PREV_FRAME);
+		});
 
 		btnPreviewNext = new Button(navigationGrp, SWT.NONE);
 		btnPreviewNext.setLayoutData(new GridData(SWT.NONE, SWT.NONE, false, false, 1, 1));
+		btnPreviewNext.setToolTipText("CTRL-click to control scene and recording");
 		btnPreviewNext.setText(">");
-		btnPreviewNext.addListener(SWT.Selection, e->dispatchCmd(PREVIEW_NEXT_FRAME));
+		btnPreviewNext.addListener(SWT.Selection, e->{
+			if (( e.stateMask & SWT.CTRL) != 0)
+				dispatchCmd(NEXT_FRAME);
+			else
+				dispatchCmd(PREVIEW_NEXT_FRAME);
+		});
 		
 		btnCheckKeyframe = new Button(navigationGrp, SWT.NONE);
 		btnCheckKeyframe.setToolTipText("Checks which Keyframe triggers the current frame");
