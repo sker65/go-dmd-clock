@@ -12,6 +12,7 @@ import org.eclipse.swt.widgets.Shell;
 
 import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.model.Frame;
+import com.rinke.solutions.pinball.model.FrameLink;
 import com.rinke.solutions.pinball.model.Mask;
 import com.rinke.solutions.pinball.model.Plane;
 import com.rinke.solutions.pinball.model.RGB;
@@ -77,10 +78,10 @@ public class Animation {
 		REPLACE("Replace",						false, false, false, false,  false, false, false, false), 
 		COLMASK("ColorMask",					true,  false, false, false, false, false, false, false), 
 		FIXED("Fixed", 							false, true,  true, true, false, false, false, false), 
-		COLMASK_FOLLOW("ColorMask Sequence", 	true,  true,  true, false, false, true,  false,  false),
-		LAYEREDCOL("ColorMask Layered", 		true,  true,  true, true, false, false,  false, true),
-		REPLACE_FOLLOW("Replace Sequence",		false, true,  true, false, false, true,  true,  false),
-		LAYEREDREPLACE("Replace Masked",		false, true,  false, false, true,  true,  false, false),
+		COLMASK_FOLLOW("ColorMask Sequence", 	true,  true,  true, true, false, false, true,  false),
+		LAYEREDCOL("Layered ColorMask", 		true,  true,  true, true, false, false, false, true),
+		REPLACE_FOLLOW("Replace Sequence",		false, true,  true, true, false, false, true,  false),
+		LAYEREDREPLACE("Layered ReplaceMask",	false, true,  true, true, true,  true,  true,  true),
 		;
 
 		// label to display
@@ -172,6 +173,7 @@ public class Animation {
 			if( i == start ) tcOffset = frame.timecode;
 			Frame targetFrame = new Frame(frame);
             targetFrame.timecode -= tcOffset;
+            targetFrame.frameLink = new FrameLink(this.desc,i);
             int marker = targetFrame.planes.size();
             byte[] emptyPlane = new byte[frame.getPlane(0).length];
 			while( targetFrame.planes.size() < actualNumberOfPlanes ) {
@@ -336,7 +338,7 @@ public class Animation {
 		int maxFrame = renderer.getMaxFrame(basePath+name, dmd);
 		if( doPostInit ) postInit(renderer);
 		
-		if(  maxFrame > 0 && end == 0) end = maxFrame-1;
+		if(  maxFrame > 0 && end <= 0) end = maxFrame-1;
 		if (actFrame <= end) {
 			ended = false;
 			last = renderFrame(basePath+name, dmd, actFrame);

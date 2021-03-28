@@ -177,7 +177,7 @@ public class AniWriter extends Worker {
 							frame = linearFrame;
 						}
 						// for version 3 add optional compression
-						boolean compress = ( frame.planes.size() > 5 ) || frame.planes.get(0).data.length>1024; // 4 planes and mask will not compressed
+						boolean compress = ( frame.planes.size() > 7 ) || frame.planes.get(0).data.length>1024; // 6 planes and mask will not compressed
 						os.writeBoolean(compress);
 						if( !compress ) {
 							int size = writePlanes(os, frame);
@@ -199,6 +199,13 @@ public class AniWriter extends Worker {
 							planesRaw += bos.size();
 							os.writeInt(b2.size());
 							os.write(b2.toByteArray());
+						}
+						if( version >= 7 ) {
+							os.writeByte(frame.frameLink != null ? 1 : 0);
+							if( frame.frameLink != null ) {
+								os.writeUTF(frame.frameLink.recordingName);
+								os.writeInt(frame.frameLink.frame);
+							}
 						}
 					}
 					if( cancelRequested ) {

@@ -16,6 +16,7 @@ import com.rinke.solutions.io.HeatShrinkDecoder;
 import com.rinke.solutions.pinball.animation.Animation.EditMode;
 import com.rinke.solutions.pinball.animation.CompiledAnimation.RecordingLink;
 import com.rinke.solutions.pinball.model.Frame;
+import com.rinke.solutions.pinball.model.FrameLink;
 import com.rinke.solutions.pinball.model.Mask;
 import com.rinke.solutions.pinball.model.Plane;
 import com.rinke.solutions.pinball.model.RGB;
@@ -183,6 +184,12 @@ public class AniReader {
 				}
 			} else {
 				foundMask = readPlanes(f, numberOfPlanes, size, is, version);
+			}
+			if( version >= 7 ) {
+				byte hasLink = is.readByte();
+				if( hasLink == 1) {
+					f.frameLink = new FrameLink(is.readUTF(), is.readInt());
+				}
 			}
 			if( foundMask && a.getTransitionFrom()==0) a.setTransitionFrom(i);
 			i++;
