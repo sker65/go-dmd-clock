@@ -18,6 +18,7 @@ import com.rinke.solutions.pinball.ui.NamePrompt;
 import com.rinke.solutions.pinball.ui.SplitPrompt;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.Frame;
+import com.rinke.solutions.pinball.model.FrameLink;
 import com.rinke.solutions.pinball.util.MessageUtil;
 import com.rinke.solutions.pinball.util.ObservableMap;
 import com.rinke.solutions.pinball.view.View;
@@ -253,6 +254,17 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 			newScene.setPalIndex(vm.selectedPalette.index);
 			newScene.setProjectAnimation(true);
 			newScene.setEditMode(EditMode.LAYEREDCOL);
+			if( animation instanceof CompiledAnimation ) {
+				CompiledAnimation cani = (CompiledAnimation)animation;
+				if (cani.getRecordingLink() != null)
+					newScene.setRecordingLink(cani.getRecordingLink());
+				else
+					newScene.setRecordingLink(new RecordingLink(animation.getDesc(), animation.actFrame));
+					
+			} else {
+				newScene.setRecordingLink(new RecordingLink(animation.getDesc(), animation.actFrame));
+			}
+
 			vm.scenes.put(name, newScene);
 			vm.scenes.refresh();
 		} else {
@@ -262,6 +274,16 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 			Frame srcFrame = vm.dmd.getFrame();
 			Frame destFrame = newScene.getActualFrame();
 			srcFrame.copyToWithMask(destFrame, Constants.DEFAULT_DRAW_MASK);
+			if( animation instanceof CompiledAnimation ) {
+				CompiledAnimation cani = (CompiledAnimation)animation;
+	            if (cani != null && cani.getRecordingLink() != null)
+	            	destFrame.frameLink = new FrameLink(cani.getRecordingLink().associatedRecordingName,cani.getRecordingLink().startFrame+animation.getActFrame());
+	            else
+	            	destFrame.frameLink = new FrameLink(animation.getDesc(),animation.getActFrame());
+            } else {
+            	destFrame.frameLink = new FrameLink(animation.getDesc(),animation.getActFrame());
+            }
+
 			newScene.frames.get(newScene.actFrame).delay = vm.delay;
 		}
 		
