@@ -120,8 +120,14 @@ public class AnimationHandler implements Runnable {
 					RecordingLink link = cani.getRecordingLink();
 					if((mode.pullFrameDataFromAssociatedRecording && link != null) || (cani.frames.get(0).planes.size()==24 && link != null) ) {
 						// calc offset
-						int frameNo = link.startFrame + actFrame + vm.linkedFrameOffset;
-						linkedAnimation = vm.recordings.get(link.associatedRecordingName);
+						int frameNo = 0;
+                		if (vm.selectedScene.frames.get(vm.selectedFrame).frameLink != null) {
+            				linkedAnimation = vm.recordings.get(vm.selectedScene.frames.get(vm.selectedFrame).frameLink.recordingName);
+            				frameNo = vm.selectedScene.frames.get(vm.selectedFrame).frameLink.frame + vm.linkedFrameOffset;
+            			} else {
+            				linkedAnimation = vm.recordings.get(link.associatedRecordingName);
+    						frameNo =  link.startFrame + actFrame + vm.linkedFrameOffset;
+            			}
 						if (linkedAnimation != null) {
 							if (frameNo < 0) {
 								frameNo = 0;
@@ -137,6 +143,7 @@ public class AnimationHandler implements Runnable {
 		    					vm.setPreviewDMD(previewDMD);
 		    				}
 	                		
+
 	                		vm.setSelectedLinkFrame(frameNo);
 	                		previewRes = linkedAnimation.render(frameNo,vm.previewDMD,stop);
 	                		
