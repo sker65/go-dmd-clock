@@ -16,6 +16,7 @@ import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.Bean;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.Animation.EditMode;
+import com.rinke.solutions.pinball.model.FrameLink;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.PaletteType;
 import com.rinke.solutions.pinball.model.PalMapping.SwitchMode;
@@ -480,6 +481,13 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 				if( vm.selectedEditMode.haveLocalMask || vm.selectedEditMode.haveSceneDetectionMasks || vm.selectedEditMode.pullFrameDataFromAssociatedRecording) {
 					// Update hash in scene and lock mask (for scene masks)
 					vm.selectedScene.getActualFrame().setHash(hash);
+					if (vm.selectedScene.getRecordingLink() != null)
+						if (vm.selectedScene.getActualFrame().frameLink != null) {
+							vm.selectedScene.getActualFrame().frameLink.recordingName = vm.selectedScene.getRecordingLink().associatedRecordingName;
+							vm.selectedScene.getActualFrame().frameLink.frame = vm.selectedLinkFrame;
+						} else {
+							vm.selectedScene.getActualFrame().frameLink = new FrameLink(vm.selectedScene.getRecordingLink().associatedRecordingName,vm.selectedLinkFrame);
+						}
 					vm.setHashVal(HashCmdHandler.getPrintableHashes(hash));
 					if( vm.detectionMaskActive && vm.selectedEditMode.haveSceneDetectionMasks) {
 						maskHandler.commitMaskIfNeeded(true);

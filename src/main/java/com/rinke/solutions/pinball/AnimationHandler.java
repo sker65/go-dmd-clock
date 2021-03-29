@@ -121,9 +121,9 @@ public class AnimationHandler implements Runnable {
 					if((mode.pullFrameDataFromAssociatedRecording && link != null) || (cani.frames.get(0).planes.size()==24 && link != null) ) {
 						// calc offset
 						int frameNo = 0;
-                		if (vm.selectedScene.frames.get(vm.selectedFrame).frameLink != null) {
-            				linkedAnimation = vm.recordings.get(vm.selectedScene.frames.get(vm.selectedFrame).frameLink.recordingName);
-            				frameNo = vm.selectedScene.frames.get(vm.selectedFrame).frameLink.frame + vm.linkedFrameOffset;
+						if (vm.selectedScene.getActualFrame().frameLink != null) {
+            				linkedAnimation = vm.recordings.get(vm.selectedScene.getActualFrame().frameLink.recordingName);
+            				frameNo = vm.selectedScene.getActualFrame().frameLink.frame + vm.linkedFrameOffset;
             			} else {
             				linkedAnimation = vm.recordings.get(link.associatedRecordingName);
     						frameNo =  link.startFrame + actFrame + vm.linkedFrameOffset;
