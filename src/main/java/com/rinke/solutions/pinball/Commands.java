@@ -58,6 +58,7 @@ public class Commands {
 	public static final String RENAME_PALETTE = "renamePalette";
 	public static final String NEW_PALETTE = "newPalette";
 	public static final String SET_KEYFRAME_PALETTE = "setKeyframePalette";
+	public static final String FIX_KEYFRAME = "fixKeyframe";
 	public static final String SORT_KEY_FRAMES = "sortKeyFrames";
 	public static final String DELETE_KEYFRAME = "deleteKeyframe";
 	public static final String FETCH_DURATION = "fetchDuration";
@@ -81,6 +82,7 @@ public class Commands {
 	public static final String SPLIT_SCENE = "splitScene";
 	
 	public static final String UNLOCK_SCENE_MASKS = "unlockSceneMasks";
+	public static final String DELETE_UNUSED_SCENES = "deleteUnusedScenes";
 	public static final String CONVERT_SCENE_TO_RGB = "convertSceneToRGB";
 	public static final String CONVERT_ALL_SCENES_TO_RGB = "convertAllScenesToRGB";
 	public static final String QUANTIZE_SCENE = "quantizeScene";

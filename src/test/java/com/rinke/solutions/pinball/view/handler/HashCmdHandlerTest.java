@@ -62,13 +62,13 @@ public class HashCmdHandlerTest extends HandlerTest {
 		assertEquals(PRINT_HASH, vm.hashLbl[0]);
 	}
 
-	@Test
+	/*@Test
 	public void testRefreshHashButtonsWithMask() throws Exception {
 		List<byte[]> hashes = new ArrayList<>();
 		hashes.add(new byte[]{22,33,44,55});
 		uut.refreshHashButtons(hashes, true, 1);
 		assertEquals("M1 "+PRINT_HASH, vm.hashLbl[0]);
-	}
+	}*/
 
 	@Test
 	public void testGetEmptyHash() throws Exception {

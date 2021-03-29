@@ -61,6 +61,18 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 	private RGB colorBuf1 = null;
 	private RGB colorBuf2 = null;
 	private RGB colorBuf3 = null;
+	private RGB colorBuf4 = null;
+	private RGB colorBuf5 = null;
+	private RGB colorBuf6 = null;
+	private RGB colorBuf7 = null;
+	private RGB colorBuf8 = null;
+	private RGB colorBuf9 = null;
+	private RGB colorBuf10 = null;
+	private RGB colorBuf11 = null;
+	private RGB colorBuf12 = null;
+	private RGB colorBuf13 = null;
+	private RGB colorBuf14 = null;
+	private RGB colorBuf15 = null;
 
 
 	public PaletteHandler(ViewModel vm) {
@@ -106,7 +118,7 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 		if( newPalette != null) {
 			log.info("new palette is {}", vm.selectedPalette);
 			vm.setSelectedPaletteType(vm.selectedPalette.type);
-			vm.setPaletteDirty(true);
+			//vm.setPaletteDirty(true);  // fix crash on load of small project files
 		}
 	}
 	
@@ -118,6 +130,7 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 			for( Frame f : ani.frames ) {
 				swap(f, old, newIdx, vm.dmd.getWidth(), vm.dmd.getHeight());
 			}
+			vm.setPaletteDirty(true);
 		}
 	}
 	
@@ -221,9 +234,11 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 	 */
 	private boolean inList(List<RGB> colors, RGB col, int accuracy) {
 		for( RGB c : colors) {
-			float d = getColorDistance(c, col); 
-			//System.out.println(d);
-			if( d < (0.001f + 2f * accuracy) ) return true; 
+			if (c != null) {
+				float d = getColorDistance(c, col); 
+				//System.out.println(d);
+				if( d < (0.001f + 2f * accuracy) ) return true; 
+			}
 		}
 		return false;
 	}
@@ -281,18 +296,52 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 	}
 	
 	public void onExtractPalColorsFromFrame() {
+		int i = 0;
 		palettePicker.setAccuracy(colorAccuracy);
-		palettePicker.setColorListProvider(p->extractColorsFromFrame(vm.dmd, p));
+		palettePicker.setMaxNumberOfColors(vm.numberOfColors);
+		if (vm.dmd.getNumberOfPlanes() == 24 && vm.previewDMD != null && (vm.previewDMD.getNumberOfPlanes() == 2 || vm.previewDMD.getNumberOfPlanes() == 4)) {
+			palettePicker.setColorListProvider(p->extractColorsFromFrameAndSort(vm.dmd, vm.previewDMD, p));
+			i = vm.getSelectedColor(); 
+			}
+		else {
+			palettePicker.setColorListProvider(p->extractColorsFromFrame(vm.dmd, p));
+			}
 		palettePicker.open();
 		colorAccuracy = palettePicker.getAccuracy();
 		if( palettePicker.getResult() != null && vm.selectedPalette != null ) {
-			int i = 0;
 			for( RGB c : palettePicker.getResult()) {
-				if( i < vm.selectedPalette.numberOfColors ) vm.selectedPalette.colors[i++] = c;
+				if (c == null) {
+					i++;
+				} else {
+					if( i < vm.selectedPalette.numberOfColors ) vm.selectedPalette.colors[i++] = c;
+				}
 			}
 			vm.setPaletteDirty(true);
 		}
 	}
+	
+	List<RGB> extractColorsFromFrameAndSort (DMD dmd, DMD previewDMD, int accuracy) {
+		List<RGB> res = new ArrayList<>();
+		List<RGB> sortedRes = new ArrayList<>();
+		int numberOfShades = (int) Math.pow(2,previewDMD.getNumberOfPlanes());
+		for (int i = 0; i < numberOfShades; i++) {
+			for( int x = 0; x < previewDMD.getWidth(); x++) {
+				for(int y = 0; y < previewDMD.getHeight(); y++) {
+					if (i == previewDMD.getPixelWithoutMask(x, y)) {
+						int rgb = dmd.getPixelWithoutMask(x, y);
+						RGB col = RGB.fromInt(rgb);
+						if( !inList(res, col, accuracy) ) {
+							res.add(col);
+						}
+					}
+				}
+			}
+			res.add(null);
+		}
+		
+		return res;
+	}
+
 
 	List<RGB> extractColorsFromFrame(DMD dmd, int accuracy) {
 		List<RGB> res = new ArrayList<>();
@@ -491,6 +540,29 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 			vm.setDirty(true);
 		}
 	}
+	
+	public void onCreateGradients16() {
+		if( vm.selectedPalette != null) {
+			int colorIndex = vm.getSelectedColor() | 15; // select last color of group.
+			RGB color15 = RGB.of( vm.selectedPalette.colors[colorIndex]);
+			RGB color0 = RGB.of( vm.selectedPalette.colors[colorIndex - 15]);
+			
+			for (int i = 1; i < 15; i++) {
+				RGB color = RGB.of( vm.selectedPalette.colors[colorIndex - i] );
+				color.blue = ((color0.blue / 15) * i) + ((color15.blue / 15) * (15-i));
+				color.red = ((color0.red / 15) * i) + ((color15.red / 15) * (15-i));
+				color.green = ((color0.green / 15) * i) + ((color15.green / 15) * (15-i));	
+				vm.selectedPalette.colors[colorIndex-i] = RGB.of(color);
+			}
+
+			vm.setSelectedColor(colorIndex);
+			vm.setPaletteDirty(true);
+			if (vm.selectedRecording != null || vm.selectedScene != null) {
+				vm.setDmdDirty(true);
+			}
+			vm.setDirty(true);
+		}
+	}
 
 	public void onCopySwatch() {
 		if( vm.selectedPalette != null) {
@@ -502,6 +574,28 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 		}
 	}
 
+	public void onCopySwatch16() {
+		if( vm.selectedPalette != null) {
+			int colorIndex = vm.getSelectedColor() | 15; // select last color of group.
+			colorBuf0 = RGB.of(vm.selectedPalette.colors[colorIndex]);
+			colorBuf1 = RGB.of(vm.selectedPalette.colors[colorIndex - 1]);
+			colorBuf2 = RGB.of(vm.selectedPalette.colors[colorIndex - 2]);
+			colorBuf3 = RGB.of(vm.selectedPalette.colors[colorIndex - 3]);
+			colorBuf4 = RGB.of(vm.selectedPalette.colors[colorIndex - 4]);
+			colorBuf5 = RGB.of(vm.selectedPalette.colors[colorIndex - 5]);
+			colorBuf6 = RGB.of(vm.selectedPalette.colors[colorIndex - 6]);
+			colorBuf7 = RGB.of(vm.selectedPalette.colors[colorIndex - 7]);
+			colorBuf8 = RGB.of(vm.selectedPalette.colors[colorIndex - 8]);
+			colorBuf9 = RGB.of(vm.selectedPalette.colors[colorIndex - 9]);
+			colorBuf10 = RGB.of(vm.selectedPalette.colors[colorIndex - 10]);
+			colorBuf11 = RGB.of(vm.selectedPalette.colors[colorIndex - 11]);
+			colorBuf12 = RGB.of(vm.selectedPalette.colors[colorIndex - 12]);
+			colorBuf13 = RGB.of(vm.selectedPalette.colors[colorIndex - 13]);
+			colorBuf14 = RGB.of(vm.selectedPalette.colors[colorIndex - 14]);
+			colorBuf15 = RGB.of(vm.selectedPalette.colors[colorIndex - 15]);
+		}
+	}
+	
 	public void onPasteSwatch() {
 		if( vm.selectedPalette != null && colorBuf0 != null) {
 			int colorIndex = vm.getSelectedColor() | 3; // select last color of group.
@@ -518,6 +612,35 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 		}
 	}
 
+	public void onPasteSwatch16() {
+		if( vm.selectedPalette != null && colorBuf0 != null) {
+			int colorIndex = vm.getSelectedColor() | 15; // select last color of group.
+			vm.selectedPalette.colors[colorIndex] = RGB.of(colorBuf0);
+			vm.selectedPalette.colors[colorIndex - 1] = RGB.of(colorBuf1);
+			vm.selectedPalette.colors[colorIndex - 2] = RGB.of(colorBuf2);
+			vm.selectedPalette.colors[colorIndex - 3] = RGB.of(colorBuf3);
+			vm.selectedPalette.colors[colorIndex - 4] = RGB.of(colorBuf4);
+			vm.selectedPalette.colors[colorIndex - 5] = RGB.of(colorBuf5);
+			vm.selectedPalette.colors[colorIndex - 6] = RGB.of(colorBuf6);
+			vm.selectedPalette.colors[colorIndex - 7] = RGB.of(colorBuf7);
+			vm.selectedPalette.colors[colorIndex - 8] = RGB.of(colorBuf8);
+			vm.selectedPalette.colors[colorIndex - 9] = RGB.of(colorBuf9);
+			vm.selectedPalette.colors[colorIndex - 10] = RGB.of(colorBuf10);
+			vm.selectedPalette.colors[colorIndex - 11] = RGB.of(colorBuf11);
+			vm.selectedPalette.colors[colorIndex - 12] = RGB.of(colorBuf12);
+			vm.selectedPalette.colors[colorIndex - 13] = RGB.of(colorBuf13);
+			vm.selectedPalette.colors[colorIndex - 14] = RGB.of(colorBuf14);
+			vm.selectedPalette.colors[colorIndex - 15] = RGB.of(colorBuf15);
+
+			vm.setPaletteDirty(true);
+			if (vm.selectedRecording != null || vm.selectedScene != null) {
+				vm.setDmdDirty(true);
+			}
+			vm.setDirty(true);
+		}
+	}
+	
+	
 	public void onSwapSwatch() {
 		if( vm.selectedPalette != null && colorBuf0 != null) {
 			int colorIndex = vm.getSelectedColor() | 3; // select last color of group.
@@ -543,36 +666,99 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 			vm.setDirty(true);
 		}
 	}
-	
+
+	public void onSwapSwatch16() {
+		int colorIndex = vm.getSelectedColor() | 15; // select last color of group.
+		if( vm.selectedPalette != null && colorBuf0 != null) {
+			RGB color0 = RGB.of(vm.selectedPalette.colors[colorIndex]);
+			RGB color1 = RGB.of(vm.selectedPalette.colors[colorIndex - 1]);
+			RGB color2 = RGB.of(vm.selectedPalette.colors[colorIndex - 2]);
+			RGB color3 = RGB.of(vm.selectedPalette.colors[colorIndex - 3]);
+			RGB color4 = RGB.of(vm.selectedPalette.colors[colorIndex - 4]);
+			RGB color5 = RGB.of(vm.selectedPalette.colors[colorIndex - 5]);
+			RGB color6 = RGB.of(vm.selectedPalette.colors[colorIndex - 6]);
+			RGB color7 = RGB.of(vm.selectedPalette.colors[colorIndex - 7]);
+			RGB color8 = RGB.of(vm.selectedPalette.colors[colorIndex - 8]);
+			RGB color9 = RGB.of(vm.selectedPalette.colors[colorIndex - 9]);
+			RGB color10 = RGB.of(vm.selectedPalette.colors[colorIndex - 10]);
+			RGB color11 = RGB.of(vm.selectedPalette.colors[colorIndex - 11]);
+			RGB color12 = RGB.of(vm.selectedPalette.colors[colorIndex - 12]);
+			RGB color13 = RGB.of(vm.selectedPalette.colors[colorIndex - 13]);
+			RGB color14 = RGB.of(vm.selectedPalette.colors[colorIndex - 14]);
+			RGB color15 = RGB.of(vm.selectedPalette.colors[colorIndex - 15]);
+			
+			vm.selectedPalette.colors[colorIndex] = RGB.of(colorBuf0);
+			vm.selectedPalette.colors[colorIndex - 1] = RGB.of(colorBuf1);
+			vm.selectedPalette.colors[colorIndex - 2] = RGB.of(colorBuf2);
+			vm.selectedPalette.colors[colorIndex - 3] = RGB.of(colorBuf3);
+			vm.selectedPalette.colors[colorIndex - 4] = RGB.of(colorBuf4);
+			vm.selectedPalette.colors[colorIndex - 5] = RGB.of(colorBuf5);
+			vm.selectedPalette.colors[colorIndex - 6] = RGB.of(colorBuf6);
+			vm.selectedPalette.colors[colorIndex - 7] = RGB.of(colorBuf7);
+			vm.selectedPalette.colors[colorIndex - 8] = RGB.of(colorBuf8);
+			vm.selectedPalette.colors[colorIndex - 9] = RGB.of(colorBuf9);
+			vm.selectedPalette.colors[colorIndex - 10] = RGB.of(colorBuf10);
+			vm.selectedPalette.colors[colorIndex - 11] = RGB.of(colorBuf11);
+			vm.selectedPalette.colors[colorIndex - 12] = RGB.of(colorBuf12);
+			vm.selectedPalette.colors[colorIndex - 13] = RGB.of(colorBuf13);
+			vm.selectedPalette.colors[colorIndex - 14] = RGB.of(colorBuf14);
+			vm.selectedPalette.colors[colorIndex - 15] = RGB.of(colorBuf15);
+
+			colorBuf0 = RGB.of(color0);
+			colorBuf1 = RGB.of(color1);
+			colorBuf2 = RGB.of(color2);
+			colorBuf3 = RGB.of(color3);
+			colorBuf4 = RGB.of(color4);
+			colorBuf5 = RGB.of(color5);
+			colorBuf6 = RGB.of(color6);
+			colorBuf7 = RGB.of(color7);
+			colorBuf8 = RGB.of(color8);
+			colorBuf9 = RGB.of(color9);
+			colorBuf10 = RGB.of(color10);
+			colorBuf11 = RGB.of(color11);
+			colorBuf12 = RGB.of(color12);
+			colorBuf13 = RGB.of(color13);
+			colorBuf14 = RGB.of(color14);
+			colorBuf15 = RGB.of(color15);
+			
+			vm.setPaletteDirty(true);
+			if (vm.selectedRecording != null || vm.selectedScene != null) {
+				vm.setDmdDirty(true);
+			}
+			vm.setDirty(true);
+		}
+	}
+
 	public void onDeleteUnusedPalettes() {
 		int size = vm.paletteMap.size();
 		for (int i = 0; i < size; i++) {
 			Palette p = vm.paletteMap.get(i);
-			if( p.type != PaletteType.DEFAULT ) {
-				// check if any scene is using this
-				boolean sceneFound = false;
-				for( Animation a: vm.scenes.values()) {
-					if( a.getPalIndex() == p.index ) {
-						if( !sceneFound ) {
-							sceneFound = true;
+			if( p != null )
+				if( p.type != PaletteType.DEFAULT ) {
+					// check if any scene is using this
+					boolean sceneFound = false;
+					for( Animation a: vm.scenes.values()) {
+						if( a.getPalIndex() == p.index ) {
+							if( !sceneFound ) {
+								sceneFound = true;
+							}
 						}
 					}
-				}
-				// check if any keyframe is using this
-				boolean keyFrameFound = false;
-				for( PalMapping pm : vm.keyframes.values()) {
-					if( pm.palIndex == p.index ) {
-						if( !keyFrameFound ) {
-							keyFrameFound = true;
+					// check if any keyframe is using this
+					boolean keyFrameFound = false;
+					for( PalMapping pm : vm.keyframes.values()) {
+						if( pm.palIndex == p.index ) {
+							if( !keyFrameFound ) {
+								keyFrameFound = true;
+							}
 						}
 					}
+					if( sceneFound == false && keyFrameFound == false ) {
+						vm.paletteMap.remove(p.index);
+					}
+				} else {
+					vm.setSelectedPalette(p);
 				}
-				if( sceneFound == false && keyFrameFound == false ) {
-					vm.paletteMap.remove(p.index);
-				}
-			} else {
-				vm.setSelectedPalette(p);
-			}
 		}
 		
 	}
@@ -610,15 +796,19 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 				}
 			}
 			if( res.isEmpty() ) {
-				vm.paletteMap.remove(vm.selectedPalette.index);
-				// ensure there is a default palette
-				int c = 0;
-				for( Palette p : vm.paletteMap.values()) {
-					if( p.type == PaletteType.DEFAULT ) c++;
+				if (vm.selectedPalette.index == 0)
+					messageUtil.warn("Error","Palette 0 cannot be deleted");
+				else {
+					vm.paletteMap.remove(vm.selectedPalette.index);
+					// ensure there is a default palette
+					int c = 0;
+					for( Palette p : vm.paletteMap.values()) {
+						if( p.type == PaletteType.DEFAULT ) c++;
+					}
+					if( c == 0 ) vm.paletteMap.get(0).type = PaletteType.DEFAULT;
+					// select first
+					vm.setSelectedPalette(vm.paletteMap.values().iterator().next());
 				}
-				if( c == 0 ) vm.paletteMap.get(0).type = PaletteType.DEFAULT;
-				// select first
-				vm.setSelectedPalette(vm.paletteMap.values().iterator().next());
 			} else {
 				messageUtil.warn("Palette cannot be deleted", "It is used by the following resources: \n"+res);
 				Clipboard clipboard=new Clipboard(Display.getCurrent());

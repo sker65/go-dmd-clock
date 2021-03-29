@@ -36,6 +36,7 @@ public class MaskHandlerTest extends HandlerTest  {
 		vm.setSelectedEditMode(EditMode.FIXED);
 		mask.data[0] = 0;
 		vm.dmd.setMask(mask);
+		vm.detectionMaskActive = true;
 		uut.onInvertMask();
 		assertEquals((byte) 0xFF, (byte) vm.dmd.getFrame().mask.data[0]);
 		assertEquals((byte) 0x00, (byte) vm.dmd.getFrame().mask.data[1]);

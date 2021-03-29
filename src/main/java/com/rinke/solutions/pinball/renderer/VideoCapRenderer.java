@@ -103,7 +103,7 @@ public class VideoCapRenderer extends Renderer {
 				// int[] palette = Quantize.quantizeImage(image2d, 255);
 
 				// create 
-				Frame res = ImageUtil.convertToFrame(dmdImage, dmd.getWidth(), dmd.getHeight(),5);
+				Frame res = ImageUtil.convertToFrame(dmdImage, dmd.getWidth(), dmd.getHeight(),8);
 				res.timecode = (int)( grabber.getTimestamp() / 1000 );
 				frames.add(res);
 				notify(50, "reading frame "+frames.size());

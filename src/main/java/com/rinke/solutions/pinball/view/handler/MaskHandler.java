@@ -39,7 +39,8 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 			vm.selectedScene.commitDMDchanges(vm.dmd); 
 			vm.setDirty(vm.dirty|vm.selectedScene.isDirty());
 		}
-		if( n ) vm.setLayerMaskActive(false);
+		if(vm.selectedEditMode.enableLayerMask)
+			vm.setLayerMaskEnabled(!n);
 		updateMaskChange(n, true);
 		vm.setShowMask(n);
 	}
@@ -49,7 +50,8 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 			vm.selectedScene.commitDMDchanges(vm.dmd); 
 			vm.setDirty(vm.dirty|vm.selectedScene.isDirty());
 		}
-		if( n ) vm.setDetectionMaskActive(false);
+		vm.setDetectionMaskEnabled(!n);
+		vm.setMaskSpinnerEnabled(!n);
 		updateMaskChange(n, false);
 		vm.setShowMask(n);
 	}
@@ -73,8 +75,8 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 				mask = null;
 		}
 		vm.dmd.setMask(mask);
-		vm.setDeleteColMaskEnabled(vm.detectionMaskActive);
-		vm.setBtnInvertEnabled(vm.detectionMaskActive);
+		vm.setDeleteColMaskEnabled(vm.detectionMaskActive || vm.layerMaskActive);
+		vm.setBtnInvertEnabled(vm.detectionMaskActive || vm.layerMaskActive);
 		animationHandler.forceRerender();
 		vm.setDmdDirty(true);
 		hashCmdHandler.updateHashes(vm.dmd.getFrame());
@@ -108,6 +110,7 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 					updateDrawingEnabled();
 				}
 			}
+			animationHandler.forceRerender();
 			vm.setDmdDirty(true);
 		}
 	}
@@ -156,11 +159,17 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 							res.add(" "+pm.name);
 						}
 					}
-					messageUtil.warn("Mask cannot be deleted", "It is used by the following Keyframes:\n"+res);
-					Clipboard clipboard=new Clipboard(Display.getCurrent());
-					TextTransfer transfer=TextTransfer.getInstance();
-					clipboard.setContents(new Object[]{res.toString()},new Transfer[]{transfer});
-					clipboard.dispose();
+					if (res.size() == 0) {
+						vm.masks.get(vm.selectedMaskNumber).locked = false;
+						vm.dmd.getFrame().mask.locked = false;
+						vm.setDmdDirty(true);
+					} else {
+						messageUtil.warn("Mask cannot be deleted", "It is used by the following Keyframes:\n"+res);
+						Clipboard clipboard=new Clipboard(Display.getCurrent());
+						TextTransfer transfer=TextTransfer.getInstance();
+						clipboard.setContents(new Object[]{res.toString()},new Transfer[]{transfer});
+						clipboard.dispose();
+					}
 				}
 			}
 		}
@@ -168,21 +177,25 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 	}
 
 	public void onInvertMask() {
-		EditMode m = vm.selectedEditMode;
-		if( m.haveSceneDetectionMasks ) {
-			if(vm.selectedScene != null && !vm.selectedScene.getMask(vm.selectedMaskNumber).locked) {
-				vm.dmd.invertMask();
+		if (vm.detectionMaskActive) {
+			EditMode m = vm.selectedEditMode;
+			if( m.haveSceneDetectionMasks ) {
+				if(vm.selectedScene != null && !vm.selectedScene.getMask(vm.selectedMaskNumber).locked) {
+					vm.dmd.invertMask();
+				} else {
+					messageUtil.warn("Mask Locked", 
+							"This mask is already used and cannot be modified");
+				}
 			} else {
-				messageUtil.warn("Mask Locked", 
-						"This mask is already used and cannot be modified");
+				if (!(vm.dmd.getFrame().mask.locked)) {
+					vm.dmd.invertMask();
+				} else {
+					messageUtil.warn("Mask Locked", 
+							"This mask is already used and cannot be modified");
+				}
 			}
-		} else {
-			if (!(vm.dmd.getFrame().mask.locked)) {
-				vm.dmd.invertMask();
-			} else {
-				messageUtil.warn("Mask Locked", 
-						"This mask is already used and cannot be modified");
-			}
+		} else if (vm.layerMaskActive) {
+			vm.dmd.invertMask();
 		}
 	}
 

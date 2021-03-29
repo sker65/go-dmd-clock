@@ -69,7 +69,7 @@ public class About extends Dialog implements View {
 	    
 	    
 		shlAboutPindmdEditor = new Shell(getParent(), getStyle());
-		shlAboutPindmdEditor.setSize(385, 310);
+		shlAboutPindmdEditor.setSize(385, 324);
 		shlAboutPindmdEditor.setText("About pin2dmd editor");
 
 		ResourceManager resManager = 

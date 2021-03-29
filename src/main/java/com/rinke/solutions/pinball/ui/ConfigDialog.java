@@ -34,6 +34,7 @@ import com.rinke.solutions.pinball.io.ConnectorFactory;
 import com.rinke.solutions.pinball.io.Pin2DmdConnector;
 import com.rinke.solutions.pinball.io.Pin2DmdConnector.ConnectionHandle;
 import com.rinke.solutions.pinball.util.Config;
+import com.rinke.solutions.pinball.util.MessageUtil;
 import com.rinke.solutions.pinball.view.View;
 
 @Slf4j
@@ -46,6 +47,7 @@ public class ConfigDialog extends Dialog implements View {
     public boolean okPressed;
 
     private ComboViewer dmdSizeViewer;
+    private Spinner spinnerNoColors;
 	private Group grpDmd;
 	private Button btnOk;
 	private Button btnAutosaveActive;
@@ -61,6 +63,7 @@ public class ConfigDialog extends Dialog implements View {
     private String address;
 	
 	@Autowired Config config;
+	@Autowired MessageUtil messageUtil;
 	private Button btnNoExportWarnings;
 	private Button btnNoQuitWarning;
     
@@ -102,6 +105,7 @@ public class ConfigDialog extends Dialog implements View {
         autosaveInterval.setSelection(config.getInteger(Config.AUTOSAVE_INTERVAL, 10));
         btnCreateKeyFrame.setSelection(config.getBoolean(Config.AUTOKEYFRAME, false));
         spinnerNoPlanes.setSelection(config.getInteger(Config.NOOFPLANES, 4));
+        spinnerNoColors.setSelection(config.getInteger(Config.NOOFCOLORS, 16));
         btnUseOldExport.setSelection(config.getBoolean(Config.OLDEXPORT, false));
         btnCreatePaletteAfter.setSelection(config.getBoolean(Config.ADDPALWHENCUT, false));
         btnCreateBookmarkAfter.setSelection(config.getBoolean(Config.CREATEBOOKCUT, false));
@@ -160,30 +164,42 @@ public class ConfigDialog extends Dialog implements View {
         
         grpDmd = new Group(grpTest, SWT.NONE);
         FormData fd_grpDmd = new FormData();
+        fd_grpDmd.right = new FormAttachment(0, 223);
         fd_grpDmd.bottom = new FormAttachment(100, -34);
         fd_grpDmd.top = new FormAttachment(0, 10);
         fd_grpDmd.left = new FormAttachment(0, 10);
         grpDmd.setLayoutData(fd_grpDmd);
-        grpDmd.setText("DMD");
+        grpDmd.setText("Project");
         
         dmdSizeViewer = new ComboViewer(grpDmd, SWT.READ_ONLY);
         Combo combo = dmdSizeViewer.getCombo();
-        combo.setBounds(60, 16, 119, 22);
+        combo.setBounds(69, 16, 127, 23);
         dmdSizeViewer.setContentProvider(ArrayContentProvider.getInstance());
 		dmdSizeViewer.setLabelProvider(new LabelProviderAdapter<DmdSize>(o -> o.label ));
 		dmdSizeViewer.setInput(DmdSize.values());
 		dmdSizeViewer.setSelection(new StructuredSelection(dmdSize));
 		
 		Label lblSize = new Label(grpDmd, SWT.RIGHT);
-		lblSize.setBounds(10, 19, 41, 14);
-		lblSize.setText("Size: ");
+		lblSize.setBounds(10, 19, 53, 14);
+		lblSize.setText("DMDSize: ");
 		
         Group grpAutosave = new Group(grpTest, SWT.NONE);
         FormData fd_grpAutosave = new FormData();
+        fd_grpAutosave.left = new FormAttachment(grpDmd, 15);
+        fd_grpAutosave.right = new FormAttachment(100, -28);
         fd_grpAutosave.bottom = new FormAttachment(100, -34);
         fd_grpAutosave.top = new FormAttachment(0, 10);
-        fd_grpAutosave.right = new FormAttachment(100, -28);
-        fd_grpAutosave.left = new FormAttachment(grpDmd, 22);
+        
+        Label lblColor = new Label(grpDmd, SWT.RIGHT);
+        lblColor.setText("Colors: ");
+        lblColor.setBounds(10, 48, 41, 14);
+        
+        spinnerNoColors = new Spinner(grpDmd, SWT.BORDER);
+        spinnerNoColors.setBounds(69, 45, 127, 23);
+        spinnerNoColors.setMinimum(16);
+        spinnerNoColors.setMaximum(64);
+        spinnerNoColors.setIncrement(48);;
+        
         grpAutosave.setLayoutData(fd_grpAutosave);
         grpAutosave.setText("Save");
         
@@ -294,16 +310,24 @@ public class ConfigDialog extends Dialog implements View {
 		log.info("ok pressed");
 		okPressed = true;
 		dmdSize = (DmdSize) ((StructuredSelection) dmdSizeViewer.getSelection()).getFirstElement();
+		if (spinnerNoPlanes.getSelection() == 4 && spinnerNoColors.getSelection() == 64)
+			spinnerNoPlanes.setSelection(6);
+		if (spinnerNoPlanes.getSelection() == 6 && spinnerNoColors.getSelection() == 16)
+			spinnerNoPlanes.setSelection(4);
         config.put(Config.AUTOSAVE, btnAutosaveActive.getSelection());
         config.put(Config.AUTOSAVE_INTERVAL, autosaveInterval.getSelection()); 
         config.put(Config.AUTOKEYFRAME, btnCreateKeyFrame.getSelection()); 
         config.put(Config.NOOFPLANES, spinnerNoPlanes.getSelection());
+        config.put(Config.NOOFCOLORS, spinnerNoColors.getSelection());
         config.put(Config.OLDEXPORT, btnUseOldExport.getSelection());
         config.put(Config.ADDPALWHENCUT, btnCreatePaletteAfter.getSelection());
         config.put(Config.CREATEBOOKCUT, btnCreateBookmarkAfter.getSelection());
         config.put(Config.BACKUP, btnBackupOnSave.getSelection());
         config.put(Config.NO_QUIT_WARNING, btnNoQuitWarning.getSelection());
         config.put(Config.NO_EXPORT_WARNING, btnNoExportWarnings.getSelection());
+		messageUtil.warn(SWT.ICON_ERROR | SWT.OK,
+				"Config changes",
+				"The configuration has changed ! Please reload the editor. ");
 		shell.close();
 	}
 }

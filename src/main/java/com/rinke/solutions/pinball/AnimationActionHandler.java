@@ -24,6 +24,7 @@ import com.rinke.solutions.pinball.animation.AniReader;
 import com.rinke.solutions.pinball.animation.AniWriter;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.Animation.EditMode;
+import com.rinke.solutions.pinball.animation.CompiledAnimation.RecordingLink;
 import com.rinke.solutions.pinball.animation.AnimationFactory;
 import com.rinke.solutions.pinball.animation.AnimationType;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
@@ -31,6 +32,8 @@ import com.rinke.solutions.pinball.animation.ProgressEventListener;
 import com.rinke.solutions.pinball.model.Model;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.RGB;
+import com.rinke.solutions.pinball.model.Frame;
+import com.rinke.solutions.pinball.model.Plane;
 import com.rinke.solutions.pinball.ui.IProgress;
 import com.rinke.solutions.pinball.ui.Progress;
 import com.rinke.solutions.pinball.util.FileChooserUtil;
@@ -66,14 +69,16 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 		String filename = fileChooserUtil.choose(SWT.SAVE, defaultName, new String[] { "*.ani" }, new String[] { "Animations" });
 		if (filename != null) {
 			log.info("store animation to {}", filename);
-			storeAnimations(vm.recordings.values(), filename, version, true);
+			storeAnimations(vm.recordings.values(), filename, version, true, true);
 		}
 	}
 
-	public void storeAnimations(Collection<Animation> anis, String filename, int version, boolean saveAll) {
+	public void storeAnimations(Collection<Animation> anis, String filename, int version, boolean saveAll, boolean withProgress) {
 		java.util.List<Animation> anisToSave = anis.stream().filter(a -> saveAll || a.isDirty()).collect(Collectors.toList());
 		if( anisToSave.isEmpty() ) return;// Pair.of(0, Collections.emptyMap());
-		IProgress progress = getProgress();
+		IProgress progress = null;
+		if (withProgress)
+			progress =  getProgress();
 		AniWriter aniWriter = new AniWriter(anisToSave, filename, version, vm.paletteMap, progress);
 		if( progress != null ) {
 			progress.open(aniWriter);
@@ -196,9 +201,22 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 					int r = messageUtil.warn(SWT.OK | SWT.CANCEL, "Size mismatch", "size of animation does not match to project dmd size");
 					if( r == SWT.CANCEL ) break;
 				} else {
+					if (vm.numberOfColors == 64 && cani.frames.get(0).planes.size() < 6) {
+						for( Frame inFrame : cani.frames ) {
+							while(inFrame.planes.size() < 6)
+								inFrame.planes.add(new Plane((byte)inFrame.planes.size(),new byte[planeSize]));
+						}
+					}
 					populateAni(cani, vm.scenes);
 				}
 			} else {
+				if (!vm.has4PlanesRecording) {
+					lani.init(dmd);
+					if( lani.end == 0) lani.end = lani.getRenderer().getFrames().size()-1;
+					int noPlanes = lani.getRenderer().getNumberOfPlanes();
+					if (noPlanes == 4) 
+						vm.has4PlanesRecording = true;
+				}
 				populateAni(ani, vm.recordings);
 			}	
 			
@@ -234,6 +252,19 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 			// sanitize number of color per palette when importing
 			RGB[] aniColors = getSaveSizeRGBArray(ani.getAniColors());
 			
+			if (aniColors.length < vm.numberOfColors) {
+				RGB rgb[] = new RGB[vm.numberOfColors];
+				int k = 0; 
+				while (k < vm.numberOfColors) {
+					for( int j = 0; j<aniColors.length; j++) {
+						rgb[k++] = aniColors[j];
+						if (k == vm.numberOfColors)
+							break;
+					}
+				}
+				aniColors = rgb;
+				ani.setAniColors(rgb);
+			}
 			// if loaded colors with animations propagate as palette
 			boolean colorsMatch = false;
 			int aniPalIndex = ani.getPalIndex();
@@ -277,7 +308,7 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 			String filename = fileChooserUtil.choose(SWT.SAVE, vm.selectedScene.getDesc(), new String[] { "*.ani" }, new String[] { "Animations" });
 			if (filename != null) {
 				log.info("store animation to {}", filename);
-				storeAnimations(Lists.newArrayList(vm.selectedScene), filename, version, true);
+				storeAnimations(Lists.newArrayList(vm.selectedScene), filename, version, true, true);
 			}
 		}
 	}

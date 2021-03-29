@@ -118,7 +118,7 @@ public class AnimationHandler implements Runnable {
 				if( ani instanceof CompiledAnimation ) {
 					CompiledAnimation cani = (CompiledAnimation)ani;
 					RecordingLink link = cani.getRecordingLink();
-					if( mode.pullFrameDataFromAssociatedRecording && link != null) {
+					if((mode.pullFrameDataFromAssociatedRecording && link != null) || (cani.frames.get(0).planes.size()==24 && link != null) ) {
 						// calc offset
 						int frameNo = link.startFrame + actFrame + vm.linkedFrameOffset;
 						linkedAnimation = vm.recordings.get(link.associatedRecordingName);
@@ -146,6 +146,11 @@ public class AnimationHandler implements Runnable {
 		                	}
 	
 	                        previewRes.setMask(getCurrentMask(vm.detectionMaskActive));
+	                        
+	                        if(cani.frames.get(0).planes.size()==24) {
+	                        	vm.setPreviewDmdPalette(vm.previewPalettes.get(5));
+	                        }
+	                        	
 		                	vm.previewDMD.setFrame(previewRes);
 	                	}
 					}
@@ -215,7 +220,7 @@ public class AnimationHandler implements Runnable {
 		if( clockActive||anis.isEmpty() ) {
 			return 100;
 		}
-		return anis.get(index).getRefreshDelay();
+		return anis.get(index).getRefreshDelay() / vm.playSpeed;
 	}
 
 	/** 

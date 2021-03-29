@@ -60,13 +60,13 @@ public abstract class Pin2DmdConnector {
     }
 
 	protected byte[] buildPalBuffer(Palette palette) {
-        byte[] res = new byte[64];
+        byte[] res = new byte[6 + palette.colors.length*3];
         res[0] = (byte)0x01;
         res[1] = (byte)0xc3;
         res[2] = (byte)0xe7; 
         res[3] = (byte)0xFE; 
         res[4] = (byte)0xED;
-        res[5] = (byte)0x10;
+        res[5] = (byte)palette.colors.length;
         int j = 6;
         for( int i =0; i < palette.colors.length;i++) {
             res[j++] = (byte) palette.colors[i].red;
@@ -258,7 +258,7 @@ public abstract class Pin2DmdConnector {
     	for( Plane p : frame.planes) planeCount++;
     	
     	if (planeCount < 24) {
-    		bufferSize = min(4,frame.planes.size()) * planeSize;
+   			bufferSize = min(6,frame.planes.size()) * planeSize;
 	    	// XL dmd is handled different: use E8 framing with size byte
 	    	if( dmdSize.equals(DmdSize.Size192x64) ) {
 	        	byte[] buffer = buildFrameBuffer( bufferSize, 0xE8, bufferSize/512 );
@@ -269,30 +269,31 @@ public abstract class Pin2DmdConnector {
 	        	}
 	           	bulk(buffer);
 	    	} else {
-	    		if( bufferSize / planeSize == 2 ) {
-	    			bufferSize *= 2;				// double buffer size for 4 plane output
-	    		}
-	        	byte[] buffer = buildFrameBuffer(bufferSize, 0xE7, 0);
 	        	if( frame.planes.size() == 2 ) {
-	        		byte[] planeAnd = new byte[planeSize];
-	        		byte[] plane0 = frame.planes.get(0).data;
-	        		byte[] plane1 = frame.planes.get(1).data;
-	        		
-	        		for (int j = 0; j < plane0.length; j++) {
-	    				planeAnd[j] =  (byte) (plane0[j] & plane1[j]);
-	    			}
-	        		System.arraycopy(Frame.transform(plane0), 0, buffer, headerSize+0*planeSize, planeSize);
-	        		System.arraycopy(Frame.transform(plane1), 0, buffer, headerSize+2*planeSize, planeSize);
-	        		System.arraycopy(Frame.transform(planeAnd), 0, buffer, headerSize+1*planeSize, planeSize);
-	        		System.arraycopy(Frame.transform(planeAnd), 0, buffer, headerSize+3*planeSize, planeSize);
-	        	} else {
+	        		byte[] buffer = buildFrameBuffer(bufferSize, 0xE8, bufferSize/512);
+		    		for( Plane p : frame.planes) {
+		        		System.arraycopy(Frame.transform(p.data), 0, buffer, headerSize+i*planeSize, planeSize);
+		        		i++;
+		        		if( i > 1 ) break; // max 2 planes
+		        	}
+		           	bulk(buffer);
+	        	} else if( frame.planes.size() == 4 ) {
+	        		byte[] buffer = buildFrameBuffer(bufferSize, 0xE7, 0);
 	            	for( Plane p : frame.planes) {
 	            		System.arraycopy(Frame.transform(p.data), 0, buffer, headerSize+i*planeSize, planeSize);
 	            		i++;
 	            		if( i > 3 ) break;
 	            	}
+		           	bulk(buffer);
+	        	} else {
+		        	byte[] buffer = buildFrameBuffer( bufferSize, 0xE8, bufferSize/512 );
+	            	for( Plane p : frame.planes) {
+	            		System.arraycopy(Frame.transform(p.data), 0, buffer, headerSize+i*planeSize, planeSize);
+	            		i++;
+	            		if( i > 5 ) break;
+	            	}
+    	           	bulk(buffer);
 	        	}
-	           	bulk(buffer);
 	    	}
     	} else { // 0-7 red, 8-15 green, 16-23 blue
     		bufferSize = min(15,frame.planes.size()) * planeSize;

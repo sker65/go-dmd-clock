@@ -72,7 +72,7 @@ public class ImageIORenderer extends Renderer {
             if( planes == 2 ) {
     			return ImageUtil.convertTo4Color(master, dmd.getWidth(), dmd.getHeight());
             } else {
-            	return ImageUtil.convertToFrame(master, dmd.getWidth(), dmd.getHeight(),5);
+            	return ImageUtil.convertToFrame(master, dmd.getWidth(), dmd.getHeight(),8);
             }
 
 		} catch (IOException e) {
