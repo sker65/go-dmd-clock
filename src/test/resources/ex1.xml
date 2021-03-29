@@ -1066,4 +1066,5 @@
   </masks>
   <width>128</width>
   <height>32</height>
+  <noOfPlanesWhenCutting>4</noOfPlanesWhenCutting>
 </project>
