@@ -179,7 +179,7 @@ public class Animation {
 			Frame targetFrame = new Frame(frame);
             targetFrame.timecode -= tcOffset;
             targetFrame.frameLink = null;
-            if (cani.getRecordingLink() != null)
+            if (cani != null && cani.getRecordingLink() != null)
             	targetFrame.frameLink = new FrameLink(cani.getRecordingLink().associatedRecordingName,cani.getRecordingLink().startFrame+i);
             else
             	targetFrame.frameLink = new FrameLink(this.desc,i);
