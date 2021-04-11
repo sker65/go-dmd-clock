@@ -86,7 +86,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 	@Value
 	boolean backup;
 
-	public static final int CURRENT_PRJ_ANI_VERSION = 7;
+	public static final int CURRENT_PRJ_ANI_VERSION = 8;
 
 	public ProjectHandler(ViewModel vm) {
 		super(vm);
