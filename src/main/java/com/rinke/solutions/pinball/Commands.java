@@ -21,6 +21,7 @@ public class Commands {
 	public static final String DELETE_COL_MASK = "deleteColMask";
 
 	public static final String UPDATE_DELAY = "updateDelay";
+	public static final String UPDATE_KEYFRAME = "updateKeyframe";
 	public static final String UPDATE_HASHES = "updateHashes";
 	public static final String EDIT_LINK = "editLink";
 	public static final String COPY_AND_MOVE_TO_PREV_FRAME = "copyAndMoveToPrevFrame";

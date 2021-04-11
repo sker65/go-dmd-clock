@@ -201,6 +201,7 @@ public class ViewModel extends AbstractModel {
 	@ViewBinding public int timecode;
 	@ViewBinding public String linkVal;
 	@ViewBinding public String hashVal;
+	@ViewBinding public boolean keyFrame;
 	
 	@ViewBinding public boolean startStopEnabled = true;
 	@ViewBinding public String startStopLabel = "Start";
@@ -665,6 +666,10 @@ public class ViewModel extends AbstractModel {
 
 	public void setHashVal(String hashVal) {
 		firePropertyChange("hashVal", this.hashVal, this.hashVal = hashVal);
+	}
+	
+	public void setKeyFrame(boolean keyFrame) {
+		firePropertyChange("keyFrame", this.keyFrame, this.keyFrame = keyFrame);
 	}
 
 	public void setLinkVal(String linkVal) {

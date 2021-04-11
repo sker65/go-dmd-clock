@@ -78,6 +78,7 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 			} else {
 				vm.setLinkVal("-");
 			}
+			vm.setKeyFrame(nextScene.frames.get(0).keyFrame);
 			
 			// just to ensure a reasonable default
 			if( nextScene.getEditMode() == null || nextScene.getEditMode().equals(EditMode.FIXED) ) {

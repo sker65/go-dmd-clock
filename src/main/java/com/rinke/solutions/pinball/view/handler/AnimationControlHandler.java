@@ -156,6 +156,15 @@ public class AnimationControlHandler extends AbstractCommandHandler implements V
 			ani.frames.get(vm.selectedFrame).delay = vm.delay;
 		}
 	}
+	
+	public void onUpdateKeyframe() {
+		CompiledAnimation ani = vm.selectedScene;
+		if( ani != null && vm.selectedFrame < ani.frames.size() ) {
+			log.debug("Setting KeyFrame Prop of frame {} to {}", vm.selectedFrame, vm.keyFrame);
+			ani.frames.get(vm.selectedFrame).keyFrame = vm.keyFrame;
+		}
+	}
+		
 
 	public void setAnimationHandler(AnimationHandler animationHandler) {
 		this.animationHandler = animationHandler;

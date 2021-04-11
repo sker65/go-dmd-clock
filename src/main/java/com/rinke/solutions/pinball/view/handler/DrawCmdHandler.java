@@ -57,6 +57,7 @@ public class DrawCmdHandler extends AbstractCommandHandler implements EventHandl
 			vm.setTimecode( evt.frame.timecode);
 			vm.setDelay(evt.frame.delay);
 			vm.setNumberOfPlanes( evt.frame.planes.size());
+			vm.setKeyFrame(evt.frame.keyFrame);
 
 			hashCmdHandler.updateHashes(evt.frame);
 			

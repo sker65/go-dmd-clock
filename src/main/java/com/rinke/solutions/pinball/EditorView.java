@@ -218,6 +218,8 @@ public class EditorView implements MainView {
 	@GuiBinding( prop=ENABLED )
 	Button btnLink;
 
+	@GuiBinding( prop=SELECTION, propName="keyFrame") Button btnKeyframe;
+	
 	Menu menuPopRecentProjects;
 	Menu mntmRecentAnimations;
 	Menu mntmRecentPalettes;
@@ -800,14 +802,15 @@ public class EditorView implements MainView {
 		createPreviewComposite(previewGroup);
 		createDetailsGroup(previewGroup);
 		createStartStopControl(previewGroup);
-		
+//		shell.setSize(1400, 1075);
+//		shell.setMaximized(true);
 	}
 	
 	private void createDetailsGroup(Composite parent) {
 		
 		Group grpDetails = new Group(parent, SWT.NONE);
 		grpDetails.setLayoutData(new GridData(SWT.FILL, SWT.TOP, false, false, 1, 1));
-		grpDetails.setLayout(new GridLayout(24, false));
+		grpDetails.setLayout(new GridLayout(25, false));
 		
 		/*GridData gd_grpDetails = new GridData(SWT.LEFT, SWT.CENTER, false, true, 1, 1);
 		gd_grpDetails.heightHint = 27;
@@ -927,6 +930,13 @@ public class EditorView implements MainView {
 		btnLink = new Button(grpDetails, SWT.NONE);
 		btnLink.setText("Link");
 		btnLink.addListener(SWT.Selection, e->dispatchCmd(EDIT_LINK));
+		
+		btnKeyframe = new Button(grpDetails, SWT.CHECK);
+		btnKeyframe.setText("KeyFrame");
+		btnLink.addListener(SWT.Selection, e->dispatchCmd(UPDATE_KEYFRAME));		
+		
+		new Label(grpDetails, SWT.NONE);
+		new Label(grpDetails, SWT.NONE);
 		
 	}
 	
