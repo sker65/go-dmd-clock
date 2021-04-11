@@ -207,6 +207,9 @@ public class AniWriter extends Worker {
 								os.writeInt(frame.frameLink.frame);
 							}
 						}
+						if( version >= 8 ) {
+							os.writeBoolean(frame.keyFrame);
+						}
 					}
 					if( cancelRequested ) {
 						log.warn("cancel requested, leaving write loop");

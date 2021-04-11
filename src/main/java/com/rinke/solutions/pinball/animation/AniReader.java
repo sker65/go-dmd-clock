@@ -191,6 +191,9 @@ public class AniReader {
 					f.frameLink = new FrameLink(is.readUTF(), is.readInt());
 				}
 			}
+			if( version >= 8 ) {
+				f.keyFrame = is.readBoolean();
+			}
 			if( foundMask && a.getTransitionFrom()==0) a.setTransitionFrom(i);
 			i++;
 			frames--;
