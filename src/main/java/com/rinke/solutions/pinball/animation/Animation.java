@@ -11,6 +11,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.swt.widgets.Shell;
 
 import com.rinke.solutions.pinball.DMD;
+import com.rinke.solutions.pinball.animation.CompiledAnimation.RecordingLink;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.FrameLink;
 import com.rinke.solutions.pinball.model.Mask;
@@ -165,6 +166,10 @@ public class Animation {
 		//dest.setDirty(true);
 		dest.setClockFrom(Short.MAX_VALUE);
 		// rerender and thereby copy all frames
+		CompiledAnimation cani = null;
+		if( this instanceof CompiledAnimation ) {
+			cani = (CompiledAnimation)this;
+		}
 		this.actFrame = start;
         int tcOffset = 0;
 		for (int i = start; i <= end; i++) {
@@ -173,7 +178,11 @@ public class Animation {
 			if( i == start ) tcOffset = frame.timecode;
 			Frame targetFrame = new Frame(frame);
             targetFrame.timecode -= tcOffset;
-            targetFrame.frameLink = new FrameLink(this.desc,i);
+            targetFrame.frameLink = null;
+            if (cani != null && cani.getRecordingLink() != null)
+            	targetFrame.frameLink = new FrameLink(cani.getRecordingLink().associatedRecordingName,cani.getRecordingLink().startFrame+i);
+            else
+            	targetFrame.frameLink = new FrameLink(this.desc,i);
             int marker = targetFrame.planes.size();
             byte[] emptyPlane = new byte[frame.getPlane(0).length];
 			while( targetFrame.planes.size() < actualNumberOfPlanes ) {

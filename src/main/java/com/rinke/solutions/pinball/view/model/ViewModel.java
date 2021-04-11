@@ -13,6 +13,7 @@ import java.util.TreeSet;
 import lombok.Getter;
 
 import com.rinke.solutions.beans.Bean;
+import com.rinke.solutions.beans.Value;
 import com.rinke.solutions.databinding.ViewBinding;
 import com.rinke.solutions.pinball.CutInfo;
 import com.rinke.solutions.pinball.DMD;
@@ -42,7 +43,10 @@ public class ViewModel extends AbstractModel {
 	}
 
 	public int numberOfHashButtons = 4;
-	public int numberOfColors = 16;
+	@Value public int numberOfColors = 16;
+	@Value public int noOfPlanesWhenCutting = 4;
+	public boolean has4PlanesRecording = false;
+	
 	public boolean dirty;
 	public DmdSize dmdSize;
 	public String pin2dmdAdress;
@@ -95,6 +99,7 @@ public class ViewModel extends AbstractModel {
 	@ViewBinding public boolean fetchDurationEnabled;
 	@ViewBinding public boolean durationEnabled;
 	@ViewBinding public boolean setKeyFramePalEnabled;
+	@ViewBinding public boolean setFixKeyFramesEnabled;
 	@ViewBinding public boolean drawingEnabled;
 	@ViewBinding public boolean copyToNextEnabled;
 	@ViewBinding public boolean copyToPrevEnabled;
@@ -181,6 +186,8 @@ public class ViewModel extends AbstractModel {
 	// animation stuff
 	public ObservableList<Animation> playingAnis = new ObservableList<Animation>(new ArrayList<>());
 	public boolean animationIsPlaying;
+	public int playSpeed = 1;
+	
 	@ViewBinding public int minFrame;
 	@ViewBinding public int selectedFrame;
 	@ViewBinding public int selectedLinkFrame;
@@ -263,6 +270,10 @@ public class ViewModel extends AbstractModel {
 		firePropertyChange("setKeyFramePalEnabled", this.setKeyFramePalEnabled, this.setKeyFramePalEnabled = setKeyFramePalEnabled);
 	}
 
+	public void setSetFixKeyFramesEnabled(boolean setFixKeyFramesEnabled) {
+		firePropertyChange("setFixKeyFramesEnabled", this.setFixKeyFramesEnabled, this.setFixKeyFramesEnabled = setFixKeyFramesEnabled);
+	}
+	
 	public void setDrawingEnabled(boolean drawingEnabled) {
 		firePropertyChange("drawingEnabled", this.drawingEnabled, this.drawingEnabled = drawingEnabled);
 	}
@@ -552,6 +563,10 @@ public class ViewModel extends AbstractModel {
 		firePropertyChange("livePreviewActive", this.livePreviewActive, this.livePreviewActive = livePreviewActive);
 	}
 
+	public void setPlaySpeed(int playSpeed) {
+		firePropertyChange("playSpeed", this.playSpeed, this.playSpeed = playSpeed);
+	}
+	
 	public void setMntmUploadPalettesEnabled(boolean mntmUploadPalettesEnabled) {
 		firePropertyChange("mntmUploadPalettesEnabled", this.mntmUploadPalettesEnabled, this.mntmUploadPalettesEnabled = mntmUploadPalettesEnabled);
 	}

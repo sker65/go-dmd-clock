@@ -34,7 +34,7 @@ public class AnimationQuantizerTest {
 		Animation ani = handler.loadAni("./src/test/resources/term32.rgb.gz", false, false, null).get(0);
 		CompiledAnimation scene = ani.cutScene(0, 1, 24);
 		Palette pal = Palette.getDefaultPalettes().get(0);
-		CompiledAnimation qAni = uut.quantize("foo", scene, pal );
+		CompiledAnimation qAni = uut.quantize("foo", scene, pal, 4);
 		assertEquals(scene.frames.get(0).delay, qAni.frames.get(0).delay);
 		assertEquals(scene.frames.get(0).timecode, qAni.frames.get(0).timecode);
 		assertEquals(scene.width, qAni.width);
@@ -47,7 +47,7 @@ public class AnimationQuantizerTest {
 		CompiledAnimation scene = ani.cutScene(0, 1, 24);
 		scene.frames.get(0).mask = new Mask(vm.dmdSize.planeSize);
 		Palette pal = Palette.getDefaultPalettes().get(0);
-		uut.quantize("foo", scene, pal );
+		uut.quantize("foo", scene, pal, 4);
 	}
 
 }

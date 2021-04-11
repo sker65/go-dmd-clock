@@ -18,6 +18,7 @@ import com.rinke.solutions.pinball.ui.NamePrompt;
 import com.rinke.solutions.pinball.ui.SplitPrompt;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.Frame;
+import com.rinke.solutions.pinball.model.FrameLink;
 import com.rinke.solutions.pinball.util.MessageUtil;
 import com.rinke.solutions.pinball.util.ObservableMap;
 import com.rinke.solutions.pinball.view.View;
@@ -26,9 +27,6 @@ import com.rinke.solutions.pinball.view.model.ViewModel;
 @Bean
 @Slf4j
 public class CutCmdHandler extends AbstractCommandHandler implements ViewBindingHandler {
-
-	@Value(defaultValue="4") 
-	int noOfPlanesWhenCutting;
 	
 	@Value boolean addPalWhenCut;
 	@Value boolean createBookmarkAfterCut;
@@ -86,7 +84,7 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 		if( src != null ) {
 			AnimationQuantizer quantizer = new AnimationQuantizer();
 			String name = getUniqueName(src.getDesc()+"_q",vm.scenes.keySet());
-			CompiledAnimation newScene = quantizer.quantize(name, src, vm.selectedPalette);
+			CompiledAnimation newScene = quantizer.quantize(name, src, vm.selectedPalette, vm.noOfPlanesWhenCutting);
 			newScene.setDesc(name);
 			newScene.setPalIndex(vm.selectedPalette.index);
 			newScene.setProjectAnimation(true);
@@ -193,7 +191,7 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 	}
 	
 	public Animation cutScene(Animation animation, int start, int end, String name) {
-		CompiledAnimation cutScene = animation.cutScene(start, end, noOfPlanesWhenCutting);
+		CompiledAnimation cutScene = animation.cutScene(start, end, vm.noOfPlanesWhenCutting);
 
 		//vm.getSelectedFrameSeq()
 		CompiledAnimation srcScene = vm.getSelectedScene();
@@ -218,8 +216,12 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 		cutScene.setPalIndex(vm.selectedPalette.index);
 		cutScene.setProjectAnimation(true);
 		cutScene.setEditMode(EditMode.COLMASK);
-		cutScene.setRecordingLink(new RecordingLink(animation.getDesc(), start));
-				
+		if (vm.selectedRecording != null)
+			cutScene.setRecordingLink(new RecordingLink(animation.getDesc(), start));
+		else if (vm.selectedScene != null && vm.selectedScene.getRecordingLink() != null) {
+			cutScene.setRecordingLink(new RecordingLink(vm.selectedScene.getRecordingLink().associatedRecordingName,vm.selectedScene.getRecordingLink().startFrame+start));
+		}
+						
 		vm.scenes.put(name, cutScene);
 		vm.scenes.refresh();
 		
@@ -247,11 +249,22 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 		CompiledAnimation newScene = null;
 
 		if(!vm.scenes.containsKey(name)) {
-			newScene = animation.cutScene(frameNo, frameNo, noOfPlanesWhenCutting);
+			newScene = animation.cutScene(frameNo, frameNo, vm.noOfPlanesWhenCutting);
 			newScene.setDesc(name);
 			newScene.setPalIndex(vm.selectedPalette.index);
 			newScene.setProjectAnimation(true);
 			newScene.setEditMode(EditMode.LAYEREDCOL);
+			if( animation instanceof CompiledAnimation ) {
+				CompiledAnimation cani = (CompiledAnimation)animation;
+				if (cani.getRecordingLink() != null)
+					newScene.setRecordingLink(cani.getRecordingLink());
+				else
+					newScene.setRecordingLink(new RecordingLink(animation.getDesc(), animation.actFrame));
+					
+			} else {
+				newScene.setRecordingLink(new RecordingLink(animation.getDesc(), animation.actFrame));
+			}
+
 			vm.scenes.put(name, newScene);
 			vm.scenes.refresh();
 		} else {
@@ -261,6 +274,16 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 			Frame srcFrame = vm.dmd.getFrame();
 			Frame destFrame = newScene.getActualFrame();
 			srcFrame.copyToWithMask(destFrame, Constants.DEFAULT_DRAW_MASK);
+			if( animation instanceof CompiledAnimation ) {
+				CompiledAnimation cani = (CompiledAnimation)animation;
+	            if (cani != null && cani.getRecordingLink() != null)
+	            	destFrame.frameLink = new FrameLink(cani.getRecordingLink().associatedRecordingName,cani.getRecordingLink().startFrame+animation.getActFrame());
+	            else
+	            	destFrame.frameLink = new FrameLink(animation.getDesc(),animation.getActFrame());
+            } else {
+            	destFrame.frameLink = new FrameLink(animation.getDesc(),animation.getActFrame());
+            }
+
 			newScene.frames.get(newScene.actFrame).delay = vm.delay;
 		}
 		
@@ -290,7 +313,7 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 			if (end > animation.end)
 				end = animation.end;
 			String name = buildUniqueNameWithPrefix(vm.scenes,namePrefix, 1);
-			splitScene = animation.cutScene(start, end, noOfPlanesWhenCutting);
+			splitScene = animation.cutScene(start, end, vm.noOfPlanesWhenCutting);
 			
 			splitScene.setDesc(name);
 			splitScene.setPalIndex(vm.selectedPalette.index);

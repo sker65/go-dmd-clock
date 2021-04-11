@@ -113,11 +113,15 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 
 			setPlayingAni(nextScene, vm.scenesPosMap.getOrDefault(nextScene.getDesc(), 0));
 			maskHandler.updateDrawingEnabled();
-			if( m.haveLocalMask || m.haveSceneDetectionMasks) {
+			if( m.haveLocalMask || m.haveSceneDetectionMasks || vm.selectedEditMode.pullFrameDataFromAssociatedRecording) {
 				maskHandler.updateMaskChange(false, true);
 				vm.setHashVal(HashCmdHandler.getPrintableHashes(nextScene.getActualFrame().crc32));
 			} else {
 				vm.setHashVal("");
+			}
+			
+			if (vm.selectedEditMode.pullFrameDataFromAssociatedRecording && vm.selectedScene.getRecordingLink() == null) {
+				messageUtil.warn("Warning", "Linked Recording missing !!\nCalculated hashes may be invalid.");
 			}
 						
 		} else {
@@ -128,6 +132,40 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 		// v.goDmdGroup.updateAniModel(nextScene);
 		vm.setDeleteSceneEnabled(nextScene!=null);
 		vm.setBtnSetScenePalEnabled(nextScene!=null);
+	}
+	
+	public void onDeleteUnusedScenes() {
+		
+		Iterator<CompiledAnimation> it = vm.scenes.values().iterator();
+		while(it.hasNext()) {
+			Animation a = it.next();
+			ArrayList<String> res = new ArrayList<>();
+			if( a!=null) {
+				for( PalMapping pm : vm.keyframes.values()) {
+					if( a.getDesc().equals(pm.frameSeqName) ) {
+						res.add( pm.name );
+					}
+				}
+				if( res.isEmpty() ) {
+					String filename = null;
+					int i = -1;
+					filename = a.getName();
+					i = vm.inputFiles.indexOf(filename);					
+					it.remove();
+					boolean nameExists = false;
+					for (Animation r: vm.recordings.values()) {
+						String name = r.getName();
+						if (name.equals(filename))
+							nameExists = true;
+					}
+					if ( nameExists != true && (i != -1)) {
+						vm.inputFiles.remove(i);
+					}
+				}
+			}
+		}
+		vm.scenes.refresh();
+		vm.setDirty(true);
 	}
 	
 	public void onDeleteScene() {
@@ -141,7 +179,20 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 			}
 		}
 		if( res.isEmpty() ) {
+			String filename = null;
+			int i = -1;
+			if (vm.selectedScene != null) {
+				filename = vm.selectedScene.getName();
+				i = vm.inputFiles.indexOf(filename);
+			}
 			onRemove(a, vm.scenes);
+			boolean nameExists = false;
+			for (Animation r: vm.recordings.values()) {
+				String name = r.getName();
+				if (name.equals(filename))
+					nameExists = true;
+			}
+			if ( nameExists != true && (i != -1)) vm.inputFiles.remove(i);
 		} else {
 			messageUtil.warn("Scene cannot be deleted", "It is used by "+res);
 		}
@@ -207,7 +258,15 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 	public void onEditLink() {
 		editLink.setRecordings(vm.recordings);
 		editLink.setSceneName(vm.selectedScene.getDesc());
-		editLink.setRecordingLink(vm.selectedScene.getRecordingLink());
+		RecordingLink link = null;
+		editLink.setRecordingLink(link);
+		if (vm.selectedScene.getRecordingLink() != null)
+			for(Animation a: vm.recordings.values()) {
+				if( vm.selectedScene.getRecordingLink().associatedRecordingName.equals(a.getDesc())) {
+					editLink.setRecordingLink(vm.selectedScene.getRecordingLink());
+					break;
+				}
+			}
 		editLink.open();
 		if( editLink.okClicked() && vm.selectedScene != null) {
 			vm.selectedScene.setRecordingLink(editLink.getRecordingLink());

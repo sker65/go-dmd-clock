@@ -113,7 +113,9 @@ public class MenuHandler extends AbstractCommandHandler implements ViewBindingHa
 		
 		// clear lists
 		vm.recordings.clear();
+		vm.has4PlanesRecording = false;
 		vm.scenes.clear();
+		vm.inputFiles.clear();
 		vm.keyframes.clear();
 		
 		vm.recordingNameMap.clear();

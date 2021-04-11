@@ -29,6 +29,12 @@ public class VPinMameRawRenderer extends Renderer {
 		return actFrame < frames.size() ? frames.get(actFrame).timecode : 0;
 	}
 	
+	int color6planes_map[] = { 0, 1, 2, 2, 2, 2, 3 };
+	int color8planes_map[] = { 0, 1, 2, 2, 2, 2, 2, 2, 3};
+	int color12planes_map[] = { 0, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3 };
+	int color5planes_map[] = {0,1,2,3,3};
+	
+	
 	void readImage(String filename, DMD dmd) {
 		BufferedInputStream stream = null;
 		int r = 0;
@@ -66,11 +72,12 @@ public class VPinMameRawRenderer extends Renderer {
 					if( r == -1 || r < bytesPerPlane ) break;
 				}
 				res = new Frame(
-						new byte[dmd.getPlaneSize()],
-						new byte[dmd.getPlaneSize()],
-						new byte[dmd.getPlaneSize()],
-						new byte[dmd.getPlaneSize()]
-						);
+					new byte[dmd.getPlaneSize()],
+					new byte[dmd.getPlaneSize()],
+					new byte[dmd.getPlaneSize()],
+					new byte[dmd.getPlaneSize()]
+					);
+
 				// aggregate to frame
 				for( int pix = 0; pix < width*height; pix++) {
 					int bit = (pix % 8);
@@ -79,6 +86,22 @@ public class VPinMameRawRenderer extends Renderer {
 					int v = 0;
 					for( int i = 0; i<planesPerFrame; i++) {
 						v += ( planes.get(planeIdx+i).data[byteIdx] >> bit ) & 1;
+					}
+					switch (planesPerFrame){
+						case 4:
+						v = color5planes_map[v];
+						break;
+						case 6:
+						v = color6planes_map[v];
+						break;
+						case 8:
+						v = color8planes_map[v];
+						break;
+						case 12:
+						v = color12planes_map[v];
+						break;
+						default:
+						break;
 					}
 					if( v > vmax ) vmax = v;
 					if( (v & 1) != 0 ) 
@@ -90,9 +113,8 @@ public class VPinMameRawRenderer extends Renderer {
 					if( (v & 8) != 0 )
 						res.planes.get(3).data[byteIdx] |= mask;
 				}
-				// transform plane data (reverse bit order)
 				for( int i = 0; i <planesPerFrame; i++) {
-					planes.get(planeIdx+i).data = Frame.transform(planes.get(planeIdx+i).data);
+					planes.get(planeIdx+i).data = Frame.transform(planes.get(planeIdx+i).data); // transform plane data (reverse bit order)
 				}
 				res.timecode = currentTimecode -firstTimecode;
 				if( firstTimecode == 0 ) firstTimecode = currentTimecode; // offset basis for timecodes

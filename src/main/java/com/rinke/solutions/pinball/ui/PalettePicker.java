@@ -90,12 +90,14 @@ public class PalettePicker extends Dialog implements View {
 	}
 	
 	private void selectAll() {
+		deselectAll();
 		for (int j = 0; j < colBtn.length; j++) {
 			ToolItem i = colBtn[j];
 			if( selectedColors.size() < maxColors ) {
 				if( i.getImage() != null ) {
 					RGB c = (RGB)i.getData();
-					selectedColors.put(c, c);
+					selectedColors.add(c);
+					numOfSelectedColors++;
 					i.setSelection(true);
 				}
 			}
@@ -108,6 +110,7 @@ public class PalettePicker extends Dialog implements View {
 			i.setSelection(false);
 		}
 		selectedColors.clear();
+		numOfSelectedColors = 0;
 		updateLabels();
 	}
 
@@ -122,7 +125,7 @@ public class PalettePicker extends Dialog implements View {
 	 */
 	private void createContents() {
 		shell = new Shell(getParent(), getStyle());
-		shell.setSize(450, 475);
+		shell.setSize(475, 490);
 		shell.setText("Palette Picker");
 		
 		Button btnUpdatePalette = new Button(shell, SWT.NONE);
@@ -140,7 +143,7 @@ public class PalettePicker extends Dialog implements View {
 		grpColorsInScene.setBounds(10, 10, 430, 377);
 		
 		toolBar = new ToolBar(grpColorsInScene, SWT.FLAT | SWT.WRAP | SWT.RIGHT);
-		toolBar.setBounds(10, 10, 406, 340);
+		toolBar.setBounds(15, 15, 410, 360);
 		
 		lblSelectedColors = new Label(shell, SWT.NONE);
 		lblSelectedColors.setBounds(194, 395, 117, 14);
@@ -163,7 +166,7 @@ public class PalettePicker extends Dialog implements View {
 		scale.addListener(SWT.Selection, e->{ accuracy = scale.getSelection(); updateColorButtons(); });
 		
 		Label lblColorAccuracy = new Label(shell, SWT.NONE);
-		lblColorAccuracy.setBounds(24, 415, 103, 20);
+		lblColorAccuracy.setBounds(24, 415, 90, 20);
 		lblColorAccuracy.setText("Color Accuracy");
 
 		Button btnAll = new Button(shell, SWT.NONE);
@@ -185,7 +188,26 @@ public class PalettePicker extends Dialog implements View {
 	}
 
 	private void updatePalette() {
-		result = selectedColors.values();
+		boolean colorFound = false;
+		selectedColors.clear();
+		numOfSelectedColors=0;
+		for (int j = 0; j < colBtn.length; j++) {
+			ToolItem i = colBtn[j];
+			if( i.getImage() != null ) {
+				if (i.getSelection()) {
+					RGB c = (RGB)i.getData();
+					selectedColors.add(c);
+					numOfSelectedColors++;
+					colorFound = true;
+				}
+			} else {
+				if(!colorFound) {
+					selectedColors.add(null);
+				}
+				colorFound = false;
+			}
+		}
+		result = selectedColors;
 		close();
 	}
 
@@ -200,36 +222,44 @@ public class PalettePicker extends Dialog implements View {
 	private void updateColorButtons() {
 		if( colorListProvider != null ) {
 			colors = colorListProvider.refreshColors(accuracy);
-			for (Iterator<RGB> i = selectedColors.keySet().iterator(); i.hasNext();) {
+			for (Iterator<RGB> i = selectedColors.iterator(); i.hasNext();) {
 				RGB rgb = i.next();
 				if( !colors.contains(rgb) ) i.remove();
 			}
 			
 		}
 		updateLabels();
+		int k = 0;
 		for (int i = 0; i < colBtn.length; i++) {
 			if( colBtn[i] == null ) {
 				colBtn[i] = new ToolItem(toolBar, SWT.CHECK);
 				// colBtn[i].setData(new );
 				colBtn[i].addListener(SWT.Selection, e->colSelected(e));
 			}
-			if( i < colors.size() ) {
+			if( k < colors.size() && colors.get(k) != null ) {
 				//colBtn[i].setEnabled(true);
 				colBtn[i].setText("");
-				colBtn[i].setSelection(selectedColors.containsKey(colors.get(i)));
-				colBtn[i].setData(colors.get(i));
-				colBtn[i].setImage(getSquareImage(display, toSwtRGB(colors.get(i))));
+				colBtn[i].setSelection(selectedColors.contains(colors.get(k)));
+				colBtn[i].setData(colors.get(k));
+				colBtn[i].setImage(getSquareImage(display, toSwtRGB(colors.get(k))));
+				String toolTip = String.format("R: %d\nG: %d\nB: %d", colors.get(k).red,colors.get(k).green,colors.get(k).blue);
+				colBtn[i].setToolTipText(toolTip);
+				k++;
 			} else {
-				colBtn[i].setText("X");
-				colBtn[i].setSelection(false);
-				colBtn[i].setData(null);
-				if( colBtn[i].getImage()!= null ) colBtn[i].setImage(null);
-				//colBtn[i].setEnabled(true);
+				if (k < colors.size()) {
+						colBtn[i].setText("X");
+						colBtn[i].setSelection(false);
+						colBtn[i].setData(null);
+						if( colBtn[i].getImage()!= null ) colBtn[i].setImage(null);
+						k++;
+				}
 			}
 		}
 	}
 	
-	Map<RGB,RGB> selectedColors = new HashMap<>();
+	List<RGB> selectedColors = new ArrayList<>();
+	int numOfSelectedColors = 0;
+	//Map<RGB,RGB> selectedColors = new HashMap<>();
 	
 	private void colSelected(Event evt) {
 		//System.out.println(item.getData() + " : " + item.getSelection());
@@ -237,9 +267,11 @@ public class PalettePicker extends Dialog implements View {
 		boolean selection = ((ToolItem) evt.widget).getSelection();
 		if( rgb != null ) {
 			if( selection /* && selectedColors.size() < maxColors*/) {
-				selectedColors.put(rgb, rgb);
+				selectedColors.add(rgb);
+				numOfSelectedColors++;
 			} else {
 				selectedColors.remove(rgb);
+				numOfSelectedColors--;
 			}
 		}
 		//disableCol( selectedColors.size() < maxColors );
@@ -259,7 +291,7 @@ public class PalettePicker extends Dialog implements View {
 	}
 
 	public void updateLabels() {
-		lblSelectedColors.setText(String.format("Selected Colors: %d", selectedColors.size()));
+		lblSelectedColors.setText(String.format("Selected Colors: %d", numOfSelectedColors));
 		lblTotal.setText(String.format("Total: %d", colors.size()));
 	}
 	
@@ -313,6 +345,10 @@ public class PalettePicker extends Dialog implements View {
 
 	public void setAccuracy(int colorAccuracy) {
 		this.accuracy = colorAccuracy;
+	}
+	
+	public void setMaxNumberOfColors(int numberOfColors) {
+		this.maxColors = numberOfColors;
 	}
 
 	public int getAccuracy() {

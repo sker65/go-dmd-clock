@@ -57,6 +57,7 @@ import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.PaletteType;
 import com.rinke.solutions.pinball.model.Plane;
 import com.rinke.solutions.pinball.model.Project;
+import com.rinke.solutions.pinball.model.RGB;
 import com.rinke.solutions.pinball.ui.IProgress;
 import com.rinke.solutions.pinball.ui.Progress;
 import com.rinke.solutions.pinball.util.Config;
@@ -85,7 +86,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 	@Value
 	boolean backup;
 
-	public static final int CURRENT_PRJ_ANI_VERSION = 6;
+	public static final int CURRENT_PRJ_ANI_VERSION = 7;
 
 	public ProjectHandler(ViewModel vm) {
 		super(vm);
@@ -197,18 +198,72 @@ public class ProjectHandler extends AbstractCommandHandler {
 			dispatcher.syncExec( () -> {
 				// populate palettes
 				vm.paletteMap.clear();
-				vm.paletteMap.putAll(p.paletteMap);
-				for( Palette pal : p.getPalettes() ) {
-					if( !vm.paletteMap.containsKey(pal.index) ) vm.paletteMap.put(pal.index, pal);
-					else {
-						int res = messageUtil.warn(0, "Warning",
-								"duplicate palette", "project file contains conflicting palette definition. Pal No "+pal.index+ "\nDo you want to overwrite ?",
-								new String[]{"", "KEEP", "OVERWRITE"},2);
-						if( res == 2 ) {
-							vm.paletteMap.put(pal.index, pal);
+				if (p.paletteMap.get(0).numberOfColors == 16 && vm.numberOfColors == 64) {
+					int res = messageUtil.warn(0, "Warning",
+							"16 color project file", 
+							"This project has 16 color palettes.\nDo you want to "
+									+ "convert it to 64 color format,\nthat may not work with the older version of the editor ?",
+							new String[]{"", "Continue", "Convert"},2);
+					if( res != 2 ) { 
+						vm.numberOfColors = 16; 
+						vm.noOfPlanesWhenCutting = 4;
+						vm.paletteMap.putAll(p.paletteMap);
+						for( Palette pal : p.getPalettes() ) {
+							if( !vm.paletteMap.containsKey(pal.index) ) vm.paletteMap.put(pal.index, pal);
+							else {
+								int r = messageUtil.warn(0, "Warning",
+										"duplicate palette", "project file contains conflicting palette definition. Pal No "+pal.index+ "\nDo you want to overwrite ?",
+										new String[]{"", "KEEP", "OVERWRITE"},2);
+								if( r == 2 ) {
+									vm.paletteMap.put(pal.index, pal);
+								}
+							}
+						}
+					} else {
+						vm.numberOfColors = 64; 
+						vm.noOfPlanesWhenCutting = 6;
+						for (Palette pal : p.paletteMap.values()) {
+							int index = pal.index;
+							String name = pal.name;
+							RGB rgb[] = new RGB[64];
+							for( int j = 0; j<16; j++) {
+								rgb[j] = pal.colors[j];
+								rgb[j+16] = pal.colors[j];
+								rgb[j+32] = pal.colors[j];
+								rgb[j+48] = pal.colors[j];
+							}
+							Palette newPal = new Palette(rgb,index,name);
+                            if( !vm.paletteMap.containsKey(index) ) vm.paletteMap.put(index, newPal);
+                            else {
+                                int r = messageUtil.warn(0, "Warning",
+                                        "duplicate palette", "project file contains conflicting palette definition. Pal No "+pal.index+ "\nDo you want to overwrite ?",
+                                        new String[]{"", "KEEP", "OVERWRITE"},2);
+                                if( r == 2 ) {
+                                	vm.paletteMap.put(index, newPal);
+                                }
+                            }
+							
+						}
+					}
+				} else {
+					vm.paletteMap.putAll(p.paletteMap);
+					if (p.paletteMap.get(0).numberOfColors == 64 && p.noOfPlanesWhenCutting == 4)
+						vm.noOfPlanesWhenCutting = 6;
+					else
+						vm.noOfPlanesWhenCutting = p.noOfPlanesWhenCutting;
+					for( Palette pal : p.getPalettes() ) {
+						if( !vm.paletteMap.containsKey(pal.index) ) vm.paletteMap.put(pal.index, pal);
+						else {
+							int r = messageUtil.warn(0, "Warning",
+									"duplicate palette", "project file contains conflicting palette definition. Pal No "+pal.index+ "\nDo you want to overwrite ?",
+									new String[]{"", "KEEP", "OVERWRITE"},2);
+							if( r == 2 ) {
+								vm.paletteMap.put(pal.index, pal);
+							}
 						}
 					}
 				}
+				
 				if( p.width == 0) {
 					p.width = 128;
 					p.height = 32; // default for older projects
@@ -218,12 +273,27 @@ public class ProjectHandler extends AbstractCommandHandler {
 				vm.setDmdSize(newSize);
 				vm.setProjectFilename(filename);
 				vm.recordings.clear();
+				vm.has4PlanesRecording = false;
 				vm.scenes.clear();
 				vm.inputFiles.clear();
 				for (String file : p.inputFiles) {
 					String basefile = FilenameUtils.getBaseName(file)
 			                + "." + FilenameUtils.getExtension(file);
-					vm.inputFiles.add(basefile);	
+					if (Files.exists(Paths.get(buildRelFilename(filename, file)),java.nio.file.LinkOption.NOFOLLOW_LINKS)) {
+						if (file.equals(basefile))
+							vm.inputFiles.add(basefile);
+						else {
+							try { // found file but not in project directory => copy
+								Files.copy(Paths.get(buildRelFilename(filename, file)),Paths.get(buildRelFilename(filename, basefile)) , REPLACE_EXISTING);
+								vm.inputFiles.add(basefile);
+							} catch (IOException f) {
+								log.error("problem moving {}", basefile, f);
+								vm.inputFiles.add(file);
+							}
+						}
+					} else {
+						messageUtil.warn("Project file not found", "Project file " + basefile + " missing. Please copy the file to the project folder and reload project.");
+					}
 				}
 				//vm.addAll(p.inputFiles);
 				
@@ -239,7 +309,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 			String msg = "";
 			int i = 1;
 			index = 0;
-			for (String file : p.inputFiles) {
+			for (String file : vm.inputFiles) {
 				String basefile = vm.inputFiles.get(index);
 				if( w!=null) w.notify(10 + i*(80/p.inputFiles.size()), "loading ani "+file);
 				dispatcher.syncExec(()->{
@@ -253,30 +323,6 @@ public class ProjectHandler extends AbstractCommandHandler {
 						}
 					} catch( RuntimeException e) {
 						log.error("problem loading {}", vm.inputFiles.get(i), e);
-						try { // try full path 
-							List<Animation> anis = aniAction.loadAni(buildRelFilename(filename, file), true, false, progress);
-							if( !anis.isEmpty() ) {
-								try { // found file but not in project directory => copy
-									Files.copy(Paths.get(buildRelFilename(filename, file)),Paths.get(buildRelFilename(filename, basefile)) , REPLACE_EXISTING);
-								} catch (IOException f) {
-									log.error("problem moving {}", basefile, f);
-								}
-								Animation firstAni = anis.get(0);
-								if( p.recordingNameMap.containsKey(file)) {
-									firstAni.setDesc(p.recordingNameMap.get(file));
-								}
-							}
-						} catch( RuntimeException f) {
-							log.error("problem loading {}", file, f);
-							int res = messageUtil.warn(0, "Warning",
-									"Project file not found", 
-									"Project file " + file + " missing. Please copy the file to the project folder or remove from project.",
-									new String[]{"", "CONTINUE", "REMOVE"},2);
-							if( res != 2 ) return;
-							int j = vm.inputFiles.indexOf(basefile);
-							if (j != -1) vm.inputFiles.remove(j);
-							index--;
-						}
 					}
 				});
 				index++;
@@ -300,6 +346,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 				});
 				
 				vm.bookmarksMap.putAll(p.bookmarksMap);
+				vm.setSelectedRecording(vm.recordings.values().iterator().next());
 				
 				vm.setDirty(false);
 				
@@ -382,7 +429,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 	
 	public void onSaveProject() {
 		if( vm.projectFilename != null) {
-			saveProject(vm.projectFilename);
+			saveProject(vm.projectFilename, true);
 		} else {
 			onSaveAsProject();
 		}
@@ -391,7 +438,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 	public void onSaveAsProject() {
 		String filename = fileChooserUtil.choose(SWT.SAVE, vm.projectFilename, new String[] { "*.xml" }, new String[] { "Project XML" });
 		if (filename != null) {
-			saveProject(filename);
+			saveProject(filename, true);
 			vm.setProjectFilename(filename);
 		}
 	}
@@ -411,6 +458,10 @@ public class ProjectHandler extends AbstractCommandHandler {
 		}
 
 		Project project = new Project();
+		int size = project.paletteMap.size();
+		for (int i = 0; i < size; i++) {
+			project.paletteMap.remove(i);
+		}
 		populateVmToProject(vm, project);
 		List<Mask> filteredMasks = project.masks.stream().filter(m->m.locked).collect(Collectors.toList());
 		project.masks = filteredMasks;
@@ -451,7 +502,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 					if (p.switchMode.masking ) {
 						frameSeq.mask = 0b11111111111111111111111111111100;
 					}
-					if (p.switchMode.equals(SwitchMode.LAYEREDCOL) ) { // ref the scene local masks
+					if (p.switchMode.equals(SwitchMode.LAYEREDCOL) || p.switchMode.equals(SwitchMode.LAYEREDREPLACE) ) { // ref the scene local masks
 						// filter out unlocked masks		
 						frameSeq.masks = vm.scenes.get(p.frameSeqName).getMasks()
 								.stream().filter(m->m.locked).collect(Collectors.toList());
@@ -460,7 +511,53 @@ public class ProjectHandler extends AbstractCommandHandler {
 							frameSeq.masks.add(new Mask(vm.dmdSize.planeSize));
 							frameSeq.masks.get(0).locked = true;
 						}
+						
+						if (realPin && !useOldExport) {
+							int noOfFrames = vm.scenes.get(p.frameSeqName).frames.size();
+							int crcMask = frameSeq.masks.size() - 1;
+							
+							int k = 0;
+							for (int i = 0; i < noOfFrames; i++) {
+								if (i % (vm.dmdSize.planeSize / 4) == 0) {
+									frameSeq.masks.add(new Mask(vm.dmdSize.planeSize)); // add a new plane according to number of CRCs
+									if (i>0)
+										frameSeq.masks.get(crcMask).data = Frame.transform(frameSeq.masks.get(crcMask).data); // revert bit order for CRCs
+									crcMask++;
+									frameSeq.masks.get(crcMask).locked = true;
+									k = 0;
+									}
+								byte crc[] = {0,0,0,0};
+								crc[0] = vm.scenes.get(p.frameSeqName).frames.get(i).crc32[3];
+								crc[1] = vm.scenes.get(p.frameSeqName).frames.get(i).crc32[2];
+								crc[2] = vm.scenes.get(p.frameSeqName).frames.get(i).crc32[1];
+								crc[3] = vm.scenes.get(p.frameSeqName).frames.get(i).crc32[0];
+								System.arraycopy(crc, 0, frameSeq.masks.get(crcMask).data, k++*4, 4);
+							}
+							frameSeq.masks.get(crcMask).data = Frame.transform(frameSeq.masks.get(crcMask).data); // revert bit order for CRCs
+							frameSeq.masks.get(crcMask).locked = true;
+						}
 					}
+					if (p.switchMode.equals(SwitchMode.FOLLOW) || p.switchMode.equals(SwitchMode.FOLLOWREPLACE ) ) { // collect CRCs in mask of first frame.
+						if (realPin && !useOldExport) {
+							int noOfFrames = vm.scenes.get(p.frameSeqName).frames.size();
+							if (vm.scenes.get(p.frameSeqName).frames.get(1).mask == null) { //create masks if not exist
+								for(int frameNo = 0; frameNo < vm.scenes.get(p.frameSeqName).frames.size();frameNo++) {
+									vm.scenes.get(p.frameSeqName).frames.get(frameNo).mask = new Mask(vm.dmdSize.planeSize);
+								}
+							}
+							int k = 0;
+							for (int i = 0; i < noOfFrames; i++) {
+								byte crc[] = {0,0,0,0};
+								crc[0] = vm.scenes.get(p.frameSeqName).frames.get(i).crc32[3];
+								crc[1] = vm.scenes.get(p.frameSeqName).frames.get(i).crc32[2];
+								crc[2] = vm.scenes.get(p.frameSeqName).frames.get(i).crc32[1];
+								crc[3] = vm.scenes.get(p.frameSeqName).frames.get(i).crc32[0];
+								System.arraycopy(crc, 0, vm.scenes.get(p.frameSeqName).frames.get(1).mask.data, k++*4, 4); //copy crc data to second frame because masks get shifted later
+							}
+							vm.scenes.get(p.frameSeqName).frames.get(1).mask.data = Frame.transform(vm.scenes.get(p.frameSeqName).frames.get(1).mask.data); // revert bit order for CRCs
+						}
+					}
+					
 					// TODO make this an attribute of switch mode
 					frameSeq.reorderMask = (p.switchMode.equals(SwitchMode.FOLLOW) || p.switchMode.equals(SwitchMode.FOLLOWREPLACE ));
 					frameSeqMap.put(p.frameSeqName, frameSeq);
@@ -569,7 +666,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 				if (!frameSeqMap.isEmpty()) {
 					log.info("exporter instance {} writing FSQ", exporter);
 					DataOutputStream dos = new DataOutputStream(streamProvider.buildStream(replaceExtensionTo("fsq", filename)));
-					map = exporter.writeFrameSeqTo(dos, frameSeqMap, useOldExport?1:2);
+					map = exporter.writeFrameSeqTo(dos, frameSeqMap, useOldExport?2:3);
 					dos.close();
 				}
 
@@ -584,7 +681,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 		}		
 	}
 
-	public void saveProject(String filename) {
+	public void saveProject(String filename, boolean withProgress) {
 		log.info("write project to {}", filename);
 		String aniFilename = replaceExtensionTo("ani", filename);
 		
@@ -610,6 +707,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 		Project p = new Project();
 		p.paletteMap.clear(); // TODO remove that in the CTOR
 		populateVmToProject(vm, p);
+		p.noOfPlanesWhenCutting = vm.noOfPlanesWhenCutting;
 		
 		String baseName = new File(aniFilename).getName();
 		String baseNameWithoutExtension = baseName.substring(0, baseName.indexOf('.'));
@@ -631,13 +729,13 @@ public class ProjectHandler extends AbstractCommandHandler {
 			Optional<Animation> optAni = vm.recordings.values().stream().filter(a -> a.getName().equals(path+File.separator+inFile)).findFirst();
 			optAni.ifPresent(a-> {
 				if( a.isDirty()) {
-					aniAction.storeAnimations(Arrays.asList(a), a.getName(), 4, false);
+					aniAction.storeAnimations(Arrays.asList(a), a.getName(), 4, false, withProgress);
 					a.setDirty(false);
 				}
 			});
 		}
 		
-		storeOrDeleteProjectAnimations(aniFilename);
+		storeOrDeleteProjectAnimations(aniFilename, withProgress);
 		boolean isUsingLayeredColMask = false;
 		for( PalMapping pm : vm.keyframes.values()) {
 			if( pm.switchMode.equals(SwitchMode.LAYEREDCOL)) {
@@ -686,11 +784,11 @@ public class ProjectHandler extends AbstractCommandHandler {
 		}
 	}
 
-	private void storeOrDeleteProjectAnimations(String aniFilename) {
+	private void storeOrDeleteProjectAnimations(String aniFilename, boolean withProgress) {
 		// only need to save ani's that are 'project' animations
 		List<Animation> prjAnis = vm.scenes.values().stream().filter(a->a.isProjectAnimation()).collect(Collectors.toList());
 		if( !prjAnis.isEmpty() ) {
-			aniAction.storeAnimations(prjAnis, aniFilename, CURRENT_PRJ_ANI_VERSION, true);
+			aniAction.storeAnimations(prjAnis, aniFilename, CURRENT_PRJ_ANI_VERSION, true, withProgress);
 		} else {
 			new File(aniFilename).delete(); // delete project ani file
 		}

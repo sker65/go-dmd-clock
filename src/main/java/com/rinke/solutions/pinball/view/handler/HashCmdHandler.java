@@ -43,9 +43,9 @@ public class HashCmdHandler extends AbstractCommandHandler implements ViewBindin
 		vm.setBtnAddKeyframeEnabled(selectedRecording != null && selectedHashIndex != -1);
 		vm.setBtnAddFrameSeqEnabled(selectedRecording != null && selectedFrameSeq != null && selectedHashIndex != -1);
 		vm.setBtnAddEventEnabled(selectedRecording != null && selectedHashIndex != -1);
-		vm.setBtnSetHashEnabled( vm.selectedScene != null && selectedHashIndex != -1  && (vm.selectedEditMode.haveLocalMask || vm.selectedEditMode.haveSceneDetectionMasks));
-		vm.setBtnPreviewNextEnabled(vm.selectedScene != null && (vm.selectedEditMode.haveLocalMask || vm.selectedEditMode.haveSceneDetectionMasks));
-		vm.setBtnPreviewPrevEnabled(vm.selectedScene != null && (vm.selectedEditMode.haveLocalMask || vm.selectedEditMode.haveSceneDetectionMasks));
+		vm.setBtnSetHashEnabled((selectedRecording != null && selectedHashIndex != -1) || (vm.selectedScene != null && selectedHashIndex != -1  && (vm.selectedEditMode.haveLocalMask || vm.selectedEditMode.haveSceneDetectionMasks || vm.selectedEditMode.pullFrameDataFromAssociatedRecording )));
+		vm.setBtnPreviewNextEnabled(vm.selectedScene != null && (vm.selectedEditMode.haveLocalMask || vm.selectedEditMode.haveSceneDetectionMasks || vm.selectedEditMode.pullFrameDataFromAssociatedRecording ));
+		vm.setBtnPreviewPrevEnabled(vm.selectedScene != null && (vm.selectedEditMode.haveLocalMask || vm.selectedEditMode.haveSceneDetectionMasks || vm.selectedEditMode.pullFrameDataFromAssociatedRecording ));
 
 	}
 
@@ -123,7 +123,8 @@ public class HashCmdHandler extends AbstractCommandHandler implements ViewBindin
 				enabled[i]=false;
 				if( vm.selectedHashIndex == i ) vm.setSelectedHashIndex(-1);
 			} else {
-				if( hasMask && i == vm.selectedHashIndex) {
+				//if( hasMask && i == vm.selectedHashIndex) {
+				if(vm.selectedKeyFrame != null && vm.detectionMaskActive && hash.equals(HashCmdHandler.getPrintableHashes(vm.selectedKeyFrame.crc32))) {
 					lbls[i]=String.format("M%d %s", maskNumber, hash);
 				} else {
 					lbls[i]=hash;

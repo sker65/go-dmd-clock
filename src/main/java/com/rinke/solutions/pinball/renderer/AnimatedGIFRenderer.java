@@ -46,7 +46,14 @@ public class AnimatedGIFRenderer extends Renderer {
                 "imageHeight"
             };
 		
-		DmdSize size = Integer.parseInt(props.getProperty("width", "128"))==128 ? DmdSize.Size128x32 : DmdSize.Size192x64;
+		DmdSize size = null;
+		if(Integer.parseInt(props.getProperty("width", "256"))==256)
+			size = DmdSize.Size256x64;
+		if(Integer.parseInt(props.getProperty("width", "192"))==192)
+			size = DmdSize.Size192x64;
+		if(Integer.parseInt(props.getProperty("width", "128"))==128)
+			size = DmdSize.Size128x32;
+		//DmdSize size = Integer.parseInt(props.getProperty("width", "128"))==128 ? DmdSize.Size128x32 : DmdSize.Size192x64;
 		boolean sizeSetFromImage = false;
 		
 		try {
@@ -177,10 +184,10 @@ public class AnimatedGIFRenderer extends Renderer {
 				}
 				frames.add(new Frame(f1, f2));*/
 	            Frame f = null;
-	            if( palette.numberOfColors <= 256 ) {
+	            if( palette.numberOfColors <=  64) {
 	            	f = ImageUtil.convertToFrameWithPalette(toScan, dmd, palette, false);
 	            } else {
-	            	f = ImageUtil.convertToFrame(toScan, dmd.getWidth(), dmd.getHeight(),5);
+	            	f = ImageUtil.convertToFrame(toScan, dmd.getWidth(), dmd.getHeight(),8);
 	            }
 	            f.delay = delay;
 	            frames.add(f);
@@ -196,7 +203,18 @@ public class AnimatedGIFRenderer extends Renderer {
 	DmdSize setSizeFromImage(int width, int height) {
 		DmdSize res = DmdSize.Size128x32; // default
 		if( width % 192 == 0) res = DmdSize.Size192x64;
+		if( width % 256 == 0) res = DmdSize.Size256x64;
 		return res;
+	}
+	
+	private boolean inList(List<RGB> colors, RGB col) {
+		for( RGB c : colors) {
+			if (c != null) {
+				if( c.red == col.red && c.green == col.green && c.blue == col.blue ) 
+					return true; 
+			}
+		}
+		return false;
 	}
 
 	private Palette buildPaletteFromNodes(NodeList snodes) {
@@ -209,7 +227,8 @@ public class AnimatedGIFRenderer extends Renderer {
 						Integer.parseInt(attr.getNamedItem("red").getNodeValue()),
 						Integer.parseInt(attr.getNamedItem("green").getNodeValue()),
 						Integer.parseInt(attr.getNamedItem("blue").getNodeValue()));
-				rgbs.add(rgb);
+					if (!inList(rgbs, rgb))
+						rgbs.add(rgb);
 			}
 		}
 		return new Palette(rgbs.toArray(new RGB[rgbs.size()]));

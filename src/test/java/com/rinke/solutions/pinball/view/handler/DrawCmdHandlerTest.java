@@ -15,6 +15,7 @@ import com.rinke.solutions.pinball.animation.Animation.EditMode;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.util.MessageUtil;
 import com.rinke.solutions.pinball.widget.DMDWidget.Rect;
+import com.rinke.solutions.pinball.view.handler.HandlerTest;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DrawCmdHandlerTest extends HandlerTest {

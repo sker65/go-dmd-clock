@@ -186,7 +186,20 @@ public class DrawCmdHandler extends AbstractCommandHandler implements EventHandl
 			} else {
 				vm.setSmartDrawEnabled(false);
 			}
-			vm.dmd.setDrawMask(mode.enableColorMaskDrawing ? 0b11111000 : Constants.DEFAULT_DRAW_MASK);
+			
+			if (vm.has4PlanesRecording)
+				vm.dmd.setDrawMask(mode.enableColorMaskDrawing ? 0b11100000 : Constants.DEFAULT_DRAW_MASK);
+			else
+				vm.dmd.setDrawMask(mode.enableColorMaskDrawing ? 0b11111000 : Constants.DEFAULT_DRAW_MASK);
+			
+			if (vm.smartDrawEnabled) {
+				if (vm.has4PlanesRecording)
+					vm.dmd.setDrawMask(vm.smartDrawActive ? 0b11100000 : Constants.DEFAULT_DRAW_MASK);
+				else
+					vm.dmd.setDrawMask(vm.smartDrawActive ? 0b11111000 : Constants.DEFAULT_DRAW_MASK);
+			}
+
+
 		}
 	}
 	
@@ -241,7 +254,10 @@ public class DrawCmdHandler extends AbstractCommandHandler implements EventHandl
 	
 	public void onSmartDrawActiveChanged(boolean old, boolean n) {
 		if( vm.selectedScene != null ) {
-			vm.dmd.setDrawMask(n ? 0b11111000 : Constants.DEFAULT_DRAW_MASK);
+			if (vm.has4PlanesRecording)
+				vm.dmd.setDrawMask(n ? 0b11100000 : Constants.DEFAULT_DRAW_MASK);
+			else
+				vm.dmd.setDrawMask(n ? 0b11111000 : Constants.DEFAULT_DRAW_MASK);
 		} 
 	}
 
