@@ -1,5 +1,6 @@
 package com.rinke.solutions.pinball.animation;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.rinke.solutions.pinball.model.Frame;
@@ -26,7 +27,7 @@ public class AnimationInterpolator {
 			if( src.frames.get(i).keyFrame ) {
 				for( int j = i+1; i < src.frames.size(); j++) {
 					if( src.frames.get(j).keyFrame ) {
-						List<Frame> interpolatedFrames = this.interpolateFrame(src.frames, i, j);
+						List<Frame> interpolatedFrames = this.interpolateFrames(src.frames, i, j);
 					}
 				}
 			}
@@ -34,9 +35,30 @@ public class AnimationInterpolator {
 		return null;
 	}
 
-	private List<Frame> interpolateFrame(List<Frame> frames, int startFrame, int endFrame) {
-		
+	private List<Frame> interpolateFrames(List<Frame> frames, int startFrame, int endFrame) {
+		int nextLowToInterpolate = startFrame+1;
+		int nextHighToInterpolate = endFrame-1;
+		List<Frame> result = new ArrayList<>();
+		while( nextHighToInterpolate-nextLowToInterpolate >= 0) {
+			float histHighDiff = this.getBestNeighborhoodKeyframe(frames.get(nextHighToInterpolate),frames.get(nextHighToInterpolate+1));
+			float histLowDiff = this.getBestNeighborhoodKeyframe(frames.get(nextLowToInterpolate-1),frames.get(nextLowToInterpolate));
+			if( histHighDiff < histLowDiff) {
+				Frame f = this.propagateFrameFromTo(frames.get(nextHighToInterpolate+1), frames.get(nextHighToInterpolate));
+			} else {
+				Frame f = this.propagateFrameFromTo(frames.get(nextLowToInterpolate-1),frames.get(nextLowToInterpolate));
+			}
+			// TODO insert frame at the right pos!!
+		}
+		return result;
+	}
+
+	private Frame propagateFrameFromTo(Frame frame, Frame frame2) {
 		return null;
+	}
+
+	private float getBestNeighborhoodKeyframe(Frame frame, Frame frame2) {
+		// done by histogram_difference_between_frames
+		return 0;
 	}
 
 }
