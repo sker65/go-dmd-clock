@@ -87,6 +87,6 @@ public class Commands {
 	public static final String CONVERT_SCENE_TO_RGB = "convertSceneToRGB";
 	public static final String CONVERT_ALL_SCENES_TO_RGB = "convertAllScenesToRGB";
 	public static final String QUANTIZE_SCENE = "quantizeScene";
-
+	public static final String INTERPOLATE_SCENE = "interpolateScene";
 
 }
