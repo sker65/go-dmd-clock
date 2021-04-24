@@ -268,6 +268,8 @@ public class ProjectHandler extends AbstractCommandHandler {
 					p.width = 128;
 					p.height = 32; // default for older projects
 				}
+				if( p.srcWidth == 0) p.srcWidth = p.width;
+				if( p.srcHeight == 0) p.srcHeight = p.height;
 				DmdSize newSize = DmdSize.fromWidthHeight(p.width, p.height);
 				vm.dmd.setSize(p.width, p.height);
 				vm.setDmdSize(newSize);
@@ -718,6 +720,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 			p.inputFiles.remove(p.name + ".ani");
 		}
 		p.setDimension(vm.dmdSize.width, vm.dmdSize.height);
+		p.setSrcDimension(vm.srcDmdSize.width, vm.srcDmdSize.height);
 		
 		// we need to "tag" the projects animations that are always stored in the projects ani file
 		// the project ani file is not included in the inputFile list but animations gets loaded
@@ -759,6 +762,8 @@ public class ProjectHandler extends AbstractCommandHandler {
 		p.palMappings.addAll(vm.keyframes.values());
 		p.height = vm.dmdSize.height;
 		p.width = vm.dmdSize.width;
+		p.srcHeight = vm.srcDmdSize.height;
+		p.srcWidth = vm.srcDmdSize.width;
 		p.version = 2;
 		p.paletteMap.putAll(vm.paletteMap);
 		p.masks.clear();

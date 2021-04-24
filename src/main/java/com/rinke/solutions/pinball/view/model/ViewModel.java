@@ -49,6 +49,7 @@ public class ViewModel extends AbstractModel {
 	
 	public boolean dirty;
 	public DmdSize dmdSize;
+	public DmdSize srcDmdSize;
 	public String pin2dmdAdress;
 	public String projectFilename;
 	public CutInfo cutInfo = new CutInfo();
@@ -74,6 +75,7 @@ public class ViewModel extends AbstractModel {
 	public void init(DMD dmd, DmdSize ds, String address, int noOfMasks) {
 		this.dmd = dmd;
 		setDmdSize(ds);
+		setSrcDmdSize(ds);
 		setSelectedPalette( paletteMap.get(0) );
 		setPin2dmdAdress( address );
 		
@@ -229,6 +231,10 @@ public class ViewModel extends AbstractModel {
 	
 	public void setDmdSize(DmdSize dmdSize) {
 		firePropertyChange("dmdSize", this.dmdSize, this.dmdSize = dmdSize);
+	}
+
+	public void setSrcDmdSize(DmdSize dmdSize) {
+		firePropertyChange("srcDmdSize", this.srcDmdSize, this.srcDmdSize = dmdSize);
 	}
 
 	public void setDirty(boolean dirty) {
