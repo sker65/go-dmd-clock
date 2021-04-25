@@ -76,6 +76,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 	@Autowired IProgress progress;
 	@Autowired AnimationActionHandler aniAction;
 	@Autowired LicenseManager licenseManager;
+	@Autowired Config config;
 
 	@Value(key=Config.OLDEXPORT)
 	boolean useOldExport;
@@ -94,7 +95,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 	
 	public void onDmdSizeChanged( DmdSize o, DmdSize newSize) {
 		vm.dmd.setSize(newSize.width, newSize.height);
-		vm.init(vm.dmd, newSize, vm.pin2dmdAdress, vm.maxNumberOfMasks);
+		vm.init(vm.dmd, newSize, vm.pin2dmdAdress, vm.maxNumberOfMasks, config);
 		vm.setDmdDirty(true);
 	}
 

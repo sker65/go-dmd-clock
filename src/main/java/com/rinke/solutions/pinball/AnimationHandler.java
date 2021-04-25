@@ -115,7 +115,10 @@ public class AnimationHandler implements Runnable {
 				// now there is more logic here:
 				Frame res = ani.render(dmd,stop);
 				if( res.planes.get(0).data.length != dmd.getBytesPerRow()*dmd.getHeight()) { // check if scaling is required.
-					res = FrameScaler.scale2xFrame(res, vm.srcDmdSize.width, vm.srcDmdSize.height);
+					if( vm.scalerType == ScalerType.EPX)
+						res = FrameScaler.scale2xFrame(res, vm.srcDmdSize.width, vm.srcDmdSize.height);
+					if( vm.scalerType == ScalerType.NearPixel)
+						res = FrameScaler.scaleFrame(res, vm.srcDmdSize.width, vm.srcDmdSize.height);
 				}
 				Frame previewRes = null;
 				EditMode mode = vm.selectedEditMode;

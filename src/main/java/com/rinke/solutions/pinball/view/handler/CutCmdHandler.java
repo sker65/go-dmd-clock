@@ -191,7 +191,7 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 	}
 	
 	public Animation cutScene(Animation animation, int start, int end, String name) {
-		CompiledAnimation cutScene = animation.cutScene(start, end, vm.noOfPlanesWhenCutting);
+		CompiledAnimation cutScene = animation.cutScene(start, end, vm.noOfPlanesWhenCutting, vm.dmdSize.width, vm.dmdSize.height, vm.scalerType);
 
 		//vm.getSelectedFrameSeq()
 		CompiledAnimation srcScene = vm.getSelectedScene();

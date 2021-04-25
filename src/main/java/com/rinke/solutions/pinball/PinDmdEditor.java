@@ -178,7 +178,7 @@ public class PinDmdEditor {
 		beanFactory.setSingleton("dmd", dmd );
 		
 		vm = beanFactory.getBeanByType(ViewModel.class);
-		vm.init(dmd, ds, pin2dmdAdress, 24);
+		vm.init(dmd, ds, pin2dmdAdress, 24, config);
 		
 		mainView.init(vm, beanFactory);
 

@@ -18,6 +18,7 @@ import com.rinke.solutions.databinding.ViewBinding;
 import com.rinke.solutions.pinball.CutInfo;
 import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.DmdSize;
+import com.rinke.solutions.pinball.ScalerType;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.Animation.EditMode;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
@@ -26,6 +27,7 @@ import com.rinke.solutions.pinball.model.Mask;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.PaletteType;
+import com.rinke.solutions.pinball.util.Config;
 import com.rinke.solutions.pinball.util.ObservableList;
 import com.rinke.solutions.pinball.util.ObservableMap;
 import com.rinke.solutions.pinball.util.ObservableSet;
@@ -50,6 +52,7 @@ public class ViewModel extends AbstractModel {
 	public boolean dirty;
 	public DmdSize dmdSize;
 	public DmdSize srcDmdSize;
+	public ScalerType scalerType;
 	public String pin2dmdAdress;
 	public String projectFilename;
 	public CutInfo cutInfo = new CutInfo();
@@ -72,13 +75,13 @@ public class ViewModel extends AbstractModel {
 	public boolean shouldClose;
 //	private List<EditMode> immutable = Arrays.asList( Animation.EditMode.FIXED );
 	
-	public void init(DMD dmd, DmdSize ds, String address, int noOfMasks) {
+	public void init(DMD dmd, DmdSize ds, String address, int noOfMasks, Config config) {
 		this.dmd = dmd;
 		setDmdSize(ds);
 		setSrcDmdSize(ds);
 		setSelectedPalette( paletteMap.get(0) );
 		setPin2dmdAdress( address );
-		
+		setScalerType(ScalerType.fromOrdinal(config.getInteger(Config.SCALERTYPE,1)));
 		setProjectFilename(null);
 		setDirty(false);
 		Palette.getDefaultPalettes(numberOfColors).stream().forEach(p->paletteMap.put(p.index, p));
@@ -692,6 +695,10 @@ public class ViewModel extends AbstractModel {
 
 	public void setLoadedAniVersion(int loadedAniVersion) {
 		firePropertyChange("loadedAniVersion", this.loadedAniVersion, this.loadedAniVersion = loadedAniVersion);
+	}
+
+	public void setScalerType(ScalerType scalerType) {
+		firePropertyChange("scalerType", this.scalerType, this.scalerType = scalerType);
 	}
 
 }

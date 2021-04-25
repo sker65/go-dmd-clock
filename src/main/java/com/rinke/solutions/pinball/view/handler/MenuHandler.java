@@ -140,7 +140,7 @@ public class MenuHandler extends AbstractCommandHandler implements ViewBindingHa
 	public void onConfiguration() {
 		log.info("onConfiguration");
 		configDialog.open();
-		// TODO modell class to decouple
+		// TODO model class to decouple
 		if( configDialog.okPressed ) {
 			vm.setPin2dmdAdress(configDialog.getPin2DmdHost());
 			// check changed size
@@ -149,6 +149,8 @@ public class MenuHandler extends AbstractCommandHandler implements ViewBindingHa
 				if( vm.previewDMD != null ) vm.previewDMD = new DMD(configDialog.getDmdSize());
 			}
 			vm.setDmdSize(configDialog.getDmdSize());
+			vm.setSrcDmdSize(configDialog.getSrcDmdSize());
+			vm.setScalerType(configDialog.getScalerType());
 		}
 	}
 	
