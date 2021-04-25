@@ -158,8 +158,6 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 		if( src != null ) {
 			cutScene(src, src.start, src.end, buildUniqueName(vm.scenes), true);
 			log.info("scaling scene from {}", vm.cutInfo);
-			vm.cutInfo.reset();
-			vm.setMarkStartEnabled(true);
 		}	
 	}
 
