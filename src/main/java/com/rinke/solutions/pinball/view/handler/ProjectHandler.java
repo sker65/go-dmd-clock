@@ -38,6 +38,7 @@ import com.rinke.solutions.pinball.Constants;
 import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.Dispatcher;
 import com.rinke.solutions.pinball.DmdSize;
+import com.rinke.solutions.pinball.ScalerType;
 import com.rinke.solutions.pinball.Worker;
 import com.rinke.solutions.pinball.animation.AniReader;
 import com.rinke.solutions.pinball.animation.AniWriter;
@@ -581,8 +582,8 @@ public class ProjectHandler extends AbstractCommandHandler {
 			List<Animation> anis = new ArrayList<>();
 			for (FrameSeq p : frameSeqMap.values()) {
 				Animation ani = vm.scenes.get(p.name);
-				// copy without extending frames
-				CompiledAnimation cani = ani.cutScene(ani.start, ani.end, 0);
+				// copy without extending frames / scaler does not matter
+				CompiledAnimation cani = ani.cutScene(ani.start, ani.end, 0, vm.dmdSize.width, vm.dmdSize.height, ScalerType.NearPixel);
 				cani.actFrame = 0;
 				cani.setDesc(ani.getDesc());
 				DMD tmp = new DMD(vm.dmdSize);
