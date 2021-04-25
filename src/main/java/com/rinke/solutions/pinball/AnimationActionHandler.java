@@ -166,11 +166,12 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 			vm.scenes.clear();
 			vm.playingAnis.clear();
 		}
-		DMD dmd = new DMD(vm.dmdSize);
+		DMD dmd = new DMD(vm.srcDmdSize);
 		for (Animation lani : loadedList) {
 			Animation ani = lani;
 			if( wantScene ) { // try to convert
 				//ani.getAniColors().length;
+				dmd = new DMD(vm.dmdSize);
 				lani.init(dmd);
 				if( lani.end == 0) lani.end = lani.getRenderer().getFrames().size()-1;
 				int noPlanes = lani.getRenderer().getNumberOfPlanes();

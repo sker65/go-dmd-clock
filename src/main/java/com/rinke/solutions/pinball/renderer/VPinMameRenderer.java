@@ -78,7 +78,8 @@ public class VPinMameRenderer extends Renderer {
 				}
 				int charsToRead = Math.min(dmd.getWidth(), line.length());
 				if( dmd.getWidth() != line.length() ) {
-					log.warn("unexpected line length={}, line: {}", line.length(), line);
+					// TODO SR for different sources this could be normal
+					//log.warn("unexpected line length={}, line: {}", line.length(), line);
 				}
 				for (int i = 0; i<charsToRead; i++) {
 					int k = i;

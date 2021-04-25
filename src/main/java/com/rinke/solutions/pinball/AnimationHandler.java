@@ -13,6 +13,7 @@ import com.rinke.solutions.pinball.animation.AniEvent;
 import com.rinke.solutions.pinball.animation.AniEvent.Type;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.Animation.EditMode;
+import com.rinke.solutions.pinball.animation.FrameScaler;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.animation.CompiledAnimation.RecordingLink;
 import com.rinke.solutions.pinball.animation.EventHandler;
@@ -113,6 +114,9 @@ public class AnimationHandler implements Runnable {
 				
 				// now there is more logic here:
 				Frame res = ani.render(dmd,stop);
+				if( res.planes.get(0).data.length != dmd.getBytesPerRow()*dmd.getHeight()) { // check if scaling is required.
+					res = FrameScaler.scale2xFrame(res, vm.srcDmdSize.width, vm.srcDmdSize.height);
+				}
 				Frame previewRes = null;
 				EditMode mode = vm.selectedEditMode;
 				if( ani instanceof CompiledAnimation ) {

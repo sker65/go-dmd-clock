@@ -273,6 +273,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 				DmdSize newSize = DmdSize.fromWidthHeight(p.width, p.height);
 				vm.dmd.setSize(p.width, p.height);
 				vm.setDmdSize(newSize);
+				vm.setSrcDmdSize(DmdSize.fromWidthHeight(p.srcWidth, p.srcHeight));
 				vm.setProjectFilename(filename);
 				vm.recordings.clear();
 				vm.has4PlanesRecording = false;
