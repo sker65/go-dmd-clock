@@ -249,7 +249,7 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 		CompiledAnimation newScene = null;
 
 		if(!vm.scenes.containsKey(name)) {
-			newScene = animation.cutScene(frameNo, frameNo, vm.noOfPlanesWhenCutting);
+			newScene = animation.cutScene(frameNo, frameNo, vm.noOfPlanesWhenCutting, vm.dmdSize.width, vm.dmdSize.height, vm.scalerType);
 			newScene.setDesc(name);
 			newScene.setPalIndex(vm.selectedPalette.index);
 			newScene.setProjectAnimation(true);
@@ -313,7 +313,7 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 			if (end > animation.end)
 				end = animation.end;
 			String name = buildUniqueNameWithPrefix(vm.scenes,namePrefix, 1);
-			splitScene = animation.cutScene(start, end, vm.noOfPlanesWhenCutting);
+			splitScene = animation.cutScene(start, end, vm.noOfPlanesWhenCutting, vm.dmdSize.width, vm.dmdSize.height, vm.scalerType);
 			
 			splitScene.setDesc(name);
 			splitScene.setPalIndex(vm.selectedPalette.index);
