@@ -175,7 +175,7 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 				lani.init(dmd);
 				if( lani.end == 0) lani.end = lani.getRenderer().getFrames().size()-1;
 				int noPlanes = lani.getRenderer().getNumberOfPlanes();
-				ani = lani.cutScene(ani.start, ani.end, noPlanes, vm.srcDmdSize.width, vm.srcDmdSize.height, ScalerType.EPX);
+				ani = lani.cutScene(ani.start, ani.end, noPlanes);
 				ani.setAniColors(lani.getAniColors());
 				ani.setDesc(lani.getDesc());
 				populatePalette(ani, vm.paletteMap);

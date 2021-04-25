@@ -12,6 +12,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.Bean;
+import com.rinke.solutions.pinball.DmdSize;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.Animation.EditMode;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
@@ -109,7 +110,10 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 			
 			drawCmdHandler.setDrawMaskByEditMode(m);
 
+			vm.dmd.setSize(nextScene.width, nextScene.height);
 			vm.dmd.setNumberOfPlanes(numberOfPlanes);
+			vm.setDmdSize(DmdSize.fromWidthHeight(nextScene.width, nextScene.height));
+
 			vm.setPaletteToolPlanes(vm.layerMaskActive||vm.detectionMaskActive?1:numberOfPlanes);
 
 			setPlayingAni(nextScene, vm.scenesPosMap.getOrDefault(nextScene.getDesc(), 0));

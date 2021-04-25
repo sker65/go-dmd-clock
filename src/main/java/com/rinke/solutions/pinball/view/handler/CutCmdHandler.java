@@ -1,5 +1,7 @@
 package com.rinke.solutions.pinball.view.handler;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +15,7 @@ import com.rinke.solutions.pinball.animation.AnimationQuantizer;
 import com.rinke.solutions.pinball.animation.Animation.EditMode;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.animation.CompiledAnimation.RecordingLink;
+import com.rinke.solutions.pinball.animation.FrameScaler;
 import com.rinke.solutions.pinball.model.PalMapping.SwitchMode;
 import com.rinke.solutions.pinball.ui.NamePrompt;
 import com.rinke.solutions.pinball.ui.SplitPrompt;
@@ -78,7 +81,7 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 			vm.setSceneCutEnabled(vm.cutInfo.canCut());
 		}
 	}
-
+	
 	public void onQuantizeScene() {
 		CompiledAnimation src = vm.selectedScene;
 		if( src != null ) {
@@ -143,13 +146,23 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 		// respect number of planes while cutting / copying
 		Animation src = getSourceAnimation();
 		if( src != null ) {
-			cutScene(src, vm.cutInfo.getStart(), vm.cutInfo.getEnd(), buildUniqueName(vm.scenes));
+			cutScene(src, vm.cutInfo.getStart(), vm.cutInfo.getEnd(), buildUniqueName(vm.scenes), false);
 			log.info("cutting out scene from {}", vm.cutInfo);
 			vm.cutInfo.reset();
 			vm.setMarkStartEnabled(true);
-		}
-		
+		}	
 	}
+	
+	public void onScaleScene() {
+		Animation src = getSourceAnimation();
+		if( src != null ) {
+			cutScene(src, src.start, src.end, buildUniqueName(vm.scenes), true);
+			log.info("scaling scene from {}", vm.cutInfo);
+			vm.cutInfo.reset();
+			vm.setMarkStartEnabled(true);
+		}	
+	}
+
 
 	public void onAdd2Scene() {
 		// respect number of planes while cutting / copying
@@ -190,9 +203,20 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 		return name;
 	}
 	
-	public Animation cutScene(Animation animation, int start, int end, String name) {
-		CompiledAnimation cutScene = animation.cutScene(start, end, vm.noOfPlanesWhenCutting, vm.dmdSize.width, vm.dmdSize.height, vm.scalerType);
-
+	public Animation cutScene(Animation animation, int start, int end, String name, boolean scale) {
+		
+		CompiledAnimation cutScene = animation.cutScene(start, end, vm.noOfPlanesWhenCutting);
+		
+		if( scale ) {
+			List<Frame> scaledFrames = new ArrayList<>();
+			for (int i = 0; i < cutScene.frames.size(); i++) {
+				scaledFrames.add(FrameScaler.scale2xFrame(cutScene.frames.get(i), animation.width, animation.height));
+			}
+			cutScene.frames = scaledFrames;
+			cutScene.width = cutScene.width*2;
+			cutScene.height = cutScene.height*2;
+		}
+ 
 		//vm.getSelectedFrameSeq()
 		CompiledAnimation srcScene = vm.getSelectedScene();
 
@@ -249,7 +273,7 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 		CompiledAnimation newScene = null;
 
 		if(!vm.scenes.containsKey(name)) {
-			newScene = animation.cutScene(frameNo, frameNo, vm.noOfPlanesWhenCutting, vm.dmdSize.width, vm.dmdSize.height, vm.scalerType);
+			newScene = animation.cutScene(frameNo, frameNo, vm.noOfPlanesWhenCutting);
 			newScene.setDesc(name);
 			newScene.setPalIndex(vm.selectedPalette.index);
 			newScene.setProjectAnimation(true);
@@ -313,7 +337,7 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 			if (end > animation.end)
 				end = animation.end;
 			String name = buildUniqueNameWithPrefix(vm.scenes,namePrefix, 1);
-			splitScene = animation.cutScene(start, end, vm.noOfPlanesWhenCutting, vm.dmdSize.width, vm.dmdSize.height, vm.scalerType);
+			splitScene = animation.cutScene(start, end, vm.noOfPlanesWhenCutting);
 			
 			splitScene.setDesc(name);
 			splitScene.setPalIndex(vm.selectedPalette.index);

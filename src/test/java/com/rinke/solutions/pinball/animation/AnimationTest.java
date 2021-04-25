@@ -31,7 +31,7 @@ public class AnimationTest {
 	public void testCutScene() throws Exception {
 		Animation src = new Animation(AnimationType.MAME,
 				"./src/test/resources/drwho-dump.txt.gz", 0, 100, 0, 0, 0);
-		Animation cutScene = src.cutScene(10, 20, 4,128,32,ScalerType.EPX);
+		Animation cutScene = src.cutScene(10, 20, 4);
 		assertThat(cutScene, notNullValue());
 		assertThat(cutScene.end - cutScene.start, equalTo(10));
 

@@ -583,7 +583,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 			for (FrameSeq p : frameSeqMap.values()) {
 				Animation ani = vm.scenes.get(p.name);
 				// copy without extending frames / scaler does not matter
-				CompiledAnimation cani = ani.cutScene(ani.start, ani.end, 0, vm.dmdSize.width, vm.dmdSize.height, ScalerType.NearPixel);
+				CompiledAnimation cani = ani.cutScene(ani.start, ani.end, 0);
 				cani.actFrame = 0;
 				cani.setDesc(ani.getDesc());
 				DMD tmp = new DMD(vm.dmdSize);

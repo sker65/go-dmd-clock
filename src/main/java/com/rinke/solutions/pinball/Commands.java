@@ -81,6 +81,7 @@ public class Commands {
 	public static final String LOAD_ANI_WITH_FC = "loadAniWithFC";
 	public static final String CUT_SCENE = "cutScene";
 	public static final String SPLIT_SCENE = "splitScene";
+	public static final String SCALE_SCENE = "scaleScene";
 	
 	public static final String UNLOCK_SCENE_MASKS = "unlockSceneMasks";
 	public static final String DELETE_UNUSED_SCENES = "deleteUnusedScenes";

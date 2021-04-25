@@ -89,12 +89,7 @@ public class MenuHandler extends AbstractCommandHandler implements ViewBindingHa
 		vm.setEmptyMask(emptyMask);
 		// dmd, dmdWidget, previewWidget
 		vm.dmd.setSize(newSize.width, newSize.height);
-		
 		vm.setDmdDirty(true);
-		onNewProject();
-		// bindings
-		log.info("dmd size changed to {}", newSize.label);
-		config.put(Config.DMDSIZE, newSize.ordinal());
 	}
 
 	public void onNewProject() {

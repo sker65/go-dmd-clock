@@ -213,18 +213,22 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 		super.setBounds(rect);
 		this.setBounds(rect.x, rect.y, rect.width, rect.height);
 	}
-
-	@Override
-	public void setBounds(int x, int y, int width, int height) {
-		super.setBounds(x, y, width, height);
-		this.width = width;
-		this.height = height;
+	
+	public void autoPitch() {
 		int minwh = width<height?width:height;
 		margin = minwh/25;
 		int pitchx = (width -2*margin) / resolutionX;
 		int pitchy = (height -2*margin) / resolutionY;
 		pitch = pitchx<pitchy?pitchx:pitchy;
 		if( pitch <= 0) pitch = 1;
+	}
+
+	@Override
+	public void setBounds(int x, int y, int width, int height) {
+		super.setBounds(x, y, width, height);
+		this.width = width;
+		this.height = height;
+		autoPitch();
 		setBars();
 	}
 

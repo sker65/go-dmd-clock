@@ -247,7 +247,7 @@ public class PinDmdEditor {
 		if (cutCmd != null && !vm.recordings.isEmpty()) {
 			String[] cuts = cutCmd.split(",");
 			if (cuts.length >= 3) {
-				cutCmdHandler.cutScene(vm.recordings.get(cuts[0]), Integer.parseInt(cuts[2]), Integer.parseInt(cuts[3]), cuts[1]);
+				cutCmdHandler.cutScene(vm.recordings.get(cuts[0]), Integer.parseInt(cuts[2]), Integer.parseInt(cuts[3]), cuts[1], false);
 			}
 		}
 		if (saveFile != null) {

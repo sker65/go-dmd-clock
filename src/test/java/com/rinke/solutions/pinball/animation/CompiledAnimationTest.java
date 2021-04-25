@@ -23,7 +23,7 @@ public class CompiledAnimationTest {
 		DMD dmd = new DMD(size);
 		dmd.setNumberOfPlanes(4);
 		ani.render(dmd, false);
-		uut = (CompiledAnimation) ani.cutScene(30, 200, 4,128,32,ScalerType.EPX);
+		uut = (CompiledAnimation) ani.cutScene(30, 200, 4);
 		uut.setDesc("foo");
 	}
 	

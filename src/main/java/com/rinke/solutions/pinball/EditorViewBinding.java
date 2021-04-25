@@ -169,7 +169,10 @@ public class EditorViewBinding extends AbstractCommandHandler implements ViewBin
 	// could maybe done directly with bindings
 	public void onDmdSizeChanged(DmdSize old, DmdSize newSize) {
 		editorView.dmdWidget.setResolution(vm.dmd);
+		editorView.dmdWidget.autoPitch();
+		// TODO SR preview don't have the same resolution
 		editorView.previewDmd.setResolution(vm.dmd);
+		vm.setDirty(true);
 	}
 
 	public void setEditorView(EditorView editorView) {

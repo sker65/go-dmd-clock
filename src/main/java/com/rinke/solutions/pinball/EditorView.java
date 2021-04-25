@@ -431,6 +431,10 @@ public class EditorView implements MainView {
 		MenuItem mntmSplitScene = new MenuItem(menu_2, SWT.NONE);
 		mntmSplitScene.setText("Split Scene");
 		mntmSplitScene.addListener(SWT.Selection, e -> dispatchCmd(SPLIT_SCENE));
+		
+		MenuItem mntmScaleScenex = new MenuItem(menu_2, SWT.NONE);
+		mntmScaleScenex.setText("Scale Scene 2x");
+		mntmScaleScenex.addListener(SWT.Selection, e -> dispatchCmd(SCALE_SCENE));
 
 		MenuItem mntmQuantizeScene = new MenuItem(menu_2, SWT.NONE);
 		mntmQuantizeScene.setText("Quantize Scene");

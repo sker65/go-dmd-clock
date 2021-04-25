@@ -157,12 +157,12 @@ public class Animation {
 	int holdCount = 0;
 	private String desc;
 
-	public CompiledAnimation cutScene( int start, int end, int actualNumberOfPlanes, int targetWidth, int targetHeight, ScalerType scalerType) {
+	public CompiledAnimation cutScene( int start, int end, int actualNumberOfPlanes) {
 		// create a copy of the animation
 		DMD tmp = new DMD(width,height);
 		CompiledAnimation dest = new CompiledAnimation(
 				AnimationType.COMPILED, this.getName(),
-				0, end-start, this.skip, 1, 0, targetWidth, targetHeight);
+				0, end-start, this.skip, 1, 0);
 		dest.setMutable(true);
 		//dest.setDirty(true);
 		dest.setClockFrom(Short.MAX_VALUE);
@@ -177,13 +177,6 @@ public class Animation {
 			Frame frame = this.render(tmp, false);
             log.debug("source frame {}",frame);
 			Frame targetFrame = new Frame(frame);
-            if( targetWidth != width || targetHeight != height) {
-            	// need to scale
-            	if( scalerType == ScalerType.NearPixel)
-            		targetFrame = FrameScaler.scaleFrame(frame, width, height);
-            	if( scalerType == ScalerType.EPX)
-            		targetFrame = FrameScaler.scale2xFrame(frame, width, height);
-            }
 			if( i == start ) tcOffset = frame.timecode;
             targetFrame.timecode -= tcOffset;
             targetFrame.frameLink = null;
