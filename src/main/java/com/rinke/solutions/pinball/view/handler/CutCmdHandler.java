@@ -182,7 +182,6 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 			splitScene(src);
 			log.info("splitting scene {}", src.getDesc());
 		}
-		
 	}
 	
 	/**

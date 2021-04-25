@@ -171,7 +171,7 @@ public class EditorViewBinding extends AbstractCommandHandler implements ViewBin
 		editorView.dmdWidget.setResolution(vm.dmd);
 		editorView.dmdWidget.autoPitch();
 		// TODO SR preview don't have the same resolution
-		editorView.previewDmd.setResolution(vm.dmd);
+		editorView.previewDmd.setResolution(vm.previewDMD == null ? vm.dmd : vm.previewDMD );
 		vm.setDirty(true);
 	}
 
