@@ -5,6 +5,7 @@ import org.junit.Test;
 
 import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.DmdSize;
+import com.rinke.solutions.pinball.util.Config;
 
 public class ViewModelTest {
 
@@ -24,7 +25,7 @@ public class ViewModelTest {
 
 	@Test
 	public void testInit() throws Exception {
-		uut.init(dmd, size, "foo", 10);
+		uut.init(dmd, size, "foo", 10, new Config());
 	}
 
 }

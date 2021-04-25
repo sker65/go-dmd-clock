@@ -8,6 +8,7 @@ import org.junit.Test;
 import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.DmdSize;
 import com.rinke.solutions.pinball.PinDmdEditor;
+import com.rinke.solutions.pinball.ScalerType;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Plane;
 
@@ -22,7 +23,7 @@ public class CompiledAnimationTest {
 		DMD dmd = new DMD(size);
 		dmd.setNumberOfPlanes(4);
 		ani.render(dmd, false);
-		uut = (CompiledAnimation) ani.cutScene(30, 200, 4);
+		uut = (CompiledAnimation) ani.cutScene(30, 200, 4,128,32,ScalerType.EPX);
 		uut.setDesc("foo");
 	}
 	

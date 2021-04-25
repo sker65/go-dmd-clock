@@ -10,6 +10,7 @@ import org.junit.Test;
 import com.rinke.solutions.pinball.AnimationActionHandler;
 import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.DmdSize;
+import com.rinke.solutions.pinball.ScalerType;
 import com.rinke.solutions.pinball.model.Mask;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.Plane;
@@ -32,7 +33,7 @@ public class AnimationQuantizerTest {
 	@Test
 	public void testQuantize() throws Exception {
 		Animation ani = handler.loadAni("./src/test/resources/term32.rgb.gz", false, false, null).get(0);
-		CompiledAnimation scene = ani.cutScene(0, 1, 24);
+		CompiledAnimation scene = ani.cutScene(0, 1, 24,128,32,ScalerType.EPX);
 		Palette pal = Palette.getDefaultPalettes().get(0);
 		CompiledAnimation qAni = uut.quantize("foo", scene, pal, 4);
 		assertEquals(scene.frames.get(0).delay, qAni.frames.get(0).delay);
@@ -44,7 +45,7 @@ public class AnimationQuantizerTest {
 	@Test
 	public void testQuantizeWithMask() throws Exception {
 		Animation ani = handler.loadAni("./src/test/resources/term32.rgb.gz", false, false, null).get(0);
-		CompiledAnimation scene = ani.cutScene(0, 1, 24);
+		CompiledAnimation scene = ani.cutScene(0, 1, 24,128,32,ScalerType.EPX);
 		scene.frames.get(0).mask = new Mask(vm.dmdSize.planeSize);
 		Palette pal = Palette.getDefaultPalettes().get(0);
 		uut.quantize("foo", scene, pal, 4);
