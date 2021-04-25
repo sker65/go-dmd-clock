@@ -4,28 +4,30 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import lombok.extern.slf4j.Slf4j;
-
 import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.Bean;
 import com.rinke.solutions.beans.Value;
 import com.rinke.solutions.pinball.Constants;
+import com.rinke.solutions.pinball.ScalerType;
 import com.rinke.solutions.pinball.animation.Animation;
-import com.rinke.solutions.pinball.animation.AnimationQuantizer;
 import com.rinke.solutions.pinball.animation.Animation.EditMode;
+import com.rinke.solutions.pinball.animation.AnimationQuantizer;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.animation.CompiledAnimation.RecordingLink;
 import com.rinke.solutions.pinball.animation.FrameScaler;
-import com.rinke.solutions.pinball.model.PalMapping.SwitchMode;
-import com.rinke.solutions.pinball.ui.NamePrompt;
-import com.rinke.solutions.pinball.ui.SplitPrompt;
-import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.FrameLink;
+import com.rinke.solutions.pinball.model.PalMapping.SwitchMode;
+import com.rinke.solutions.pinball.model.Palette;
+import com.rinke.solutions.pinball.ui.NamePrompt;
+import com.rinke.solutions.pinball.ui.SplitPrompt;
+import com.rinke.solutions.pinball.util.Config;
 import com.rinke.solutions.pinball.util.MessageUtil;
 import com.rinke.solutions.pinball.util.ObservableMap;
 import com.rinke.solutions.pinball.view.View;
 import com.rinke.solutions.pinball.view.model.ViewModel;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Bean
 @Slf4j
@@ -41,6 +43,7 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 	@Autowired MessageUtil messageUtil;
 	@Autowired View namePrompt;
 	@Autowired View splitPrompt;
+	@Autowired Config config;
 	
 	public CutCmdHandler(ViewModel vm) {
 		super(vm);
@@ -204,11 +207,14 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 	public Animation cutScene(Animation animation, int start, int end, String name, boolean scale) {
 		
 		CompiledAnimation cutScene = animation.cutScene(start, end, vm.noOfPlanesWhenCutting);
-		
+		ScalerType st = ScalerType.fromOrdinal(config.getInteger(Config.SCALERTYPE));
 		if( scale ) {
 			List<Frame> scaledFrames = new ArrayList<>();
 			for (int i = 0; i < cutScene.frames.size(); i++) {
-				scaledFrames.add(FrameScaler.scale2xFrame(cutScene.frames.get(i), animation.width, animation.height));
+				if( st.equals(ScalerType.EPX))
+					scaledFrames.add(FrameScaler.scale2xFrame(cutScene.frames.get(i), animation.width, animation.height));
+				if( st.equals(ScalerType.NearPixel))
+					scaledFrames.add(FrameScaler.scaleFrame(cutScene.frames.get(i), animation.width, animation.height));
 			}
 			cutScene.frames = scaledFrames;
 			cutScene.width = cutScene.width*2;
