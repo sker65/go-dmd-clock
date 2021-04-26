@@ -701,4 +701,8 @@ public class ViewModel extends AbstractModel {
 		firePropertyChange("scalerType", this.scalerType, this.scalerType = scalerType);
 	}
 
+	public void setLinkedFrameOffset(int linkedFrameOffset) {
+		firePropertyChange("linkedFrameOffset", this.linkedFrameOffset, this.linkedFrameOffset = linkedFrameOffset);
+	}
+
 }

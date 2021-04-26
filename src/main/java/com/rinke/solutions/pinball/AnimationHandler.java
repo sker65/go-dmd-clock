@@ -132,11 +132,11 @@ public class AnimationHandler implements Runnable {
 						if (linkedAnimation != null) {
 							if (frameNo < 0) {
 								frameNo = 0;
-								vm.linkedFrameOffset++;
+								vm.setLinkedFrameOffset(vm.linkedFrameOffset+1);
 								}
 							if (frameNo >= linkedAnimation.end) {
 								frameNo = linkedAnimation.end;
-								vm.linkedFrameOffset--;
+								vm.setLinkedFrameOffset(vm.linkedFrameOffset-1);
 								}
 							
 	                		if(vm.previewDMD == null) {
