@@ -17,6 +17,7 @@ import org.opencv.video.Video;
 
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Palette;
+import com.rinke.solutions.pinball.model.Plane;
 import com.rinke.solutions.pinball.model.RGB;
 
 public class AnimationInterpolator {
@@ -124,13 +125,31 @@ public class AnimationInterpolator {
 		return result;
 	}
 
+	public BufferedImage toBufferedImage(Mat matrix) {
+		int type = BufferedImage.TYPE_BYTE_GRAY;
+		if (matrix.channels() > 1) {
+			type = BufferedImage.TYPE_3BYTE_BGR;
+		}
+		int bufferSize = matrix.channels() * matrix.cols() * matrix.rows();
+		byte[] buffer = new byte[bufferSize];
+		matrix.get(0, 0, buffer); // get all the pixels
+		BufferedImage image = new BufferedImage(matrix.cols(), matrix.rows(), type);
+		final byte[] targetPixels = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
+		System.arraycopy(buffer, 0, targetPixels, 0, buffer.length);
+		return image;
+	}
+
 	private Frame propagateFrameFromTo(Frame srcframe, Frame frameToInterpolate, Palette pal) {
 		// calc motion flow
-		// flow = cv2.calcOpticalFlowFarneback(img_frame1, img_frame2, None, 0.5, 3, 15, 3, 7, 1.5, 0)
-		Mat prvs = getMatfromFrame(srcframe);
-		Mat next = getMatfromFrame(frameToInterpolate);
-        Mat flow = new Mat(prvs.size(), CvType.CV_32FC2);
-        Video.calcOpticalFlowFarneback(prvs, next, flow, 0.5, 3, 15, 3, 7, 1.5, 0);
+		Mat msrc = getMatfromFrame(srcframe);
+		Mat minter = getMatfromFrame(frameToInterpolate);
+        Mat flow = new Mat(msrc.size(), CvType.CV_32FC2);
+        Mat minter_gray = new Mat();//next.size(), CvType.CV_8UC1);
+        Mat msrc_gray = new Mat();//prvs.size(), CvType.CV_8UC1);
+        Imgproc.cvtColor(minter, minter_gray, Imgproc.COLOR_BGR2GRAY);
+        Imgproc.cvtColor(msrc, msrc_gray, Imgproc.COLOR_BGR2GRAY);
+        Video.calcOpticalFlowFarneback(msrc_gray, minter_gray, flow, 0.5, 3, 15, 3, 7, 1.5, 0);
+        Frame res = new Frame(srcframe);
         for(int x = 0; x <= this.w; x++) {
         	for( int y = 0; y < this.h; y++) {
                 int dx = (int) Math.round(flow.get(x,y)[1]);
@@ -145,11 +164,43 @@ public class AnimationInterpolator {
                 	ppy = 0;
                 if( ppy > this.h - 1)
                 	ppy = this.h - 1;
-                
+                int colIdx = getPixel(srcframe, x, y, this.w/8);
+                setPixel(res, colIdx, ppx, ppy, this.w/8);
         	}
         }
-		return null;
+		return res;
 	}
+	
+	private void setPixel(Frame r, int v, int x, int y, int bytesPerRow) {
+    	byte mask = (byte) (0b10000000 >> (x % 8));
+    	int numberOfPlanes = r.planes.size();
+    	for(int plane = 0; plane < numberOfPlanes; plane++) {
+    		if( (v & 0x01) != 0) {
+    			r.planes.get(plane).data[y*bytesPerRow+x/8] |= mask;
+    		} else {
+    			r.planes.get(plane).data[y*bytesPerRow+x/8] &= ~mask;
+    		}
+    		v >>= 1;
+    	}
+	}
+	
+	private int getPixel(Frame frame, int x, int y, int bytesPerRow) {
+    	byte mask = (byte) (0b10000000 >> (x % 8));
+    	int v = 0;
+    	for(int plane = 0; plane < frame.planes.size(); plane++) {
+    		v += (frame.planes.get(plane).data[x / 8 + y * bytesPerRow] & mask) != 0 ? (1<<plane) : 0;
+    	}
+    	return v;
+	}
+
+	private Frame createFrame(int noOfPlanes, int planeSize) {
+		Frame r = new Frame();
+		for( int i = 0; i < noOfPlanes; i++) {
+			r.planes.add(new Plane((byte)i, new byte[planeSize]));
+		}
+		return r;
+	}
+
 
 	private double getBestNeighborhoodKeyframe(Frame frame1, Frame frame2, Palette pal, int w, int h) {
 		// done by histogram_difference_between_frames
