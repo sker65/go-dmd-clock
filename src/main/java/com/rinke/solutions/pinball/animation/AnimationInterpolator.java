@@ -20,6 +20,9 @@ import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.Plane;
 import com.rinke.solutions.pinball.model.RGB;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class AnimationInterpolator {
 	
 	private Map<Frame,Mat> mat2frame = new HashMap<>();
@@ -70,42 +73,44 @@ public class AnimationInterpolator {
 	
 	public static BufferedImage bufferedImagefromFrame(Frame f, int w, int h, Palette p) {
 		BufferedImage bi = new BufferedImage(w,h,BufferedImage.TYPE_3BYTE_BGR); // use BGR color model as expected by opencv
+		log.debug("creating buffered image w={}, h={}", w, h);
 		int numberOfSubframes = f.planes.size();
 		// int bitsPerColorChannel = numberOfSubframes / 3;
 		//int cmask = 0xFF >> (8-bitsPerColorChannel);
 		int bytesPerRow = w / 8; // only work with byte 8-aligned width
-		for (int row = 0; row < h; row++) {
-            for (int col = 0; col < w; col++) {
+		for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
                 // lsb first
                 // byte mask = (byte) (1 << (col % 8));
                 // hsb first
-                byte mask = (byte) (0b10000000 >> (col % 8));
+                byte mask = (byte) (0b10000000 >> (x % 8));
                 int v = 0;
                 for(int i = 0; i < numberOfSubframes;i++) {
-                	if( col / 8 + row * bytesPerRow < f.getPlane(i).length) {
-                		v += (f.getPlane(i)[col / 8 + row * bytesPerRow] & mask) != 0 ? (1<<i) : 0;
+                	if( x / 8 + y * bytesPerRow < f.getPlane(i).length) {
+                		v += (f.getPlane(i)[x / 8 + y * bytesPerRow] & mask) != 0 ? (1<<i) : 0;
                 	}
                 }
                 // TODO add sanity check that v is in range
                 RGB rgb = p.colors[v];
-                bi.setRGB(row, col, rgb.red << 16 + rgb.green << 8 + rgb.blue );
+                bi.setRGB(x, y, rgb.red << 16 + rgb.green << 8 + rgb.blue );
             }
         }
 		return bi;
 	}
 
 	public CompiledAnimation interpolate(String name, CompiledAnimation src, Palette pal) {
-		// todo copy src
-		for (int i = 0; i < src.frames.size(); i++) {
-			if (src.frames.get(i).keyFrame) {
-				for (int j = i + 1; i < src.frames.size(); j++) {
-					if (src.frames.get(j).keyFrame) {
-						List<Frame> interpolatedFrames = this.interpolateFrames(src.frames, i, j, pal, src.width, src.height);
+		//  copy src
+		CompiledAnimation res = src.cutScene(src.start, src.end, src.getNumberOfPlanes());
+		for (int i = 0; i < res.frames.size(); i++) {
+			if (res.frames.get(i).keyFrame) {
+				for (int j = i + 1; j < res.frames.size(); j++) {
+					if (res.frames.get(j).keyFrame) {
+						this.interpolateFrames(res.frames, i, j, pal, res.width, res.height);
 					}
 				}
 			}
 		}
-		return null;
+		return res;
 	}
 
 	private List<Frame> interpolateFrames(List<Frame> frames, int startKeyFrame, int endKeyFrame, Palette pal, int w, int h) {
@@ -117,10 +122,13 @@ public class AnimationInterpolator {
 			double histLowDiff = this.getBestNeighborhoodKeyframe(frames.get(nextLowToInterpolate - 1), frames.get(nextLowToInterpolate), pal, w, h);
 			if (histHighDiff < histLowDiff) {
 				Frame f = this.propagateFrameFromTo(frames.get(nextHighToInterpolate + 1), frames.get(nextHighToInterpolate), pal);
+				frames.set(nextHighToInterpolate, f);
+				nextHighToInterpolate--;
 			} else {
 				Frame f = this.propagateFrameFromTo(frames.get(nextLowToInterpolate - 1), frames.get(nextLowToInterpolate), pal);
+				frames.set(nextLowToInterpolate, f);
+				nextLowToInterpolate++;
 			}
-			// TODO insert frame at the right pos!!
 		}
 		return result;
 	}
@@ -143,17 +151,23 @@ public class AnimationInterpolator {
 		// calc motion flow
 		Mat msrc = getMatfromFrame(srcframe);
 		Mat minter = getMatfromFrame(frameToInterpolate);
+		log.debug("size msrc: {}", msrc.size());
         Mat flow = new Mat(msrc.size(), CvType.CV_32FC2);
-        Mat minter_gray = new Mat();//next.size(), CvType.CV_8UC1);
-        Mat msrc_gray = new Mat();//prvs.size(), CvType.CV_8UC1);
+        Mat minter_gray = new Mat(minter.size(), CvType.CV_8UC1);
+        Mat msrc_gray = new Mat(msrc.size(), CvType.CV_8UC1);
         Imgproc.cvtColor(minter, minter_gray, Imgproc.COLOR_BGR2GRAY);
         Imgproc.cvtColor(msrc, msrc_gray, Imgproc.COLOR_BGR2GRAY);
+        log.debug("size msrc_gray: {}", msrc_gray.size());
+        log.debug("size minter_gray: {}", minter_gray.size());
         Video.calcOpticalFlowFarneback(msrc_gray, minter_gray, flow, 0.5, 3, 15, 3, 7, 1.5, 0);
+        log.debug("size flow: {}", flow.size());
         Frame res = new Frame(srcframe);
-        for(int x = 0; x <= this.w; x++) {
+        for(int x = 0; x < this.w; x++) {
         	for( int y = 0; y < this.h; y++) {
-                int dx = (int) Math.round(flow.get(x,y)[1]);
-                int dy = (int) Math.round(flow.get(x,y)[0]);
+        		//log.debug("x={}, y={}", x, y);
+        		double[] d = flow.get(y,x);
+                int dx = (int) Math.round(d[1]);
+                int dy = (int) Math.round(d[0]);
                 int ppx = x - dx;
                 int ppy = y - dy;
                 if( ppx < 0)  //  # curate edges of frame
@@ -210,11 +224,13 @@ public class AnimationInterpolator {
 		List<Mat> bgrPlanes1 = new ArrayList<>();
 		//  add converted frame
 		bgrPlanes1.add(getMatfromFrame(frame1));
-		Imgproc.calcHist(bgrPlanes1, new MatOfInt(0), new Mat(), null, hist1, histRange);
+		// cv2.calcHist((image_from_frame(frame1, palette)), [0], None, [256], [0, 256])
+		// calcHist(List<Mat> images, MatOfInt channels, Mat mask, Mat hist, MatOfInt histSize, MatOfFloat ranges)
+		Imgproc.calcHist(bgrPlanes1, new MatOfInt(0), new Mat(), hist1, new MatOfInt(256), histRange);
 		List<Mat> bgrPlanes2 = new ArrayList<>();
 		//  add converted frame2
 		bgrPlanes2.add(getMatfromFrame(frame2));
-		Imgproc.calcHist(bgrPlanes2, new MatOfInt(0), new Mat(), null, hist2, histRange);
+		Imgproc.calcHist(bgrPlanes2, new MatOfInt(0), new Mat(), hist2, new MatOfInt(256), histRange);
 		return Imgproc.compareHist(hist1, hist2, 3);
 	}
 

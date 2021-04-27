@@ -200,6 +200,7 @@ public class AnimationHandler implements Runnable {
                 Frame f = dmd.getFrame();
                 f.delay = res.delay;
                 f.timecode = res.timecode;
+                f.keyFrame = res.keyFrame;
                 eventHandler.notifyAni(new AniEvent(Type.ANI, ani, f));
 
                 if( ani.hasEnded() ) {
