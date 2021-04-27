@@ -4,12 +4,12 @@ rm -rf build/
 mkdir build
 mvn -Pwin clean package assembly:single launch4j:launch4j
 cp target/pin2dmd-editor.exe build/pin2dmd-editor-${version}.exe
-mvn -Pwin_64 clean package assembly:single launch4j:launch4j
+mvn -Djavacpp.platform=windows-x86_64 -DskipTests -Pwin_64 clean package assembly:single launch4j:launch4j
 cp target/pin2dmd-editor64.exe build/pin2dmd-editor64-${version}.exe
 mvn -Plinux_x86_64 clean package assembly:single
 cat dist/stub.sh target/go-dmd-clock-*-jar-with-dependencies.jar >pin2dmd-editor-${version} && chmod a+x pin2dmd-editor-${version}
 mv pin2dmd-editor-${version} build/
-mvn -Pmac_64 clean package assembly:single
+mvn -Djavacpp.platform=macosx-x86_64 -DskipTests -Pmac_64 clean package assembly:single
 cd dist
 rm -rf Pin2Dmd-Editor.app/
 ant
@@ -25,3 +25,4 @@ cd ..
 mv dist/Pin2Dmd-Editor-${version}.zip build
 echo "Successfull build"
 
+# -Djavacpp.platform=macosx-x86_64 -> for mac64 

@@ -100,7 +100,7 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 	public void onInterpolateScene() {
 		CompiledAnimation src = vm.selectedScene;
 		if( src != null ) {
-			AnimationInterpolator animationInterpolator = new AnimationInterpolator();
+			AnimationInterpolator animationInterpolator = new AnimationInterpolator(src, vm.selectedPalette);
 			String err = animationInterpolator.validate(src);
 			if( err != null ) {
 				messageUtil.error("Interpolation not possible", err);

@@ -760,10 +760,10 @@ public class EditorView implements MainView {
 	public void createContents() {
 		
 		 // uncomment this for the sake of window builder
-			shell = new Shell();
-			shell.setSize(1400, 1075);
-			this.vm = new ViewModel();
-			vm.dmd = new DMD(192, 64);
+//			shell = new Shell();
+//			shell.setSize(1400, 1075);
+//			this.vm = new ViewModel();
+//			vm.dmd = new DMD(192, 64);
 			
 		shell.setMaximized(true);
 		
@@ -806,8 +806,8 @@ public class EditorView implements MainView {
 		createPreviewComposite(previewGroup);
 		createDetailsGroup(previewGroup);
 		createStartStopControl(previewGroup);
-		shell.setSize(1400, 1075);
-		shell.setMaximized(true);
+//		shell.setSize(1400, 1075);
+//		shell.setMaximized(true);
 	}
 	
 	private void createDetailsGroup(Composite parent) {
@@ -937,7 +937,7 @@ public class EditorView implements MainView {
 		
 		btnKeyframe = new Button(grpDetails, SWT.CHECK);
 		btnKeyframe.setText("KeyFrame");
-		btnLink.addListener(SWT.Selection, e->dispatchCmd(UPDATE_KEYFRAME));		
+		btnKeyframe.addListener(SWT.Selection, e->dispatchCmd(UPDATE_KEYFRAME, btnKeyframe.getSelection()));		
 		
 		new Label(grpDetails, SWT.NONE);
 		new Label(grpDetails, SWT.NONE);
