@@ -7,17 +7,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.swt.graphics.Color;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfFloat;
 import org.opencv.core.MatOfInt;
+import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.video.Video;
 
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Palette;
-import com.rinke.solutions.pinball.model.Plane;
 import com.rinke.solutions.pinball.model.RGB;
 
 import lombok.extern.slf4j.Slf4j;
@@ -65,16 +64,19 @@ public class AnimationInterpolator {
 	private Mat getMatfromFrame(Frame f) {
 		Mat m = mat2frame.get(f);
 		if( m != null ) return m;
-		m = bufferedImageToMat(bufferedImagefromFrame(f,this.w, this.h, this.pal));
+		byte[] data = bgrImageDatafromFrame(f,this.w, this.h, this.pal);
+		m = new Mat(this.h, this.w, CvType.CV_8UC3);
+		m.put(0, 0, data);
+//		log.debug("write {}",f.hashCode());
+//		Imgcodecs.imwrite("img"+f.hashCode()+".png", m);
 		mat2frame.put(f, m);
 		return m;
 	}
-
 	
-	public static BufferedImage bufferedImagefromFrame(Frame f, int w, int h, Palette p) {
-		BufferedImage bi = new BufferedImage(w,h,BufferedImage.TYPE_3BYTE_BGR); // use BGR color model as expected by opencv
-		log.debug("creating buffered image w={}, h={}", w, h);
+	public static byte[] bgrImageDatafromFrame(Frame f, int w, int h, Palette p) {
+		byte[] bi = new byte[ w*h*3 ]; // use BGR color model as expected by opencv
 		int numberOfSubframes = f.planes.size();
+		log.debug("creating buffered image w={}, h={}, subframes={}, p={}", w, h, numberOfSubframes, p.name);
 		// int bitsPerColorChannel = numberOfSubframes / 3;
 		//int cmask = 0xFF >> (8-bitsPerColorChannel);
 		int bytesPerRow = w / 8; // only work with byte 8-aligned width
@@ -92,7 +94,11 @@ public class AnimationInterpolator {
                 }
                 // TODO add sanity check that v is in range
                 RGB rgb = p.colors[v];
-                bi.setRGB(x, y, rgb.red << 16 + rgb.green << 8 + rgb.blue );
+                //bi.setRGB(x, y, rgb.red << 16 + rgb.green << 8 + rgb.blue );
+                int j = w*y*3 + x*3;
+                bi[j] = (byte)rgb.blue;
+                bi[j+1] = (byte)rgb.green;
+                bi[j+2] = (byte)rgb.red;
             }
         }
 		return bi;
@@ -106,6 +112,8 @@ public class AnimationInterpolator {
 				for (int j = i + 1; j < res.frames.size(); j++) {
 					if (res.frames.get(j).keyFrame) {
 						this.interpolateFrames(res.frames, i, j, pal, res.width, res.height);
+						i = j-1;
+						break;
 					}
 				}
 			}
@@ -119,10 +127,10 @@ public class AnimationInterpolator {
 		log.debug("startKeyFrame={}, endKeyFrame={}", startKeyFrame, endKeyFrame);
 		List<Frame> result = new ArrayList<>();
 		while (nextHighToInterpolate - nextLowToInterpolate >= 0) {
-			double histHighDiff = this.getBestNeighborhoodKeyframe(frames.get(nextHighToInterpolate), frames.get(nextHighToInterpolate + 1), pal, w, h);
-			double histLowDiff = this.getBestNeighborhoodKeyframe(frames.get(nextLowToInterpolate - 1), frames.get(nextLowToInterpolate), pal, w, h);
-			log.debug("nextHighToInterpolate={}, nextLowToInterpolate={}, histHighDiff < histLowDiff={}", nextHighToInterpolate, nextLowToInterpolate,
-					histHighDiff < histLowDiff);
+			double histHighDiff = this.getBestNeighborhoodKeyframe(frames.get(nextHighToInterpolate), frames.get(nextHighToInterpolate + 1), pal);
+			double histLowDiff = this.getBestNeighborhoodKeyframe(frames.get(nextLowToInterpolate - 1), frames.get(nextLowToInterpolate), pal);
+			log.debug("nextHighToInterpolate={}, nextLowToInterpolate={}, histHighDiff={}, histLowDiff={}", nextHighToInterpolate, nextLowToInterpolate,
+					histHighDiff, histLowDiff);
 			if (histHighDiff < histLowDiff) {
 				Frame f = this.propagateFrameFromTo(frames.get(nextHighToInterpolate + 1), frames.get(nextHighToInterpolate), pal);
 				frames.set(nextHighToInterpolate, f);
@@ -218,7 +226,7 @@ public class AnimationInterpolator {
     	return v;
 	}
 
-	private double getBestNeighborhoodKeyframe(Frame frame1, Frame frame2, Palette pal, int w, int h) {
+	private double getBestNeighborhoodKeyframe(Frame frame1, Frame frame2, Palette pal) {
 		// done by histogram_difference_between_frames
 		float[] range = { 0, 256 }; // the upper boundary is exclusive
 		MatOfFloat histRange = new MatOfFloat(range);
@@ -233,6 +241,9 @@ public class AnimationInterpolator {
 		//  add converted frame2
 		bgrPlanes2.add(getMatfromFrame(frame2));
 		Imgproc.calcHist(bgrPlanes2, new MatOfInt(0), new Mat(), hist2, new MatOfInt(256), histRange);
+		//log.debug("size of hist1/2 = {} {}", hist1.size(), hist2.size());
+		//log.debug("hist1={}", hist1.dump());
+		//log.debug("hist2={}", hist2.dump());
 		return Imgproc.compareHist(hist1, hist2, 3);
 	}
 

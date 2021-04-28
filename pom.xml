@@ -569,7 +569,7 @@
 		<dependency>
 			<groupId>com.rinke.solutions.pinball</groupId>
 			<artifactId>license-api</artifactId>
-			<version>0.1.58</version>
+			<version>0.1.59</version>
 		</dependency>
 		<dependency>
 			<groupId>com.rinke.solutions.pinball</groupId>
