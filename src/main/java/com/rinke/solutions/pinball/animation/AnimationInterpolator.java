@@ -191,11 +191,12 @@ public class AnimationInterpolator {
                 	ppy = 0;
                 if( ppy > this.h - 1)
                 	ppy = this.h - 1;
-                int colIdx = getPixel(srcframe, ppx, ppy, this.w/8);
+                int colIdx = getPixel(srcframe, ppx, ppy, this.w/8) / 16;
+                int colIdx2 = getPixel(frameToInterpolate, x, y, this.w/8) % 16;
 //                if( colIdx > 0 ) {
 //                	log.debug("x={}, y={}, dx={}, dy={} d[0]={} d[1]={}", x,y,dx, dy, d[0], d[1]);
 //                }
-                setPixel(res, colIdx, x, y, this.w/8);
+                setPixel(res, colIdx2 + colIdx*16, x, y, this.w/8);
         	}
         }
         msrc_gray.release();
