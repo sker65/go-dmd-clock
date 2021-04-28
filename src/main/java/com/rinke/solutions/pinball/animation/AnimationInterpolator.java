@@ -116,10 +116,13 @@ public class AnimationInterpolator {
 	private List<Frame> interpolateFrames(List<Frame> frames, int startKeyFrame, int endKeyFrame, Palette pal, int w, int h) {
 		int nextLowToInterpolate = startKeyFrame + 1;
 		int nextHighToInterpolate = endKeyFrame - 1;
+		log.debug("startKeyFrame={}, endKeyFrame={}", startKeyFrame, endKeyFrame);
 		List<Frame> result = new ArrayList<>();
 		while (nextHighToInterpolate - nextLowToInterpolate >= 0) {
 			double histHighDiff = this.getBestNeighborhoodKeyframe(frames.get(nextHighToInterpolate), frames.get(nextHighToInterpolate + 1), pal, w, h);
 			double histLowDiff = this.getBestNeighborhoodKeyframe(frames.get(nextLowToInterpolate - 1), frames.get(nextLowToInterpolate), pal, w, h);
+			log.debug("nextHighToInterpolate={}, nextLowToInterpolate={}, histHighDiff < histLowDiff={}", nextHighToInterpolate, nextLowToInterpolate,
+					histHighDiff < histLowDiff);
 			if (histHighDiff < histLowDiff) {
 				Frame f = this.propagateFrameFromTo(frames.get(nextHighToInterpolate + 1), frames.get(nextHighToInterpolate), pal);
 				frames.set(nextHighToInterpolate, f);
@@ -130,7 +133,13 @@ public class AnimationInterpolator {
 				nextLowToInterpolate++;
 			}
 		}
+		releaseCachedFrames();
 		return result;
+	}
+
+	private void releaseCachedFrames() {
+		for( Mat m : this.mat2frame.values() ) m.release();
+		this.mat2frame.clear();
 	}
 
 	public BufferedImage toBufferedImage(Mat matrix) {
@@ -151,23 +160,19 @@ public class AnimationInterpolator {
 		// calc motion flow
 		Mat msrc = getMatfromFrame(srcframe);
 		Mat minter = getMatfromFrame(frameToInterpolate);
-		log.debug("size msrc: {}", msrc.size());
         Mat flow = new Mat(msrc.size(), CvType.CV_32FC2);
         Mat minter_gray = new Mat(minter.size(), CvType.CV_8UC1);
         Mat msrc_gray = new Mat(msrc.size(), CvType.CV_8UC1);
         Imgproc.cvtColor(minter, minter_gray, Imgproc.COLOR_BGR2GRAY);
         Imgproc.cvtColor(msrc, msrc_gray, Imgproc.COLOR_BGR2GRAY);
-        log.debug("size msrc_gray: {}", msrc_gray.size());
-        log.debug("size minter_gray: {}", minter_gray.size());
         Video.calcOpticalFlowFarneback(msrc_gray, minter_gray, flow, 0.5, 3, 15, 3, 7, 1.5, 0);
-        log.debug("size flow: {}", flow.size());
-        Frame res = new Frame(srcframe);
+        Frame res = new Frame(frameToInterpolate);
         for(int x = 0; x < this.w; x++) {
         	for( int y = 0; y < this.h; y++) {
         		//log.debug("x={}, y={}", x, y);
         		double[] d = flow.get(y,x);
-                int dx = (int) Math.round(d[1]);
-                int dy = (int) Math.round(d[0]);
+                int dx = (int) Math.round(d[0]);
+                int dy = (int) Math.round(d[1]);
                 int ppx = x - dx;
                 int ppy = y - dy;
                 if( ppx < 0)  //  # curate edges of frame
@@ -178,10 +183,16 @@ public class AnimationInterpolator {
                 	ppy = 0;
                 if( ppy > this.h - 1)
                 	ppy = this.h - 1;
-                int colIdx = getPixel(srcframe, x, y, this.w/8);
-                setPixel(res, colIdx, ppx, ppy, this.w/8);
+                int colIdx = getPixel(srcframe, ppx, ppy, this.w/8);
+//                if( colIdx > 0 ) {
+//                	log.debug("x={}, y={}, dx={}, dy={} d[0]={} d[1]={}", x,y,dx, dy, d[0], d[1]);
+//                }
+                setPixel(res, colIdx, x, y, this.w/8);
         	}
         }
+        msrc_gray.release();
+        minter_gray.release();
+        flow.release();
 		return res;
 	}
 	
@@ -206,15 +217,6 @@ public class AnimationInterpolator {
     	}
     	return v;
 	}
-
-	private Frame createFrame(int noOfPlanes, int planeSize) {
-		Frame r = new Frame();
-		for( int i = 0; i < noOfPlanes; i++) {
-			r.planes.add(new Plane((byte)i, new byte[planeSize]));
-		}
-		return r;
-	}
-
 
 	private double getBestNeighborhoodKeyframe(Frame frame1, Frame frame2, Palette pal, int w, int h) {
 		// done by histogram_difference_between_frames
