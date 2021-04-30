@@ -16,6 +16,7 @@ import org.opencv.imgproc.Imgproc;
 import org.opencv.video.Video;
 
 import com.rinke.solutions.pinball.model.Frame;
+import com.rinke.solutions.pinball.model.FrameLink;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.RGB;
 
@@ -53,14 +54,6 @@ public class AnimationInterpolator {
 		return null;
 	}
 
-	// see https://stackoverflow.com/questions/14958643/converting-bufferedimage-to-mat-in-opencv
-	public static Mat bufferedImageToMat(BufferedImage bi) {
-		Mat mat = new Mat(bi.getHeight(), bi.getWidth(), CvType.CV_8UC3);
-		byte[] data = ((DataBufferByte) bi.getRaster().getDataBuffer()).getData();
-		mat.put(0, 0, data);
-		return mat;
-	}
-	
 	private Mat getMatfromFrame(Frame f) {
 		Mat m = mat2frame.get(f);
 		if( m != null ) return m;
@@ -76,7 +69,7 @@ public class AnimationInterpolator {
 	public static byte[] bgrImageDatafromFrame(Frame f, int w, int h, Palette p) {
 		byte[] bi = new byte[ w*h*3 ]; // use BGR color model as expected by opencv
 		int numberOfSubframes = f.planes.size();
-		log.debug("creating buffered image w={}, h={}, subframes={}, p={}", w, h, numberOfSubframes, p.name);
+		log.debug("creating BGR image data for {}, subframes={}, palette={}", f.frameLink.frame, numberOfSubframes, p.name);
 		// int bitsPerColorChannel = numberOfSubframes / 3;
 		//int cmask = 0xFF >> (8-bitsPerColorChannel);
 		int bytesPerRow = w / 8; // only work with byte 8-aligned width
@@ -111,7 +104,7 @@ public class AnimationInterpolator {
 			if (res.frames.get(i).keyFrame) {
 				for (int j = i + 1; j < res.frames.size(); j++) {
 					if (res.frames.get(j).keyFrame) {
-						this.interpolateFrames(res.frames, i, j, pal, res.width, res.height);
+						this.interpolateFrames(res.frames, i, j);
 						i = j-1;
 						break;
 					}
@@ -121,28 +114,35 @@ public class AnimationInterpolator {
 		return res;
 	}
 
-	private List<Frame> interpolateFrames(List<Frame> frames, int startKeyFrame, int endKeyFrame, Palette pal, int w, int h) {
+	private void interpolateFrames(List<Frame> frames, int startKeyFrame, int endKeyFrame) {
 		int nextLowToInterpolate = startKeyFrame + 1;
 		int nextHighToInterpolate = endKeyFrame - 1;
 		log.debug("startKeyFrame={}, endKeyFrame={}", startKeyFrame, endKeyFrame);
-		List<Frame> result = new ArrayList<>();
+		for(int i = startKeyFrame+1; i < endKeyFrame; i++)
+			frames.get(i).frameLink = new FrameLink("foo",i);
+		ArrayList<Frame> interpolatedFrames = new ArrayList<>(frames);
 		while (nextHighToInterpolate - nextLowToInterpolate >= 0) {
-			double histHighDiff = this.getBestNeighborhoodKeyframe(frames.get(nextHighToInterpolate), frames.get(nextHighToInterpolate + 1), pal);
-			double histLowDiff = this.getBestNeighborhoodKeyframe(frames.get(nextLowToInterpolate - 1), frames.get(nextLowToInterpolate), pal);
-			log.debug("nextHighToInterpolate={}, nextLowToInterpolate={}, histHighDiff={}, histLowDiff={}", nextHighToInterpolate, nextLowToInterpolate,
-					histHighDiff, histLowDiff);
+			log.debug("nextHighToInterpolate={}, nextLowToInterpolate={}",nextHighToInterpolate, nextLowToInterpolate);
+			double histHighDiff = this.getBestNeighborhoodKeyframe(frames.get(nextHighToInterpolate), interpolatedFrames.get(nextHighToInterpolate + 1));
+			double histLowDiff = this.getBestNeighborhoodKeyframe(interpolatedFrames.get(nextLowToInterpolate - 1), frames.get(nextLowToInterpolate));
+			log.debug("histHighDiff({}/{})={}, histLowDiff({}/{})={}", nextHighToInterpolate, nextHighToInterpolate+1,
+					histHighDiff, nextLowToInterpolate-1, nextLowToInterpolate, histLowDiff);
 			if (histHighDiff < histLowDiff) {
-				Frame f = this.propagateFrameFromTo(frames.get(nextHighToInterpolate + 1), frames.get(nextHighToInterpolate), pal);
-				frames.set(nextHighToInterpolate, f);
+				log.debug("propagate from {} -> {}",nextHighToInterpolate + 1, nextHighToInterpolate );
+				Frame f = this.propagateFrameFromTo(interpolatedFrames.get(nextHighToInterpolate + 1), frames.get(nextHighToInterpolate));
+				interpolatedFrames.set(nextHighToInterpolate, f);
 				nextHighToInterpolate--;
 			} else {
-				Frame f = this.propagateFrameFromTo(frames.get(nextLowToInterpolate - 1), frames.get(nextLowToInterpolate), pal);
-				frames.set(nextLowToInterpolate, f);
+				log.debug("propagate from {} -> {}",nextLowToInterpolate - 1, nextLowToInterpolate );
+				Frame f = this.propagateFrameFromTo(interpolatedFrames.get(nextLowToInterpolate - 1), frames.get(nextLowToInterpolate));
+				interpolatedFrames.set(nextLowToInterpolate, f);
 				nextLowToInterpolate++;
 			}
 		}
+		for(int i = startKeyFrame+1; i < endKeyFrame; i++)
+			frames.set(i, interpolatedFrames.get(i));
+		
 		releaseCachedFrames();
-		return result;
 	}
 
 	private void releaseCachedFrames() {
@@ -150,21 +150,7 @@ public class AnimationInterpolator {
 		this.mat2frame.clear();
 	}
 
-	public BufferedImage toBufferedImage(Mat matrix) {
-		int type = BufferedImage.TYPE_BYTE_GRAY;
-		if (matrix.channels() > 1) {
-			type = BufferedImage.TYPE_3BYTE_BGR;
-		}
-		int bufferSize = matrix.channels() * matrix.cols() * matrix.rows();
-		byte[] buffer = new byte[bufferSize];
-		matrix.get(0, 0, buffer); // get all the pixels
-		BufferedImage image = new BufferedImage(matrix.cols(), matrix.rows(), type);
-		final byte[] targetPixels = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
-		System.arraycopy(buffer, 0, targetPixels, 0, buffer.length);
-		return image;
-	}
-
-	private Frame propagateFrameFromTo(Frame srcframe, Frame frameToInterpolate, Palette pal) {
+	private Frame propagateFrameFromTo(Frame srcframe, Frame frameToInterpolate) {
 		// calc motion flow
 		Mat msrc = getMatfromFrame(srcframe);
 		Mat minter = getMatfromFrame(frameToInterpolate);
@@ -227,25 +213,35 @@ public class AnimationInterpolator {
     	return v;
 	}
 
-	private double getBestNeighborhoodKeyframe(Frame frame1, Frame frame2, Palette pal) {
+	private double getBestNeighborhoodKeyframe(Frame frame1, Frame frame2) {
 		// done by histogram_difference_between_frames
 		float[] range = { 0, 256 }; // the upper boundary is exclusive
 		MatOfFloat histRange = new MatOfFloat(range);
 		MatOfInt hist1 = new MatOfInt(), hist2 = new MatOfInt();
-		List<Mat> bgrPlanes1 = new ArrayList<>();
+		
 		//  add converted frame
-		bgrPlanes1.add(getMatfromFrame(frame1));
+		Mat m1 = getMatfromFrame(frame1);
+		Mat m2 = getMatfromFrame(frame2);
+        Mat g1 = new Mat(m1.size(), CvType.CV_8UC1);
+        Mat g2 = new Mat(m2.size(), CvType.CV_8UC1);
+        Imgproc.cvtColor(m1, g1, Imgproc.COLOR_BGR2GRAY);
+        Imgproc.cvtColor(m2, g2, Imgproc.COLOR_BGR2GRAY);
+        List<Mat> i1 = new ArrayList<>();
+        i1.add(g1);
 		// cv2.calcHist((image_from_frame(frame1, palette)), [0], None, [256], [0, 256])
 		// calcHist(List<Mat> images, MatOfInt channels, Mat mask, Mat hist, MatOfInt histSize, MatOfFloat ranges)
-		Imgproc.calcHist(bgrPlanes1, new MatOfInt(0), new Mat(), hist1, new MatOfInt(256), histRange);
-		List<Mat> bgrPlanes2 = new ArrayList<>();
+		Imgproc.calcHist(i1, new MatOfInt(0), new Mat(), hist1, new MatOfInt(64), histRange);
+		List<Mat> i2 = new ArrayList<>();
 		//  add converted frame2
-		bgrPlanes2.add(getMatfromFrame(frame2));
-		Imgproc.calcHist(bgrPlanes2, new MatOfInt(0), new Mat(), hist2, new MatOfInt(256), histRange);
+		i2.add(g2);
+		Imgproc.calcHist(i2, new MatOfInt(0), new Mat(), hist2, new MatOfInt(64), histRange);
 		//log.debug("size of hist1/2 = {} {}", hist1.size(), hist2.size());
 		//log.debug("hist1={}", hist1.dump());
 		//log.debug("hist2={}", hist2.dump());
-		return Imgproc.compareHist(hist1, hist2, 3);
+		double r = Imgproc.compareHist(hist1, hist2, Imgproc.HISTCMP_BHATTACHARYYA);
+		g1.release();
+		g2.release();
+		return r;
 	}
 
 
