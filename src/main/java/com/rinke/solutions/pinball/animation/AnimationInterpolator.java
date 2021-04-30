@@ -222,25 +222,25 @@ public class AnimationInterpolator {
 		//  add converted frame
 		Mat m1 = getMatfromFrame(frame1);
 		Mat m2 = getMatfromFrame(frame2);
-        Mat g1 = new Mat(m1.size(), CvType.CV_8UC1);
-        Mat g2 = new Mat(m2.size(), CvType.CV_8UC1);
-        Imgproc.cvtColor(m1, g1, Imgproc.COLOR_BGR2GRAY);
-        Imgproc.cvtColor(m2, g2, Imgproc.COLOR_BGR2GRAY);
+//        Mat g1 = new Mat(m1.size(), CvType.CV_8UC1);
+//        Mat g2 = new Mat(m2.size(), CvType.CV_8UC1);
+//        Imgproc.cvtColor(m1, g1, Imgproc.COLOR_BGR2GRAY);
+//        Imgproc.cvtColor(m2, g2, Imgproc.COLOR_BGR2GRAY);
         List<Mat> i1 = new ArrayList<>();
-        i1.add(g1);
+        i1.add(m1);
 		// cv2.calcHist((image_from_frame(frame1, palette)), [0], None, [256], [0, 256])
 		// calcHist(List<Mat> images, MatOfInt channels, Mat mask, Mat hist, MatOfInt histSize, MatOfFloat ranges)
-		Imgproc.calcHist(i1, new MatOfInt(0), new Mat(), hist1, new MatOfInt(64), histRange);
+		Imgproc.calcHist(i1, new MatOfInt(0), new Mat(), hist1, new MatOfInt(256), histRange);
 		List<Mat> i2 = new ArrayList<>();
 		//  add converted frame2
-		i2.add(g2);
-		Imgproc.calcHist(i2, new MatOfInt(0), new Mat(), hist2, new MatOfInt(64), histRange);
+		i2.add(m2);
+		Imgproc.calcHist(i2, new MatOfInt(0), new Mat(), hist2, new MatOfInt(256), histRange);
 		//log.debug("size of hist1/2 = {} {}", hist1.size(), hist2.size());
 		//log.debug("hist1={}", hist1.dump());
 		//log.debug("hist2={}", hist2.dump());
 		double r = Imgproc.compareHist(hist1, hist2, Imgproc.HISTCMP_BHATTACHARYYA);
-		g1.release();
-		g2.release();
+//		g1.release();
+//		g2.release();
 		return r;
 	}
 
