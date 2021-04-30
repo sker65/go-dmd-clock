@@ -66,6 +66,7 @@ public class ConfigDialog extends Dialog implements View {
 	@Autowired MessageUtil messageUtil;
 	private Button btnNoExportWarnings;
 	private Button btnNoQuitWarning;
+	private TabFolder tabFolder;
     
     /**
      * Create the dialog.
@@ -112,6 +113,7 @@ public class ConfigDialog extends Dialog implements View {
         btnBackupOnSave.setSelection(config.getBoolean(Config.BACKUP, false));
         btnNoExportWarnings.setSelection(config.getBoolean(Config.NO_EXPORT_WARNING, false));
         btnNoQuitWarning.setSelection(config.getBoolean(Config.NO_QUIT_WARNING, false));
+        
         shell.open();
         shell.layout();
         Display display = getParent().getDisplay();
@@ -127,7 +129,7 @@ public class ConfigDialog extends Dialog implements View {
      */
     void createContents() {
         shell = new Shell(getParent(), getStyle());
-        shell.setSize(533, 296);
+        shell.setSize(533, 409);
         shell.setText("Configuration");
         shell.setLayout(new FormLayout());
         
@@ -147,10 +149,10 @@ public class ConfigDialog extends Dialog implements View {
         btnCancel.setText("Cancel");
         btnCancel.addListener(SWT.Selection, e->cancel());
         
-        TabFolder tabFolder = new TabFolder(shell, SWT.NONE);
+        tabFolder = new TabFolder(shell, SWT.NONE);
         FormData fd_tabFolder = new FormData();
         fd_tabFolder.right = new FormAttachment(btnOk, 0, SWT.RIGHT);
-        fd_tabFolder.bottom = new FormAttachment(0, 226);
+        fd_tabFolder.bottom = new FormAttachment(0, 324);
         fd_tabFolder.top = new FormAttachment(0);
         fd_tabFolder.left = new FormAttachment(0);
         tabFolder.setLayoutData(fd_tabFolder);
@@ -231,6 +233,7 @@ public class ConfigDialog extends Dialog implements View {
         Group grpCutting = new Group(grpFoo, SWT.NONE);
         grpCutting.setText("Cutting");
         FormData fd_grpCutting = new FormData();
+        fd_grpCutting.bottom = new FormAttachment(100, -138);
         fd_grpCutting.top = new FormAttachment(0);
         fd_grpCutting.left = new FormAttachment(0);
         fd_grpCutting.right = new FormAttachment(100, -228);
@@ -270,14 +273,13 @@ public class ConfigDialog extends Dialog implements View {
         btnUseOldExport.setText("use old export format");
         
         Group grpGeneral = new Group(grpFoo, SWT.NONE);
-        fd_grpCutting.bottom = new FormAttachment(grpGeneral, 0, SWT.BOTTOM);
-        fd_grpExport.bottom = new FormAttachment(grpGeneral, -14);
+        fd_grpExport.bottom = new FormAttachment(grpGeneral, -28);
         grpGeneral.setText("General");
         FormData fd_grpGeneral = new FormData();
         fd_grpGeneral.right = new FormAttachment(100, -10);
         fd_grpGeneral.left = new FormAttachment(grpCutting, 6);
         fd_grpGeneral.bottom = new FormAttachment(100, -10);
-        fd_grpGeneral.top = new FormAttachment(0, 88);
+        fd_grpGeneral.top = new FormAttachment(0, 120);
         
         Combo comboAniVersion = new Combo(grpExport, SWT.NONE);
         comboAniVersion.setBounds(10, 41, 40, 22);
@@ -295,6 +297,27 @@ public class ConfigDialog extends Dialog implements View {
         btnNoExportWarnings = new Button(grpGeneral, SWT.CHECK);
         btnNoExportWarnings.setBounds(10, 44, 149, 18);
         btnNoExportWarnings.setText("no export warnings");
+        
+        Group grpInterpolation = new Group(grpFoo, SWT.NONE);
+        grpInterpolation.setText("Interpolation");
+        FormData fd_grpInterpolation = new FormData();
+        fd_grpInterpolation.bottom = new FormAttachment(grpCutting, 98, SWT.BOTTOM);
+        fd_grpInterpolation.top = new FormAttachment(grpCutting, 6);
+        fd_grpInterpolation.right = new FormAttachment(grpCutting, 0, SWT.RIGHT);
+        fd_grpInterpolation.left = new FormAttachment(0);
+        grpInterpolation.setLayoutData(fd_grpInterpolation);
+        
+        Button btnPixel = new Button(grpInterpolation, SWT.RADIO);
+        btnPixel.setBounds(10, 10, 65, 18);
+        btnPixel.setText("Pixel");
+        
+        Button btnPalette = new Button(grpInterpolation, SWT.RADIO);
+        btnPalette.setBounds(81, 10, 90, 18);
+        btnPalette.setText("Palette");
+        
+        Button btnForceNearestKeyframe = new Button(grpInterpolation, SWT.CHECK);
+        btnForceNearestKeyframe.setBounds(10, 36, 185, 18);
+        btnForceNearestKeyframe.setText("Force nearest keyframe");
         
         FormData fd_grpConfig = new FormData();
         fd_grpConfig.bottom = new FormAttachment(100, -292);
