@@ -194,8 +194,14 @@ public class AnimationHandler implements Runnable {
                         dmd.writeOr(tmp.getFrame());
                     } else {
                     	log.debug("writing to dmd: {}", dmd);
-                        dmd.writeOr(res);
-                        dmd.dumpHistogram();
+                    	if( linkedAnimation != null && vm.detectionMaskActive ) {
+                    		ensureDmdSize(linkedAnimation);
+                    		dmd.writeOr(previewRes);
+                    	} else {
+                    		ensureDmdSize(ani);
+                    		dmd.writeOr(res);
+                    	}
+                        //dmd.dumpHistogram();
                     }
                 }
                 Frame f = dmd.getFrame();
@@ -215,7 +221,13 @@ public class AnimationHandler implements Runnable {
 				}
 			}
 		}
-
+	}
+	
+	public void ensureDmdSize(Animation ani) {
+		if( dmd.getWidth() != ani.width || dmd.getHeight() != ani.height ) {
+			dmd.setSize(ani.width, ani.height);
+			vm.setDmdSize(DmdSize.fromWidthHeight(ani.width, ani.height));
+		}
 	}
 
 	public void updateScale(Animation ani) {

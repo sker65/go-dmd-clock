@@ -385,9 +385,9 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
                 byte mask = (byte) (0b10000000 >> (col % 8));
                 int v = 0;
                 for(int i = 0; i < numberOfSubframes;i++) {
-                	//if( col / 8 + row * bytesPerRow < frame.getPlane(i).length) {
+                	if( col / 8 + row * bytesPerRow < frame.getPlane(i).length) {
             			v += (frame.getPlane(i)[col / 8 + row * bytesPerRow] & mask) != 0 ? (1<<i) : 0;
-                	//}
+                	}
                 }
                 if( useColorIndex ) {
                 	gcImage.setBackground(cols[v]);
