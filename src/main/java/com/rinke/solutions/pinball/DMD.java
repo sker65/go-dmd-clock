@@ -92,14 +92,23 @@ public class DMD extends Observable {
     }
     
 	public void setSize(int w, int h) {
+		setSize(w, h, false);
+	}
+
+	public void setSize(int w, int h, boolean preserveMask) {
 		this.width = w;
 		this.height = h;
 		bytesPerRow = width / 8;
 		if (width % 8 > 0)
 			bytesPerRow++;
 		planeSize = bytesPerRow * height;
-		
-		frame = new Frame();
+		if( preserveMask ) {
+			Mask m = frame.mask;
+			frame = new Frame();
+			frame.setMask(m);
+		} else {
+			frame = new Frame();
+		}
 		setNumberOfPlanes(2);
 		actualBuffer = 0;
 		buffers.clear();
