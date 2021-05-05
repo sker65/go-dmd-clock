@@ -225,7 +225,7 @@ public class AnimationHandler implements Runnable {
 	
 	public void ensureDmdSize(Animation ani) {
 		if( dmd.getWidth() != ani.width || dmd.getHeight() != ani.height ) {
-			dmd.setSize(ani.width, ani.height);
+			dmd.setSize(ani.width, ani.height, true);
 			vm.setDmdSize(DmdSize.fromWidthHeight(ani.width, ani.height));
 		}
 	}
@@ -294,7 +294,7 @@ public class AnimationHandler implements Runnable {
 					maskToUse = vm.selectedScene.getCurrentMask();
 				}
 				if( vm.selectedEditMode.haveSceneDetectionMasks && preferDetectionMask ){
-					maskToUse = vm.selectedScene.getMask(vm.selectedMaskNumber); 
+					maskToUse = vm.selectedScene.getMaskWithSize(vm.selectedMaskNumber, vm.srcDmdSize.planeSize); 
 				}
 			}
 			if( vm.selectedEditMode.enableDetectionMask && !vm.selectedEditMode.haveSceneDetectionMasks
