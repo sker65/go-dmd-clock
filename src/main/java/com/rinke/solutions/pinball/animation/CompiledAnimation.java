@@ -1,13 +1,12 @@
 package com.rinke.solutions.pinball.animation;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-
-import org.bouncycastle.util.Arrays;
 
 import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.model.Frame;
@@ -56,11 +55,20 @@ public class CompiledAnimation extends Animation {
 	}
 
 	public Mask getMask(int i) {
+		return getMaskWithSize(i, (width/8 * height));
+	}
+	
+	public Mask getMaskWithSize(int i, int size) {
 		while( i+1 > masks.size()) {
-			Mask mask = new Mask(width/8 * height);
+			Mask mask = new Mask(size);
 			masks.add( mask );
 		}
-		return masks.get(i);
+		Mask m = masks.get(i);
+		if( m.data.length != size ) {
+			// sanitize mask size
+			m.data = Arrays.copyOfRange(m.data,0,size);
+		}
+		return m;
 	}
 
 	@Override
