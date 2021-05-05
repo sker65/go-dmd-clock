@@ -304,6 +304,13 @@ public class ProjectHandler extends AbstractCommandHandler {
 				
 				// mask
 				vm.masks.clear();
+				// sanitize masks
+				for(Mask m : p.masks) {
+					if(m.data.length != vm.srcDmdSize.planeSize) {
+						m.data = new byte[vm.srcDmdSize.planeSize];
+						log.warn("project detection mask changed to {}",vm.srcDmdSize.planeSize );
+					}
+				}
 				vm.masks.addAll(p.masks);
 				log.info("loaded {} masks", vm.masks.size());
 			});
