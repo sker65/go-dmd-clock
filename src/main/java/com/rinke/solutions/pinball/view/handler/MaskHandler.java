@@ -159,6 +159,7 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 							res.add(" "+pm.name);
 						}
 					}
+					// TODO local detection masks on a scene will never be unlocked
 					if (res.size() == 0) {
 						vm.masks.get(vm.selectedMaskNumber).locked = false;
 						vm.dmd.getFrame().mask.locked = false;
