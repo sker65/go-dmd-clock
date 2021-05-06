@@ -52,6 +52,7 @@ public class ViewModel extends AbstractModel {
 	public boolean dirty;
 	public DmdSize dmdSize;
 	public DmdSize srcDmdSize;
+	public DmdSize prjDmdSize;
 	public ScalerType scalerType;
 	public String pin2dmdAdress;
 	public String projectFilename;
@@ -78,6 +79,7 @@ public class ViewModel extends AbstractModel {
 	public void init(DMD dmd, DmdSize ds, String address, int noOfMasks, Config config) {
 		this.dmd = dmd;
 		setDmdSize(ds);
+		setPrjDmdSize(ds);
 		setSrcDmdSize(DmdSize.fromOrdinal(config.getInteger(Config.SRCSIZE)));
 		setSelectedPalette( paletteMap.get(0) );
 		setPin2dmdAdress( address );
@@ -703,6 +705,10 @@ public class ViewModel extends AbstractModel {
 
 	public void setLinkedFrameOffset(int linkedFrameOffset) {
 		firePropertyChange("linkedFrameOffset", this.linkedFrameOffset, this.linkedFrameOffset = linkedFrameOffset);
+	}
+
+	public void setPrjDmdSize(DmdSize prjDmdSize) {
+		firePropertyChange("prjDmdSize", this.prjDmdSize, this.prjDmdSize = prjDmdSize);
 	}
 
 }
