@@ -25,7 +25,7 @@ public class ViewModelTest {
 
 	@Test
 	public void testInit() throws Exception {
-		uut.init(dmd, size, "foo", 10, new Config());
+		uut.init(dmd, size, size, "foo", 10, new Config());
 	}
 
 }

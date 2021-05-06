@@ -96,7 +96,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 	
 	public void onDmdSizeChanged( DmdSize o, DmdSize newSize) {
 		vm.dmd.setSize(newSize.width, newSize.height);
-		vm.init(vm.dmd, newSize, vm.pin2dmdAdress, vm.maxNumberOfMasks, config);
+		vm.init(vm.dmd, newSize, vm.prjDmdSize, vm.pin2dmdAdress, vm.maxNumberOfMasks, config);
 		vm.setDmdDirty(true);
 	}
 
@@ -534,8 +534,8 @@ public class ProjectHandler extends AbstractCommandHandler {
 							int k = 0;
 							for (int i = 0; i < noOfFrames; i++) {
 								// for "crc masks" it is okay to use the bigger plane size = dmdSize
-								if (i % (vm.dmdSize.planeSize / 4) == 0) {
-									frameSeq.masks.add(new Mask(vm.dmdSize.planeSize)); // add a new plane according to number of CRCs
+								if (i % (vm.prjDmdSize.planeSize / 4) == 0) {
+									frameSeq.masks.add(new Mask(vm.prjDmdSize.planeSize)); // add a new plane according to number of CRCs
 									if (i>0)
 										frameSeq.masks.get(crcMask).data = Frame.transform(frameSeq.masks.get(crcMask).data); // revert bit order for CRCs
 									crcMask++;
@@ -558,7 +558,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 							int noOfFrames = vm.scenes.get(p.frameSeqName).frames.size();
 							if (vm.scenes.get(p.frameSeqName).frames.get(1).mask == null) { //create masks if not exist
 								for(int frameNo = 0; frameNo < vm.scenes.get(p.frameSeqName).frames.size();frameNo++) {
-									vm.scenes.get(p.frameSeqName).frames.get(frameNo).mask = new Mask(vm.dmdSize.planeSize);
+									vm.scenes.get(p.frameSeqName).frames.get(frameNo).mask = new Mask(vm.prjDmdSize.planeSize);
 								}
 							}
 							int k = 0;
@@ -597,7 +597,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 				CompiledAnimation cani = ani.cutScene(ani.start, ani.end, 0);
 				cani.actFrame = 0;
 				cani.setDesc(ani.getDesc());
-				DMD tmp = new DMD(vm.dmdSize);
+				DMD tmp = new DMD(cani.width, cani.height);
 				for (int i = cani.start; i <= cani.end; i++) {
 					cani.getCurrentMask();
 					Frame f = cani.render(tmp, false);
@@ -733,7 +733,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 			// save as
 			p.inputFiles.remove(p.name + ".ani");
 		}
-		p.setDimension(vm.dmdSize.width, vm.dmdSize.height);
+		p.setDimension(vm.prjDmdSize.width, vm.prjDmdSize.height);
 		p.setSrcDimension(vm.srcDmdSize.width, vm.srcDmdSize.height);
 		
 		// we need to "tag" the projects animations that are always stored in the projects ani file
@@ -771,11 +771,11 @@ public class ProjectHandler extends AbstractCommandHandler {
 		p.inputFiles.addAll(vm.inputFiles);
 		if( vm.projectFilename != null ) p.name = bareName(vm.projectFilename);
 		p.bookmarksMap.putAll(vm.bookmarksMap);
-		p.mask = new byte[vm.dmdSize.planeSize];
+		p.mask = new byte[vm.prjDmdSize.planeSize];
 		Arrays.fill(p.mask, (byte)0xFF);		// just for backwards comp. of older version of editor that expect something here
 		p.palMappings.addAll(vm.keyframes.values());
-		p.height = vm.dmdSize.height;
-		p.width = vm.dmdSize.width;
+		p.height = vm.prjDmdSize.height;
+		p.width = vm.prjDmdSize.width;
 		p.srcHeight = vm.srcDmdSize.height;
 		p.srcWidth = vm.srcDmdSize.width;
 		p.version = 2;

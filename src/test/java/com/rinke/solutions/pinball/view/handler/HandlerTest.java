@@ -12,7 +12,7 @@ public class HandlerTest {
 	
 	public HandlerTest() {
 		super();
-		vm.init(dmd, DmdSize.Size128x32, "address", 10, new Config());
+		vm.init(dmd, DmdSize.Size128x32, DmdSize.Size128x32, "address", 10, new Config());
 	}
 
 	protected ViewModel vm = new ViewModel();

@@ -76,10 +76,10 @@ public class ViewModel extends AbstractModel {
 	public boolean shouldClose;
 //	private List<EditMode> immutable = Arrays.asList( Animation.EditMode.FIXED );
 	
-	public void init(DMD dmd, DmdSize ds, String address, int noOfMasks, Config config) {
+	public void init(DMD dmd, DmdSize ds, DmdSize prjSize, String address, int noOfMasks, Config config) {
 		this.dmd = dmd;
 		setDmdSize(ds);
-		setPrjDmdSize(ds);
+		setPrjDmdSize(prjSize);
 		setSrcDmdSize(DmdSize.fromOrdinal(config.getInteger(Config.SRCSIZE)));
 		setSelectedPalette( paletteMap.get(0) );
 		setPin2dmdAdress( address );
