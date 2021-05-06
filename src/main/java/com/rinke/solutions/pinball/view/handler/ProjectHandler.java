@@ -520,16 +520,20 @@ public class ProjectHandler extends AbstractCommandHandler {
 								.stream().filter(m->m.locked).collect(Collectors.toList());
 						// due to a bug in the current firmware, it is mandatory to have a mask in any case
 						if (frameSeq.masks.size() == 0) {
-							frameSeq.masks.add(new Mask(vm.dmdSize.planeSize));
+							frameSeq.masks.add(new Mask(vm.srcDmdSize.planeSize));
 							frameSeq.masks.get(0).locked = true;
 						}
 						
 						if (realPin && !useOldExport) {
+							
+							// create a "crc" mask: put crc bytes (4 bytes) in a mask plane
+							
 							int noOfFrames = vm.scenes.get(p.frameSeqName).frames.size();
 							int crcMask = frameSeq.masks.size() - 1;
 							
 							int k = 0;
 							for (int i = 0; i < noOfFrames; i++) {
+								// for "crc masks" it is okay to use the bigger plane size = dmdSize
 								if (i % (vm.dmdSize.planeSize / 4) == 0) {
 									frameSeq.masks.add(new Mask(vm.dmdSize.planeSize)); // add a new plane according to number of CRCs
 									if (i>0)
