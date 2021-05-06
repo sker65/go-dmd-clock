@@ -53,6 +53,18 @@ public class CompiledAnimation extends Animation {
 	public List<Mask> getMasks() {
 		return masks;
 	}
+	
+	public void lockMask(int i) {
+		if( i >= 0 && i < masks.size() ) {
+			masks.get(i).locked = true;
+		}
+	}
+
+	public void unlockMask(int i) {
+		if( i >= 0 && i < masks.size() ) {
+			masks.get(i).locked = false;
+		}
+	}
 
 	public Mask getMask(int i) {
 		return getMaskWithSize(i, (width/8 * height));
