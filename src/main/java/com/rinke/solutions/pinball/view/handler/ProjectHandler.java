@@ -515,14 +515,15 @@ public class ProjectHandler extends AbstractCommandHandler {
 						frameSeq.mask = 0b11111111111111111111111111111100;
 					}
 					if (p.switchMode.equals(SwitchMode.LAYEREDCOL) || p.switchMode.equals(SwitchMode.LAYEREDREPLACE) ) { // ref the scene local masks
-						// filter out unlocked masks		
-						if ( vm.scenes.get(p.frameSeqName).getMasks().size() != 0 && vm.scenes.get(p.frameSeqName).getMask(0).data.length == vm.srcDmdSize.planeSize ) {
-							frameSeq.masks = vm.scenes.get(p.frameSeqName).getMasks()
-									.stream().filter(m->m.locked).collect(Collectors.toList());
-						} else {
-							// TODO copy maskdata here
-							frameSeq.masks = vm.scenes.get(p.frameSeqName).getMasks()
-									.stream().filter(m->m.locked).collect(Collectors.toList());
+						// filter out unlocked masks
+						frameSeq.masks = vm.scenes.get(p.frameSeqName).getMasks()
+								.stream().filter(m->m.locked).collect(Collectors.toList());
+						if ( vm.scenes.get(p.frameSeqName).getMasks().size() != 0 && vm.scenes.get(p.frameSeqName).getMask(0).data.length != vm.srcDmdSize.planeSize ) {
+							for (int i = 0; i < frameSeq.masks.size(); i++) {
+								Mask mask = new Mask(vm.srcDmdSize.planeSize);
+								System.arraycopy(frameSeq.masks.get(i).data, 0, mask.data, 0, vm.srcDmdSize.planeSize);
+								frameSeq.masks.set(i, mask);
+							}
 						}
 						// due to a bug in the current firmware, it is mandatory to have a mask in any case
 						if (frameSeq.masks.size() == 0) {
