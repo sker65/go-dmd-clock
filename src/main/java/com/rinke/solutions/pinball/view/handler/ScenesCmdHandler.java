@@ -275,8 +275,10 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 		editLink.open();
 		if( editLink.okClicked() && vm.selectedScene != null) {
 			vm.selectedScene.setRecordingLink(editLink.getRecordingLink());
-			vm.selectedScene.getActualFrame().frameLink.recordingName = editLink.getRecordingLink().associatedRecordingName;
-			vm.selectedScene.getActualFrame().frameLink.frame = editLink.getRecordingLink().startFrame;
+			if (vm.selectedScene.getActualFrame().frameLink != null) {
+				vm.selectedScene.getActualFrame().frameLink.recordingName = editLink.getRecordingLink().associatedRecordingName;
+				vm.selectedScene.getActualFrame().frameLink.frame = editLink.getRecordingLink().startFrame; 
+			}
 		}
 	}
 	
