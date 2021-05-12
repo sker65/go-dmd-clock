@@ -130,6 +130,7 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 			for( Frame f : ani.frames ) {
 				swap(f, old, newIdx, vm.dmd.getWidth(), vm.dmd.getHeight());
 			}
+			swap(vm.dmd.getFrame(), old, newIdx, vm.dmd.getWidth(), vm.dmd.getHeight());
 			vm.setPaletteDirty(true);
 		}
 	}
