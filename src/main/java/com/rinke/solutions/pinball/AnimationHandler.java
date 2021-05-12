@@ -294,6 +294,13 @@ public class AnimationHandler implements Runnable {
 					maskToUse = vm.selectedScene.getCurrentMask();
 				}
 				if( vm.selectedEditMode.haveSceneDetectionMasks && preferDetectionMask ){
+					if (vm.selectedScene.getMask(vm.selectedMaskNumber).data.length != vm.srcDmdSize.planeSize) {
+						for (int i = 0; i < vm.selectedScene.getMasks().size(); i++) {
+							Mask mask = new Mask(vm.srcDmdSize.planeSize);
+							System.arraycopy(vm.selectedScene.getMask(i).data, 0, mask.data, 0, vm.srcDmdSize.planeSize);
+							vm.selectedScene.getMasks().set(i, mask);
+						}
+					}
 					maskToUse = vm.selectedScene.getMaskWithSize(vm.selectedMaskNumber, vm.srcDmdSize.planeSize); 
 				}
 			}
