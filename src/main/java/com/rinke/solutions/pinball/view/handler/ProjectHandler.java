@@ -516,8 +516,14 @@ public class ProjectHandler extends AbstractCommandHandler {
 					}
 					if (p.switchMode.equals(SwitchMode.LAYEREDCOL) || p.switchMode.equals(SwitchMode.LAYEREDREPLACE) ) { // ref the scene local masks
 						// filter out unlocked masks		
-						frameSeq.masks = vm.scenes.get(p.frameSeqName).getMasks()
-								.stream().filter(m->m.locked).collect(Collectors.toList());
+						if ( vm.scenes.get(p.frameSeqName).getMasks().size() != 0 && vm.scenes.get(p.frameSeqName).getMask(0).data.length == vm.srcDmdSize.planeSize ) {
+							frameSeq.masks = vm.scenes.get(p.frameSeqName).getMasks()
+									.stream().filter(m->m.locked).collect(Collectors.toList());
+						} else {
+							// TODO copy maskdata here
+							frameSeq.masks = vm.scenes.get(p.frameSeqName).getMasks()
+									.stream().filter(m->m.locked).collect(Collectors.toList());
+						}
 						// due to a bug in the current firmware, it is mandatory to have a mask in any case
 						if (frameSeq.masks.size() == 0) {
 							frameSeq.masks.add(new Mask(vm.srcDmdSize.planeSize));
