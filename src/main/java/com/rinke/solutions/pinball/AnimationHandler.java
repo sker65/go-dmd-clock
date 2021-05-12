@@ -298,6 +298,7 @@ public class AnimationHandler implements Runnable {
 						for (int i = 0; i < vm.selectedScene.getMasks().size(); i++) {
 							Mask mask = new Mask(vm.srcDmdSize.planeSize);
 							System.arraycopy(vm.selectedScene.getMask(i).data, 0, mask.data, 0, vm.srcDmdSize.planeSize);
+							mask.locked = vm.selectedScene.getMask(i).locked;
 							vm.selectedScene.getMasks().set(i, mask);
 						}
 					}
