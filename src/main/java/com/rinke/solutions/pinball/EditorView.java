@@ -370,8 +370,13 @@ public class EditorView implements MainView {
 		MenuItem mntmPaste = new MenuItem(menu_5, SWT.NONE);
 		mntmPaste.setText("Paste\tCtrl-V");
 		mntmPaste.setAccelerator(SWT.MOD1 + 'V');
-		mntmPaste.addListener(SWT.Selection, e -> dispatchCmd(PASTE)); 
+		mntmPaste.addListener(SWT.Selection, e -> dispatchCmd(PASTE, false)); 
 
+		MenuItem mntmPasteWithScale = new MenuItem(menu_5, SWT.NONE);
+		mntmPasteWithScale.setText("Paste Scale\tAlt-Ctrl-V");
+		mntmPasteWithScale.setAccelerator(SWT.MOD1 + SWT.MOD3  + 'V');
+		mntmPasteWithScale.addListener(SWT.Selection, e -> dispatchCmd(PASTE, true)); 
+		
 		MenuItem mntmPasteWithHover = new MenuItem(menu_5, SWT.NONE);
 		mntmPasteWithHover.setText("Paste Over\tShift-Ctrl-V");
 		mntmPasteWithHover.setAccelerator(SWT.MOD1 + SWT.MOD2 + 'V');

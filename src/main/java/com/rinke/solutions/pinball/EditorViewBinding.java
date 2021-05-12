@@ -52,8 +52,8 @@ public class EditorViewBinding extends AbstractCommandHandler implements ViewBin
 		editorView.getClipboardHandler().onCopy(pal);
 	}
 	
-	public void onPaste() {
-		editorView.getClipboardHandler().onPaste();
+	public void onPaste(Boolean scale) {
+		editorView.getClipboardHandler().onPaste(scale);
 	}
 
 	public void onPasteHoover() {
