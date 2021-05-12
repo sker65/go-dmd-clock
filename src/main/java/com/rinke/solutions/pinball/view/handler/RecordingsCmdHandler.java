@@ -78,7 +78,8 @@ public class RecordingsCmdHandler extends AbstractListCmdHandler implements View
 				vm.setPreviewDMD(null);
 				
 				setPlayingAni(a, recordingsPosMap.getOrDefault(a.getDesc(), 0));
-				vm.setDmdDirty(true);
+				if (vm.dmdSize.planeSize == vm.prjDmdSize.planeSize)
+					vm.setDmdDirty(true);
 				
 				vm.setSelectedPalette(vm.paletteMap.values().stream()
 						.filter(p->p.type.equals(PaletteType.DEFAULT)).findFirst().orElse(vm.selectedPalette));

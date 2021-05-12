@@ -51,7 +51,8 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 		
 		if( current != null ) {
 			vm.scenesPosMap.put(current.getDesc(), current.actFrame);
-			current.commitDMDchanges(vm.dmd);
+			if (vm.dmdSize.planeSize == vm.prjDmdSize.planeSize)
+				current.commitDMDchanges(vm.dmd);
 			vm.setDirty(vm.dirty | current.isDirty());
 		}
 		if( nextScene != null ) {
