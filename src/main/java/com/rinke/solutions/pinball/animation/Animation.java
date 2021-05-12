@@ -180,8 +180,8 @@ public class Animation {
             targetFrame.frameLink = null;
             if (cani != null && cani.getRecordingLink() != null)
             	targetFrame.frameLink = new FrameLink(cani.getRecordingLink().associatedRecordingName,cani.getRecordingLink().startFrame+i);
-            else
-            	targetFrame.frameLink = new FrameLink(this.desc,i);
+//            else
+//            	targetFrame.frameLink = new FrameLink(this.desc,i);
             int marker = targetFrame.planes.size();
             byte[] emptyPlane = new byte[frame.getPlane(0).length];
 			while( targetFrame.planes.size() < actualNumberOfPlanes ) {
