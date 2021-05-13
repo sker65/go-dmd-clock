@@ -88,7 +88,7 @@ public class MenuHandler extends AbstractCommandHandler implements ViewBindingHa
 		Arrays.fill(emptyMask, (byte) 0xFF);
 		vm.setEmptyMask(emptyMask);
 		// dmd, dmdWidget, previewWidget
-		vm.dmd.setSize(newSize.width, newSize.height);
+		vm.dmd.setSize(newSize.width, newSize.height, true);
 		vm.setDmdDirty(true);
 	}
 
