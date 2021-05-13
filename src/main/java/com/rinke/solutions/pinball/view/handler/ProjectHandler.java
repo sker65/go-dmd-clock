@@ -541,8 +541,8 @@ public class ProjectHandler extends AbstractCommandHandler {
 							int k = 0;
 							for (int i = 0; i < noOfFrames; i++) {
 								// for "crc masks" it is okay to use the bigger plane size = dmdSize
-								if (i % (vm.prjDmdSize.planeSize / 4) == 0) {
-									frameSeq.masks.add(new Mask(vm.prjDmdSize.planeSize)); // add a new plane according to number of CRCs
+								if (i % (vm.srcDmdSize.planeSize / 4) == 0) {
+									frameSeq.masks.add(new Mask(vm.srcDmdSize.planeSize)); // add a new plane according to number of CRCs
 									if (i>0)
 										frameSeq.masks.get(crcMask).data = Frame.transform(frameSeq.masks.get(crcMask).data); // revert bit order for CRCs
 									crcMask++;
@@ -563,9 +563,10 @@ public class ProjectHandler extends AbstractCommandHandler {
 					if (p.switchMode.equals(SwitchMode.FOLLOW) || p.switchMode.equals(SwitchMode.FOLLOWREPLACE ) ) { // collect CRCs in mask of first frame.
 						if (realPin && !useOldExport) {
 							int noOfFrames = vm.scenes.get(p.frameSeqName).frames.size();
+							int masksize = vm.scenes.get(p.frameSeqName).frames.get(1).getPlane(0).length;
 							if (vm.scenes.get(p.frameSeqName).frames.get(1).mask == null) { //create masks if not exist
 								for(int frameNo = 0; frameNo < vm.scenes.get(p.frameSeqName).frames.size();frameNo++) {
-									vm.scenes.get(p.frameSeqName).frames.get(frameNo).mask = new Mask(vm.prjDmdSize.planeSize);
+									vm.scenes.get(p.frameSeqName).frames.get(frameNo).mask = new Mask(masksize);
 								}
 							}
 							int k = 0;
