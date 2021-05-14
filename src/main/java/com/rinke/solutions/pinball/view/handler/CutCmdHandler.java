@@ -208,11 +208,17 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 		CompiledAnimation cutScene = animation.cutScene(start, end, vm.noOfPlanesWhenCutting);
 		ScalerType st = ScalerType.fromOrdinal(config.getInteger(Config.SCALERTYPE));
 		if( scale ) {
+			
+			int res = messageUtil.warn(0, "Scaler Type",
+					"Please select", 
+					"",
+					new String[]{"", "Double", "Scale2X"},2);
+			if (res == 0) return null;
 			List<Frame> scaledFrames = new ArrayList<>();
 			for (int i = 0; i < cutScene.frames.size(); i++) {
-				if( st.equals(ScalerType.EPX))
+				if( res == 2)
 					scaledFrames.add(FrameScaler.scale2xFrame(cutScene.frames.get(i), animation.width, animation.height));
-				if( st.equals(ScalerType.NearPixel))
+				if( res == 1)
 					scaledFrames.add(FrameScaler.scaleFrame(cutScene.frames.get(i), animation.width, animation.height));
 			}
 			cutScene.frames = scaledFrames;
