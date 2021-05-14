@@ -110,6 +110,8 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 	public void onPickColor(int rgb) {
 		if( vm.selectedPalette != null && vm.numberOfPlanes >= Constants.MAX_BIT_PER_COLOR_CHANNEL*3) {
 			vm.selectedPalette.colors[vm.selectedColor] = RGB.fromInt(rgb);
+		} else {
+			vm.setSelectedColor(rgb);
 		}
 		vm.setPaletteDirty(true);
 	}
