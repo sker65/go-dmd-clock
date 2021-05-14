@@ -1,17 +1,12 @@
 package com.rinke.solutions.pinball.animation;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.tuple.Pair;
-import org.eclipse.swt.widgets.Shell;
 
 import com.rinke.solutions.pinball.DMD;
-import com.rinke.solutions.pinball.animation.CompiledAnimation.RecordingLink;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.FrameLink;
 import com.rinke.solutions.pinball.model.Mask;
@@ -29,6 +24,8 @@ import com.rinke.solutions.pinball.renderer.RgbRenderer;
 import com.rinke.solutions.pinball.renderer.VPinMameRawRenderer;
 import com.rinke.solutions.pinball.renderer.VPinMameRenderer;
 import com.rinke.solutions.pinball.renderer.VideoCapRenderer;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class Animation {
@@ -161,8 +158,10 @@ public class Animation {
 		DMD tmp = new DMD(width,height);
 		CompiledAnimation dest = new CompiledAnimation(
 				AnimationType.COMPILED, this.getName(),
-				0, end-start, this.skip, 1, 0, width, height);
+				0, end-start, this.skip, 1, 0);
 		dest.setMutable(true);
+		dest.width = this.width;
+		dest.height = this.height;
 		//dest.setDirty(true);
 		dest.setClockFrom(Short.MAX_VALUE);
 		// rerender and thereby copy all frames
@@ -175,14 +174,14 @@ public class Animation {
 		for (int i = start; i <= end; i++) {
 			Frame frame = this.render(tmp, false);
             log.debug("source frame {}",frame);
-			if( i == start ) tcOffset = frame.timecode;
 			Frame targetFrame = new Frame(frame);
+			if( i == start ) tcOffset = frame.timecode;
             targetFrame.timecode -= tcOffset;
             targetFrame.frameLink = null;
             if (cani != null && cani.getRecordingLink() != null)
             	targetFrame.frameLink = new FrameLink(cani.getRecordingLink().associatedRecordingName,cani.getRecordingLink().startFrame+i);
-            else
-            	targetFrame.frameLink = new FrameLink(this.desc,i);
+//            else
+//            	targetFrame.frameLink = new FrameLink(this.desc,i);
             int marker = targetFrame.planes.size();
             byte[] emptyPlane = new byte[frame.getPlane(0).length];
 			while( targetFrame.planes.size() < actualNumberOfPlanes ) {
@@ -328,6 +327,13 @@ public class Animation {
 		renderer.getMaxFrame(basePath+name, dmd);
 		if( renderer.getPalette() != null ) {
 			aniColors = renderer.getPalette().colors;
+		}
+		Properties rendererProps = renderer.getProps();
+		String width = rendererProps.getProperty("width");
+		if( width!= null && Integer.parseInt(width) != dmd.getWidth()) {
+			int w = Integer.parseInt(rendererProps.getProperty("width"));
+			int h = Integer.parseInt(rendererProps.getProperty("height"));
+			setDimension(w, h);
 		}
 	}
 	

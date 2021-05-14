@@ -92,7 +92,7 @@ public class AnimationControlHandler extends AbstractCommandHandler implements V
 	}
 
 	public void onPrevFrame() {
-		vm.linkedFrameOffset=0;
+		vm.setLinkedFrameOffset(0);
 		if(vm.minFrame < vm.selectedFrame) {
 		vm.setSelectedFrame(vm.selectedFrame-vm.frameIncrement);
 		vm.setSelection(null);
@@ -100,7 +100,7 @@ public class AnimationControlHandler extends AbstractCommandHandler implements V
 	}
 	
 	public void onNextFrame() {
-		vm.linkedFrameOffset=0;
+		vm.setLinkedFrameOffset(0);
 		if((vm.selectedFrame + vm.frameIncrement ) <= vm.maxFrame) {
 		vm.setSelectedFrame(vm.selectedFrame+vm.frameIncrement);
 		vm.setSelection(null);
@@ -109,7 +109,7 @@ public class AnimationControlHandler extends AbstractCommandHandler implements V
 	
 	public void onPreviewPrevFrame() {
 		if( vm.selectedEditMode.pullFrameDataFromAssociatedRecording ) {
-			vm.linkedFrameOffset--;
+			vm.setLinkedFrameOffset(vm.linkedFrameOffset-1);
 			animationHandler.forceRerender();
 		} else if(vm.minFrame < vm.selectedFrame) {
 			vm.setSelectedFrame(vm.selectedFrame-vm.frameIncrement);
@@ -119,7 +119,7 @@ public class AnimationControlHandler extends AbstractCommandHandler implements V
 	
 	public void onPreviewNextFrame() {
 		if( vm.selectedEditMode.pullFrameDataFromAssociatedRecording ) {
-			vm.linkedFrameOffset++;
+			vm.setLinkedFrameOffset(vm.linkedFrameOffset+1);
 			animationHandler.forceRerender();
 		} else if((vm.selectedFrame + vm.frameIncrement ) <= vm.maxFrame) {
 			vm.setSelectedFrame(vm.selectedFrame+vm.frameIncrement);

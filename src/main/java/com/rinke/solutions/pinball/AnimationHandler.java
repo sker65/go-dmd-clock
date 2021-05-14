@@ -13,6 +13,7 @@ import com.rinke.solutions.pinball.animation.AniEvent;
 import com.rinke.solutions.pinball.animation.AniEvent.Type;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.Animation.EditMode;
+import com.rinke.solutions.pinball.animation.FrameScaler;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.animation.CompiledAnimation.RecordingLink;
 import com.rinke.solutions.pinball.animation.EventHandler;
@@ -121,9 +122,9 @@ public class AnimationHandler implements Runnable {
 					if((mode.pullFrameDataFromAssociatedRecording && link != null) || (cani.frames.get(0).planes.size()==24 && link != null) ) {
 						// calc offset
 						int frameNo = 0;
-						if (vm.selectedScene.getActualFrame().frameLink != null) {
+						if (vm.selectedScene != null && vm.selectedScene.getActualFrame().frameLink != null) {
             				linkedAnimation = vm.recordings.get(vm.selectedScene.getActualFrame().frameLink.recordingName);
-            				frameNo = vm.selectedScene.getActualFrame().frameLink.frame + vm.linkedFrameOffset;
+            				frameNo = vm.selectedScene.getActualFrame().frameLink.frame;
             			} else {
             				linkedAnimation = vm.recordings.get(link.associatedRecordingName);
     						frameNo =  link.startFrame + actFrame + vm.linkedFrameOffset;
@@ -131,15 +132,15 @@ public class AnimationHandler implements Runnable {
 						if (linkedAnimation != null) {
 							if (frameNo < 0) {
 								frameNo = 0;
-								vm.linkedFrameOffset++;
+								vm.setLinkedFrameOffset(vm.linkedFrameOffset+1);
 								}
 							if (frameNo >= linkedAnimation.end) {
 								frameNo = linkedAnimation.end;
-								vm.linkedFrameOffset--;
+								vm.setLinkedFrameOffset(vm.linkedFrameOffset-1);
 								}
 							
 	                		if(vm.previewDMD == null) {
-		    					DMD previewDMD = new DMD(vm.dmdSize);
+		    					DMD previewDMD = new DMD(linkedAnimation.width,linkedAnimation.height);
 		    					vm.setPreviewDMD(previewDMD);
 		    				}
 	                		
@@ -165,7 +166,7 @@ public class AnimationHandler implements Runnable {
 				
                 if(ani instanceof RawAnimation) {
             		if(vm.previewDMD == null) {
-    					DMD previewDMD = new DMD(vm.dmdSize);
+    					DMD previewDMD = new DMD(ani.width,ani.height);
     					vm.setPreviewDMD(previewDMD);
     				}
                 	RawAnimation rani = (RawAnimation)ani;       	
@@ -193,8 +194,14 @@ public class AnimationHandler implements Runnable {
                         dmd.writeOr(tmp.getFrame());
                     } else {
                     	log.debug("writing to dmd: {}", dmd);
-                        dmd.writeOr(res);
-                        dmd.dumpHistogram();
+                    	if( linkedAnimation != null && vm.detectionMaskActive ) {
+                    		ensureDmdSize(linkedAnimation);
+                    		dmd.writeOr(previewRes);
+                    	} else {
+                    		ensureDmdSize(ani);
+                    		dmd.writeOr(res);
+                    	}
+                        //dmd.dumpHistogram();
                     }
                 }
                 Frame f = dmd.getFrame();
@@ -215,7 +222,13 @@ public class AnimationHandler implements Runnable {
 				}
 			}
 		}
-
+	}
+	
+	public void ensureDmdSize(Animation ani) {
+		if( dmd.getWidth() != ani.width || dmd.getHeight() != ani.height ) {
+			dmd.setSize(ani.width, ani.height, true);
+			vm.setDmdSize(DmdSize.fromWidthHeight(ani.width, ani.height));
+		}
 	}
 
 	public void updateScale(Animation ani) {
@@ -282,7 +295,15 @@ public class AnimationHandler implements Runnable {
 					maskToUse = vm.selectedScene.getCurrentMask();
 				}
 				if( vm.selectedEditMode.haveSceneDetectionMasks && preferDetectionMask ){
-					maskToUse = vm.selectedScene.getMask(vm.selectedMaskNumber); 
+					if (vm.selectedScene.getMask(vm.selectedMaskNumber).data.length != vm.srcDmdSize.planeSize) {
+						for (int i = 0; i < vm.selectedScene.getMasks().size(); i++) {
+							Mask mask = new Mask(vm.srcDmdSize.planeSize);
+							System.arraycopy(vm.selectedScene.getMask(i).data, 0, mask.data, 0, vm.srcDmdSize.planeSize);
+							mask.locked = vm.selectedScene.getMask(i).locked;
+							vm.selectedScene.getMasks().set(i, mask);
+						}
+					}
+					maskToUse = vm.selectedScene.getMaskWithSize(vm.selectedMaskNumber, vm.srcDmdSize.planeSize); 
 				}
 			}
 			if( vm.selectedEditMode.enableDetectionMask && !vm.selectedEditMode.haveSceneDetectionMasks

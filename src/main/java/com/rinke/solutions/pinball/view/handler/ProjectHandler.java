@@ -38,6 +38,7 @@ import com.rinke.solutions.pinball.Constants;
 import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.Dispatcher;
 import com.rinke.solutions.pinball.DmdSize;
+import com.rinke.solutions.pinball.ScalerType;
 import com.rinke.solutions.pinball.Worker;
 import com.rinke.solutions.pinball.animation.AniReader;
 import com.rinke.solutions.pinball.animation.AniWriter;
@@ -76,6 +77,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 	@Autowired IProgress progress;
 	@Autowired AnimationActionHandler aniAction;
 	@Autowired LicenseManager licenseManager;
+	@Autowired Config config;
 
 	@Value(key=Config.OLDEXPORT)
 	boolean useOldExport;
@@ -94,7 +96,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 	
 	public void onDmdSizeChanged( DmdSize o, DmdSize newSize) {
 		vm.dmd.setSize(newSize.width, newSize.height);
-		vm.init(vm.dmd, newSize, vm.pin2dmdAdress, vm.maxNumberOfMasks);
+		vm.init(vm.dmd, newSize, vm.prjDmdSize, vm.pin2dmdAdress, vm.maxNumberOfMasks, config);
 		vm.setDmdDirty(true);
 	}
 
@@ -268,9 +270,12 @@ public class ProjectHandler extends AbstractCommandHandler {
 					p.width = 128;
 					p.height = 32; // default for older projects
 				}
+				if( p.srcWidth == 0) p.srcWidth = p.width;
+				if( p.srcHeight == 0) p.srcHeight = p.height;
 				DmdSize newSize = DmdSize.fromWidthHeight(p.width, p.height);
 				vm.dmd.setSize(p.width, p.height);
 				vm.setDmdSize(newSize);
+				vm.setSrcDmdSize(DmdSize.fromWidthHeight(p.srcWidth, p.srcHeight));
 				vm.setProjectFilename(filename);
 				vm.recordings.clear();
 				vm.has4PlanesRecording = false;
@@ -299,6 +304,13 @@ public class ProjectHandler extends AbstractCommandHandler {
 				
 				// mask
 				vm.masks.clear();
+				// sanitize masks
+				for(Mask m : p.masks) {
+					if(m.data.length != vm.srcDmdSize.planeSize) {
+						m.data = new byte[vm.srcDmdSize.planeSize];
+						log.warn("project detection mask changed to {}",vm.srcDmdSize.planeSize );
+					}
+				}
 				vm.masks.addAll(p.masks);
 				log.info("loaded {} masks", vm.masks.size());
 			});
@@ -503,23 +515,34 @@ public class ProjectHandler extends AbstractCommandHandler {
 						frameSeq.mask = 0b11111111111111111111111111111100;
 					}
 					if (p.switchMode.equals(SwitchMode.LAYEREDCOL) || p.switchMode.equals(SwitchMode.LAYEREDREPLACE) ) { // ref the scene local masks
-						// filter out unlocked masks		
+						// filter out unlocked masks
 						frameSeq.masks = vm.scenes.get(p.frameSeqName).getMasks()
 								.stream().filter(m->m.locked).collect(Collectors.toList());
+						if ( vm.scenes.get(p.frameSeqName).getMasks().size() != 0 && vm.scenes.get(p.frameSeqName).getMask(0).data.length != vm.srcDmdSize.planeSize ) {
+							for (int i = 0; i < frameSeq.masks.size(); i++) {
+								Mask mask = new Mask(vm.srcDmdSize.planeSize);
+								System.arraycopy(frameSeq.masks.get(i).data, 0, mask.data, 0, vm.srcDmdSize.planeSize);
+								frameSeq.masks.set(i, mask);
+							}
+						}
 						// due to a bug in the current firmware, it is mandatory to have a mask in any case
 						if (frameSeq.masks.size() == 0) {
-							frameSeq.masks.add(new Mask(vm.dmdSize.planeSize));
+							frameSeq.masks.add(new Mask(vm.srcDmdSize.planeSize));
 							frameSeq.masks.get(0).locked = true;
 						}
 						
 						if (realPin && !useOldExport) {
+							
+							// create a "crc" mask: put crc bytes (4 bytes) in a mask plane
+							
 							int noOfFrames = vm.scenes.get(p.frameSeqName).frames.size();
 							int crcMask = frameSeq.masks.size() - 1;
 							
 							int k = 0;
 							for (int i = 0; i < noOfFrames; i++) {
-								if (i % (vm.dmdSize.planeSize / 4) == 0) {
-									frameSeq.masks.add(new Mask(vm.dmdSize.planeSize)); // add a new plane according to number of CRCs
+								// for "crc masks" it is okay to use the bigger plane size = dmdSize
+								if (i % (vm.srcDmdSize.planeSize / 4) == 0) {
+									frameSeq.masks.add(new Mask(vm.srcDmdSize.planeSize)); // add a new plane according to number of CRCs
 									if (i>0)
 										frameSeq.masks.get(crcMask).data = Frame.transform(frameSeq.masks.get(crcMask).data); // revert bit order for CRCs
 									crcMask++;
@@ -540,9 +563,10 @@ public class ProjectHandler extends AbstractCommandHandler {
 					if (p.switchMode.equals(SwitchMode.FOLLOW) || p.switchMode.equals(SwitchMode.FOLLOWREPLACE ) ) { // collect CRCs in mask of first frame.
 						if (realPin && !useOldExport) {
 							int noOfFrames = vm.scenes.get(p.frameSeqName).frames.size();
+							int masksize = vm.scenes.get(p.frameSeqName).frames.get(1).getPlane(0).length;
 							if (vm.scenes.get(p.frameSeqName).frames.get(1).mask == null) { //create masks if not exist
 								for(int frameNo = 0; frameNo < vm.scenes.get(p.frameSeqName).frames.size();frameNo++) {
-									vm.scenes.get(p.frameSeqName).frames.get(frameNo).mask = new Mask(vm.dmdSize.planeSize);
+									vm.scenes.get(p.frameSeqName).frames.get(frameNo).mask = new Mask(masksize);
 								}
 							}
 							int k = 0;
@@ -577,11 +601,11 @@ public class ProjectHandler extends AbstractCommandHandler {
 			List<Animation> anis = new ArrayList<>();
 			for (FrameSeq p : frameSeqMap.values()) {
 				Animation ani = vm.scenes.get(p.name);
-				// copy without extending frames
+				// copy without extending frames / scaler does not matter
 				CompiledAnimation cani = ani.cutScene(ani.start, ani.end, 0);
 				cani.actFrame = 0;
 				cani.setDesc(ani.getDesc());
-				DMD tmp = new DMD(vm.dmdSize);
+				DMD tmp = new DMD(cani.width, cani.height);
 				for (int i = cani.start; i <= cani.end; i++) {
 					cani.getCurrentMask();
 					Frame f = cani.render(tmp, false);
@@ -717,7 +741,8 @@ public class ProjectHandler extends AbstractCommandHandler {
 			// save as
 			p.inputFiles.remove(p.name + ".ani");
 		}
-		p.setDimension(vm.dmdSize.width, vm.dmdSize.height);
+		p.setDimension(vm.prjDmdSize.width, vm.prjDmdSize.height);
+		p.setSrcDimension(vm.srcDmdSize.width, vm.srcDmdSize.height);
 		
 		// we need to "tag" the projects animations that are always stored in the projects ani file
 		// the project ani file is not included in the inputFile list but animations gets loaded
@@ -754,11 +779,13 @@ public class ProjectHandler extends AbstractCommandHandler {
 		p.inputFiles.addAll(vm.inputFiles);
 		if( vm.projectFilename != null ) p.name = bareName(vm.projectFilename);
 		p.bookmarksMap.putAll(vm.bookmarksMap);
-		p.mask = new byte[vm.dmdSize.planeSize];
+		p.mask = new byte[vm.prjDmdSize.planeSize];
 		Arrays.fill(p.mask, (byte)0xFF);		// just for backwards comp. of older version of editor that expect something here
 		p.palMappings.addAll(vm.keyframes.values());
-		p.height = vm.dmdSize.height;
-		p.width = vm.dmdSize.width;
+		p.height = vm.prjDmdSize.height;
+		p.width = vm.prjDmdSize.width;
+		p.srcHeight = vm.srcDmdSize.height;
+		p.srcWidth = vm.srcDmdSize.width;
 		p.version = 2;
 		p.paletteMap.putAll(vm.paletteMap);
 		p.masks.clear();

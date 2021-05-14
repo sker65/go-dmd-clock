@@ -49,14 +49,14 @@ public class CutCmdHandlerTest extends HandlerTest {
 	@Test
 	public void testCutScene() throws Exception {
 		CompiledAnimation animation = getScene("foO");
-		uut.cutScene(animation, 0, 0, "1");
+		uut.cutScene(animation, 0, 0, "1", false);
 	}
 
 	@Test
 	public void testCutSceneWithAddPal() throws Exception {
 		uut.addPalWhenCut = true;
 		CompiledAnimation animation = getScene("foO");
-		uut.cutScene(animation, 0, 0, "1");
+		uut.cutScene(animation, 0, 0, "1", false);
 		verify(paletteHandler, times(1)).copyPalettePlaneUpgrade("1");
 	}
 

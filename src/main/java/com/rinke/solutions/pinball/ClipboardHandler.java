@@ -224,7 +224,7 @@ public class ClipboardHandler {
 		return res;
 	}
 
-	public void onPaste() {
+	public void onPaste(Boolean scale) {
 		for( String item : clipboard.getAvailableTypeNames() ) {
 			log.info("Clipboard type: {}", item);
 		}
@@ -255,7 +255,7 @@ public class ClipboardHandler {
 					ImageUtil.convertToFrameWithPalette(bufferedImage, dmd, palette, true);
 					//dmd.setFrame(res);
 				} else {
-					Frame res = ImageUtil.convertToFrame(bufferedImage, width, height, 8);
+					Frame res = ImageUtil.convertToFrame(bufferedImage, width, height, 8, scale);
 					dmd.setFrame(res);
 				}
 			}

@@ -88,13 +88,8 @@ public class MenuHandler extends AbstractCommandHandler implements ViewBindingHa
 		Arrays.fill(emptyMask, (byte) 0xFF);
 		vm.setEmptyMask(emptyMask);
 		// dmd, dmdWidget, previewWidget
-		vm.dmd.setSize(newSize.width, newSize.height);
-		
+		vm.dmd.setSize(newSize.width, newSize.height, true);
 		vm.setDmdDirty(true);
-		onNewProject();
-		// bindings
-		log.info("dmd size changed to {}", newSize.label);
-		config.put(Config.DMDSIZE, newSize.ordinal());
 	}
 
 	public void onNewProject() {
@@ -140,7 +135,7 @@ public class MenuHandler extends AbstractCommandHandler implements ViewBindingHa
 	public void onConfiguration() {
 		log.info("onConfiguration");
 		configDialog.open();
-		// TODO modell class to decouple
+		// TODO model class to decouple
 		if( configDialog.okPressed ) {
 			vm.setPin2dmdAdress(configDialog.getPin2DmdHost());
 			// check changed size
@@ -149,6 +144,8 @@ public class MenuHandler extends AbstractCommandHandler implements ViewBindingHa
 				if( vm.previewDMD != null ) vm.previewDMD = new DMD(configDialog.getDmdSize());
 			}
 			vm.setDmdSize(configDialog.getDmdSize());
+			vm.setSrcDmdSize(configDialog.getSrcDmdSize());
+			vm.setScalerType(configDialog.getScalerType());
 		}
 	}
 	

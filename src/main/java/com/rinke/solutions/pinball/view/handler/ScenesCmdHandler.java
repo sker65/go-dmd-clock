@@ -12,6 +12,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.Bean;
+import com.rinke.solutions.pinball.DmdSize;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.Animation.EditMode;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
@@ -42,7 +43,7 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 	
 	public void onSelectedSceneChanged(CompiledAnimation o, CompiledAnimation nextScene) {
 		log.info("onSceneSelectionChanged: {}", nextScene);
-		vm.linkedFrameOffset = 0;
+		vm.setLinkedFrameOffset(0);
 		Animation current = o;
 		// detect changes
 		if( current == null && nextScene == null ) return;
@@ -50,7 +51,8 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 		
 		if( current != null ) {
 			vm.scenesPosMap.put(current.getDesc(), current.actFrame);
-			current.commitDMDchanges(vm.dmd);
+			if (vm.dmdSize.planeSize == vm.prjDmdSize.planeSize)
+				current.commitDMDchanges(vm.dmd);
 			vm.setDirty(vm.dirty | current.isDirty());
 		}
 		if( nextScene != null ) {
@@ -109,7 +111,10 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 			
 			drawCmdHandler.setDrawMaskByEditMode(m);
 
+			vm.dmd.setSize(nextScene.width, nextScene.height);
 			vm.dmd.setNumberOfPlanes(numberOfPlanes);
+			vm.setDmdSize(DmdSize.fromWidthHeight(nextScene.width, nextScene.height));
+
 			vm.setPaletteToolPlanes(vm.layerMaskActive||vm.detectionMaskActive?1:numberOfPlanes);
 
 			setPlayingAni(nextScene, vm.scenesPosMap.getOrDefault(nextScene.getDesc(), 0));
@@ -271,6 +276,10 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 		editLink.open();
 		if( editLink.okClicked() && vm.selectedScene != null) {
 			vm.selectedScene.setRecordingLink(editLink.getRecordingLink());
+			if (vm.selectedScene.getActualFrame().frameLink != null) {
+				vm.selectedScene.getActualFrame().frameLink.recordingName = editLink.getRecordingLink().associatedRecordingName;
+				vm.selectedScene.getActualFrame().frameLink.frame = editLink.getRecordingLink().startFrame; 
+			}
 		}
 	}
 	

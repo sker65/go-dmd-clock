@@ -137,7 +137,7 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 		else if( editMode != null && editMode.enableLayerMask && vm.selectedScene != null ) {
 			palMapping.withMask = true;
 			palMapping.maskNumber = vm.selectedMaskNumber;
-			vm.selectedScene.getMask(vm.selectedMaskNumber).locked = true;
+			vm.selectedScene.lockMask(vm.selectedMaskNumber);
 			//vm.setDetectionMaskActive(false);
 			palMapping.targetFrameIndex = 0; // how will this look like
 		}
@@ -491,7 +491,7 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 					vm.setHashVal(HashCmdHandler.getPrintableHashes(hash));
 					if( vm.detectionMaskActive && vm.selectedEditMode.haveSceneDetectionMasks) {
 						maskHandler.commitMaskIfNeeded(true);
-						vm.selectedScene.getMask(vm.selectedMaskNumber).locked = true;
+						vm.selectedScene.lockMask(vm.selectedMaskNumber);
 						vm.dmd.getFrame().mask.locked = true;
 						vm.setDmdDirty(true);
 					}

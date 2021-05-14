@@ -134,7 +134,7 @@ public class ClipboardHandlerSWTTest {
 		Object obj = new Frame();
 		when(clipboardMock.getContents(eq("DmdFrameTransfer"))).thenReturn(obj);
 		when(clipboardMock.getAvailableTypeNames()).thenReturn(new String[]{"foo"});
-		clipboardHandler.onPaste();
+		clipboardHandler.onPaste(false);
 	}
 
 	@Test
@@ -144,6 +144,6 @@ public class ClipboardHandlerSWTTest {
 		when(clipboardMock.getContents(eq("ImageTransfer"))).thenReturn(imageData);
 		when(clipboardMock.getAvailableTypeNames()).thenReturn(new String[]{"foo"});
 		clipboardHandler.palette = Palette.getDefaultPalettes().get(0);
-		clipboardHandler.onPaste();
+		clipboardHandler.onPaste(false);
 	}
 }

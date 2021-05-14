@@ -78,7 +78,8 @@ public class VPinMameRenderer extends Renderer {
 				}
 				int charsToRead = Math.min(dmd.getWidth(), line.length());
 				if( dmd.getWidth() != line.length() ) {
-					log.warn("unexpected line length={}, line: {}", line.length(), line);
+					// TODO SR for different sources this could be normal
+					//log.warn("unexpected line length={}, line: {}", line.length(), line);
 				}
 				for (int i = 0; i<charsToRead; i++) {
 					int k = i;
@@ -122,6 +123,37 @@ public class VPinMameRenderer extends Renderer {
 		this.maxFrame = frameNo;
 	}
 
+	private int getPlaneSize(String filename) {
+		BufferedReader stream = null;
+		int noOfLines = 0;
+		int lineLength = 0;
+		try {
+			stream = getReader(filename);
+			String line = stream.readLine();
+			if (line.startsWith("0x")) {
+				line = stream.readLine();
+				lineLength = line.length();
+				while (line != null) {
+					if (line.startsWith("0x")) {
+						break;
+					}
+					noOfLines++;
+					line = stream.readLine();
+				}
+			}
+		} catch (IOException e) {
+			throw new RuntimeException("error reading", e);
+		} finally {
+			if (stream != null)
+				try {
+					stream.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+		}
+		return lineLength * (noOfLines-1) / 8;
+	}
+	
 	private Frame centerRows(Frame in, int planeSize, int bytesPerRow) {
 		Frame out = new Frame(
 				new byte[planeSize],

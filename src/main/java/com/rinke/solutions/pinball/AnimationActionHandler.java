@@ -166,11 +166,12 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 			vm.scenes.clear();
 			vm.playingAnis.clear();
 		}
-		DMD dmd = new DMD(vm.dmdSize);
+		DMD dmd = new DMD(vm.srcDmdSize);
 		for (Animation lani : loadedList) {
 			Animation ani = lani;
 			if( wantScene ) { // try to convert
 				//ani.getAniColors().length;
+				dmd = new DMD(vm.dmdSize);
 				lani.init(dmd);
 				if( lani.end == 0) lani.end = lani.getRenderer().getFrames().size()-1;
 				int noPlanes = lani.getRenderer().getNumberOfPlanes();
@@ -197,10 +198,10 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 					}
 					log.info("ani size was adjusted: {}", ani);
 				}
-				if( ani.width != vm.dmdSize.width || ani.height != vm.dmdSize.height) {
-					int r = messageUtil.warn(SWT.OK | SWT.CANCEL, "Size mismatch", "size of animation does not match to project dmd size");
-					if( r == SWT.CANCEL ) break;
-				} else {
+//				if( ani.width != vm.dmdSize.width || ani.height != vm.dmdSize.height) {
+//					int r = messageUtil.warn(SWT.OK | SWT.CANCEL, "Size mismatch", "size of animation does not match to project dmd size");
+//					if( r == SWT.CANCEL ) break;
+//				} else {
 					if (vm.numberOfColors == 64 && cani.frames.get(0).planes.size() < 6) {
 						for( Frame inFrame : cani.frames ) {
 							while(inFrame.planes.size() < 6)
@@ -208,7 +209,7 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 						}
 					}
 					populateAni(cani, vm.scenes);
-				}
+//				}
 			} else {
 				if (!vm.has4PlanesRecording) {
 					lani.init(dmd);

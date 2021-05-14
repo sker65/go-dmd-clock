@@ -15,6 +15,7 @@ import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.Bean;
 import com.rinke.solutions.pinball.AnimationHandler;
 import com.rinke.solutions.pinball.DMD;
+import com.rinke.solutions.pinball.DmdSize;
 import com.rinke.solutions.pinball.PinDmdEditor;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.Animation.EditMode;
@@ -77,7 +78,8 @@ public class RecordingsCmdHandler extends AbstractListCmdHandler implements View
 				vm.setPreviewDMD(null);
 				
 				setPlayingAni(a, recordingsPosMap.getOrDefault(a.getDesc(), 0));
-				vm.setDmdDirty(true);
+				if (vm.dmdSize.planeSize == vm.prjDmdSize.planeSize)
+					vm.setDmdDirty(true);
 				
 				vm.setSelectedPalette(vm.paletteMap.values().stream()
 						.filter(p->p.type.equals(PaletteType.DEFAULT)).findFirst().orElse(vm.selectedPalette));
@@ -92,9 +94,11 @@ public class RecordingsCmdHandler extends AbstractListCmdHandler implements View
 				} else {
 					//TODO v.goDmdGroup.transitionCombo.select(0);
 				}
-
+				vm.dmd.setSize(a.width, a.height);
 				vm.dmd.setNumberOfPlanes(numberOfPlanes);
+				vm.setDmdSize(DmdSize.fromWidthHeight(a.width, a.height));
 				vm.setPaletteToolPlanes(vm.detectionMaskActive || vm.layerMaskActive ? 1 :numberOfPlanes);
+				animationHandler.forceRerender();
 
 				Set<Bookmark> set = vm.bookmarksMap.get(a.getDesc());
 				vm.bookmarks.clear();

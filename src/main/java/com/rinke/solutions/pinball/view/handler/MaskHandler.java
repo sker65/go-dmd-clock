@@ -93,7 +93,7 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 			if (vm.selectedEditMode.enableDetectionMask) {
 				Mask maskToUse = null;
 				if( vm.selectedEditMode.haveSceneDetectionMasks ){
-					maskToUse = vm.selectedScene.getMask(vm.selectedMaskNumber); 
+					maskToUse = vm.selectedScene.getMaskWithSize(vm.selectedMaskNumber,vm.srcDmdSize.planeSize); 
 				} else {
 					// fill up global masks
 					while( vm.masks.size()-1 < newMaskNumber ) {
@@ -106,7 +106,7 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 			}
 			if( vm.selectedEditMode.enableLayerMask ) {
 				if( vm.selectedScene != null) {
-					vm.dmd.setMask(vm.selectedScene.getMask(newMaskNumber));
+					vm.dmd.setMask(vm.selectedScene.getMaskWithSize(newMaskNumber, vm.srcDmdSize.planeSize));
 					updateDrawingEnabled();
 				}
 			}
@@ -159,6 +159,7 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 							res.add(" "+pm.name);
 						}
 					}
+					// TODO local detection masks on a scene will never be unlocked
 					if (res.size() == 0) {
 						vm.masks.get(vm.selectedMaskNumber).locked = false;
 						vm.dmd.getFrame().mask.locked = false;

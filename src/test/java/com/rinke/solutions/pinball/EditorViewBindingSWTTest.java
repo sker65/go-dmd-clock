@@ -118,7 +118,7 @@ public class EditorViewBindingSWTTest extends HandlerTest {
 
 	@Test
 	public void testOnPaste() throws Exception {
-		uut.onPaste();
+		uut.onPaste(false);
 	}
 
 	@Test

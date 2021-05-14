@@ -177,12 +177,12 @@ public class PinDmdEditor {
 		beanFactory.setSingleton("plugins", loadedPlugins );
 		beanFactory.setSingleton("license", LicenseManagerFactory.getInstance());
 
-		DmdSize ds = DmdSize.fromOrdinal(beanFactory.getBeanByType(Config.class).getInteger(Config.DMDSIZE,0));
+		DmdSize ds = DmdSize.fromOrdinal(config.getInteger(Config.DMDSIZE,0));
 		DMD dmd = new DMD(ds.width, ds.height);
 		beanFactory.setSingleton("dmd", dmd );
 		
 		vm = beanFactory.getBeanByType(ViewModel.class);
-		vm.init(dmd, ds, pin2dmdAdress, 24);
+		vm.init(dmd, ds, ds, pin2dmdAdress, 24, config);
 		
 		mainView.init(vm, beanFactory);
 
@@ -251,7 +251,7 @@ public class PinDmdEditor {
 		if (cutCmd != null && !vm.recordings.isEmpty()) {
 			String[] cuts = cutCmd.split(",");
 			if (cuts.length >= 3) {
-				cutCmdHandler.cutScene(vm.recordings.get(cuts[0]), Integer.parseInt(cuts[2]), Integer.parseInt(cuts[3]), cuts[1]);
+				cutCmdHandler.cutScene(vm.recordings.get(cuts[0]), Integer.parseInt(cuts[2]), Integer.parseInt(cuts[3]), cuts[1], false);
 			}
 		}
 		if (saveFile != null) {

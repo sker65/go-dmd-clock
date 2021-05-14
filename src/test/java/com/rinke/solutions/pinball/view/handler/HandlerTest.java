@@ -5,13 +5,14 @@ import com.rinke.solutions.pinball.DmdSize;
 import com.rinke.solutions.pinball.animation.AnimationType;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.model.Frame;
+import com.rinke.solutions.pinball.util.Config;
 import com.rinke.solutions.pinball.view.model.ViewModel;
 
 public class HandlerTest {
 	
 	public HandlerTest() {
 		super();
-		vm.init(dmd, DmdSize.Size128x32, "address", 10);
+		vm.init(dmd, DmdSize.Size128x32, DmdSize.Size128x32, "address", 10, new Config());
 	}
 
 	protected ViewModel vm = new ViewModel();

@@ -1,5 +1,7 @@
 package com.rinke.solutions.pinball.renderer;
 
+import java.awt.geom.AffineTransform;
+import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.awt.image.DirectColorModel;
 import java.awt.image.IndexColorModel;
@@ -278,12 +280,26 @@ public class ImageUtil {
 	}
 	
 	public static Frame convertToFrame(BufferedImage dmdImage, int w, int h, int bitsPerChannel) {
+		return convertToFrame(dmdImage, w, h, bitsPerChannel, false);
+	}
+	
+	public static Frame convertToFrame(BufferedImage dmdImage, int w, int h, int bitsPerChannel, boolean scale) {
 		if( bitsPerChannel > 8 ) bitsPerChannel = 8;
 		Frame res = new Frame(bitsPerChannel,w,h);
 		int mask =  0xFF>>(8-bitsPerChannel);
-
-		for (int x = 0; x < dmdImage.getWidth(); x++) {
-			for (int y = 0; y < dmdImage.getHeight(); y++) {
+		if( scale ) {
+			BufferedImage after = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+			AffineTransform at = new AffineTransform();
+			at.scale(w / (double)dmdImage.getWidth(), h / (double)dmdImage.getHeight());
+			AffineTransformOp scaleOp = 
+			   new AffineTransformOp(at, AffineTransformOp.TYPE_BILINEAR);
+			after = scaleOp.filter(dmdImage, after);
+			dmdImage = after;
+		}
+		int minw = w < dmdImage.getWidth() ? w : dmdImage.getWidth();
+		int minh = h < dmdImage.getHeight() ? h : dmdImage.getHeight();
+		for (int x = 0; x < minw; x++) {
+			for (int y = 0; y < minh; y++) {
 
 				int rgb = dmdImage.getRGB(x, y);
 
