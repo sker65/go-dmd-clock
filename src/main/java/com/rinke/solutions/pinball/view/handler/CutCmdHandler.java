@@ -8,6 +8,7 @@ import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.Bean;
 import com.rinke.solutions.beans.Value;
 import com.rinke.solutions.pinball.Constants;
+import com.rinke.solutions.pinball.OpenCVLoader;
 import com.rinke.solutions.pinball.ScalerType;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.Animation.EditMode;
@@ -106,6 +107,7 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 	public void onInterpolateScene() {
 		CompiledAnimation src = vm.selectedScene;
 		if( src != null ) {
+			OpenCVLoader.load();
 			AnimationInterpolator animationInterpolator = new AnimationInterpolator(src, vm.selectedPalette);
 			String err = animationInterpolator.validate(src);
 			if( err != null ) {
