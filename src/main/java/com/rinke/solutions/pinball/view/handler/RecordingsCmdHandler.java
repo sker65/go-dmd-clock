@@ -98,6 +98,7 @@ public class RecordingsCmdHandler extends AbstractListCmdHandler implements View
 				vm.dmd.setNumberOfPlanes(numberOfPlanes);
 				vm.setDmdSize(DmdSize.fromWidthHeight(a.width, a.height));
 				vm.setPaletteToolPlanes(vm.detectionMaskActive || vm.layerMaskActive ? 1 :numberOfPlanes);
+				animationHandler.forceRerender();
 
 				Set<Bookmark> set = vm.bookmarksMap.get(a.getDesc());
 				vm.bookmarks.clear();
