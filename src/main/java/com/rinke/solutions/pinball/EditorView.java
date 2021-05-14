@@ -425,11 +425,11 @@ public class EditorView implements MainView {
 		
 		MenuItem mntmSaveAnimation = new MenuItem(menu_2, SWT.NONE);
 		mntmSaveAnimation.setText("Save Scene(s) ...");
-		mntmSaveAnimation.addListener(SWT.Selection, e -> dispatchCmd(SAVE_ANI_WITH_FC,6));
+		mntmSaveAnimation.addListener(SWT.Selection, e -> dispatchCmd(SAVE_ANI_WITH_FC,8));
 		
 		MenuItem mntmSaveSingleAnimation = new MenuItem(menu_2, SWT.NONE);
 		mntmSaveSingleAnimation.setText("Save single Scene");
-		mntmSaveSingleAnimation.addListener(SWT.Selection, e -> dispatchCmd(SAVE_SINGLE_ANI_WITH_FC,6));
+		mntmSaveSingleAnimation.addListener(SWT.Selection, e -> dispatchCmd(SAVE_SINGLE_ANI_WITH_FC,8));
 		
 		separator(menu_2);
 
@@ -444,6 +444,10 @@ public class EditorView implements MainView {
 		MenuItem mntmQuantizeScene = new MenuItem(menu_2, SWT.NONE);
 		mntmQuantizeScene.setText("Quantize Scene");
 		mntmQuantizeScene.addListener(SWT.Selection, e -> dispatchCmd(QUANTIZE_SCENE));
+		
+		MenuItem mntmInterpolateScene = new MenuItem(menu_2, SWT.NONE);
+		mntmInterpolateScene.setText("Interpolate Scene");
+		mntmInterpolateScene.addListener(SWT.Selection, e -> dispatchCmd(INTERPOLATE_SCENE));
 
 		MenuItem mntmConvertSceneToRGB = new MenuItem(menu_2, SWT.NONE);
 		mntmConvertSceneToRGB.setText("Convert Scene to RGB");
@@ -942,7 +946,7 @@ public class EditorView implements MainView {
 		
 		btnKeyframe = new Button(grpDetails, SWT.CHECK);
 		btnKeyframe.setText("KeyFrame");
-		btnLink.addListener(SWT.Selection, e->dispatchCmd(UPDATE_KEYFRAME));		
+		btnKeyframe.addListener(SWT.Selection, e->dispatchCmd(UPDATE_KEYFRAME, btnKeyframe.getSelection()));		
 		
 		new Label(grpDetails, SWT.NONE);
 		new Label(grpDetails, SWT.NONE);

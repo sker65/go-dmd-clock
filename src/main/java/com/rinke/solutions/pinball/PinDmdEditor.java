@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.bytedeco.javacpp.Loader;
+import org.bytedeco.opencv.opencv_java;
 import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
@@ -154,6 +156,8 @@ public class PinDmdEditor {
 		configureLogging();
 		log = LoggerFactory.getLogger(PinDmdEditor.class);
 
+		Loader.load(opencv_java.class);
+		
 		PinDmdEditor editor = new PinDmdEditor();
 		editor.parseCmdLine(args);
 		editor.open(args);

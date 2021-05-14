@@ -11,6 +11,7 @@ import com.rinke.solutions.pinball.Constants;
 import com.rinke.solutions.pinball.ScalerType;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.Animation.EditMode;
+import com.rinke.solutions.pinball.animation.AnimationInterpolator;
 import com.rinke.solutions.pinball.animation.AnimationQuantizer;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.animation.CompiledAnimation.RecordingLink;
@@ -99,6 +100,27 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 			vm.scenes.put(name, newScene);
 			vm.scenes.refresh();
 
+		}		
+	}
+	
+	public void onInterpolateScene() {
+		CompiledAnimation src = vm.selectedScene;
+		if( src != null ) {
+			AnimationInterpolator animationInterpolator = new AnimationInterpolator(src, vm.selectedPalette);
+			String err = animationInterpolator.validate(src);
+			if( err != null ) {
+				messageUtil.error("Interpolation not possible", err);
+			} else {
+				String name = getUniqueName(src.getDesc()+"_i",vm.scenes.keySet());
+				CompiledAnimation newScene = animationInterpolator.interpolate(name, src, vm.selectedPalette);
+				newScene.setDesc(name);
+				newScene.setPalIndex(vm.selectedPalette.index);
+				newScene.setProjectAnimation(true);
+				newScene.setEditMode(EditMode.REPLACE);
+						
+				vm.scenes.put(name, newScene);
+				vm.scenes.refresh();
+			}
 		}		
 	}
 
