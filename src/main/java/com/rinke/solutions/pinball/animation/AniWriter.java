@@ -177,7 +177,7 @@ public class AniWriter extends Worker {
 							frame = linearFrame;
 						}
 						// for version 3 add optional compression
-						boolean compress = ( frame.planes.size() > 7 ) || frame.planes.get(0).data.length>1024; // 6 planes and mask will not compressed
+						boolean compress = ( frame.planes.size() > 7 ) || (frame.planes.get(0).data.length > 2048); // 6 planes and mask will not compressed
 						os.writeBoolean(compress);
 						if( !compress ) {
 							int size = writePlanes(os, frame);
