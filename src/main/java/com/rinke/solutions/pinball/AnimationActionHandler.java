@@ -218,6 +218,9 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 					if (noPlanes == 4) 
 						vm.has4PlanesRecording = true;
 				}
+				if (ani.width == 128 && ani.height == 32) {
+					vm.setSrcDmdSize(DmdSize.fromWidthHeight(128, 32));
+				}	
 				populateAni(ani, vm.recordings);
 			}	
 			
