@@ -1,5 +1,6 @@
 package com.rinke.solutions.pinball;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Observable;
 
@@ -297,10 +298,7 @@ public class AnimationHandler implements Runnable {
 				if( vm.selectedEditMode.haveSceneDetectionMasks && preferDetectionMask ){
 					if (vm.selectedScene.getMask(vm.selectedMaskNumber).data.length != vm.srcDmdSize.planeSize) {
 						for (int i = 0; i < vm.selectedScene.getMasks().size(); i++) {
-							Mask mask = new Mask(vm.srcDmdSize.planeSize);
-							System.arraycopy(vm.selectedScene.getMask(i).data, 0, mask.data, 0, vm.srcDmdSize.planeSize);
-							mask.locked = vm.selectedScene.getMask(i).locked;
-							vm.selectedScene.getMasks().set(i, mask);
+							vm.selectedScene.getMask(i).data = Arrays.copyOfRange(vm.selectedScene.getMask(i).data,0,vm.srcDmdSize.planeSize);
 						}
 					}
 					maskToUse = vm.selectedScene.getMaskWithSize(vm.selectedMaskNumber, vm.srcDmdSize.planeSize); 
