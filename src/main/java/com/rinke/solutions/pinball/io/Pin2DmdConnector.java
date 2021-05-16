@@ -260,7 +260,16 @@ public abstract class Pin2DmdConnector {
     	if (planeCount < 24) {
    			bufferSize = min(6,frame.planes.size()) * planeSize;
 	    	// XL dmd is handled different: use E8 framing with size byte
-	    	if( dmdSize.equals(DmdSize.Size192x64) ) {
+	    	if( dmdSize.equals(DmdSize.Size256x64) ) {
+	        	byte[] buffer = buildFrameBuffer( bufferSize, 0xE8, bufferSize/512 );
+	    		for( Plane p : frame.planes) {
+	        		System.arraycopy(Frame.transform(p.data), 0, buffer, headerSize+i*planeSize, planeSize);
+	        		i++;
+	        		if( i > 3 ) break; // max 4 planes
+	        	}
+	           	bulk(buffer);
+	        }
+	        else if( dmdSize.equals(DmdSize.Size192x64) ) {
 	        	byte[] buffer = buildFrameBuffer( bufferSize, 0xE8, bufferSize/512 );
 	    		for( Plane p : frame.planes) {
 	        		System.arraycopy(Frame.transform(p.data), 0, buffer, headerSize+i*planeSize, planeSize);
