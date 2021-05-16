@@ -629,6 +629,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 				public void innerRun() {
 					AniWriter aniWriter = new AniWriter(anis, aniFilename, aniVersionToUse, vm.paletteMap, progress);
 					if( !anis.isEmpty() ) {
+						aniWriter.compressPlanes = false;
 						aniWriter.setHeader("VPIN");
 						aniWriter.run();
 					}

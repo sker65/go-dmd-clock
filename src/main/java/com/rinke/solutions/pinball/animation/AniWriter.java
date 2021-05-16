@@ -34,6 +34,7 @@ public class AniWriter extends Worker {
 	private Map<String,Integer> offsetMap = new HashMap<>();
 	private String header = ANIM;
 	public boolean writeLinearPlane = false;
+	public boolean compressPlanes = true;
 	
 	public AniWriter(List<Animation> anis, String filename, int version, Map<Integer,Palette> palettes, ProgressEventListener progressEvt) {
 		this.anis = anis;
@@ -177,7 +178,9 @@ public class AniWriter extends Worker {
 							frame = linearFrame;
 						}
 						// for version 3 add optional compression
-						boolean compress = ( frame.planes.size() > 7 ) || (frame.planes.get(0).data.length > 2048); // 6 planes and mask will not compressed
+						boolean compress = false;
+						if (compressPlanes)
+							compress = ( frame.planes.size() > 7 ) || (frame.planes.get(0).data.length > 2048); // 6 planes and mask will not compressed
 						os.writeBoolean(compress);
 						if( !compress ) {
 							int size = writePlanes(os, frame);
