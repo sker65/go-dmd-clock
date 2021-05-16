@@ -617,6 +617,8 @@ public class ProjectHandler extends AbstractCommandHandler {
 					}
 				}
 				for( Mask m : ani.getMasks() ) {
+					if( m.data.length != (vm.srcDmdSize.planeSize) )
+						m.data = Arrays.copyOfRange(m.data,0,vm.srcDmdSize.planeSize);
 					cani.getMasks().add(m);
 				}
 				anis.add(cani);
