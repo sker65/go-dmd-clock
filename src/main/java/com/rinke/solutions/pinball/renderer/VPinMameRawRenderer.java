@@ -72,10 +72,10 @@ public class VPinMameRawRenderer extends Renderer {
 					if( r == -1 || r < bytesPerPlane ) break;
 				}
 				res = new Frame(
-					new byte[dmd.getPlaneSize()],
-					new byte[dmd.getPlaneSize()],
-					new byte[dmd.getPlaneSize()],
-					new byte[dmd.getPlaneSize()]
+					new byte[bytesPerPlane],
+					new byte[bytesPerPlane],
+					new byte[bytesPerPlane],
+					new byte[bytesPerPlane]
 					);
 
 				// aggregate to frame

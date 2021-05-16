@@ -44,13 +44,11 @@ public class ConfigDialog extends Dialog implements View {
     
     protected Shell shell;
     private DmdSize dmdSize;
-    private DmdSize srcDmdSize;
     private ScalerType scalerType;
 
     public boolean okPressed;
 
     private ComboViewer dmdSizeViewer;
-    private ComboViewer dmdSrcSizeViewer;
     private ComboViewer scalerTypeViewer;
     private Spinner spinnerNoColors;
 	private Group grpDmd;
@@ -105,7 +103,6 @@ public class ConfigDialog extends Dialog implements View {
     public void open() {
         
     	dmdSize = DmdSize.fromOrdinal(config.getInteger(Config.DMDSIZE,0));
-    	srcDmdSize = DmdSize.fromOrdinal(config.getInteger(Config.SRCSIZE,0));
     	scalerType = ScalerType.fromOrdinal(config.getInteger(Config.SCALERTYPE,1));
 
         createContents();
@@ -171,7 +168,6 @@ public class ConfigDialog extends Dialog implements View {
         tbtmItem.setControl(grpTest);
         grpTest.setLayout(new FormLayout());
         
-        grpDmd = new Group(grpTest, SWT.NONE);
         FormData fd_grpDmd = new FormData();
         fd_grpDmd.right = new FormAttachment(0, 223);
         fd_grpDmd.bottom = new FormAttachment(100, -34);
@@ -192,25 +188,14 @@ public class ConfigDialog extends Dialog implements View {
 		dmdSizeViewer.setInput(DmdSize.values());
 		dmdSizeViewer.setSelection(new StructuredSelection(dmdSize));
 		
-		Label srclblSize = new Label(grpDmd, SWT.RIGHT);
-		srclblSize.setBounds(10, 77, 53, 14);
-		srclblSize.setText("SrcSize: ");
-
-        dmdSrcSizeViewer = new ComboViewer(grpDmd, SWT.READ_ONLY);
-        Combo scombo = dmdSrcSizeViewer.getCombo();
-        scombo.setBounds(69, 74, 127, 23);
-        dmdSrcSizeViewer.setContentProvider(ArrayContentProvider.getInstance());
-        dmdSrcSizeViewer.setLabelProvider(new LabelProviderAdapter<DmdSize>(o -> o.label ));
-        dmdSrcSizeViewer.setInput(DmdSize.values());
-        dmdSrcSizeViewer.setSelection(new StructuredSelection(srcDmdSize));
-		
 		Label lblScalerType = new Label(grpDmd, SWT.RIGHT);
-		lblScalerType.setBounds(10, 107, 53, 14);
+		lblScalerType.setAlignment(SWT.LEFT);
+		lblScalerType.setBounds(10, 77, 53, 14);
 		lblScalerType.setText("Scaler: ");
 
         scalerTypeViewer = new ComboViewer(grpDmd, SWT.READ_ONLY);
         Combo ccombo = scalerTypeViewer.getCombo();
-        ccombo.setBounds(69, 104, 127, 23);
+        ccombo.setBounds(69, 74, 127, 23);
         scalerTypeViewer.setContentProvider(ArrayContentProvider.getInstance());
         scalerTypeViewer.setLabelProvider(new LabelProviderAdapter<ScalerType>(o -> o.label ));
         scalerTypeViewer.setInput(ScalerType.values());
@@ -364,7 +349,6 @@ public class ConfigDialog extends Dialog implements View {
 		log.info("ok pressed");
 		okPressed = true;
 		dmdSize = (DmdSize) ((StructuredSelection) dmdSizeViewer.getSelection()).getFirstElement();
-		srcDmdSize =  (DmdSize) ((StructuredSelection) dmdSrcSizeViewer.getSelection()).getFirstElement();
 		scalerType =  (ScalerType) ((StructuredSelection) scalerTypeViewer.getSelection()).getFirstElement();
 		if (spinnerNoPlanes.getSelection() == 4 && spinnerNoColors.getSelection() == 64)
 			spinnerNoPlanes.setSelection(6);
@@ -382,7 +366,6 @@ public class ConfigDialog extends Dialog implements View {
         config.put(Config.NO_QUIT_WARNING, btnNoQuitWarning.getSelection());
         config.put(Config.NO_EXPORT_WARNING, btnNoExportWarnings.getSelection());
         config.put(Config.DMDSIZE, dmdSize.ordinal());
-        config.put(Config.SRCSIZE, srcDmdSize.ordinal());
         config.put(Config.SCALERTYPE, scalerType.ordinal());
         // TODO missing save for source size
 		messageUtil.warn(SWT.ICON_ERROR | SWT.OK,
@@ -395,7 +378,4 @@ public class ConfigDialog extends Dialog implements View {
 		return scalerType;
 	}
 
-	public DmdSize getSrcDmdSize() {
-		return srcDmdSize;
-	}
 }

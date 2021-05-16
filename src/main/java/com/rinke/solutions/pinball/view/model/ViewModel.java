@@ -80,7 +80,7 @@ public class ViewModel extends AbstractModel {
 		this.dmd = dmd;
 		setDmdSize(ds);
 		setPrjDmdSize(prjSize);
-		setSrcDmdSize(DmdSize.fromOrdinal(config.getInteger(Config.SRCSIZE)));
+		setSrcDmdSize(prjSize);
 		setSelectedPalette( paletteMap.get(0) );
 		setPin2dmdAdress( address );
 		setScalerType(ScalerType.fromOrdinal(config.getInteger(Config.SCALERTYPE,1)));

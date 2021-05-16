@@ -25,6 +25,7 @@ public class VPinMameRenderer extends Renderer {
 	}
 
 	void readImage(String filename, DMD dmd) {
+		int planeSize = getPlaneSize(filename);
 		BufferedReader stream = null;
 		int frameNo = 0;
 		int timecode = 0;
@@ -33,10 +34,10 @@ public class VPinMameRenderer extends Renderer {
 			stream = getReader(filename);
 			String line = stream.readLine();
 			Frame res = new Frame(
-					new byte[dmd.getPlaneSize()],
-					new byte[dmd.getPlaneSize()],
-					new byte[dmd.getPlaneSize()],
-					new byte[dmd.getPlaneSize()]);
+					new byte[planeSize],
+					new byte[planeSize],
+					new byte[planeSize],
+					new byte[planeSize]);
 
 			int j = 0;
 			int vmax = 0;
@@ -66,10 +67,10 @@ public class VPinMameRenderer extends Renderer {
 					frameNo++;
 					notify(50, "reading "+bareName(filename)+"@"+frameNo);
 					res = new Frame(
-							new byte[dmd.getPlaneSize()],
-							new byte[dmd.getPlaneSize()],
-							new byte[dmd.getPlaneSize()],
-							new byte[dmd.getPlaneSize()]
+							new byte[planeSize],
+							new byte[planeSize],
+							new byte[planeSize],
+							new byte[planeSize]
 							);
 					log.trace("reading frame: " + frameNo);
 					j = 0;
@@ -104,7 +105,7 @@ public class VPinMameRenderer extends Renderer {
 					if( (v & 8) != 0 )
 						res.planes.get(3).data[j + b] |= mask;
 				}
-				j += dmd.getBytesPerRow();
+				j += lineLenght/8;
 				line = stream.readLine();
 			}
 			// check maximum value for v

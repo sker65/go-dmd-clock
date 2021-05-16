@@ -144,7 +144,7 @@ public class MenuHandler extends AbstractCommandHandler implements ViewBindingHa
 				if( vm.previewDMD != null ) vm.previewDMD = new DMD(configDialog.getDmdSize());
 			}
 			vm.setDmdSize(configDialog.getDmdSize());
-			vm.setSrcDmdSize(configDialog.getSrcDmdSize());
+			vm.setSrcDmdSize(configDialog.getDmdSize());
 			vm.setScalerType(configDialog.getScalerType());
 		}
 	}
