@@ -265,7 +265,7 @@ public abstract class Pin2DmdConnector {
 	    		for( Plane p : frame.planes) {
 	        		System.arraycopy(Frame.transform(p.data), 0, buffer, headerSize+i*planeSize, planeSize);
 	        		i++;
-	        		if( i > 3 ) break; // max 4 planes
+	        		if( i > 5 ) break; // max 6 planes
 	        	}
 	           	bulk(buffer);
 	        }
@@ -274,7 +274,7 @@ public abstract class Pin2DmdConnector {
 	    		for( Plane p : frame.planes) {
 	        		System.arraycopy(Frame.transform(p.data), 0, buffer, headerSize+i*planeSize, planeSize);
 	        		i++;
-	        		if( i > 3 ) break; // max 4 planes
+	        		if( i > 5 ) break; // max 4 planes
 	        	}
 	           	bulk(buffer);
 	    	} else {
