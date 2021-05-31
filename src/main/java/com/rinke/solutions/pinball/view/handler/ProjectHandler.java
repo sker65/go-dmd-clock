@@ -270,8 +270,8 @@ public class ProjectHandler extends AbstractCommandHandler {
 					p.width = 128;
 					p.height = 32; // default for older projects
 				}
-				if( p.srcWidth == 0) p.srcWidth = p.width;
-				if( p.srcHeight == 0) p.srcHeight = p.height;
+				if( p.srcWidth == 0 || p.width == 192 ) p.srcWidth = p.width;
+				if( p.srcHeight == 0 || p.height == 64) p.srcHeight = p.height;
 				DmdSize newSize = DmdSize.fromWidthHeight(p.width, p.height);
 				vm.dmd.setSize(p.width, p.height);
 				vm.setDmdSize(newSize);
