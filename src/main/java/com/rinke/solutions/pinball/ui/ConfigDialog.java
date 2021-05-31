@@ -168,6 +168,7 @@ public class ConfigDialog extends Dialog implements View {
         tbtmItem.setControl(grpTest);
         grpTest.setLayout(new FormLayout());
         
+        grpDmd = new Group(grpTest, SWT.NONE);
         FormData fd_grpDmd = new FormData();
         fd_grpDmd.right = new FormAttachment(0, 223);
         fd_grpDmd.bottom = new FormAttachment(100, -34);
