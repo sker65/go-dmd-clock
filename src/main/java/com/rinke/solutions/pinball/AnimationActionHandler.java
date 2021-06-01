@@ -191,6 +191,8 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 				int planeSize = cani.frames.get(0).getPlane(0).length;
 				if( planeSize != 512 && ani.width == 128 ) {
 					// adjust with / height for version 1
+					if (planeSize == 2048)
+						ani.width = 256; ani.height = 64;
 					if( planeSize == 1536 ) {
 						ani.width = 192; ani.height = 64;
 					} else if( planeSize == 256 ) {
@@ -216,10 +218,14 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 					if( lani.end == 0) lani.end = lani.getRenderer().getFrames().size()-1;
 					int noPlanes = lani.getRenderer().getNumberOfPlanes();
 					int planeSize = 0;
-					if (lani.actFrame != 0)
+//					if (lani.actFrame != 0)
 						planeSize = lani.getRenderer().getFrames().get(0).getPlane(0).length;
-					else
-						planeSize = lani.width*lani.height/8;
+//					else
+//						planeSize = lani.width*lani.height/8;
+					if (planeSize == 2048) {
+						lani.width = 256;
+						lani.height = 64;
+					}
 					if (planeSize == 512) {
 						lani.width = 128;
 						lani.height = 32;

@@ -270,8 +270,8 @@ public class ProjectHandler extends AbstractCommandHandler {
 					p.width = 128;
 					p.height = 32; // default for older projects
 				}
-				if( p.srcWidth == 0 || p.width == 192 ) p.srcWidth = p.width;
-				if( p.srcHeight == 0 || p.height == 64) p.srcHeight = p.height;
+				p.srcWidth = p.width;
+				p.srcHeight = p.height;
 				DmdSize newSize = DmdSize.fromWidthHeight(p.width, p.height);
 				vm.dmd.setSize(p.width, p.height);
 				vm.setDmdSize(newSize);
@@ -302,17 +302,6 @@ public class ProjectHandler extends AbstractCommandHandler {
 				}
 				//vm.addAll(p.inputFiles);
 				
-				// mask
-				vm.masks.clear();
-				// sanitize masks
-				for(Mask m : p.masks) {
-					if(m.data.length != vm.srcDmdSize.planeSize) {
-						m.data = new byte[vm.srcDmdSize.planeSize];
-						log.warn("project detection mask changed to {}",vm.srcDmdSize.planeSize );
-					}
-				}
-				vm.masks.addAll(p.masks);
-				log.info("loaded {} masks", vm.masks.size());
 			});
 			// if inputFiles contain project filename remove it
 			String aniFilename = replaceExtensionTo("ani", filename);
@@ -370,6 +359,21 @@ public class ProjectHandler extends AbstractCommandHandler {
 			if( !StringUtils.isEmpty(msg)) {
 				messageUtil.warn("Not all files loaded", msg);
 			}
+			
+			dispatcher.syncExec(()->{
+				// mask
+				vm.masks.clear();
+				// sanitize masks
+				for(Mask m : p.masks) {
+					if(m.data.length != vm.srcDmdSize.planeSize) {
+						m.data = new byte[vm.srcDmdSize.planeSize];
+						log.warn("project detection mask changed to {}",vm.srcDmdSize.planeSize );
+					}
+				}
+				vm.masks.addAll(p.masks);
+				log.info("loaded {} masks", vm.masks.size());
+			});
+
 
 		}
 
