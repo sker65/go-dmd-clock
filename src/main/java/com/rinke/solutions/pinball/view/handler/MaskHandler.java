@@ -66,10 +66,7 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 
 	void updateMaskChange(boolean n, boolean preferDetectionMask) {
 		Mask mask = animationHandler.getCurrentMask(preferDetectionMask); 
-		if (n) {
-			vm.setPaletteToolPlanes(1);
-		} else {
-			vm.setPaletteToolPlanes(vm.dmd.getNumberOfPlanes());
+		if (!n) {
 			commitMaskIfNeeded(preferDetectionMask);
 			if (!vm.detectionMaskActive && !vm.layerMaskActive)
 				mask = null;
@@ -80,6 +77,11 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 		animationHandler.forceRerender();
 		vm.setDmdDirty(true);
 		hashCmdHandler.updateHashes(vm.dmd.getFrame());
+		if (n) {
+			vm.setPaletteToolPlanes(1);
+		} else {
+			vm.setPaletteToolPlanes(vm.dmd.getNumberOfPlanes());
+		}
 		
 		//bound to mask active vm.setDmdDirty(true);
 		drawCmdHandler.setDrawMaskByEditMode(vm.selectedEditMode);
