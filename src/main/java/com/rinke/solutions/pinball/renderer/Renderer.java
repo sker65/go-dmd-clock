@@ -112,7 +112,10 @@ public abstract class Renderer extends Worker {
 	}
 	
 	public Palette getPalette() {
-		return palette;
+		if (getNumberOfPlanes() != 24)
+			return palette;
+		else
+			return null;
 	}
 
 
