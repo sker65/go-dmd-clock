@@ -151,7 +151,7 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 			log.error("error load anis from {}", filename, e);
 		}
 		
-		if (populateProject) {
+		if (populateProject && !wantScene) {
 			if (!append)
 				vm.inputFiles.clear();
 			String baseFilename = FilenameUtils.getBaseName(filename)
