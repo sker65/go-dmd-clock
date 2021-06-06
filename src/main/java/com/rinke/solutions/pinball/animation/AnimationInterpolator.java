@@ -2,6 +2,7 @@ package com.rinke.solutions.pinball.animation;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -9,14 +10,10 @@ import java.util.Map;
 
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
-import org.opencv.core.MatOfFloat;
-import org.opencv.core.MatOfInt;
-import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.video.Video;
 
 import com.rinke.solutions.pinball.model.Frame;
-import com.rinke.solutions.pinball.model.FrameLink;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.RGB;
 
@@ -24,8 +21,8 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class AnimationInterpolator {
-	
-	private Map<Frame,Mat> mat2frame = new HashMap<>();
+
+	private Map<Frame, Mat> mat2frame = new HashMap<>();
 	private Palette pal;
 	private int h;
 	private int w;
@@ -54,58 +51,100 @@ public class AnimationInterpolator {
 		return null;
 	}
 
+	// see
+	// https://stackoverflow.com/questions/14958643/converting-bufferedimage-to-mat-in-opencv
+	public static Mat bufferedImageToMat(BufferedImage bi) {
+		Mat mat = new Mat(bi.getHeight(), bi.getWidth(), CvType.CV_8UC3);
+		byte[] data = ((DataBufferByte) bi.getRaster().getDataBuffer()).getData();
+		mat.put(0, 0, data);
+		return mat;
+	}
+
 	private Mat getMatfromFrame(Frame f) {
 		Mat m = mat2frame.get(f);
-		if( m != null ) return m;
-		byte[] data = bgrImageDatafromFrame(f,this.w, this.h, this.pal);
+		if (m != null)
+			return m;
+		byte[] data = bgrImageDatafromFrame(f, this.w, this.h, this.pal);
 		m = new Mat(this.h, this.w, CvType.CV_8UC3);
 		m.put(0, 0, data);
-//		log.debug("write {}",f.hashCode());
-//		Imgcodecs.imwrite("img"+f.hashCode()+".png", m);
+		// log.debug("write {}",f.hashCode());
+		// Imgcodecs.imwrite("img"+f.hashCode()+".png", m);
 		mat2frame.put(f, m);
 		return m;
 	}
-	
+
 	public static byte[] bgrImageDatafromFrame(Frame f, int w, int h, Palette p) {
-		byte[] bi = new byte[ w*h*3 ]; // use BGR color model as expected by opencv
+		byte[] bi = new byte[w * h * 3]; // use BGR color model as expected by
+											// opencv
 		int numberOfSubframes = f.planes.size();
-		log.debug("creating BGR image data for {}, subframes={}, palette={}", f.frameLink.frame, numberOfSubframes, p.name);
+		log.debug("creating buffered image w={}, h={}, subframes={}, p={}", w, h, numberOfSubframes, p.name);
 		// int bitsPerColorChannel = numberOfSubframes / 3;
-		//int cmask = 0xFF >> (8-bitsPerColorChannel);
+		// int cmask = 0xFF >> (8-bitsPerColorChannel);
 		int bytesPerRow = w / 8; // only work with byte 8-aligned width
 		for (int y = 0; y < h; y++) {
-            for (int x = 0; x < w; x++) {
-                // lsb first
-                // byte mask = (byte) (1 << (col % 8));
-                // hsb first
-                byte mask = (byte) (0b10000000 >> (x % 8));
-                int v = 0;
-                for(int i = 0; i < numberOfSubframes;i++) {
-                	if( x / 8 + y * bytesPerRow < f.getPlane(i).length) {
-                		v += (f.getPlane(i)[x / 8 + y * bytesPerRow] & mask) != 0 ? (1<<i) : 0;
-                	}
-                }
-                // TODO add sanity check that v is in range
-                RGB rgb = p.colors[v];
-                //bi.setRGB(x, y, rgb.red << 16 + rgb.green << 8 + rgb.blue );
-                int j = w*y*3 + x*3;
-                bi[j] = (byte)rgb.blue;
-                bi[j+1] = (byte)rgb.green;
-                bi[j+2] = (byte)rgb.red;
-            }
-        }
+			for (int x = 0; x < w; x++) {
+				// lsb first
+				// byte mask = (byte) (1 << (col % 8));
+				// hsb first
+				byte mask = (byte) (0b10000000 >> (x % 8));
+				int v = 0;
+				for (int i = 0; i < numberOfSubframes; i++) {
+					if (x / 8 + y * bytesPerRow < f.getPlane(i).length) {
+						v += (f.getPlane(i)[x / 8 + y * bytesPerRow] & mask) != 0 ? (1 << i) : 0;
+					}
+				}
+				// TODO add sanity check that v is in range
+				RGB rgb = p.colors[v];
+				// bi.setRGB(x, y, rgb.red << 16 + rgb.green << 8 + rgb.blue );
+				int j = w * y * 3 + x * 3;
+				bi[j] = (byte) rgb.blue;
+				bi[j + 1] = (byte) rgb.green;
+				bi[j + 2] = (byte) rgb.red;
+			}
+		}
 		return bi;
 	}
 
-	public CompiledAnimation interpolate(String name, CompiledAnimation src, Palette pal) {
-		//  copy src
+	// AK : this is the old version, much more elegant, but I could not manage
+	// to make it work :-(
+	/*public CompiledAnimation interpolate(String name, CompiledAnimation src, Palette pal) {
+		log.debug("Starting Interpolate");
 		CompiledAnimation res = src.cutScene(src.start, src.end, src.getNumberOfPlanes());
 		for (int i = 0; i < res.frames.size(); i++) {
 			if (res.frames.get(i).keyFrame) {
 				for (int j = i + 1; j < res.frames.size(); j++) {
 					if (res.frames.get(j).keyFrame) {
-						this.interpolateFrames(res.frames, i, j);
-						i = j-1;
+						this.interpolateFrames2(res.frames, i, j, pal, res.width, res.height);
+						i = j - 1;
+						break;
+					}
+				}
+			}
+		}
+		return res;
+	}*/
+
+	// AK: this is pretty terrible, but works - no idea why the old above
+	// function wouldnt do what it should.
+	// The Problem: interpolateFrames2 does only work if I the first
+	// keyframe-index is 0. I suspect some memory mismanagement from my side.
+	// This hack, starts all calls with index 0 and then copies the results from
+	// cache.
+	public CompiledAnimation interpolate(String name, CompiledAnimation src, Palette pal) {
+		log.debug("Starting Interpolate");
+		CompiledAnimation res = src.cutScene(src.start, src.end, src.getNumberOfPlanes());
+		for (int i = 0; i < res.frames.size(); i++) {
+			if (res.frames.get(i).keyFrame) {
+				for (int j = i + 1; j < res.frames.size(); j++) {
+					if (res.frames.get(j).keyFrame) {
+						CompiledAnimation cache = src.cutScene(i, j, src.getNumberOfPlanes());
+						this.interpolateFrames2(cache.frames, 0, j - i, pal, res.width, res.height);
+						for (int k = 0; k < cache.frames.size(); k++) {
+							if (!(cache.frames.get(k).keyFrame)) {
+								res.frames.set(i + k, cache.frames.get(k));
+							}
+						}
+						i = j - 1;
 						break;
 					}
 				}
@@ -114,135 +153,212 @@ public class AnimationInterpolator {
 		return res;
 	}
 
-	private void interpolateFrames(List<Frame> frames, int startKeyFrame, int endKeyFrame) {
-		int nextLowToInterpolate = startKeyFrame + 1;
-		int nextHighToInterpolate = endKeyFrame - 1;
+	// AK: New InterpolateFrames routine, replaces old one
+	private List<Frame> interpolateFrames2(List<Frame> frames, int startKeyFrame, int endKeyFrame, Palette pal, int w, int h) {
+		log.debug("Start Interpolate Frames2");
+		List<Mat> flowMats = new ArrayList<>();
+		List<Frame> result = new ArrayList<>();
+		// Frame keyLowFrame = frames.get(startKeyFrame);
+		// Frame keyHighFrame = frames.get(endKeyFrame);
+		int actualKeyFrame = 0;
+		int paletteSize = 4;
+		// Construct list of Flow Mats - we need this to sum flow vectors from
+		// both key frames and compare.
+		for (int i = 0; i < (endKeyFrame - startKeyFrame); i++) {
+			Mat msrc = getMatfromFrame(frames.get(i));
+			Mat minter = getMatfromFrame(frames.get(i + 1));
+			Mat flow = new Mat(msrc.size(), CvType.CV_32FC2);
+			Mat minter_gray = new Mat(minter.size(), CvType.CV_8UC1);
+			Mat msrc_gray = new Mat(msrc.size(), CvType.CV_8UC1);
+			Imgproc.cvtColor(minter, minter_gray, Imgproc.COLOR_BGR2GRAY);
+			Imgproc.cvtColor(msrc, msrc_gray, Imgproc.COLOR_BGR2GRAY);
+			Video.calcOpticalFlowFarneback(msrc_gray, minter_gray, flow, 0.5, 3, 15, 3, 7, 1.5, 0);
+			flowMats.add(flow);
+			msrc_gray.release();
+			minter_gray.release();
+			// flow.release();
+		}
+
+		// int nextLowToInterpolate = startKeyFrame + 1;
+		// int nextHighToInterpolate = endKeyFrame - 1;
 		log.debug("startKeyFrame={}, endKeyFrame={}", startKeyFrame, endKeyFrame);
-		for(int i = startKeyFrame+1; i < endKeyFrame; i++)
-			frames.get(i).frameLink = new FrameLink("foo",i);
-		ArrayList<Frame> interpolatedFrames = new ArrayList<>(frames);
-		while (nextHighToInterpolate - nextLowToInterpolate >= 0) {
-			log.debug("nextHighToInterpolate={}, nextLowToInterpolate={}",nextHighToInterpolate, nextLowToInterpolate);
-			double histHighDiff = this.getBestNeighborhoodKeyframe(frames.get(nextHighToInterpolate), interpolatedFrames.get(nextHighToInterpolate + 1));
-			double histLowDiff = this.getBestNeighborhoodKeyframe(interpolatedFrames.get(nextLowToInterpolate - 1), frames.get(nextLowToInterpolate));
-			log.debug("histHighDiff({}/{})={}, histLowDiff({}/{})={}", nextHighToInterpolate, nextHighToInterpolate+1,
-					histHighDiff, nextLowToInterpolate-1, nextLowToInterpolate, histLowDiff);
-			if (histHighDiff < histLowDiff) {
-				log.debug("propagate from {} -> {}",nextHighToInterpolate + 1, nextHighToInterpolate );
-				Frame f = this.propagateFrameFromTo(interpolatedFrames.get(nextHighToInterpolate + 1), frames.get(nextHighToInterpolate));
-				interpolatedFrames.set(nextHighToInterpolate, f);
-				nextHighToInterpolate--;
-			} else {
-				log.debug("propagate from {} -> {}",nextLowToInterpolate - 1, nextLowToInterpolate );
-				Frame f = this.propagateFrameFromTo(interpolatedFrames.get(nextLowToInterpolate - 1), frames.get(nextLowToInterpolate));
-				interpolatedFrames.set(nextLowToInterpolate, f);
-				nextLowToInterpolate++;
+		for (int i = 1; i < (endKeyFrame - startKeyFrame); i++) {
+			int iFrame = startKeyFrame + i;
+			Frame propagatedFrame = new Frame(frames.get(startKeyFrame + i));
+			log.debug("startKeyFrame={}, endKeyFrame={}, interpolated_frame={}", startKeyFrame, endKeyFrame, startKeyFrame + i);
+
+			for (int r = 0; r < h; r++) {
+				for (int c = 0; c < w; c++) {
+					// Compute added Optical Flow vector from High Key
+					int[] dVec = computeFlowVector(c, r, endKeyFrame, startKeyFrame + i, flowMats);
+					int dr = dVec[1];
+					int dc = dVec[0];
+					// log.debug("x({})={},dy({})={}",c, r, dVec[0],dVec[1]);
+					double dlengthHigh = Math.sqrt(dr * dr + dc * dc);
+					int ppcH = c + dc;
+					int pprH = r + dr;
+					// Compute added Optical Flow vector from Low Key
+					dVec = computeFlowVector(c, r, startKeyFrame, startKeyFrame + i, flowMats);
+					dr = dVec[1];
+					dc = dVec[0];
+					double dlengthLow = Math.sqrt(dr * dr + dc * dc);
+					int ppcL = c - dc;
+					int pprL = r - dr;
+					// ho is true if vector points out of image for High_Key,
+					// respectively, lo is True for low_key.
+					boolean ho = (pprH < 0 || pprH > (h - 1) || ppcH < 0 || ppcH > (w - 1));
+					boolean lo = (pprL < 0 || pprL > (h - 1) || ppcL < 0 || ppcL > (w - 1));
+					boolean direction = true;
+					// ho True, lo not, take low_key
+					if (ho && !lo) {
+						direction = false;
+					}
+					// # lo True, ho not, take high_key
+					if (lo && !ho) {
+						direction = true;
+					}
+					// both are neither True or False, then use criterium of
+					// vector length, shorter equals better
+					if ((ho && lo) || (!ho && !lo)) {
+						if (dlengthLow < dlengthHigh) {
+							direction = false;
+						} else {
+							direction = true;
+						}
+					}
+					int ppc = 0;
+					int ppr = 0;
+
+					// # Depending on direction use the correct values for ppc
+					// and ppr and set the correct high/low keyframe
+					// # if High_key is used
+
+					if (direction) {
+						ppc = ppcH;
+						ppr = pprH;
+						actualKeyFrame = endKeyFrame;
+					} else {
+						ppc = ppcL;
+						ppr = pprL;
+						actualKeyFrame = startKeyFrame;
+					}
+					// curate edges, hopefully not needed
+					if (ppr < 0) {
+						ppr = 0;
+					}
+					if (ppr > h - 1) {
+						ppr = h - 1;
+					}
+					if (ppc < 0) {
+						ppc = 0;
+					}
+					if (ppc > w - 1) {
+						ppc = w - 1;
+					}
+					// Propagate Palette of size=paletteSize
+					int colIdx = getPixel(frames.get(actualKeyFrame), ppc, ppr, this.w / 8) / paletteSize;
+					int colIdx2 = getPixel(frames.get(iFrame), c, r, this.w / 8) % paletteSize;
+					setPixel(propagatedFrame, colIdx2 + colIdx * paletteSize, c, r, this.w / 8);
+
+					// Alternatively use the following block of code:
+
+					// Propagate each color value pixel-wise.
+					// int colIdx = getPixel(actualKeyFrame, ppc, ppr, this.w/8;
+					// setPixel(propagatedFrame, colIdx, c, r, this.w/8);
+
+				}
+			}
+			frames.set(iFrame, propagatedFrame);
+
+			releaseCachedFrames();
+
+		}
+		releaseListMats(flowMats);
+		return result;
+	}
+
+	// AK: Routine to compute the added flow-Vector from a startidx to an
+	// endindex. Startindex refers to a Keyframe, endindex to an iFrame.
+	private int[] computeFlowVector(int c, int r, int startIdx, int endIdx, List<Mat> flowMats) {
+		double[] d_vec = new double[2];
+		BigDecimal bdx = new BigDecimal("0");
+		BigDecimal bdy = new BigDecimal("0");
+
+		double dx = 0;
+		double dy = 0;
+		int lenFlowMats = flowMats.size();
+		int seqLen = endIdx - startIdx;
+		if (seqLen > 0) {
+			// if startindex is smaller than endindex, than count forward.
+			for (int i = 0; i < seqLen; i++) {
+				Mat fM = flowMats.get(i);
+				d_vec = fM.get(r, c);
+				bdx = bdx.add(BigDecimal.valueOf(d_vec[0]));
+				bdy = bdy.add(BigDecimal.valueOf(d_vec[1]));
+				dx = dx + d_vec[0];
+				dy = dy + d_vec[1];
+
+			}
+			// else count backwards.
+		} else {
+			for (int i = lenFlowMats - 1; i >= lenFlowMats + seqLen; i--) {
+				Mat fM = flowMats.get(i);
+				d_vec = fM.get(r, c);
+				bdx = bdx.add(BigDecimal.valueOf(d_vec[0]));
+				bdy = bdy.add(BigDecimal.valueOf(d_vec[1]));
+				dx = dx + d_vec[0];
+				dy = dy + d_vec[1];
+
 			}
 		}
-		for(int i = startKeyFrame+1; i < endKeyFrame; i++)
-			frames.set(i, interpolatedFrames.get(i));
-		
-		releaseCachedFrames();
+		int[] returnVec = new int[2];
+		// log.debug("D-Vector from Frame:{} to Frame:{} for SUM
+		// dx({})={},dy({})={}", startIdx, endIdx, c, dx, r,dy);
+		// returnVec[0] = symmetricRound(dx);
+		// returnVec[1] = symmetricRound(dy);
+		bdx = bdx.setScale(0, BigDecimal.ROUND_HALF_EVEN);
+		bdy = bdy.setScale(0, BigDecimal.ROUND_HALF_EVEN);
+		returnVec[0] = bdx.intValue();
+		returnVec[1] = bdy.intValue();
+		// log.debug("D-Vector from Frame:{} to Frame:{} for
+		// dx({})={},dy({})={}", startKey, endKey, c, r,
+		// returnVec[0],returnVec[1]);
+		return returnVec;
 	}
 
 	private void releaseCachedFrames() {
-		for( Mat m : this.mat2frame.values() ) m.release();
+		for (Mat m : this.mat2frame.values())
+			m.release();
 		this.mat2frame.clear();
 	}
 
-	private Frame propagateFrameFromTo(Frame srcframe, Frame frameToInterpolate) {
-		// calc motion flow
-		Mat msrc = getMatfromFrame(srcframe);
-		Mat minter = getMatfromFrame(frameToInterpolate);
-        Mat flow = new Mat(msrc.size(), CvType.CV_32FC2);
-        Mat minter_gray = new Mat(minter.size(), CvType.CV_8UC1);
-        Mat msrc_gray = new Mat(msrc.size(), CvType.CV_8UC1);
-        Imgproc.cvtColor(minter, minter_gray, Imgproc.COLOR_BGR2GRAY);
-        Imgproc.cvtColor(msrc, msrc_gray, Imgproc.COLOR_BGR2GRAY);
-        Video.calcOpticalFlowFarneback(msrc_gray, minter_gray, flow, 0.5, 3, 15, 3, 7, 1.5, 0);
-        Frame res = new Frame(frameToInterpolate);
-        for(int x = 0; x < this.w; x++) {
-        	for( int y = 0; y < this.h; y++) {
-        		//log.debug("x={}, y={}", x, y);
-        		double[] d = flow.get(y,x);
-                int dx = (int) Math.round(d[0]);
-                int dy = (int) Math.round(d[1]);
-                int ppx = x - dx;
-                int ppy = y - dy;
-                if( ppx < 0)  //  # curate edges of frame
-                	ppx = 0;
-                if( ppx > this.w - 1)
-                	ppx = this.w - 1;
-                if( ppy < 0)
-                	ppy = 0;
-                if( ppy > this.h - 1)
-                	ppy = this.h - 1;
-                int colIdx = getPixel(srcframe, ppx, ppy, this.w/8) / 16;
-                int colIdx2 = getPixel(frameToInterpolate, x, y, this.w/8) % 16;
-//                if( colIdx > 0 ) {
-//                	log.debug("x={}, y={}, dx={}, dy={} d[0]={} d[1]={}", x,y,dx, dy, d[0], d[1]);
-//                }
-                setPixel(res, colIdx2 + colIdx*16, x, y, this.w/8);
-        	}
-        }
-        msrc_gray.release();
-        minter_gray.release();
-        flow.release();
-		return res;
+	private void releaseListMats(List<Mat> FlowMats) {
+		for (int i = 0; i < FlowMats.size(); i++) {
+			Mat m = FlowMats.get(i);
+			m.release();
+		}
 	}
-	
+
 	private void setPixel(Frame r, int v, int x, int y, int bytesPerRow) {
-    	byte mask = (byte) (0b10000000 >> (x % 8));
-    	int numberOfPlanes = r.planes.size();
-    	for(int plane = 0; plane < numberOfPlanes; plane++) {
-    		if( (v & 0x01) != 0) {
-    			r.planes.get(plane).data[y*bytesPerRow+x/8] |= mask;
-    		} else {
-    			r.planes.get(plane).data[y*bytesPerRow+x/8] &= ~mask;
-    		}
-    		v >>= 1;
-    	}
+		byte mask = (byte) (0b10000000 >> (x % 8));
+		int numberOfPlanes = r.planes.size();
+		for (int plane = 0; plane < numberOfPlanes; plane++) {
+			if ((v & 0x01) != 0) {
+				r.planes.get(plane).data[y * bytesPerRow + x / 8] |= mask;
+			} else {
+				r.planes.get(plane).data[y * bytesPerRow + x / 8] &= ~mask;
+			}
+			v >>= 1;
+		}
 	}
-	
+
 	private int getPixel(Frame frame, int x, int y, int bytesPerRow) {
-    	byte mask = (byte) (0b10000000 >> (x % 8));
-    	int v = 0;
-    	for(int plane = 0; plane < frame.planes.size(); plane++) {
-    		v += (frame.planes.get(plane).data[x / 8 + y * bytesPerRow] & mask) != 0 ? (1<<plane) : 0;
-    	}
-    	return v;
+		byte mask = (byte) (0b10000000 >> (x % 8));
+		int v = 0;
+		for (int plane = 0; plane < frame.planes.size(); plane++) {
+			v += (frame.planes.get(plane).data[x / 8 + y * bytesPerRow] & mask) != 0 ? (1 << plane) : 0;
+		}
+		return v;
 	}
-
-	private double getBestNeighborhoodKeyframe(Frame frame1, Frame frame2) {
-		// done by histogram_difference_between_frames
-		float[] range = { 0, 256 }; // the upper boundary is exclusive
-		MatOfFloat histRange = new MatOfFloat(range);
-		MatOfInt hist1 = new MatOfInt(), hist2 = new MatOfInt();
-		
-		//  add converted frame
-		Mat m1 = getMatfromFrame(frame1);
-		Mat m2 = getMatfromFrame(frame2);
-//        Mat g1 = new Mat(m1.size(), CvType.CV_8UC1);
-//        Mat g2 = new Mat(m2.size(), CvType.CV_8UC1);
-//        Imgproc.cvtColor(m1, g1, Imgproc.COLOR_BGR2GRAY);
-//        Imgproc.cvtColor(m2, g2, Imgproc.COLOR_BGR2GRAY);
-        List<Mat> i1 = new ArrayList<>();
-        i1.add(m1);
-		// cv2.calcHist((image_from_frame(frame1, palette)), [0], None, [256], [0, 256])
-		// calcHist(List<Mat> images, MatOfInt channels, Mat mask, Mat hist, MatOfInt histSize, MatOfFloat ranges)
-		Imgproc.calcHist(i1, new MatOfInt(0), new Mat(), hist1, new MatOfInt(256), histRange);
-		List<Mat> i2 = new ArrayList<>();
-		//  add converted frame2
-		i2.add(m2);
-		Imgproc.calcHist(i2, new MatOfInt(0), new Mat(), hist2, new MatOfInt(256), histRange);
-		//log.debug("size of hist1/2 = {} {}", hist1.size(), hist2.size());
-		//log.debug("hist1={}", hist1.dump());
-		//log.debug("hist2={}", hist2.dump());
-		double r = Imgproc.compareHist(hist1, hist2, Imgproc.HISTCMP_BHATTACHARYYA);
-//		g1.release();
-//		g2.release();
-		return r;
-	}
-
 
 }
