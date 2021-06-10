@@ -9,7 +9,6 @@ import com.rinke.solutions.beans.Bean;
 import com.rinke.solutions.beans.Value;
 import com.rinke.solutions.pinball.Constants;
 import com.rinke.solutions.pinball.OpenCVLoader;
-import com.rinke.solutions.pinball.ScalerType;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.Animation.EditMode;
 import com.rinke.solutions.pinball.animation.AnimationInterpolator;

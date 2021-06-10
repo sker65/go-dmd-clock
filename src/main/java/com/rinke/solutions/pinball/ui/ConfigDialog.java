@@ -30,7 +30,6 @@ import com.rinke.solutions.beans.Scope;
 import com.rinke.solutions.beans.Value;
 import com.rinke.solutions.pinball.DmdSize;
 import com.rinke.solutions.pinball.LabelProviderAdapter;
-import com.rinke.solutions.pinball.ScalerType;
 import com.rinke.solutions.pinball.io.ConnectorFactory;
 import com.rinke.solutions.pinball.io.Pin2DmdConnector;
 import com.rinke.solutions.pinball.io.Pin2DmdConnector.ConnectionHandle;
@@ -44,12 +43,10 @@ public class ConfigDialog extends Dialog implements View {
     
     protected Shell shell;
     private DmdSize dmdSize;
-    private ScalerType scalerType;
-
+ 
     public boolean okPressed;
 
     private ComboViewer dmdSizeViewer;
-    private ComboViewer scalerTypeViewer;
     private Spinner spinnerNoColors;
 	private Group grpDmd;
 	private Button btnOk;
@@ -103,7 +100,6 @@ public class ConfigDialog extends Dialog implements View {
     public void open() {
         
     	dmdSize = DmdSize.fromOrdinal(config.getInteger(Config.DMDSIZE,0));
-    	scalerType = ScalerType.fromOrdinal(config.getInteger(Config.SCALERTYPE,1));
 
         createContents();
         btnAutosaveActive.setSelection(config.getBoolean(Config.AUTOSAVE, false));
@@ -189,19 +185,6 @@ public class ConfigDialog extends Dialog implements View {
 		dmdSizeViewer.setInput(DmdSize.values());
 		dmdSizeViewer.setSelection(new StructuredSelection(dmdSize));
 		
-		Label lblScalerType = new Label(grpDmd, SWT.RIGHT);
-		lblScalerType.setAlignment(SWT.LEFT);
-		lblScalerType.setBounds(10, 77, 53, 14);
-		lblScalerType.setText("Scaler: ");
-
-        scalerTypeViewer = new ComboViewer(grpDmd, SWT.READ_ONLY);
-        Combo ccombo = scalerTypeViewer.getCombo();
-        ccombo.setBounds(69, 74, 127, 23);
-        scalerTypeViewer.setContentProvider(ArrayContentProvider.getInstance());
-        scalerTypeViewer.setLabelProvider(new LabelProviderAdapter<ScalerType>(o -> o.label ));
-        scalerTypeViewer.setInput(ScalerType.values());
-        scalerTypeViewer.setSelection(new StructuredSelection(scalerType));
-
         Group grpAutosave = new Group(grpTest, SWT.NONE);
         FormData fd_grpAutosave = new FormData();
         fd_grpAutosave.left = new FormAttachment(grpDmd, 15);
@@ -350,7 +333,6 @@ public class ConfigDialog extends Dialog implements View {
 		log.info("ok pressed");
 		okPressed = true;
 		dmdSize = (DmdSize) ((StructuredSelection) dmdSizeViewer.getSelection()).getFirstElement();
-		scalerType =  (ScalerType) ((StructuredSelection) scalerTypeViewer.getSelection()).getFirstElement();
 		if (spinnerNoPlanes.getSelection() == 4 && spinnerNoColors.getSelection() == 64)
 			spinnerNoPlanes.setSelection(6);
 		if (spinnerNoPlanes.getSelection() == 6 && spinnerNoColors.getSelection() == 16)
@@ -367,16 +349,11 @@ public class ConfigDialog extends Dialog implements View {
         config.put(Config.NO_QUIT_WARNING, btnNoQuitWarning.getSelection());
         config.put(Config.NO_EXPORT_WARNING, btnNoExportWarnings.getSelection());
         config.put(Config.DMDSIZE, dmdSize.ordinal());
-        config.put(Config.SCALERTYPE, scalerType.ordinal());
         // TODO missing save for source size
 		messageUtil.warn(SWT.ICON_ERROR | SWT.OK,
 				"Config changes",
 				"The configuration has changed ! Please reload the editor. ");
 		shell.close();
-	}
-
-	public ScalerType getScalerType() {
-		return scalerType;
 	}
 
 }

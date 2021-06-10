@@ -38,7 +38,6 @@ import com.rinke.solutions.pinball.Constants;
 import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.Dispatcher;
 import com.rinke.solutions.pinball.DmdSize;
-import com.rinke.solutions.pinball.ScalerType;
 import com.rinke.solutions.pinball.Worker;
 import com.rinke.solutions.pinball.animation.AniReader;
 import com.rinke.solutions.pinball.animation.AniWriter;

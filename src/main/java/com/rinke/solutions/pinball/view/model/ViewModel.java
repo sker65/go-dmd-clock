@@ -18,7 +18,6 @@ import com.rinke.solutions.databinding.ViewBinding;
 import com.rinke.solutions.pinball.CutInfo;
 import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.DmdSize;
-import com.rinke.solutions.pinball.ScalerType;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.Animation.EditMode;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
@@ -53,7 +52,6 @@ public class ViewModel extends AbstractModel {
 	public DmdSize dmdSize;
 	public DmdSize srcDmdSize;
 	public DmdSize prjDmdSize;
-	public ScalerType scalerType;
 	public String pin2dmdAdress;
 	public String projectFilename;
 	public CutInfo cutInfo = new CutInfo();
@@ -83,8 +81,6 @@ public class ViewModel extends AbstractModel {
 		setSrcDmdSize(prjSize);
 		setSelectedPalette( paletteMap.get(0) );
 		setPin2dmdAdress( address );
-		if (config != null)
-			setScalerType(ScalerType.fromOrdinal(config.getInteger(Config.SCALERTYPE,1)));
 		setProjectFilename(null);
 		setDirty(false);
 		Palette.getDefaultPalettes(numberOfColors).stream().forEach(p->paletteMap.put(p.index, p));
@@ -698,10 +694,6 @@ public class ViewModel extends AbstractModel {
 
 	public void setLoadedAniVersion(int loadedAniVersion) {
 		firePropertyChange("loadedAniVersion", this.loadedAniVersion, this.loadedAniVersion = loadedAniVersion);
-	}
-
-	public void setScalerType(ScalerType scalerType) {
-		firePropertyChange("scalerType", this.scalerType, this.scalerType = scalerType);
 	}
 
 	public void setLinkedFrameOffset(int linkedFrameOffset) {
