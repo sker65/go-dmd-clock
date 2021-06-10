@@ -330,10 +330,13 @@ public class Animation {
 		}
 		Properties rendererProps = renderer.getProps();
 		String width = rendererProps.getProperty("width");
+		int planeSize = renderer.getFrames().get(0).getPlane(0).length;
 		if( width!= null && Integer.parseInt(width) != dmd.getWidth()) {
 			int w = Integer.parseInt(rendererProps.getProperty("width"));
 			int h = Integer.parseInt(rendererProps.getProperty("height"));
-			setDimension(w, h);
+			if(w*h/8 == planeSize) {
+				setDimension(w, h);
+			}
 		}
 	}
 	

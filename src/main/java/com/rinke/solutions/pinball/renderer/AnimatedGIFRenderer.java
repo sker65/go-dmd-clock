@@ -89,8 +89,8 @@ public class AnimatedGIFRenderer extends Renderer {
 					if( !sizeSetFromImage ) {
 						sizeSetFromImage = true;
 						size = setSizeFromImage( image.getWidth(), image.getHeight());
-						if( dmd.getWidth() != image.getWidth() || dmd.getHeight() != image.getHeight()) {
-							dmd = new DMD(image.getWidth(), image.getHeight());
+						if( dmd.getWidth() != size.width || dmd.getHeight() != size.height) {
+							dmd = new DMD(size.width, size.height);
 						}
 					}
 					metadata = reader.getImageMetadata(frameNo);
@@ -151,6 +151,8 @@ public class AnimatedGIFRenderer extends Renderer {
 	            // resize on demand
 	            if( toScan.getWidth() > size.width || toScan.getHeight() > size.height ) {
 	            	toScan = resize(toScan, size.width,size.height);
+	            	this.props.setProperty("width", String.valueOf(size.width));
+	        		this.props.setProperty("height", String.valueOf(size.height));
 	            }
 	            
 /*				for (int x = 0; x < 128; x++) {
