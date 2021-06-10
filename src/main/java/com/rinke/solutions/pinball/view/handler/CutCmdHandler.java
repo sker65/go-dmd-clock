@@ -230,9 +230,7 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 	public Animation cutScene(Animation animation, int start, int end, String name, boolean scale) {
 		
 		CompiledAnimation cutScene = animation.cutScene(start, end, vm.noOfPlanesWhenCutting);
-		ScalerType st = ScalerType.fromOrdinal(config.getInteger(Config.SCALERTYPE));
 		if( scale ) {
-			
 			int res = messageUtil.warn(0, "Scaler Type",
 					"Please select", 
 					"",

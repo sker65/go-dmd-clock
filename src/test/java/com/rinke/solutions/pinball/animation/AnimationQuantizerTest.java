@@ -27,6 +27,7 @@ public class AnimationQuantizerTest {
 		uut = new AnimationQuantizer();
 		vm = new ViewModel();
 		vm.dmdSize = DmdSize.Size128x32;
+		vm.srcDmdSize = DmdSize.Size128x32;
 		handler = new AnimationActionHandler(vm);
 	}
 

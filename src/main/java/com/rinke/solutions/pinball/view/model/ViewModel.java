@@ -83,7 +83,8 @@ public class ViewModel extends AbstractModel {
 		setSrcDmdSize(prjSize);
 		setSelectedPalette( paletteMap.get(0) );
 		setPin2dmdAdress( address );
-		setScalerType(ScalerType.fromOrdinal(config.getInteger(Config.SCALERTYPE,1)));
+		if (config != null)
+			setScalerType(ScalerType.fromOrdinal(config.getInteger(Config.SCALERTYPE,1)));
 		setProjectFilename(null);
 		setDirty(false);
 		Palette.getDefaultPalettes(numberOfColors).stream().forEach(p->paletteMap.put(p.index, p));
