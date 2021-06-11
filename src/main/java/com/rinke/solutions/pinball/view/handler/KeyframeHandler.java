@@ -15,7 +15,9 @@ import org.apache.commons.lang3.StringUtils;
 import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.Bean;
 import com.rinke.solutions.pinball.animation.Animation;
+import com.rinke.solutions.pinball.animation.FrameScaler;
 import com.rinke.solutions.pinball.animation.Animation.EditMode;
+import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.FrameLink;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.PaletteType;
@@ -240,29 +242,37 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 		}
 	}
 	
-	public List<String> checkAndFixKeyframes(){
+	public List<String> checkAndFixKeyframes(boolean quick){
 		List<String> res = new ArrayList<>();
 		for( PalMapping pm : vm.keyframes.values()) {
 			
-			vm.setDetectionMaskActive(true);
-			for (int msk = 0; msk < vm.masks.size(); msk++) {
-				if (vm.masks.get(msk).locked) {
-					vm.dmd.setMask(vm.masks.get(msk));
-					vm.setSelectedMaskNumber(msk);
-					hashCmdHandler.updateHashes(vm.dmd.getFrame());
-					for (int idx = 0;idx < vm.hashes.size();idx++) {
-						if(Arrays.equals(pm.crc32, vm.hashes.get(idx))) {
-							res.add(" "+pm.name+String.format(" (M%d)", msk));
-							pm.frameIndex = vm.getSelectedFrame();
-							pm.animationName = vm.selectedRecording.getDesc();
-							pm.withMask = true;
-							pm.maskNumber = msk;
-							break;
+			if (quick) {
+				vm.setDetectionMaskActive(pm.withMask);
+				if( pm.withMask ) {
+					vm.dmd.setMask(vm.masks.get(pm.maskNumber));
+					vm.setSelectedMaskNumber(pm.maskNumber);
+				}
+			} else {
+				vm.setDetectionMaskActive(true);
+				for (int msk = 0; msk < vm.masks.size(); msk++) {
+					if (vm.masks.get(msk).locked) {
+						vm.dmd.setMask(vm.masks.get(msk));
+						vm.setSelectedMaskNumber(msk);
+						hashCmdHandler.updateHashes(vm.dmd.getFrame());
+						for (int idx = 0;idx < vm.hashes.size();idx++) {
+							if(Arrays.equals(pm.crc32, vm.hashes.get(idx))) {
+								res.add(" "+pm.name+String.format(" (M%d)", msk));
+								pm.frameIndex = vm.getSelectedFrame();
+								pm.animationName = vm.selectedRecording.getDesc();
+								pm.withMask = true;
+								pm.maskNumber = msk;
+								break;
+							}
 						}
 					}
 				}
+				vm.setDetectionMaskActive(false);
 			}
-			vm.setDetectionMaskActive(false);
 
 			hashCmdHandler.updateHashes(vm.dmd.getFrame());
 			for (int idx = 0;idx < vm.hashes.size();idx++) {
@@ -281,7 +291,18 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 	}
 	
 	public void onCheckKeyframe() {
-		List<String> res = checkAndFixKeyframes();
+		
+		int ret = messageUtil.warn(0, "Check Keyframes",
+				"Please select", 
+				"Check all masks for all keyframes (slow) ?",
+				new String[]{"", "No", "Yes"},2);
+		if (ret == 0) return;
+		List<String> res = null;
+		if( ret == 1)
+			res = checkAndFixKeyframes(true);
+		if( ret == 2)
+			res = checkAndFixKeyframes(false);
+		
 		if (res.size() != 0) {
 			messageUtil.warn("Keyframe found", "The selected frame gets triggered by Keyframe:\n"+res);
 			}
