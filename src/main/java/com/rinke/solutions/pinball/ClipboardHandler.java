@@ -78,7 +78,7 @@ public class ClipboardHandler {
 				BufferedImage bufferedImage = ImageUtil.convert(new Image(Display.getCurrent(),imageData));
 				log.info("pasting image from clipboard: {}, hasAlpha: {}", bufferedImage, bufferedImage.getColorModel().hasAlpha() );
 				log.info("target frame no of planes: {}", dmd.getNumberOfPlanes());
-				if( dmd.getNumberOfPlanes() <= 4) {
+				if( dmd.getNumberOfPlanes() <= 6) {
 					Frame res = ImageUtil.convertToFrameWithPalette(bufferedImage, dmd, palette, false);
 					PasteTool pasteTool = new PasteTool(0, width, height,0,0);
 					pasteTool.setFrameToPaste(res);
@@ -118,7 +118,7 @@ public class ClipboardHandler {
 						}
 					}
 				}
-			} else if( dmd.getNumberOfPlanes() > 5) {
+			} else if( dmd.getNumberOfPlanes() > 6) {
 				// for 32k color
 				imageData = new ImageData(width, height, 24, new PaletteData(0xFF , 0xFF00 , 0xFF0000));
 				for( int x = 0; x < width; x++) {
@@ -251,7 +251,7 @@ public class ClipboardHandler {
 				log.info("image data depth: {}", imageData.depth);
 				// we need a config option to define if colors are reduced to palette or not
 				BufferedImage bufferedImage = ImageUtil.convert(new Image(Display.getCurrent(),imageData));
-				if( dmd.getNumberOfPlanes() <= 4) {
+				if( dmd.getNumberOfPlanes() <= 6) {
 					ImageUtil.convertToFrameWithPalette(bufferedImage, dmd, palette, true);
 					//dmd.setFrame(res);
 				} else {
