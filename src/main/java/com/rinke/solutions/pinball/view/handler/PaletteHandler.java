@@ -756,7 +756,7 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 							}
 						}
 					}
-					if( sceneFound == false && keyFrameFound == false ) {
+					if( sceneFound == false && keyFrameFound == false && p.index != 0) {
 						vm.paletteMap.remove(p.index);
 					}
 				} else {
