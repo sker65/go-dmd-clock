@@ -118,7 +118,7 @@ public class ClipboardHandler {
 						}
 					}
 				}
-			} else if( dmd.getNumberOfPlanes() > 6) {
+			} else if( dmd.getNumberOfPlanes() > 5) {
 				// for 32k color
 				imageData = new ImageData(width, height, 24, new PaletteData(0xFF , 0xFF00 , 0xFF0000));
 				for( int x = 0; x < width; x++) {
