@@ -230,6 +230,7 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 		
 		CompiledAnimation cutScene = animation.cutScene(start, end, vm.noOfPlanesWhenCutting);
 		if( scale ) {
+			name = animation.getDesc()+"_HD";
 			int res = messageUtil.warn(0, "Scaler Type",
 					"Please select", 
 					"",
