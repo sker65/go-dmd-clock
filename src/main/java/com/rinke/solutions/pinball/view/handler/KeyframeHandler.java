@@ -72,7 +72,7 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 			return;
 		} 
 		
-		if (vm.selectedKeyFrame != null && Arrays.equals(vm.selectedKeyFrame.crc32,vm.hashes.get(vm.selectedHashIndex)) && !vm.selectedKeyFrame.frameSeqName.contentEquals(vm.selectedFrameSeq.getDesc()) && !SwitchMode.EVENT.equals(switchMode)) {
+		if (vm.selectedKeyFrame != null && vm.selectedKeyFrame.frameSeqName != null && Arrays.equals(vm.selectedKeyFrame.crc32,vm.hashes.get(vm.selectedHashIndex)) && !vm.selectedKeyFrame.frameSeqName.contentEquals(vm.selectedFrameSeq.getDesc()) && !SwitchMode.EVENT.equals(switchMode)) {
 			vm.selectedKeyFrame.frameSeqName = ani.getDesc();
 			vm.selectedKeyFrame.switchMode = switchMode;
 			vm.selectedKeyFrame.palIndex = ani.getPalIndex();
