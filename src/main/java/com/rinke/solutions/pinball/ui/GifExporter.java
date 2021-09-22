@@ -145,8 +145,17 @@ public class GifExporter extends Dialog {
 						});
 	
 						log.info("exporting frame {} to {}", ani.actFrame, filename);
-						if (ani.actFrame >= maxFrame || abort || ani.hasEnded())
+						if (ani.actFrame >= maxFrame-1 || abort || ani.hasEnded()) {
+							if (ani.actFrame > 0) {
+								dmd.clear();
+								Frame last = ani.render(dmd, false);
+								dmd.writeOr(last);
+								Image lastSwtImage = widget.drawImage(display, width, height);
+								gifWriter.writeToSequence(ImageUtil.convert(lastSwtImage), ani.getRefreshDelay());
+							}
 							break;
+						}
+							
 					}
 				} catch( IOException /*| InterruptedException*/ e) {
 					log.error("error exporting to {}", filename);
