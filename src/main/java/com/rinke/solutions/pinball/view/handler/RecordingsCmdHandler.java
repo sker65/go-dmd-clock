@@ -144,6 +144,7 @@ public class RecordingsCmdHandler extends AbstractListCmdHandler implements View
 					nameExists = true;
 			}
 			if ( nameExists != true && (i != -1)) vm.inputFiles.remove(i);
+			vm.setDirty(true);
 		} else {
 			messageUtil.warn("Recording cannot be deleted", "It is used by "+res);
 		}
@@ -151,6 +152,7 @@ public class RecordingsCmdHandler extends AbstractListCmdHandler implements View
 
 	public void onSortRecording() {
 		onSortAnimations(vm.recordings);
+		vm.setDirty(true);
 	}
 	
 	void updatePalMappingsRecordingNames(String oldKey, String newKey) {
@@ -160,6 +162,7 @@ public class RecordingsCmdHandler extends AbstractListCmdHandler implements View
 				p.animationName = newKey;
 			}
 		});
+		vm.setDirty(true);
 	}
 
 	public void onRenameRecording(String oldName, String newName){
@@ -176,6 +179,7 @@ public class RecordingsCmdHandler extends AbstractListCmdHandler implements View
 			if( link != null && link.associatedRecordingName.equals(oldName)) {
 				link.associatedRecordingName = newName;
 			}
-		}	
+		}
+		vm.setDirty(true);
 	}
 }

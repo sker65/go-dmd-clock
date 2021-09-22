@@ -99,7 +99,7 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 					
 			vm.scenes.put(name, newScene);
 			vm.scenes.refresh();
-
+			vm.setDirty(true);
 		}		
 	}
 	
@@ -121,6 +121,7 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 						
 				vm.scenes.put(name, newScene);
 				vm.scenes.refresh();
+				vm.setDirty(true);
 			}
 		}		
 	}
@@ -137,7 +138,7 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 					
 			vm.scenes.put(name, newScene);
 			vm.scenes.refresh();
-
+			vm.setDirty(true);
 		}		
 	}
 	
@@ -156,6 +157,7 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 			}
 		}
 		vm.scenes.refresh();
+		vm.setDirty(true);
 	}
 
 	String getUniqueName(String name, Set<String> set) {
@@ -176,6 +178,7 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 			log.info("cutting out scene from {}", vm.cutInfo);
 			vm.cutInfo.reset();
 			vm.setMarkStartEnabled(true);
+			vm.setDirty(true);
 		}	
 	}
 	
@@ -184,6 +187,7 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 		if( src != null ) {
 			cutScene(src, src.start, src.end, buildUniqueName(vm.scenes), true);
 			log.info("scaling scene from {}", vm.cutInfo);
+			vm.setDirty(true);
 		}	
 	}
 
@@ -194,6 +198,7 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 		if( src != null ) {
 			add2Scene(src, getSourceAnimation().actFrame);
 			log.info(" adding frame from {}", vm.cutInfo);
+			vm.setDirty(true);
 		}
 		
 	}
@@ -204,6 +209,7 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 		if( src != null ) {
 			splitScene(src);
 			log.info("splitting scene {}", src.getDesc());
+			vm.setDirty(true);
 		}
 	}
 	

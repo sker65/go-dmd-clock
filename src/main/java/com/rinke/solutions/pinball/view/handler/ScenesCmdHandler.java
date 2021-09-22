@@ -200,6 +200,7 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 					nameExists = true;
 			}
 			if ( nameExists != true && (i != -1)) vm.inputFiles.remove(i);
+			vm.setDirty(true);
 		} else {
 			messageUtil.warn("Scene cannot be deleted", "It is used by "+res);
 		}
@@ -207,6 +208,7 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 
 	public void onSortScenes() {
 		onSortAnimations(vm.scenes);
+		vm.setDirty(true);
 	}
 	
 	// called when scene gets renamed
@@ -221,7 +223,8 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 					break;
 				}
 			}
-		}	
+		}
+		vm.setDirty(true);
 	}
 
 	/**
@@ -237,6 +240,7 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 				p.frameSeqName = newKey;
 			}
 		});
+		vm.setDirty(true);
 	}
 
 	public void onSetScenePalette() {
@@ -253,6 +257,7 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 				}
 			}
 		}
+		vm.setDirty(true);
 	}
 
 	public void onRenameScene(String oldName, String newName){
@@ -282,6 +287,7 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 				vm.selectedScene.getActualFrame().frameLink.frame = editLink.getRecordingLink().startFrame; 
 			}
 		}
+		vm.setDirty(true);
 	}
 	
 	public void onUnlockSceneMasks() {

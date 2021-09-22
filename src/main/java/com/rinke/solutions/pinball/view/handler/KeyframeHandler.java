@@ -77,6 +77,7 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 			vm.selectedKeyFrame.switchMode = switchMode;
 			vm.selectedKeyFrame.palIndex = ani.getPalIndex();
 			messageUtil.warn("Keyframe updated", "Selected keyframe updated with new scene");
+			vm.setDirty(true);
 			return;
 		}
 
@@ -146,6 +147,7 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 		String duplicateName = checkForDuplicateKeyFrames(palMapping);
 		if (duplicateName == null) {
 			vm.keyframes.put(palMapping.name,palMapping);
+			vm.setDirty(true);
 		} else {
 			messageUtil.warn("duplicate hash", "There is already Keyframe \"" + duplicateName + "\" that uses the same hash");
 		}
@@ -232,6 +234,7 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 		}
 		vm.dmd.clear();
 		vm.setSelectedScene(null);
+		vm.setDirty(true);
 	}
 	
 	public void onFixKeyframe() {
@@ -327,6 +330,7 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 		while (vm.selectedKeyFrame != null)
 			vm.keyframes.remove(vm.selectedKeyFrame.name);
 		checkReleaseMask();
+		vm.setDirty(true);
 	}
 	/**
 	 * checks all pal mappings and releases masks if not used anymore
@@ -372,6 +376,7 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 		for (Entry<String, PalMapping> entry : list) {
 			vm.keyframes.put(entry.getKey(), (PalMapping)entry.getValue());
 		}
+		vm.setDirty(true);
 	}
 
 	public void onSelectedKeyFrameChanged(PalMapping old, PalMapping nk) {
@@ -463,6 +468,7 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 			vm.selectedKeyFrame.durationInMillis = n;
 			vm.selectedKeyFrame.durationInFrames = (int) vm.selectedKeyFrame.durationInMillis / FRAME_RATE;
 		}
+		vm.setDirty(true);
 	}
 
 	public void onSelectedFrameSeqChanged(Animation old, Animation ani) {
@@ -518,6 +524,7 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 					}
 				}
 			}
+			vm.setDirty(true);
 		}
 	}
 

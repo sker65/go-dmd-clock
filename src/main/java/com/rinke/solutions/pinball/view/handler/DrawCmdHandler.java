@@ -147,6 +147,7 @@ public class DrawCmdHandler extends AbstractCommandHandler implements EventHandl
 			
 			// to force update on master detail
 			vm.scenes.refresh();
+			vm.setDirty(true);
 		}
 		setDrawMaskByEditMode(modeToSet);
 	}
