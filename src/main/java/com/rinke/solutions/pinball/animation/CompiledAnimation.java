@@ -183,5 +183,17 @@ public class CompiledAnimation extends Animation {
 	public Frame getActualFrame() {
 		return frames.get(actFrame);
 	}
+	
+	public Frame getPreviousFrame() {
+		if (actFrame > 0)
+			return frames.get(actFrame-1);
+		return frames.get(actFrame);
+	}
+	
+	public Frame getNextFrame() {
+		if (frames.size() > 1 && actFrame < frames.size()-1)
+			return frames.get(actFrame+1);
+		return frames.get(actFrame);
+	}
 
 }

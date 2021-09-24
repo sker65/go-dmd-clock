@@ -126,6 +126,12 @@ public class AnimationHandler implements Runnable {
 						if (vm.selectedScene != null && vm.selectedScene.getActualFrame().frameLink != null) {
             				linkedAnimation = vm.recordings.get(vm.selectedScene.getActualFrame().frameLink.recordingName);
             				frameNo = vm.selectedScene.getActualFrame().frameLink.frame + vm.linkedFrameOffset;
+						} else if (vm.selectedScene != null && vm.selectedScene.getPreviousFrame().frameLink != null) {
+							linkedAnimation = vm.recordings.get(vm.selectedScene.getPreviousFrame().frameLink.recordingName);
+            				frameNo = vm.selectedScene.getPreviousFrame().frameLink.frame + 1 + vm.linkedFrameOffset;
+						} else if (vm.selectedScene != null && vm.selectedScene.getNextFrame().frameLink != null) {
+							linkedAnimation = vm.recordings.get(vm.selectedScene.getNextFrame().frameLink.recordingName);
+            				frameNo = vm.selectedScene.getNextFrame().frameLink.frame - 1 + vm.linkedFrameOffset;
             			} else {
             				linkedAnimation = vm.recordings.get(link.associatedRecordingName);
     						frameNo =  link.startFrame + actFrame + vm.linkedFrameOffset;
