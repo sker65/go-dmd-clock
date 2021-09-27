@@ -40,7 +40,7 @@ public class EditLink extends Dialog implements EditLinkView {
 	 * @param style
 	 */
 	public EditLink(Shell parent) {
-		super(parent, SWT.CLOSE | SWT.TITLE | SWT.BORDER | SWT.APPLICATION_MODAL);
+		super(parent, SWT.TITLE | SWT.BORDER | SWT.APPLICATION_MODAL);
 		setText("Edit Link");
 	}
 
