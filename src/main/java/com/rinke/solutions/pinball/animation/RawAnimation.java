@@ -32,6 +32,9 @@ public class RawAnimation extends Animation {
 	
 	@Override
 	protected Frame renderFrame(String name, DMD dmd, int act) {
+		if (act < 0 ) {
+			last = frames.get(0);
+		} else
 		if( act < frames.size()) {
 			last = frames.get(act);//new Frame(dmd.getWidth(), dmd.getHeight(), frames.get(act).planes.get(0).plane, frames.get(act).planes.get(1).plane);
 		}
@@ -97,7 +100,10 @@ public class RawAnimation extends Animation {
 		if (planesToRender > 4 && planesToRender < 15)
 			planesToRender = 4;
 		for(int i = 0; i < planesToRender; i++) {
-			f.planes.add(planes.get(actFrame*planesPerFrame + i));
+			if (actFrame < 0)
+				f.planes.add(planes.get(0*planesPerFrame + i));
+			else
+				f.planes.add(planes.get(actFrame*planesPerFrame + i));
 		}
 		return f;
 	}
