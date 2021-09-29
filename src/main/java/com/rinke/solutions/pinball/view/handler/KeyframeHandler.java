@@ -73,12 +73,22 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 		} 
 		
 		if (vm.selectedKeyFrame != null && Arrays.equals(vm.selectedKeyFrame.crc32,vm.hashes.get(vm.selectedHashIndex)) && !SwitchMode.EVENT.equals(switchMode)) {
-			vm.selectedKeyFrame.frameSeqName = ani.getDesc();
-			vm.selectedKeyFrame.switchMode = switchMode;
-			vm.selectedKeyFrame.palIndex = ani.getPalIndex();
-			messageUtil.warn("Keyframe updated", "Selected keyframe updated with new scene");
-			vm.setDirty(true);
-			return;
+			if (!vm.selectedKeyFrame.frameSeqName.equals(ani.getDesc())) {
+				vm.selectedKeyFrame.frameSeqName = ani.getDesc();
+				vm.selectedKeyFrame.switchMode = switchMode;
+				vm.selectedKeyFrame.palIndex = ani.getPalIndex();
+				messageUtil.warn("Keyframe updated", "Selected keyframe updated with new scene");
+				vm.setDirty(true);
+				return;
+			}
+			if (!vm.selectedKeyFrame.animationName.equals(vm.selectedRecording.getDesc()) || vm.selectedKeyFrame.frameIndex != vm.selectedRecording.actFrame) {
+				vm.selectedKeyFrame.animationName = vm.selectedRecording.getDesc();
+				vm.selectedKeyFrame.frameIndex = vm.selectedRecording.actFrame;
+				messageUtil.warn("Keyframe updated", "Selected keyframe updated with new recording link");
+				vm.setDirty(true);
+				return;
+			}
+
 		}
 
 		String prompt = getName(switchMode, ani);
