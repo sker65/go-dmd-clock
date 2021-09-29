@@ -246,13 +246,13 @@ public class PalettePicker extends Dialog implements View {
 				colBtn[i].setToolTipText(toolTip);
 				k++;
 			} else {
-				if (k < colors.size()) {
-						colBtn[i].setText("X");
-						colBtn[i].setSelection(false);
-						colBtn[i].setData(null);
-						if( colBtn[i].getImage()!= null ) colBtn[i].setImage(null);
-						k++;
-				}
+				//if (k < colors.size()) {
+					colBtn[i].setText("X");
+					colBtn[i].setSelection(false);
+					colBtn[i].setData(null);
+					if( colBtn[i].getImage()!= null ) colBtn[i].setImage(null);
+					k++;
+				//}
 			}
 		}
 	}
