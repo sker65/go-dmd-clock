@@ -10,16 +10,27 @@ public class FloodFillTool extends DrawTool {
 
 	@Override
 	public boolean mouseUp(int x, int y) {
-		int oldColor = dmd.getPixelWithoutMask(x, y);
-		if( oldColor != actualColor ) {
-			dmd.addUndoBuffer();
-			depth = 0;
-			if (toolSize > 2) {
-				replaceColor(oldColor);
-			} else {
-				fill( oldColor, x, y);
+		if (dmd.getDrawMask() != 1) {
+			int oldColor = dmd.getPixelWithoutMask(x, y);
+			if( oldColor != actualColor ) {
+				dmd.addUndoBuffer();
+				depth = 0;
+				if (toolSize > 2) {
+					replaceColor(oldColor);
+				} else {
+					fill( oldColor, x, y);
+				}
+				return true;
 			}
-			return true;
+		} else {
+			int oldColor = dmd.getPixelWithoutMask(x, y);
+			int oldMask = dmd.getMaskPixel(x, y);
+			if( oldMask != actualColor ) {
+				dmd.addUndoBuffer();
+				depth = 0;
+				fillMask( oldColor, oldMask, x, y);
+				return true;
+			}
 		}
 		return false;
 	}
@@ -51,6 +62,29 @@ public class FloodFillTool extends DrawTool {
 					if( x<dmd.getWidth()-1) fill(oldColor, x+1,y+1);
 					if( y> 0 ) fill(oldColor,x+1,y-1);
 					if( y< dmd.getHeight()-1) fill(oldColor,x-1,y+1);
+				}
+			}
+		}
+		depth--;
+	}
+
+	private void fillMask(int oldColor, int oldMask, int x, int y) {
+		depth++;
+		if( depth > 10000 ) {
+			throw new RuntimeException("fill to deep");
+		}
+		if( dmd.getPixelWithoutMask(x,y) == oldColor &&  dmd.getMaskPixel(x,y) == oldMask ) {
+			dmd.setPixel(x, y, this.actualColor);
+			if( dmd.getMaskPixel(x,y) != oldMask ) { // double check because of col masking, only decend if its really changing color
+				if( x>0 ) fillMask( oldColor, oldMask, x-1, y);
+				if( x<dmd.getWidth()-1) fillMask( oldColor, oldMask, x+1,y);
+				if( y> 0 ) fillMask( oldColor, oldMask,x,y-1);
+				if( y< dmd.getHeight()-1) fillMask( oldColor, oldMask,x,y+1);
+				if (toolSize > 1) {
+					if( x>0 ) fillMask( oldColor,  oldMask, x-1, y-1);
+					if( x<dmd.getWidth()-1) fillMask( oldColor, oldMask, x+1,y+1);
+					if( y> 0 ) fillMask( oldColor, oldMask,x+1,y-1);
+					if( y< dmd.getHeight()-1) fillMask( oldColor, oldMask,x-1,y+1);
 				}
 			}
 		}

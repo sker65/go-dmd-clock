@@ -186,8 +186,26 @@ public class DMD extends Observable {
 	private boolean maskIsRelevant() {
     	return (drawMask & 1) != 0 && frame.hasMask();
     }
+	
+	public int getMaskPixel(int x, int y) {
+    	if( rangeCheck(x,y) ) return 0;
+    	byte mask = (byte) (0b10000000 >> (x % 8));
+    	int v = 0;
+    	v += (frame.mask.data[x / 8 + y * this.bytesPerRow] & mask) != 0 ? 1 : 0;
+    	return v;
+    }
    
-    public int getPixel(int x, int y) {
+	public void setMaskPixel(int x, int y, int v) {
+		if( rangeCheck(x,y) ) return;
+    	byte mask = (byte) (0b10000000 >> (x % 8));
+		if( (v & 0x01) != 0) {
+			frame.mask.data[y*this.bytesPerRow+x/8] |= mask;
+		} else {
+			frame.mask.data[y*this.bytesPerRow+x/8] &= ~mask;
+		}
+    }
+
+	public int getPixel(int x, int y) {
     	if( rangeCheck(x,y) ) return 0;
     	byte mask = (byte) (0b10000000 >> (x % 8));
     	int v = 0;
