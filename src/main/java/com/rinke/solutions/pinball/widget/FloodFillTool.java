@@ -47,7 +47,7 @@ public class FloodFillTool extends DrawTool {
 
 	private void fill(int oldColor, int x, int y) {
 		depth++;
-		if( depth > 10000 ) {
+		if( depth > 7000 ) {
 			throw new RuntimeException("fill to deep");
 		}
 		if( dmd.getPixelWithoutMask(x,y) == oldColor ) {
@@ -70,7 +70,7 @@ public class FloodFillTool extends DrawTool {
 
 	private void fillMask(int oldColor, int oldMask, int x, int y) {
 		depth++;
-		if( depth > 10000 ) {
+		if( depth > 7000 ) {
 			throw new RuntimeException("fill to deep");
 		}
 		if( dmd.getPixelWithoutMask(x,y) == oldColor &&  dmd.getMaskPixel(x,y) == oldMask ) {
