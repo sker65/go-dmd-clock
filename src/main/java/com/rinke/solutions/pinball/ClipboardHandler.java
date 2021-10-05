@@ -67,7 +67,7 @@ public class ClipboardHandler {
 		dmdWidget.resetSelection();
 		if( frame != null ) {
 			log.debug("dx={}, dy={}", dx, dy);
-			PasteTool pasteTool = new PasteTool(0, width, height,dx,dy);
+			PasteTool pasteTool = new PasteTool(0, dmd.getWidth(), dmd.getHeight(),dx,dy);
 			pasteTool.setFrameToPaste(frame);
 			pasteTool.setMaskOnly(dmdWidget.isShowMask());
 			dmdWidget.setDrawTool(pasteTool);
