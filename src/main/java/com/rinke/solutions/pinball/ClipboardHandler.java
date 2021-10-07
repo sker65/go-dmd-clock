@@ -118,7 +118,7 @@ public class ClipboardHandler {
 						}
 					}
 				}
-			} else if( dmd.getNumberOfPlanes() > 5) {
+			} else if( dmd.getNumberOfPlanes() > 8) {
 				// for 32k color
 				imageData = new ImageData(width, height, 24, new PaletteData(0xFF , 0xFF00 , 0xFF0000));
 				for( int x = 0; x < width; x++) {
@@ -133,7 +133,7 @@ public class ClipboardHandler {
 					}
 				}
 			} else {
-				imageData = new ImageData(width, height, dmd.getNumberOfPlanes(), buildPaletteData(actPalette));
+				imageData = new ImageData(width, height, 8, buildPaletteData(actPalette));
 				for( int x = 0; x < width; x++) {
 					for( int y = 0; y < height; y++ ) {
 						if( Rect.selected(sel, x, y) ) { 
