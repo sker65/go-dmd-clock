@@ -231,7 +231,9 @@ public class ClipboardHandler {
 		if( frame != null ) {
 			dmd.addUndoBuffer();
 			if (dmdWidget.isShowMask()) {
-				frame.copyToWithMask(dmd.getFrame(), 0b0001);
+				ImageData imageData = (ImageData) clipboard.getContents("ImageTransfer");
+				System.arraycopy(imageData.data, 0, dmd.getFrame().mask.data, 0, dmd.getPlaneSize());
+				//frame.copyToWithMask(dmd.getFrame(), 0b0001);
 			} else {
 		    	if (dmd.getFrame().planes.size() == 24 && frame.planes.size() == 24) {
 		    		for( int i = 0; i < frame.planes.size(); i++) {
