@@ -7,6 +7,7 @@ public class FloodFillTool extends DrawTool {
 	}
 	
 	int depth = 0;
+	int maxDepth= 0;
 
 	@Override
 	public boolean mouseUp(int x, int y) {
@@ -15,11 +16,13 @@ public class FloodFillTool extends DrawTool {
 			if( oldColor != actualColor ) {
 				dmd.addUndoBuffer();
 				depth = 0;
+				maxDepth= 0;
 				if (toolSize > 2) {
 					replaceColor(oldColor);
 				} else {
 					fill( oldColor, x, y);
 				}
+				System.out.println(maxDepth);
 				return true;
 			}
 		} else {
@@ -44,24 +47,25 @@ public class FloodFillTool extends DrawTool {
 			}
 		}
 	}
+	
+    private static final int[] dx = { -1,  0, 0, 1 };
+    private static final int[] dy = {  0, -1, 1, 0 };
 
+    private boolean isSafe(int x, int y) {
+    	return x >= 0 && x < dmd.getWidth() && y>=0 && y < dmd.getHeight();
+    }
+    
 	private void fill(int oldColor, int x, int y) {
 		depth++;
-		if( depth > 7000 ) {
-			throw new RuntimeException("fill to deep");
+		if( depth > maxDepth) maxDepth = depth;
+		if( depth > dmd.getWidth()*dmd.getHeight() ) {
+			throw new RuntimeException("fill to deep: "+depth);
 		}
 		if( dmd.getPixelWithoutMask(x,y) == oldColor ) {
 			dmd.setPixel(x, y, this.actualColor);
 			if( dmd.getPixelWithoutMask(x,y) != oldColor ) { // double check because of col masking, only decend if its really changing color
-				if( x>0 ) fill( oldColor, x-1, y);
-				if( x<dmd.getWidth()-1) fill(oldColor, x+1,y);
-				if( y> 0 ) fill(oldColor,x,y-1);
-				if( y< dmd.getHeight()-1) fill(oldColor,x,y+1);
-				if (toolSize > 1) {
-					if( x>0 ) fill( oldColor, x-1, y-1);
-					if( x<dmd.getWidth()-1) fill(oldColor, x+1,y+1);
-					if( y> 0 ) fill(oldColor,x+1,y-1);
-					if( y< dmd.getHeight()-1) fill(oldColor,x-1,y+1);
+				for(int k = 0; k < dx.length; k++) {
+					if( isSafe(x+dx[k], y+dy[k] ) ) fill(oldColor, x+dx[k], y+dy[k] );
 				}
 			}
 		}
@@ -70,21 +74,14 @@ public class FloodFillTool extends DrawTool {
 
 	private void fillMask(int oldColor, int oldMask, int x, int y) {
 		depth++;
-		if( depth > 7000 ) {
+		if( depth > dmd.getWidth()*dmd.getHeight() ) {
 			throw new RuntimeException("fill to deep");
 		}
 		if( dmd.getPixelWithoutMask(x,y) == oldColor &&  dmd.getMaskPixel(x,y) == oldMask ) {
 			dmd.setPixel(x, y, this.actualColor);
 			if( dmd.getMaskPixel(x,y) != oldMask ) { // double check because of col masking, only decend if its really changing color
-				if( x>0 ) fillMask( oldColor, oldMask, x-1, y);
-				if( x<dmd.getWidth()-1) fillMask( oldColor, oldMask, x+1,y);
-				if( y> 0 ) fillMask( oldColor, oldMask,x,y-1);
-				if( y< dmd.getHeight()-1) fillMask( oldColor, oldMask,x,y+1);
-				if (toolSize > 1) {
-					if( x>0 ) fillMask( oldColor,  oldMask, x-1, y-1);
-					if( x<dmd.getWidth()-1) fillMask( oldColor, oldMask, x+1,y+1);
-					if( y> 0 ) fillMask( oldColor, oldMask,x+1,y-1);
-					if( y< dmd.getHeight()-1) fillMask( oldColor, oldMask,x-1,y+1);
+				for(int k = 0; k < dx.length; k++) {
+					if( isSafe(x+dx[k], y+dy[k] ) ) fillMask( oldColor, oldMask, x+dx[k], y+dy[k] );
 				}
 			}
 		}
