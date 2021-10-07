@@ -67,7 +67,7 @@ public class ClipboardHandler {
 		dmdWidget.resetSelection();
 		if( frame != null ) {
 			log.debug("dx={}, dy={}", dx, dy);
-			PasteTool pasteTool = new PasteTool(0, dmd.getWidth(), dmd.getHeight(),dx,dy);
+			PasteTool pasteTool = new PasteTool(0, width, height,dx,dy);
 			pasteTool.setFrameToPaste(frame);
 			pasteTool.setMaskOnly(dmdWidget.isShowMask());
 			dmdWidget.setDrawTool(pasteTool);
@@ -181,18 +181,16 @@ public class ClipboardHandler {
 	public void onCopy(Palette activePalette) {
 		Rect sel = dmdWidget.getSelection();
 		// Convenience
+		this.width = dmd.getWidth();
+		this.height = dmd.getHeight();
 		if( sel == null ) sel = new Rect(0, 0, width, height);
 		clipboard.setContents(
 			new Object[] { 
 					buildImageData(dmd, dmdWidget.isShowMask(), activePalette, sel), 
 					buildFrame(dmd, dmdWidget.isShowMask(), dmdWidget.getSelection() ) },
 			new String[]{ "ImageTransfer", "DmdFrameTransfer" });
-		if( sel != null ) {
-			dx = sel.x1;
-			dy = sel.y1;
-		} else {
-			dy = dx = 0;
-		}
+		dx = sel.x1;
+		dy = sel.y1;
 	}
 
 	private Frame buildFrame(DMD dmd, boolean showMask, Rect sel) {
