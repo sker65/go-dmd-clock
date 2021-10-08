@@ -9,17 +9,12 @@ public class FloodFillTool extends DrawTool {
 		super(actualColor);
 	}
 
-	int depth = 0;
-	int maxDepth = 0;
-
 	@Override
 	public boolean mouseUp(int x, int y) {
 		if (dmd.getDrawMask() != 1) {
 			int oldColor = dmd.getPixelWithoutMask(x, y);
 			if (oldColor != actualColor) {
 				dmd.addUndoBuffer();
-				depth = 0;
-				maxDepth = 0;
 				if (toolSize > 2) {
 					replaceColor(oldColor);
 				} else {
@@ -33,7 +28,6 @@ public class FloodFillTool extends DrawTool {
 			int oldMask = dmd.getMaskPixel(x, y);
 			if (oldMask != actualColor) {
 				dmd.addUndoBuffer();
-				depth = 0;
 				fillMask(oldColor, oldMask, x, y);
 				return true;
 			}
@@ -54,13 +48,9 @@ public class FloodFillTool extends DrawTool {
 	private static final int[] dx = { -1, 0, 0, 1 };
 	private static final int[] dy = { 0, -1, 1, 0 };
 
-	private boolean isSafe(Point p) {
-		return p.x >= 0 && p.x < dmd.getWidth() && p.y >= 0 && p.y < dmd.getHeight();
-	}
-
 	static class Point {
-		public int x;
-		public int y;
+		public final int x;
+		public final int y;
 
 		public Point(int x, int y) {
 			this.x = x;
@@ -97,6 +87,15 @@ public class FloodFillTool extends DrawTool {
 			return String.format("Point [x=%s, y=%s]", x, y);
 		}
 	}
+	
+	private boolean isSafe(Point p) {
+		return p.x >= 0 && p.x < dmd.getWidth() && p.y >= 0 && p.y < dmd.getHeight();
+	}
+
+	private boolean shouldAdd(Point p, Queue<Point> q) {
+		// add only if point is in range && not already contained in queue
+		return isSafe(p) && !q.contains(p);
+	}
 
 	private void fill(int oldColor, int x, int y) {
 		Queue<Point> q = new ArrayDeque<>();
@@ -113,7 +112,7 @@ public class FloodFillTool extends DrawTool {
 				// really changing color
 				for (int k = 0; k < dx.length; k++) {
 					Point p1 = new Point(p.x + dx[k], p.y + dy[k]);
-					if (isSafe(p1) && !q.contains(p1) && dmd.getPixelWithoutMask(p1.x, p1.y) == oldColor)
+					if ( shouldAdd(p1, q) && dmd.getPixelWithoutMask(p1.x, p1.y) == oldColor)
 						q.add(p1);
 				}
 			}
@@ -131,11 +130,10 @@ public class FloodFillTool extends DrawTool {
 				dmd.setPixel(p.x, p.y, this.actualColor);
 				for (int k = 0; k < dx.length; k++) {
 					Point p1 = new Point(p.x + dx[k], p.y + dy[k]);
-					if (isSafe(p1) && !q.contains(p1) && dmd.getPixelWithoutMask(p1.x, p1.y) == oldColor && dmd.getMaskPixel(p1.x, p1.y) == oldMask)
+					if( shouldAdd(p1, q) && dmd.getPixelWithoutMask(p1.x, p1.y) == oldColor && dmd.getMaskPixel(p1.x, p1.y) == oldMask)
 						q.add(p1);
 				}
 			}
 		}
 	}
-
 }
