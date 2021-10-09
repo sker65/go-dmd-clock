@@ -18,6 +18,7 @@ import com.rinke.solutions.pinball.animation.Animation.EditMode;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.animation.CompiledAnimation.RecordingLink;
 import com.rinke.solutions.pinball.model.Bookmark;
+import com.rinke.solutions.pinball.model.FrameLink;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.ui.EditLinkView;
 import com.rinke.solutions.pinball.util.MessageUtil;
@@ -285,6 +286,8 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 			if (vm.selectedScene.getActualFrame().frameLink != null) {
 				vm.selectedScene.getActualFrame().frameLink.recordingName = editLink.getRecordingLink().associatedRecordingName;
 				vm.selectedScene.getActualFrame().frameLink.frame = editLink.getRecordingLink().startFrame; 
+			} else {
+				vm.selectedScene.getActualFrame().frameLink = new FrameLink(editLink.getRecordingLink().associatedRecordingName, editLink.getRecordingLink().startFrame);
 			}
 		}
 		vm.setDirty(true);
