@@ -465,6 +465,10 @@ public class EditorView implements MainView {
 		mntmDeleteUnusedScenes.setText("Delete Unused Scenes");
 		mntmDeleteUnusedScenes.addListener(SWT.Selection, e -> dispatchCmd(DELETE_UNUSED_SCENES));
 		
+		MenuItem mntmScanRecordingForKeyframes = new MenuItem(menu_2, SWT.NONE);
+		mntmScanRecordingForKeyframes.setText("Scan Recording for Keyframes");
+		mntmScanRecordingForKeyframes.addListener(SWT.Selection, e -> dispatchCmd(SCAN_RECORDING));
+		
 		MenuItem mntmRecentAnimationsItem = new MenuItem(menu_2, SWT.CASCADE);
 		mntmRecentAnimationsItem.setText("Recent Animations");
 				

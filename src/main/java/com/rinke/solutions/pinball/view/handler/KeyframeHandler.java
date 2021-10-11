@@ -14,6 +14,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.Bean;
+import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.FrameScaler;
 import com.rinke.solutions.pinball.animation.Animation.EditMode;
@@ -255,26 +256,15 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 		}
 	}
 	
-	public List<String> checkAndFixKeyframes(boolean quick){
-		List<String> res = new ArrayList<>();
-		Frame f = new Frame(vm.dmd.getFrame());
-		for( PalMapping pm : vm.keyframes.values()) {
-			if (quick) {
-//				vm.setDetectionMaskActive(pm.withMask);
-				if( pm.withMask ) {
-//					vm.dmd.setMask(vm.masks.get(pm.maskNumber));
-					f.setMask(vm.masks.get(pm.maskNumber));
-//					vm.setSelectedMaskNumber(pm.maskNumber);
-				}
-			} else {
-				vm.setDetectionMaskActive(true);
+	public List<String> checkAndFixKeyframes(boolean allFrames){
+		
+		if (!allFrames) {
+			List<String> res = new ArrayList<>();
+			Frame f = new Frame(vm.dmd.getFrame());
+			for( PalMapping pm : vm.keyframes.values()) {
 				for (int msk = 0; msk < vm.masks.size(); msk++) {
 					if (vm.masks.get(msk).locked) {
-//						vm.dmd.setMask(vm.masks.get(msk));
 						f.setMask(vm.masks.get(msk));
-//						vm.setSelectedMaskNumber(msk);
-//						vm.dmd.getFrame().mask.locked = true;
-//						hashCmdHandler.updateHashes(vm.dmd.getFrame());
 						List<byte[]> hashes = f.getHashes();
 						for (int idx = 0;idx < hashes.size();idx++) {
 							if(Arrays.equals(pm.crc32, hashes.get(idx))) {
@@ -288,43 +278,84 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 						}
 					}
 				}
-//				vm.setDetectionMaskActive(false);
-			}
 
-			//hashCmdHandler.updateHashes(vm.dmd.getFrame());
-			List<byte[]> hashes = f.getHashes();
-			for (int idx = 0;idx < hashes.size();idx++) {
-				if(Arrays.equals(pm.crc32, hashes.get(idx))) {
-					res.add(" "+pm.name);
-					if (pm.frameIndex == 0) {
-						pm.frameIndex = vm.getSelectedFrame();
-						pm.animationName = vm.selectedRecording.getDesc();
+				f.setMask(null);
+				List<byte[]> hashes = f.getHashes();
+				for (int idx = 0;idx < hashes.size();idx++) {
+					if(Arrays.equals(pm.crc32, hashes.get(idx))) {
+						res.add(" "+pm.name);
+						if (pm.frameIndex == 0) {
+							pm.frameIndex = vm.getSelectedFrame();
+							pm.animationName = vm.selectedRecording.getDesc();
+						}
+						break;
 					}
-					break;
 				}
 			}
+			return res;
+		} else {
+			List<String> res = new ArrayList<>();
+			DMD tmp = new DMD(vm.selectedRecording.width,vm.selectedRecording.height);
+			for (int i = 0; i < vm.selectedRecording.end; i++) {
+				Frame f = new Frame(vm.selectedRecording.render(i, tmp, true));
+				for( PalMapping pm : vm.keyframes.values()) {
+					for (int msk = 0; msk < vm.masks.size(); msk++) {
+						if (vm.masks.get(msk).locked) {
+							f.setMask(vm.masks.get(msk));
+							List<byte[]> hashes = f.getHashes();
+							for (int idx = 0;idx < hashes.size();idx++) {
+								if(Arrays.equals(pm.crc32, hashes.get(idx))) {
+									res.add(" "+pm.name+String.format(" (M%d)", msk));
+									if (pm.frameIndex == 0){
+										pm.frameIndex = i;
+										pm.animationName = vm.selectedRecording.getDesc();
+										pm.withMask = true;
+										pm.maskNumber = msk;
+									}
+									break;
+								}
+							}
+						}
+					}
+		
+					f.setMask(null);
+					List<byte[]> hashes = f.getHashes();
+					for (int idx = 0;idx < hashes.size();idx++) {
+						if(Arrays.equals(pm.crc32, hashes.get(idx))) {
+							res.add(" "+pm.name);
+							if (pm.frameIndex == 0) {
+								pm.frameIndex = i;
+								pm.animationName = vm.selectedRecording.getDesc();
+							}
+							break;
+						}
+					}
+				}
+			}
+			return res;
 		}
-		return res;
 	}
+	
+	public void onScanRecordingKeyframes() {
+		
+		List<String> res = null;
+		if (vm.selectedRecording != null)
+			res = checkAndFixKeyframes(true);
+		return;
+
+	}
+	
 	
 	public void onCheckKeyframe() {
 		
-		int ret = messageUtil.warn(0, "Check Keyframes",
-				"Please select", 
-				"Check all masks for all keyframes (slow) ?",
-				new String[]{"", "No", "Yes"},2);
-		if (ret == 0) return;
 		List<String> res = null;
-		if( ret == 1)
-			res = checkAndFixKeyframes(true);
-		if( ret == 2)
-			res = checkAndFixKeyframes(false);
-		
-		if (res.size() != 0) {
+		res = checkAndFixKeyframes(false);
+		if (res.size() != 0)
 			messageUtil.warn("Keyframe found", "The selected frame gets triggered by Keyframe:\n"+res);
-			}
 		else
 			messageUtil.warn("No Keyframe found", "No Keyframe found for the selected frame.");
+		return;
+
 	}
 
 

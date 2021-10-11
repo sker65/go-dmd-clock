@@ -85,6 +85,7 @@ public class Commands {
 	
 	public static final String UNLOCK_SCENE_MASKS = "unlockSceneMasks";
 	public static final String DELETE_UNUSED_SCENES = "deleteUnusedScenes";
+	public static final String SCAN_RECORDING = "scanRecordingKeyframes";
 	public static final String CONVERT_SCENE_TO_RGB = "convertSceneToRGB";
 	public static final String CONVERT_ALL_SCENES_TO_RGB = "convertAllScenesToRGB";
 	public static final String QUANTIZE_SCENE = "quantizeScene";
