@@ -83,6 +83,7 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 		if (newName.contains(" - ")) {
 			vm.selectedPalette.name = newName.split(" - ")[1];
 			vm.paletteMap.refresh();
+			vm.setDirty(true);
 		} else {
 			messageUtil.warn("Illegal palette name", "Palette names must consist of palette index and name.\nName format therefore must be '<idx> - <name>'");
 			vm.setEditedPaletteName(vm.selectedPalette.index + " - " + vm.selectedPalette.name);
@@ -102,6 +103,7 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 					}
 				}
 			}
+			vm.setDirty(true);
 		} else {
 			log.warn("onSelectedPaletteTypeChanged but no palette selected");
 		}
@@ -114,6 +116,7 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 			vm.setSelectedColor(rgb);
 		}
 		vm.setPaletteDirty(true);
+		vm.setDirty(true);
 	}
 
 	public void onSelectedPaletteChanged(Palette o, Palette newPalette) {
@@ -134,6 +137,7 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 			}
 			swap(vm.dmd.getFrame(), old, newIdx, vm.dmd.getWidth(), vm.dmd.getHeight());
 			vm.setPaletteDirty(true);
+			vm.setDirty(true);
 		}
 	}
 	
