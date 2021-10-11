@@ -257,24 +257,27 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 	
 	public List<String> checkAndFixKeyframes(boolean quick){
 		List<String> res = new ArrayList<>();
+		Frame f = new Frame(vm.dmd.getFrame());
 		for( PalMapping pm : vm.keyframes.values()) {
-			
 			if (quick) {
-				vm.setDetectionMaskActive(pm.withMask);
+//				vm.setDetectionMaskActive(pm.withMask);
 				if( pm.withMask ) {
-					vm.dmd.setMask(vm.masks.get(pm.maskNumber));
-					vm.setSelectedMaskNumber(pm.maskNumber);
+//					vm.dmd.setMask(vm.masks.get(pm.maskNumber));
+					f.setMask(vm.masks.get(pm.maskNumber));
+//					vm.setSelectedMaskNumber(pm.maskNumber);
 				}
 			} else {
 				vm.setDetectionMaskActive(true);
 				for (int msk = 0; msk < vm.masks.size(); msk++) {
 					if (vm.masks.get(msk).locked) {
-						vm.dmd.setMask(vm.masks.get(msk));
-						vm.setSelectedMaskNumber(msk);
-						vm.dmd.getFrame().mask.locked = true;
-						hashCmdHandler.updateHashes(vm.dmd.getFrame());
-						for (int idx = 0;idx < vm.hashes.size();idx++) {
-							if(Arrays.equals(pm.crc32, vm.hashes.get(idx))) {
+//						vm.dmd.setMask(vm.masks.get(msk));
+						f.setMask(vm.masks.get(msk));
+//						vm.setSelectedMaskNumber(msk);
+//						vm.dmd.getFrame().mask.locked = true;
+//						hashCmdHandler.updateHashes(vm.dmd.getFrame());
+						List<byte[]> hashes = f.getHashes();
+						for (int idx = 0;idx < hashes.size();idx++) {
+							if(Arrays.equals(pm.crc32, hashes.get(idx))) {
 								res.add(" "+pm.name+String.format(" (M%d)", msk));
 								pm.frameIndex = vm.getSelectedFrame();
 								pm.animationName = vm.selectedRecording.getDesc();
@@ -285,12 +288,13 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 						}
 					}
 				}
-				vm.setDetectionMaskActive(false);
+//				vm.setDetectionMaskActive(false);
 			}
 
-			hashCmdHandler.updateHashes(vm.dmd.getFrame());
-			for (int idx = 0;idx < vm.hashes.size();idx++) {
-				if(Arrays.equals(pm.crc32, vm.hashes.get(idx))) {
+			//hashCmdHandler.updateHashes(vm.dmd.getFrame());
+			List<byte[]> hashes = f.getHashes();
+			for (int idx = 0;idx < hashes.size();idx++) {
+				if(Arrays.equals(pm.crc32, hashes.get(idx))) {
 					res.add(" "+pm.name);
 					if (pm.frameIndex == 0) {
 						pm.frameIndex = vm.getSelectedFrame();
@@ -299,7 +303,6 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 					break;
 				}
 			}
-
 		}
 		return res;
 	}
