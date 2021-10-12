@@ -71,7 +71,7 @@ public class AnimationControlHandler extends AbstractCommandHandler implements V
 			vm.setAnimationIsPlaying(false);
 		} else {
 			log.info("Starting animation playback");
-			if( vm.selectedScene != null ){
+			if( vm.selectedScene != null && vm.selectedScene.actFrame == vm.selectedFrame){
 				vm.selectedScene.commitDMDchanges(vm.dmd); 
 				vm.setDirty(vm.dirty|vm.selectedScene.isDirty());
 			}
@@ -87,7 +87,7 @@ public class AnimationControlHandler extends AbstractCommandHandler implements V
 		if (vm.detectionMaskActive) {
 			maskHandler.commitMaskIfNeeded(vm.detectionMaskActive);
 		} else {
-			if(vm.selectedScene!=null) {
+			if(vm.selectedScene!=null && vm.selectedScene.actFrame == vm.selectedFrame) {
 				vm.selectedScene.commitDMDchanges(vm.dmd); 
 				vm.setDirty(vm.dirty|vm.selectedScene.isDirty());
 			}
