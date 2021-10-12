@@ -661,8 +661,10 @@ public class ProjectHandler extends AbstractCommandHandler {
 		} else {
 			// for all referenced frame mapping we must also copy the frame data as
 			// there are two models
+			
 			for (FrameSeq p : frameSeqMap.values()) {
-				CompiledAnimation ani = vm.scenes.get(p.name);			
+				CompiledAnimation ani = vm.scenes.get(p.name);
+				int actFrameTmp  = ani.actFrame;
 				ani.actFrame = 0;
 				for (int i = 0; i <= ani.end; i++) {
 					// copy before exporting
@@ -688,6 +690,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 					}
 					p.frames.add(frame);
 				}
+				ani.actFrame = actFrameTmp;
 			}
 			// create addtional files for frame sequences
 			try {
