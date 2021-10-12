@@ -467,7 +467,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 		log.info("export project {} file {}", realPin?"real":"vpin", filename);
 		if( realPin) licenseManager.requireOneOf(Capability.VPIN, Capability.REALPIN, Capability.GODMD, Capability.XXL_DISPLAY);
 
-		if(vm.selectedScene!=null && vm.selectedScene.actFrame == vm.selectedFrame) {
+		if(vm.selectedScene!=null) {
 			vm.selectedScene.commitDMDchanges(vm.dmd); 
 			vm.setDirty(vm.dirty|vm.selectedScene.isDirty());
 		}
@@ -662,6 +662,8 @@ public class ProjectHandler extends AbstractCommandHandler {
 			// for all referenced frame mapping we must also copy the frame data as
 			// there are two models
 			
+			int actFrameTmp = vm.selectedScene.actFrame;
+			
 			for (FrameSeq p : frameSeqMap.values()) {
 				CompiledAnimation ani = vm.scenes.get(p.name);
 				ani.actFrame = 0;
@@ -709,6 +711,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 			} catch (IOException e) {
 				throw new RuntimeException("error writing " + filename, e);
 			}
+			vm.selectedScene.actFrame = actFrameTmp;
 		}		
 	}
 
@@ -716,7 +719,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 		log.info("write project to {}", filename);
 		String aniFilename = replaceExtensionTo("ani", filename);
 		
-		if(vm.selectedScene!=null && vm.selectedScene.actFrame == vm.selectedFrame) {
+		if(vm.selectedScene!=null) {
 			vm.selectedScene.commitDMDchanges(vm.dmd); 
 			vm.setDirty(vm.dirty|vm.selectedScene.isDirty());
 		}
