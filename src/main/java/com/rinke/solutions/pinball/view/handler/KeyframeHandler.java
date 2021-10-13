@@ -572,5 +572,15 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 			vm.setDirty(true);
 		}
 	}
+	
+	public void onResetHash() {
+		byte[] hash = {0,0,0,0};
+		if( vm.selectedEditMode.haveLocalMask || vm.selectedEditMode.haveSceneDetectionMasks || vm.selectedEditMode.pullFrameDataFromAssociatedRecording) {
+			vm.selectedScene.getActualFrame().setHash(hash);
+			vm.setHashVal(HashCmdHandler.getPrintableHashes(hash));
+		}
+		vm.setDirty(true);
+	}
+
 
 }

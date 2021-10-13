@@ -40,6 +40,7 @@ public class Commands {
 	public static final String REMOVE_SELECTION = "removeSelection";
 	public static final String DELETE_AUTOSAVE_FILES = "deleteAutosaveFiles";
 	public static final String ADD_KEYFRAME = "addKeyframe";
+	public static final String RESET_HASH = "resetHash";
 	public static final String SET_HASH = "setHash";
 	public static final String HASH_SELECTED = "hashSelected";
 	public static final String DEL_BOOKMARK = "delBookmark";

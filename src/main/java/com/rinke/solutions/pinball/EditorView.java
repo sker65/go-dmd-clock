@@ -1477,7 +1477,13 @@ public class EditorView implements MainView {
 		btnSetHash = new Button(grpKeyframe, SWT.NONE);
 		btnSetHash.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
 		btnSetHash.setText("Set Hash");
-		btnSetHash.addListener(SWT.Selection, e -> dispatchCmd(SET_HASH));
+		btnSetHash.setToolTipText("CTRL-click to reset hash");
+		btnSetHash.addListener(SWT.Selection, e->{
+			if (( e.stateMask & SWT.CTRL) != 0)
+				dispatchCmd(RESET_HASH);
+			else
+				dispatchCmd(SET_HASH);
+		});
 		
 		btnAddKeyframe = new Button(grpKeyframe, SWT.NONE);
 		btnAddKeyframe.setToolTipText("Adds a key frame that switches palette");
