@@ -59,6 +59,8 @@ public class EditLink extends Dialog implements EditLinkView {
 				display.sleep();
 			}
 		}
+		contentCreadted=false;
+		shlEditlink.dispose();
 	}
 
 	/**
