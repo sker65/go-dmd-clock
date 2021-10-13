@@ -662,7 +662,9 @@ public class ProjectHandler extends AbstractCommandHandler {
 			// for all referenced frame mapping we must also copy the frame data as
 			// there are two models
 			
-			int actFrameTmp = vm.selectedScene.actFrame;
+			int actFrameTmp = 0;
+			if (vm.selectedScene != null)
+				actFrameTmp = vm.selectedScene.actFrame;
 			
 			for (FrameSeq p : frameSeqMap.values()) {
 				CompiledAnimation ani = vm.scenes.get(p.name);
@@ -711,7 +713,8 @@ public class ProjectHandler extends AbstractCommandHandler {
 			} catch (IOException e) {
 				throw new RuntimeException("error writing " + filename, e);
 			}
-			vm.selectedScene.actFrame = actFrameTmp;
+			if (vm.selectedScene != null)
+				vm.selectedScene.actFrame = actFrameTmp;
 		}		
 	}
 
