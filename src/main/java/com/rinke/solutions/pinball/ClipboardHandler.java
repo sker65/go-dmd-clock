@@ -230,7 +230,7 @@ public class ClipboardHandler {
 		Frame frame = (Frame) clipboard.getContents("DmdFrameTransfer");
 		if( frame != null ) {
 			dmd.addUndoBuffer();
-			if (dmdWidget.isShowMask()) {
+			if (dmdWidget.isShowMask() && !dmd.getFrame().mask.locked) {
 				ImageData imageData = (ImageData) clipboard.getContents("ImageTransfer");
 				System.arraycopy(imageData.data, 0, dmd.getFrame().mask.data, 0, dmd.getPlaneSize());
 				//frame.copyToWithMask(dmd.getFrame(), 0b0001);
