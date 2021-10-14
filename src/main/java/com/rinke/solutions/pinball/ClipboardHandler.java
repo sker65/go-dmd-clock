@@ -66,11 +66,17 @@ public class ClipboardHandler {
 		Frame frame = (Frame) clipboard.getContents("DmdFrameTransfer");
 		dmdWidget.resetSelection();
 		if( frame != null ) {
-			log.debug("dx={}, dy={}", dx, dy);
-			PasteTool pasteTool = new PasteTool(0, width, height,dx,dy);
-			pasteTool.setFrameToPaste(frame);
-			pasteTool.setMaskOnly(dmdWidget.isShowMask());
-			dmdWidget.setDrawTool(pasteTool);
+			if (dmdWidget.isShowMask() && !dmd.getFrame().mask.locked) {
+				//ImageData imageData = (ImageData) clipboard.getContents("ImageTransfer");
+				//System.arraycopy(imageData.data, 0, dmd.getFrame().mask.data, 0, dmd.getPlaneSize());
+				frame.copyToWithMask(dmd.getFrame(), 0b0001);
+			} else {
+				log.debug("dx={}, dy={}", dx, dy);
+				PasteTool pasteTool = new PasteTool(0, width, height,dx,dy);
+				pasteTool.setFrameToPaste(frame);
+				pasteTool.setMaskOnly(dmdWidget.isShowMask());
+				dmdWidget.setDrawTool(pasteTool);
+			}
 		} else {
 			ImageData imageData = (ImageData) clipboard.getContents("ImageTransfer");
 			if( imageData != null ) {
