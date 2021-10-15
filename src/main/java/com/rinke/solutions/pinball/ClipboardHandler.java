@@ -67,6 +67,7 @@ public class ClipboardHandler {
 		dmdWidget.resetSelection();
 		if( frame != null ) {
 			if (dmdWidget.isShowMask() && !dmd.getFrame().mask.locked) {
+				dmd.addUndoBuffer();
 				//ImageData imageData = (ImageData) clipboard.getContents("ImageTransfer");
 				//System.arraycopy(imageData.data, 0, dmd.getFrame().mask.data, 0, dmd.getPlaneSize());
 				frame.copyToWithMask(dmd.getFrame(), 0b0001);
