@@ -262,7 +262,7 @@ public class ClipboardHandler {
 					ImageUtil.convertToFrameWithPalette(bufferedImage, dmd, palette, true);
 					//dmd.setFrame(res);
 				} else {
-					Frame res = ImageUtil.convertToFrame(bufferedImage, width, height, 8, scale);
+					Frame res = ImageUtil.convertToFrame(bufferedImage, dmd.getWidth(), dmd.getHeight(), 8, scale);
 					dmd.setFrame(res);
 				}
 			}
