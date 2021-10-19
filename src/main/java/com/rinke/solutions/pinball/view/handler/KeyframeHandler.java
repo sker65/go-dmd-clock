@@ -358,7 +358,6 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 
 	}
 
-
 	String checkForDuplicateKeyFrames(PalMapping palMapping) {
 		for (PalMapping p : vm.keyframes.values()) {
 			if (Arrays.equals(p.crc32, palMapping.crc32)) {
@@ -369,6 +368,17 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 			}
 		}
 		return null;
+	}
+	
+	public void onRenameKeyframe(String oldName, String newName) {
+		if (!oldName.equals(newName)) {
+			PalMapping old = vm.keyframes.remove(oldName);
+			if( old != null ) { 
+				old.name = newName;
+				vm.keyframes.put(newName, old);
+			}
+			vm.setDirty(true);
+		}
 	}
 
 	public void onDeleteKeyframe() {

@@ -71,6 +71,7 @@ public class Commands {
 	public static final String DELETE_RECORDING = "deleteRecording";
 	public static final String RENAME_SCENE = "renameScene";
 	public static final String RENAME_RECORDING = "renameRecording";
+	public static final String RENAME_KEYFRAME = "renameKeyframe";
 	public static final String DEVICE_CONFIGURATION = "deviceConfiguration";
 	public static final String CONFIGURATION = "configuration";
 	public static final String UPLOAD_PALETTE = "uploadPalette";
