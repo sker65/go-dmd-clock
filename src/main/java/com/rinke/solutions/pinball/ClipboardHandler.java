@@ -242,14 +242,18 @@ public class ClipboardHandler {
 				System.arraycopy(imageData.data, 0, dmd.getFrame().mask.data, 0, dmd.getPlaneSize());
 				//frame.copyToWithMask(dmd.getFrame(), 0b0001);
 			} else {
-		    	if (dmd.getFrame().planes.size() == 24 && frame.planes.size() == 24) {
-		    		for( int i = 0; i < frame.planes.size(); i++) {
-						int size = frame.planes.get(i).data.length;
-						System.arraycopy( frame.planes.get(i).data, 0, dmd.getFrame().planes.get(i).data, 0, size);
-		    		}
-		    	} else {
-		    		frame.copyToWithMask(dmd.getFrame(), dmd.getDrawMask());
-				}
+				if (dx != 0 || dy != 0 || width != dmd.getWidth() || height != dmd.getHeight()) {
+					// add selection paste here
+				} else {
+			    	if (dmd.getFrame().planes.size() == 24 && frame.planes.size() == 24) {
+			    		for( int i = 0; i < frame.planes.size(); i++) {
+							int size = frame.planes.get(i).data.length;
+							System.arraycopy( frame.planes.get(i).data, 0, dmd.getFrame().planes.get(i).data, 0, size);
+			    		}
+			    	} else {
+			    		frame.copyToWithMask(dmd.getFrame(), dmd.getDrawMask());
+					}
+		    	}
 			}
 		} else {
 			ImageData imageData = (ImageData) clipboard.getContents("ImageTransfer");
