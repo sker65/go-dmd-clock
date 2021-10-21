@@ -478,7 +478,17 @@ public class EditorView implements MainView {
 		mntmPlayFullscreen.setText("Play Fullscreen");
 		mntmPlayFullscreen.setAccelerator(SWT.MOD1 + SWT.F11);
 		mntmPlayFullscreen.addListener(SWT.Selection, e -> playFullScreen() );
-
+		
+		MenuItem mntmNextFrame = new MenuItem(menu_2, SWT.NONE);
+		mntmNextFrame.setText("Move to Next Frame\tCtrl->");
+		mntmNextFrame.setAccelerator(SWT.MOD1 + '>');
+		mntmNextFrame.addListener(SWT.Selection, e -> dispatchCmd(NEXT_FRAME));
+		
+		MenuItem mntmPrevFrame = new MenuItem(menu_2, SWT.NONE);
+		mntmPrevFrame.setText("Move to Previous Frame\tShift-Ctrl->");
+		mntmPrevFrame.setAccelerator(SWT.MOD1|SWT.MOD2 + '>');
+		mntmPrevFrame.addListener(SWT.Selection, e -> dispatchCmd(PREV_FRAME));
+		
 		MenuItem mntmExportAnimation = new MenuItem(menu_2, SWT.NONE);
 		mntmExportAnimation.setText("Export Scene as GIF");	
 		mntmExportAnimation.addListener(SWT.Selection, e -> dispatchCmd(EXPORT_GIF));
