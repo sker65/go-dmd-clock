@@ -20,6 +20,7 @@ import com.rinke.solutions.pinball.renderer.ImageUtil;
 import com.rinke.solutions.pinball.swt.SWTClipboard;
 import com.rinke.solutions.pinball.widget.DMDWidget;
 import com.rinke.solutions.pinball.widget.DMDWidget.Rect;
+import com.rinke.solutions.pinball.widget.DrawTool;
 import com.rinke.solutions.pinball.widget.PasteTool;
 
 /**
@@ -244,6 +245,15 @@ public class ClipboardHandler {
 			} else {
 				if (dx != 0 || dy != 0 || width != dmd.getWidth() || height != dmd.getHeight()) {
 					// add selection paste here
+					PasteTool pasteTool = new PasteTool(0, width, height,dx,dy);
+					pasteTool.setFrameToPaste(frame);
+					pasteTool.setMaskOnly(dmdWidget.isShowMask());
+					DrawTool lastTool = dmdWidget.getDrawTool();
+					dmdWidget.setDrawTool(pasteTool);
+					pasteTool.pastePos(dx, dy);
+					dmdWidget.setDrawTool(lastTool);
+					dmdWidget.resetSelection();
+					
 				} else {
 			    	if (dmd.getFrame().planes.size() == 24 && frame.planes.size() == 24) {
 			    		for( int i = 0; i < frame.planes.size(); i++) {

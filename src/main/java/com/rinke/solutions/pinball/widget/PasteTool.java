@@ -27,37 +27,41 @@ public class PasteTool extends DrawTool {
 		this.dx = dx;
 		this.dy = dy;
 	}
-
-	@Override
-	public boolean mouseMove(int ix, int iy) {
-		if( pressedButton >0 ) {
-			int x = ix - dx;
-			int y = iy - dy;
-			dmd.copyLastBuffer();
-			if( maskOnly ) {
-				byte[] plane = copyShiftedPlane(x, y, frameToPaste.mask.data, true);
-				dmd.setMask(new Mask(plane,false));
-			} else {
-				int planeMask = dmd.getDrawMask()>>1;
-				Frame dest = dmd.getFrame();
-				byte[] maskPlane = null;
-				if( frameToPaste.hasMask() ) {
-					maskPlane = copyShiftedPlane(x, y, frameToPaste.mask.data, false);
-					//ImageUtil.dumpPlane(maskPlane, 16);
-				}
-				for( int j = 0; j < dest.planes.size(); j++) {
-					if (((1 << j) & planeMask) != 0) {
-						byte[] plane = copyShiftedPlane(x, y, frameToPaste.planes.get(j).data, false);
-						if( frameToPaste.hasMask() ) {
-							for( int i = 0; i < planeSize; i++) {
-								dest.planes.get(j).data[i] = (byte) ((plane[i] & maskPlane[i]) | ( dest.planes.get(j).data[i] & ~maskPlane[i] ));
-							}
-						} else {
-							System.arraycopy(plane, 0, dest.planes.get(j).data, 0, planeSize);
+	
+	public void pastePos (int ix, int iy) {
+		int x = ix - dx;
+		int y = iy - dy;
+		dmd.copyLastBuffer();
+		if( maskOnly ) {
+			byte[] plane = copyShiftedPlane(x, y, frameToPaste.mask.data, true);
+			dmd.setMask(new Mask(plane,false));
+		} else {
+			int planeMask = dmd.getDrawMask()>>1;
+			Frame dest = dmd.getFrame();
+			byte[] maskPlane = null;
+			if( frameToPaste.hasMask() ) {
+				maskPlane = copyShiftedPlane(x, y, frameToPaste.mask.data, false);
+				//ImageUtil.dumpPlane(maskPlane, 16);
+			}
+			for( int j = 0; j < dest.planes.size(); j++) {
+				if (((1 << j) & planeMask) != 0) {
+					byte[] plane = copyShiftedPlane(x, y, frameToPaste.planes.get(j).data, false);
+					if( frameToPaste.hasMask() ) {
+						for( int i = 0; i < planeSize; i++) {
+							dest.planes.get(j).data[i] = (byte) ((plane[i] & maskPlane[i]) | ( dest.planes.get(j).data[i] & ~maskPlane[i] ));
 						}
+					} else {
+						System.arraycopy(plane, 0, dest.planes.get(j).data, 0, planeSize);
 					}
 				}
 			}
+		}
+	}
+	
+	@Override
+	public boolean mouseMove(int ix, int iy) {
+		if( pressedButton >0 ) {
+			pastePos(ix,iy);
 			return true;
 		}
 		return false;
