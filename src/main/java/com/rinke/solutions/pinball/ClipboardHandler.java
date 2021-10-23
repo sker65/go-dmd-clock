@@ -38,7 +38,7 @@ public class ClipboardHandler {
 	int width;
 	int height;
 	Palette palette;
-	int dx,dy;
+	int dx,dy,dx2,dy2;
 	
 	/**
 	 * typically instantiated once for the complete editor lifecycle
@@ -199,6 +199,8 @@ public class ClipboardHandler {
 			new String[]{ "ImageTransfer", "DmdFrameTransfer" });
 		dx = sel.x1;
 		dy = sel.y1;
+		dx2 = sel.x2;
+		dy2 = sel.y2;
 	}
 
 	private Frame buildFrame(DMD dmd, boolean showMask, Rect sel) {
@@ -243,7 +245,7 @@ public class ClipboardHandler {
 				System.arraycopy(imageData.data, 0, dmd.getFrame().mask.data, 0, dmd.getPlaneSize());
 				//frame.copyToWithMask(dmd.getFrame(), 0b0001);
 			} else {
-				if (dx != 0 || dy != 0 || width != dmd.getWidth() || height != dmd.getHeight()) {
+				if (dx != 0 || dy != 0 || dx2 != width || dy2 !=  height || width != dmd.getWidth() || height != dmd.getHeight()) {
 					// add selection paste here
 					PasteTool pasteTool = new PasteTool(0, width, height,dx,dy);
 					pasteTool.setFrameToPaste(frame);
