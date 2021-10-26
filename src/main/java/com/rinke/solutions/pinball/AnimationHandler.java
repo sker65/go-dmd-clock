@@ -165,7 +165,8 @@ public class AnimationHandler implements Runnable {
 	                        if(cani.frames.get(0).planes.size()==24) {
 	                        	vm.setPreviewDmdPalette(vm.previewPalettes.get(5));
 	                        }
-	                        	
+	                        
+	                        vm.setLinkVal(linkedAnimation.getDesc()+":"+frameNo);	                        
 		                	vm.previewDMD.setFrame(previewRes);
 	                	}
 					}
