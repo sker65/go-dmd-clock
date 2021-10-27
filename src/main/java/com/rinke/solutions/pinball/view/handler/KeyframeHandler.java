@@ -565,10 +565,10 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 					vm.selectedScene.getActualFrame().setHash(hash);
 					if (vm.selectedScene.getRecordingLink() != null)
 						if (vm.selectedScene.getActualFrame().frameLink != null) {
-							vm.selectedScene.getActualFrame().frameLink.recordingName = vm.selectedScene.getRecordingLink().associatedRecordingName;
+							vm.selectedScene.getActualFrame().frameLink.recordingName = vm.selectedLinkRecordingName;
 							vm.selectedScene.getActualFrame().frameLink.frame = vm.selectedLinkFrame;
 						} else {
-							vm.selectedScene.getActualFrame().frameLink = new FrameLink(vm.selectedScene.getRecordingLink().associatedRecordingName,vm.selectedLinkFrame);
+							vm.selectedScene.getActualFrame().frameLink = new FrameLink(vm.selectedLinkRecordingName,vm.selectedLinkFrame);
 						}
 					vm.setHashVal(HashCmdHandler.getPrintableHashes(hash));
 					if( vm.detectionMaskActive && vm.selectedEditMode.haveSceneDetectionMasks) {

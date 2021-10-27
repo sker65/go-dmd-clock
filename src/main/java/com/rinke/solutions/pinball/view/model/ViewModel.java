@@ -195,6 +195,8 @@ public class ViewModel extends AbstractModel {
 	@ViewBinding public int minFrame;
 	@ViewBinding public int selectedFrame;
 	@ViewBinding public int selectedLinkFrame;
+	public String selectedLinkRecordingName;
+	
 	public int linkedFrameOffset = 0;
 	@ViewBinding public int maxFrame;
 	public int frameIncrement;

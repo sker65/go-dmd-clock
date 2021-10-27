@@ -166,7 +166,8 @@ public class AnimationHandler implements Runnable {
 	                        	vm.setPreviewDmdPalette(vm.previewPalettes.get(5));
 	                        }
 	                        
-	                        vm.setLinkVal(linkedAnimation.getDesc()+":"+frameNo);	                        
+	                        vm.setLinkVal(linkedAnimation.getDesc()+":"+frameNo);
+							vm.selectedLinkRecordingName = linkedAnimation.getDesc();
 		                	vm.previewDMD.setFrame(previewRes);
 	                	}
 					}
