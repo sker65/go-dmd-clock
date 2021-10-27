@@ -84,6 +84,9 @@ public class HashCmdHandler extends AbstractCommandHandler implements ViewBindin
 			if( Arrays.equals(vm.hashes.get(i), crc32) ) {
 				vm.setSelectedHashIndex(i);
 				foundHash = true;
+				Palette palette = vm.previewPalettes.get(i);
+				vm.setPreviewDmdPalette(palette);
+				break;
 			}
 		}
 		if( !foundHash ) vm.setSelectedHashIndex(-1);
