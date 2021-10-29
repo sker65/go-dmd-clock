@@ -98,13 +98,14 @@ public class FloodFillTool extends DrawTool {
 	}
 
 	private void fill(int oldColor, int x, int y) {
+		int loops = 0;
 		Queue<Point> q = new ArrayDeque<>();
 		Point p = new Point(x, y);
 		if (!q.contains(p))
 			q.add(p);
 		if (dmd.getPixelWithoutMask(x, y) == this.actualColor)
 			return;
-		while (!q.isEmpty()) {
+		while (!q.isEmpty() && loops < 20000) {
 			p = q.poll();
 			dmd.setPixel(p.x, p.y, this.actualColor);
 			if (dmd.getPixelWithoutMask(p.x, p.y) != oldColor) {
@@ -116,15 +117,17 @@ public class FloodFillTool extends DrawTool {
 						q.add(p1);
 				}
 			}
+			loops++;
 		}
 	}
 
 	private void fillMask(int oldColor, int oldMask, int x, int y) {
+	    int loops = 0;
 		Queue<Point> q = new ArrayDeque<>();
 		Point p = new Point(x, y);
 		if (!q.contains(p))
 			q.add(p);
-		while (!q.isEmpty()) {
+		while (!q.isEmpty() && loops < 20000) {
 			p = q.poll();
 			if (dmd.getPixelWithoutMask(p.x, p.y) == oldColor && dmd.getMaskPixel(p.x, p.y) == oldMask) {
 				dmd.setPixel(p.x, p.y, this.actualColor);
@@ -134,6 +137,7 @@ public class FloodFillTool extends DrawTool {
 						q.add(p1);
 				}
 			}
+			loops++;
 		}
 	}
 }
