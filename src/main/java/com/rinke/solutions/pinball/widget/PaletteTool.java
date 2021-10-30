@@ -160,12 +160,13 @@ public class PaletteTool extends AbstractModel implements ColorModifiedListener 
                 colBtn[i] = new ToolItem(toolBar64, SWT.RADIO);
 
             colBtn[i].setSelection(i==0);
-			colBtn[i].setToolTipText("Ctrl-Click to edit\nShift-Click to swap");
+			
 			colBtn[i].setData(Integer.valueOf(i));
 			if (i < pal.colors.length)
 				colBtn[i].setImage(getSquareImage(display, toSwtRGB(pal.colors[i])));
 			else 
 				colBtn[i].setImage(getSquareImage(display, new RGB(255,255,255)));
+			colBtn[i].setToolTipText("R: "+ pal.colors[i].red + " G: "+ pal.colors[i].green + " B: "+ pal.colors[i].blue + "\nCtrl-Click to edit\nShift-Click to swap");
 			colBtn[i].addListener(SWT.Selection, e -> {
 				int col = (Integer) e.widget.getData();
 				int oldCol = selectedColor;
@@ -222,6 +223,7 @@ public class PaletteTool extends AbstractModel implements ColorModifiedListener 
 	public void setPalette(Palette palette) {
 		this.palette = palette;
 		for (int i = 0; i < palette.colors.length; i++) {
+			colBtn[i].setToolTipText("R: "+ palette.colors[i].red + " G: "+ palette.colors[i].green + " B: "+ palette.colors[i].blue + "\nCtrl-Click to edit\nShift-Click to swap");
 			colBtn[i].setImage(getSquareImage(display, toSwtRGB(palette.colors[i])));
 		}
 	}
@@ -244,6 +246,7 @@ public class PaletteTool extends AbstractModel implements ColorModifiedListener 
 
 	private void updateSelectedColor(RGB rgb) {
 		palette.colors[selectedColor] = toModelRGB(rgb);
+		colBtn[selectedColor].setToolTipText("R: "+ palette.colors[selectedColor].red + " G: "+ palette.colors[selectedColor].green + " B: "+ palette.colors[selectedColor].blue + "\nCtrl-Click to edit\nShift-Click to swap");
 		colBtn[selectedColor].setImage(getSquareImage(display, rgb));
 		colorChangedListeners.forEach(l -> l.paletteChanged(palette));
 	}
