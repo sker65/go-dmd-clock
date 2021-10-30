@@ -105,7 +105,7 @@ public class FloodFillTool extends DrawTool {
 			q.add(p);
 		if (dmd.getPixelWithoutMask(x, y) == this.actualColor)
 			return;
-		while (!q.isEmpty() && loops < 20000) {
+		while (!q.isEmpty() && loops < (dmd.getWidth()*dmd.getHeight())) {
 			p = q.poll();
 			dmd.setPixel(p.x, p.y, this.actualColor);
 			if (dmd.getPixelWithoutMask(p.x, p.y) != oldColor) {
@@ -127,7 +127,7 @@ public class FloodFillTool extends DrawTool {
 		Point p = new Point(x, y);
 		if (!q.contains(p))
 			q.add(p);
-		while (!q.isEmpty() && loops < 20000) {
+		while (!q.isEmpty() && loops < (dmd.getWidth()*dmd.getHeight())) {
 			p = q.poll();
 			if (dmd.getPixelWithoutMask(p.x, p.y) == oldColor && dmd.getMaskPixel(p.x, p.y) == oldMask) {
 				dmd.setPixel(p.x, p.y, this.actualColor);
