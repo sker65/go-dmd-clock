@@ -339,7 +339,7 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 		Image maskImage =  new Image(display, imageData);
 		GC gcMask = new GC(maskImage);
 		cols[0] = resourceManager.createColor(new RGB(0, 0, 0));
-		cols[1] = resourceManager.createColor(maskLocked ? new RGB(255, 0, 0) : new RGB(0, 0, 255));
+		cols[1] = resourceManager.createColor(maskLocked ? new RGB(255, 0, 0) : new RGB(0, 255, 0));
 		// create a fake mask frame
 		Frame maskFrame = new Frame(dmd.getFrame().mask.data, dmd.getFrame().mask.data);
 		drawDMD(gcMask, maskFrame, 1, true, cols);
