@@ -140,6 +140,7 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 		// v.goDmdGroup.updateAniModel(nextScene);
 		vm.setDeleteSceneEnabled(nextScene!=null);
 		vm.setBtnSetScenePalEnabled(nextScene!=null);
+		animationHandler.forceRerender();
 	}
 	
 	public void onDeleteUnusedScenes() {

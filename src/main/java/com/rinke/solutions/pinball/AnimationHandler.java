@@ -331,7 +331,7 @@ public class AnimationHandler implements Runnable {
 	    forceRerender = true;
 	    vm.dmd.setMask(getCurrentMask(vm.detectionMaskActive));
 	    log.debug("setpos {} @ {} with mask {}", pos, anis.get(index).getDesc(), dmd.getFrame().mask);
-        run();
+        //run();
 	}
 	
 	public void forceRerender() {
@@ -351,7 +351,7 @@ public class AnimationHandler implements Runnable {
 		if( !anis.isEmpty() ) {
 			forceRerender = true;
 		    anis.get(index).restart();
-		    run();
+		    //run();
 		} else {
 			startClock();
 		}

@@ -48,6 +48,7 @@ public class AnimationControlHandler extends AbstractCommandHandler implements V
 		} else {
 			vm.setHashVal("-");
 		}
+		animationHandler.forceRerender();
 	}
 
 	private void update(int minFrame, int actFrame, int maxFrame, boolean isPlaying) {

@@ -355,8 +355,7 @@ public abstract class Pin2DmdConnector {
 	}
 
 	public void bulk(byte[] data) {
-		ConnectionHandle usb = null;
-	    usb = connect(this.address);
+		ConnectionHandle usb = connect(this.address);
 	    if (usb != null) {
 		    try {
 		    	send(data, usb);
