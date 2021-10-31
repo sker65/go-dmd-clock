@@ -105,8 +105,8 @@ public class ConfigDialog extends Dialog implements View {
         btnAutosaveActive.setSelection(config.getBoolean(Config.AUTOSAVE, false));
         autosaveInterval.setSelection(config.getInteger(Config.AUTOSAVE_INTERVAL, 10));
         btnCreateKeyFrame.setSelection(config.getBoolean(Config.AUTOKEYFRAME, false));
-        spinnerNoPlanes.setSelection(config.getInteger(Config.NOOFPLANES, 4));
-        spinnerNoColors.setSelection(config.getInteger(Config.NOOFCOLORS, 16));
+        spinnerNoPlanes.setSelection(config.getInteger(Config.NOOFPLANES, 6));
+        spinnerNoColors.setSelection(config.getInteger(Config.NOOFCOLORS, 64));
         btnUseOldExport.setSelection(config.getBoolean(Config.OLDEXPORT, false));
         btnCreatePaletteAfter.setSelection(config.getBoolean(Config.ADDPALWHENCUT, false));
         btnCreateBookmarkAfter.setSelection(config.getBoolean(Config.CREATEBOOKCUT, false));
