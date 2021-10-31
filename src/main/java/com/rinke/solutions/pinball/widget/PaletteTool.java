@@ -162,11 +162,14 @@ public class PaletteTool extends AbstractModel implements ColorModifiedListener 
             colBtn[i].setSelection(i==0);
 			
 			colBtn[i].setData(Integer.valueOf(i));
-			if (i < pal.colors.length)
+			if (i < pal.colors.length) {
 				colBtn[i].setImage(getSquareImage(display, toSwtRGB(pal.colors[i])));
-			else 
+				colBtn[i].setToolTipText("R: "+ pal.colors[i].red + " G: "+ pal.colors[i].green + " B: "+ pal.colors[i].blue + "\nCtrl-Click to edit\nShift-Click to swap");
+			}
+			else {
 				colBtn[i].setImage(getSquareImage(display, new RGB(255,255,255)));
-			colBtn[i].setToolTipText("R: "+ pal.colors[i].red + " G: "+ pal.colors[i].green + " B: "+ pal.colors[i].blue + "\nCtrl-Click to edit\nShift-Click to swap");
+			}
+			
 			colBtn[i].addListener(SWT.Selection, e -> {
 				int col = (Integer) e.widget.getData();
 				int oldCol = selectedColor;
