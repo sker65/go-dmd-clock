@@ -206,7 +206,7 @@ public class Animation {
 	public int getFrameCount(DMD dmd) {
 		int r =  ((end-start)/skip)+1;
 		// make use of transition length
-		if(transitionName != null && transitionFrom>0) {
+		if( transitionFrom>0) {
 			initTransition(dmd);
 			r += transitions.size()-1;
 			r -= (end-transitionFrom)/skip;
@@ -371,14 +371,12 @@ public class Animation {
 		}
 		if( actFrame == end ) ended = true;
 		frame = last;
-		if( transitionName != null && transitionFrom != 0 // it has a transition
+		if( transitionFrom != 0 // it has a transition
 		    && actFrame > transitionFrom  // it has started
 			&& transitionCount<=transitions.size() // and not yet ended
 				) {
 		    frame = addTransitionFrame(frame);
 			transitionCount++;
-		} else {
-			transitionFrom = 0;
 		}
 		return frame;
 	}
