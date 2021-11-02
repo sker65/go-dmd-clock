@@ -79,6 +79,7 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 			if( nextScene.getRecordingLink() != null) {
 				RecordingLink rl = nextScene.getRecordingLink();
 				vm.setLinkVal(rl.associatedRecordingName+":"+rl.startFrame);
+				vm.selectedLinkRecordingName = rl.associatedRecordingName;
 			} else {
 				vm.setLinkVal("-");
 			}
