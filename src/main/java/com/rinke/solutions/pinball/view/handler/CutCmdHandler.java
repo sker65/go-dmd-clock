@@ -321,9 +321,15 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 					newScene.setRecordingLink(cani.getRecordingLink());
 				else
 					newScene.setRecordingLink(new RecordingLink(animation.getDesc(), animation.actFrame));
+				if (cani.getActualFrame().frameLink != null) {
+					newScene.getActualFrame().frameLink = new FrameLink(cani.getActualFrame().frameLink.recordingName,cani.getActualFrame().frameLink.frame);
+				}
+				System.arraycopy(cani.getActualFrame().crc32, 0, newScene.getActualFrame().crc32, 0, 4);
+				
 					
 			} else {
 				newScene.setRecordingLink(new RecordingLink(animation.getDesc(), animation.actFrame));
+				newScene.getActualFrame().frameLink = new FrameLink(animation.getDesc(), animation.actFrame);
 			}
 
 			vm.scenes.put(name, newScene);
@@ -337,10 +343,13 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 			srcFrame.copyToWithMask(destFrame, Constants.DEFAULT_DRAW_MASK);
 			if( animation instanceof CompiledAnimation ) {
 				CompiledAnimation cani = (CompiledAnimation)animation;
-	            if (cani != null && cani.getRecordingLink() != null)
+				if (cani.getActualFrame().frameLink != null)
+					destFrame.frameLink = new FrameLink(cani.getActualFrame().frameLink.recordingName,cani.getActualFrame().frameLink.frame);
+				else if (cani.getRecordingLink() != null)
 	            	destFrame.frameLink = new FrameLink(cani.getRecordingLink().associatedRecordingName,cani.getRecordingLink().startFrame+animation.getActFrame());
 	            else
 	            	destFrame.frameLink = new FrameLink(animation.getDesc(),animation.getActFrame());
+				System.arraycopy(cani.getActualFrame().crc32, 0, destFrame.crc32, 0, 4);	
             } else {
             	destFrame.frameLink = new FrameLink(animation.getDesc(),animation.getActFrame());
             }
