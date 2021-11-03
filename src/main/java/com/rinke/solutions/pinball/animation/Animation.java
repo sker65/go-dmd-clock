@@ -178,8 +178,13 @@ public class Animation {
 			if( i == start ) tcOffset = frame.timecode;
             targetFrame.timecode -= tcOffset;
             targetFrame.frameLink = null;
-            if (cani != null && cani.getRecordingLink() != null)
-            	targetFrame.frameLink = new FrameLink(cani.getRecordingLink().associatedRecordingName,cani.getRecordingLink().startFrame+i);
+            if (cani != null) {
+            	if (cani.frames.get(i).frameLink != null)
+            		targetFrame.frameLink = new FrameLink(cani.frames.get(i).frameLink.recordingName,cani.frames.get(i).frameLink.frame);
+				else if (cani.getRecordingLink() != null)
+					targetFrame.frameLink = new FrameLink(cani.getRecordingLink().associatedRecordingName,cani.getRecordingLink().startFrame+i);
+            	System.arraycopy(cani.frames.get(i).crc32, 0, targetFrame.crc32, 0, 4);
+            }
 //            else
 //            	targetFrame.frameLink = new FrameLink(this.desc,i);
             int marker = targetFrame.planes.size();
