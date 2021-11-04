@@ -345,10 +345,6 @@ public class CutCmdHandler extends AbstractCommandHandler implements ViewBinding
 				CompiledAnimation cani = (CompiledAnimation)animation;
 				if (cani.getActualFrame().frameLink != null)
 					destFrame.frameLink = new FrameLink(cani.getActualFrame().frameLink.recordingName,cani.getActualFrame().frameLink.frame);
-				else if (cani.getRecordingLink() != null)
-	            	destFrame.frameLink = new FrameLink(cani.getRecordingLink().associatedRecordingName,cani.getRecordingLink().startFrame+animation.getActFrame());
-	            else
-	            	destFrame.frameLink = new FrameLink(animation.getDesc(),animation.getActFrame());
 				System.arraycopy(cani.getActualFrame().crc32, 0, destFrame.crc32, 0, 4);	
             } else {
             	destFrame.frameLink = new FrameLink(animation.getDesc(),animation.getActFrame());
