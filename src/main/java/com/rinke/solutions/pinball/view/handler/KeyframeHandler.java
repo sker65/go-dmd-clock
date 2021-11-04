@@ -562,6 +562,12 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 			} else {
 				if( vm.selectedEditMode.haveLocalMask || vm.selectedEditMode.haveSceneDetectionMasks || vm.selectedEditMode.pullFrameDataFromAssociatedRecording) {
 					// Update hash in scene and lock mask (for scene masks)
+					for (int i = 0; i < vm.selectedScene.frames.size(); i++) {
+						if(Arrays.equals(hash,vm.selectedScene.frames.get(i).crc32)) {
+							messageUtil.warn("duplicate hash", "There is already frame " + i + " in the scene that uses the same hash");
+							return;
+						}
+					}
 					vm.selectedScene.getActualFrame().setHash(hash);
 					if (vm.selectedScene.getRecordingLink() != null)
 						if (vm.selectedScene.getActualFrame().frameLink != null) {
