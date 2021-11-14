@@ -293,7 +293,8 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 				vm.selectedScene.getActualFrame().frameLink = new FrameLink(editLink.getRecordingLink().associatedRecordingName, editLink.getRecordingLink().startFrame);
 			}
 		}
-		vm.setDirty(true);
+        animationHandler.forceRerender();
+ 		vm.setDirty(true);
 	}
 	
 	public void onUnlockSceneMasks() {
