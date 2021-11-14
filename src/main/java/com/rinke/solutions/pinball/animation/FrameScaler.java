@@ -1,6 +1,7 @@
 package com.rinke.solutions.pinball.animation;
 
 import com.rinke.solutions.pinball.model.Frame;
+import com.rinke.solutions.pinball.model.Mask;
 import com.rinke.solutions.pinball.model.Plane;
 
 public class FrameScaler {
@@ -105,6 +106,7 @@ public class FrameScaler {
 		for( int i = 0; i < noOfPlanes; i++) {
 			r.planes.add(new Plane((byte)i, new byte[planeSize]));
 		}
+		r.mask = new Mask(planeSize);
 		return r;
 	}
 
