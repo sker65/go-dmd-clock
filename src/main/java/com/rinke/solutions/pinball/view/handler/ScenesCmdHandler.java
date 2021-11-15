@@ -118,8 +118,6 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 			vm.dmd.setNumberOfPlanes(numberOfPlanes);
 			vm.setDmdSize(DmdSize.fromWidthHeight(nextScene.width, nextScene.height));
 
-			vm.setPaletteToolPlanes(vm.layerMaskActive||vm.detectionMaskActive?1:numberOfPlanes);
-
 			setPlayingAni(nextScene, vm.scenesPosMap.getOrDefault(nextScene.getDesc(), 0));
 			maskHandler.updateDrawingEnabled();
 			if( m.haveLocalMask || m.haveSceneDetectionMasks || vm.selectedEditMode.pullFrameDataFromAssociatedRecording) {
@@ -128,6 +126,8 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 			} else {
 				vm.setHashVal("");
 			}
+			
+			vm.setPaletteToolPlanes(vm.layerMaskActive||vm.detectionMaskActive?1:numberOfPlanes);
 			
 			if (vm.selectedEditMode.pullFrameDataFromAssociatedRecording && vm.selectedScene.getRecordingLink() == null) {
 				messageUtil.warn("Warning", "Linked Recording missing !!\nCalculated hashes may be invalid.");
