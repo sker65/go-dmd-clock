@@ -493,6 +493,10 @@ public class EditorView implements MainView {
 		mntmExportAnimation.setText("Export Scene as GIF");	
 		mntmExportAnimation.addListener(SWT.Selection, e -> dispatchCmd(EXPORT_GIF));
 
+		MenuItem mntmExportAnimationRaw = new MenuItem(menu_2, SWT.NONE);
+		mntmExportAnimationRaw.setText("Export Scene as RAW");	
+		mntmExportAnimationRaw.addListener(SWT.Selection, e -> dispatchCmd(EXPORT_RAW));
+		
 		MenuItem mntmExportForGodmd = new MenuItem(menu_2, SWT.NONE);
 		mntmExportForGodmd.setText("Export for goDMD ...");
 		mntmExportForGodmd.addListener(SWT.Selection, e-> dispatchCmd(EXPORT_GO_DMD));

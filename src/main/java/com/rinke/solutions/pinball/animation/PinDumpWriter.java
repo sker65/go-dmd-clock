@@ -40,10 +40,18 @@ public class PinDumpWriter extends Worker {
 			notify(0,"exporting raw dump to " + filename);
 			FileOutputStream fos = new FileOutputStream(filename);
 			os = new DataOutputStream(fos);
-			os.write(DeviceMode.DataEast.ordinal());
 			DMD dmd = new DMD(a.width,a.height);
 			int numberOfFrames = a.getFrameCount(dmd);
 			int total = numberOfFrames;
+			// write header
+			os.writeByte('R');
+			os.writeByte('A');
+			os.writeByte('W');
+			os.writeByte(0x00);
+			os.writeByte(0x01);
+			os.writeByte(a.width);
+			os.writeByte(a.height);
+			os.writeByte(noOfPlanesToExport);
 			while(numberOfFrames-- >0) { // frames of animation
 				notify(((total-numberOfFrames)*100) / total,"exporting frames to " + filename);
 				Frame frame =  a.render(dmd,false);
@@ -53,7 +61,7 @@ public class PinDumpWriter extends Worker {
 				// write frame (subframe data)
 				int plane = 0;
 				while( plane < frame.planes.size() && plane < noOfPlanesToExport) {
-					os.write( Frame.transform(frame.planes.get(plane).data));
+					os.write( Frame.transform(frame.planes.get(plane++).data));
 				}
 			}
 			os.close();

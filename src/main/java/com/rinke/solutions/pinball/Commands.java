@@ -78,6 +78,7 @@ public class Commands {
 	public static final String SAVE_PALETTE = "savePalette";
 	public static final String EXPORT_GO_DMD = "exportGoDmd";
 	public static final String EXPORT_GIF = "exportGif";
+	public static final String EXPORT_RAW = "exportRaw";
 	public static final String SAVE_SINGLE_ANI_WITH_FC = "saveSingleAniWithFC";
 	public static final String SAVE_ANI_WITH_FC = "saveAniWithFC";
 	public static final String LOAD_ANI_WITH_FC = "loadAniWithFC";
