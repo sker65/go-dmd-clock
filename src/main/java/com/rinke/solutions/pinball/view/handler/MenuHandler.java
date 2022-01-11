@@ -82,6 +82,11 @@ public class MenuHandler extends AbstractCommandHandler implements ViewBindingHa
 			return;
 		CompiledAnimation cani = vm.selectedScene;
 		if( cani != null ) {
+			int planes = messageUtil.warn(0,
+					"RAW export",
+					"Please select",
+					"number of planes to export",
+					new String[]{"", "2", "4"}, 2) * 2;
 			String filename = fileChooserUtil.choose(SWT.OPEN, null, new String[] { "*.raw" }, new String[] { "RAW file"});
 			int p = filename.lastIndexOf(".");
 			if (p != -1)
@@ -89,7 +94,7 @@ public class MenuHandler extends AbstractCommandHandler implements ViewBindingHa
 			else
 				filename = filename + ".raw";
 			IProgress progress = null;
-			PinDumpWriter pinDumpWriter = new PinDumpWriter(cani, filename, 4, progress);
+			PinDumpWriter pinDumpWriter = new PinDumpWriter(cani, filename, planes, progress);
 			pinDumpWriter.run();
 		}
 	}
