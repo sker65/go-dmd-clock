@@ -11,6 +11,7 @@ public class Commands {
 	public static final String UPLOAD_PROJECT = "uploadProject";
 	public static final String EXPORT_VIRTUAL_PIN_PROJECT = "exportVirtualPinProject";
 	public static final String EXPORT_REAL_PIN_PROJECT = "exportRealPinProject";
+	public static final String EXPORT_SINGLE_REAL_PIN_PROJECT = "exportSingleRealPinProject";
 	public static final String IMPORT_PROJECT = "importProject";
 	public static final String SAVE_AS_PROJECT = "saveAsProject";
 	public static final String SAVE_PROJECT = "saveProject";

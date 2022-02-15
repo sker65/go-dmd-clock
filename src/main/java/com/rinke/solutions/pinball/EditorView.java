@@ -333,6 +333,10 @@ public class EditorView implements MainView {
 		MenuItem mntmExportRealPinProject = new MenuItem(menu_1, SWT.NONE);
 		mntmExportRealPinProject.setText("Export Project (real pin)");
 		mntmExportRealPinProject.addListener(SWT.Selection, e -> dispatchCmd(EXPORT_REAL_PIN_PROJECT));
+		
+		MenuItem mntmExportSingleRealPinProject = new MenuItem(menu_1, SWT.NONE);
+		mntmExportSingleRealPinProject.setText("Export Project (single real pin)");
+		mntmExportSingleRealPinProject.addListener(SWT.Selection, e -> dispatchCmd(EXPORT_SINGLE_REAL_PIN_PROJECT));
 
 		MenuItem mntmExportVpinProject = new MenuItem(menu_1, SWT.NONE);
 		mntmExportVpinProject.setText("Export Project (virt pin)");
