@@ -444,10 +444,16 @@ public class ProjectHandler extends AbstractCommandHandler {
 			namePrompt.setItemName("Device UID");
 			namePrompt.setPrompt(uid);
 			namePrompt.open();
-			if( namePrompt.isOkay() ) uid = namePrompt.getPrompt();
+			if( namePrompt.isOkay()) {
+				if (namePrompt.getPrompt().length() == 15) {
+					uid = namePrompt.getPrompt();
+					uid.toUpperCase();	
+				} else {
+					messageUtil.warn("Warning", "Invalid UID length");
+					return;
+				}
+			}
 			else return;
-			uid.toUpperCase();
-			
 			String filename = fileChooserUtil.choose(SWT.SAVE, bareName(vm.projectFilename), new String[] { "*.pal" }, new String[] { "Export pal" });
 			if (filename != null) {
 				if(!noExportWarning ) messageUtil.warn("Warning", "Please don´t publish projects with copyrighted material / frames");
