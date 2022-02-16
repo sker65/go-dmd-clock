@@ -131,7 +131,7 @@ public class ProjectHandlerTest extends HandlerTest {
 		p.durationInMillis = 257;
 
 		vm.keyframes.put(p.name, p);
-		uut.onExportProject(filename, f -> new FileOutputStream(f), true);
+		uut.onExportProject(filename, f -> new FileOutputStream(f), true, null);
 
 		// create a reference file and compare against
 		if(vm.numberOfColors == 16) //TODO !!! fix Test
@@ -148,7 +148,7 @@ public class ProjectHandlerTest extends HandlerTest {
 		p.switchMode = SwitchMode.PALETTE;
 
 		vm.keyframes.put(p.name, p);
-		uut.onExportProject(filename, f -> new FileOutputStream(f), true);
+		uut.onExportProject(filename, f -> new FileOutputStream(f), true, null);
 
 		// create a reference file and compare against
 		if(vm.numberOfColors == 16) //TODO !!! fix Test
@@ -172,7 +172,7 @@ public class ProjectHandlerTest extends HandlerTest {
 
 		// when(licenseManager.requireOneOf(cap))
 
-		uut.onExportProject(filename, f -> new FileOutputStream(f), true);
+		uut.onExportProject(filename, f -> new FileOutputStream(f), true, null);
 
 		// create a reference file and compare against
 		if(vm.numberOfColors == 16) //TODO !!! fix Test
@@ -213,7 +213,7 @@ public class ProjectHandlerTest extends HandlerTest {
 		Frame frame = new Frame(plane1, plane2);
 		frame.delay = 0x77ee77ee;
 		aniFrames.add(frame);
-		uut.onExportProject(filename, f -> new FileOutputStream(f), true);
+		uut.onExportProject(filename, f -> new FileOutputStream(f), true, null);
 		// System.out.println(filename);
 		if(vm.numberOfColors == 16) {
 			assertNull(Util.isBinaryIdentical(filename, "./src/test/resources/mappingWithSeq.dat"));
@@ -228,7 +228,7 @@ public class ProjectHandlerTest extends HandlerTest {
 		File tempFile = testFolder.newFile("test.dat");
 		String filename = tempFile.getAbsolutePath();
 
-		uut.onExportProject(filename, f -> new FileOutputStream(f), true);
+		uut.onExportProject(filename, f -> new FileOutputStream(f), true, null);
 		// System.out.println(filename);
 
 		// create a reference file and compare against

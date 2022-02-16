@@ -8,6 +8,9 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -20,6 +23,14 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
+
+import javax.crypto.Cipher;
+import javax.crypto.CipherOutputStream;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
+
 import static java.nio.file.StandardCopyOption.*;
 
 import lombok.extern.slf4j.Slf4j;
@@ -426,7 +437,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 			String filename = fileChooserUtil.choose(SWT.SAVE, bareName(vm.projectFilename), new String[] { "*.pal" }, new String[] { "Export pal" });
 			if (filename != null) {
 				if(!noExportWarning ) messageUtil.warn("Warning", "Please don´t publish projects with copyrighted material / frames");
-				onExportProject(filename, f -> new FileOutputStream(f), true);
+				onExportProject(filename, f -> new FileOutputStream(f), true, null);
 				if( !filename.endsWith("pin2dmd.pal")) {
 					if(!noExportWarning ) messageUtil.warn("Hint", "Remember to rename your export file to pin2dmd.pal if you want to use it" + " in a real pinballs sdcard of pin2dmd.");
 				}
@@ -457,7 +468,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 			String filename = fileChooserUtil.choose(SWT.SAVE, bareName(vm.projectFilename), new String[] { "*.pal" }, new String[] { "Export pal" });
 			if (filename != null) {
 				if(!noExportWarning ) messageUtil.warn("Warning", "Please don´t publish projects with copyrighted material / frames");
-				onExportProject(filename, f -> new FileOutputStream(f), true);
+				onExportProject(filename, f -> new FileOutputStream(f), true, uid);
 				if( !filename.endsWith("pin2dmd.pal")) {
 					if(!noExportWarning ) messageUtil.warn("Hint", "Remember to rename your export file to pin2dmd.pal if you want to use it" + " in a real pinballs sdcard of pin2dmd.");
 				}
@@ -472,7 +483,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 		String filename = fileChooserUtil.choose(SWT.SAVE, bareName(vm.projectFilename), new String[] { "*.pal" }, new String[] { "Export pal" });
 		if (filename != null) {
 			if(!noExportWarning ) messageUtil.warn("Warning", "Please don´t publish projects with copyrighted material / frames");
-			onExportProject(filename, f -> new FileOutputStream(f), false);
+			onExportProject(filename, f -> new FileOutputStream(f), false, null);
 		}
 	}
 	
@@ -497,7 +508,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 		OutputStream buildStream(String name) throws IOException;
 	}
 
-	public void onExportProject(String filename, OutputStreamProvider streamProvider, boolean realPin) {
+	public void onExportProject(String filename, OutputStreamProvider streamProvider, boolean realPin, String uid) {
 		log.info("export project {} file {}", realPin?"real":"vpin", filename);
 		if( realPin) licenseManager.requireOneOf(Capability.VPIN, Capability.REALPIN, Capability.GODMD, Capability.XXL_DISPLAY);
 
@@ -739,11 +750,28 @@ public class ProjectHandler extends AbstractCommandHandler {
 					map = exporter.writeFrameSeqTo(dos, frameSeqMap, useOldExport?2:3);
 					dos.close();
 				}
-
-				project.version = 1;
-				DataOutputStream dos2 = new DataOutputStream(streamProvider.buildStream(filename));
-				exporter.writeTo(dos2, map, project);
-				dos2.close();
+				// if uid is set, go for version 2 and create a crypted output stream
+				if( uid != null ) {
+					String pass = String.format("%16s", uid);
+					SecretKeySpec skeySpec = new SecretKeySpec(pass.getBytes("ISO-8859-1"), "AES"); 
+					IvParameterSpec iv = new IvParameterSpec(pass.getBytes("ISO-8859-1"));
+					Cipher cipher1;
+					try {
+						cipher1 = Cipher.getInstance("AES/CBC/PKCS5PADDING");
+						cipher1.init(Cipher.ENCRYPT_MODE, skeySpec, iv);
+						CipherOutputStream cos = new CipherOutputStream(streamProvider.buildStream(filename), cipher1);
+						DataOutputStream dos2 = new DataOutputStream(cos);
+						exporter.writeTo(dos2, map, project);
+						dos2.close();
+					} catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | InvalidAlgorithmParameterException e) {
+						throw new RuntimeException("error creating chipered output for " + filename, e);
+					}  
+				} else {
+					project.version = 1;
+					DataOutputStream dos2 = new DataOutputStream(streamProvider.buildStream(filename));
+					exporter.writeTo(dos2, map, project);
+					dos2.close();
+				}
 				// fileHelper.storeObject(project, filename);
 			} catch (IOException e) {
 				throw new RuntimeException("error writing " + filename, e);
