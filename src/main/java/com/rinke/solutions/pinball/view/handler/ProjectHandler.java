@@ -755,11 +755,13 @@ public class ProjectHandler extends AbstractCommandHandler {
 					String pass = String.format("%16s", uid);
 					SecretKeySpec skeySpec = new SecretKeySpec(pass.getBytes("ISO-8859-1"), "AES"); 
 					IvParameterSpec iv = new IvParameterSpec(pass.getBytes("ISO-8859-1"));
-					Cipher cipher1;
+					Cipher cipher;
 					try {
-						cipher1 = Cipher.getInstance("AES/CBC/PKCS5PADDING");
-						cipher1.init(Cipher.ENCRYPT_MODE, skeySpec, iv);
-						CipherOutputStream cos = new CipherOutputStream(streamProvider.buildStream(filename), cipher1);
+						cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING");
+						cipher.init(Cipher.ENCRYPT_MODE, skeySpec, iv);
+						OutputStream os = streamProvider.buildStream(filename);
+						// if there should be an unencrypted header, write it out now directly to the output stream
+						CipherOutputStream cos = new CipherOutputStream(os, cipher);
 						DataOutputStream dos2 = new DataOutputStream(cos);
 						exporter.writeTo(dos2, map, project);
 						dos2.close();
