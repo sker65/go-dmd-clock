@@ -752,23 +752,12 @@ public class ProjectHandler extends AbstractCommandHandler {
 				}
 				// if uid is set, go for version 2 and create a crypted output stream
 				if( uid != null ) {
-					String pass = String.format("%16s", uid);
-					SecretKeySpec skeySpec = new SecretKeySpec(pass.getBytes("ISO-8859-1"), "AES"); 
-					IvParameterSpec iv = new IvParameterSpec(pass.getBytes("ISO-8859-1"));
-					Cipher cipher;
-					try {
-						cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING");
-						cipher.init(Cipher.ENCRYPT_MODE, skeySpec, iv);
-						OutputStream os = streamProvider.buildStream(filename);
-						os.write(project.version);
-						// if there should be an unencrypted header, write it out now directly to the output stream
-						CipherOutputStream cos = new CipherOutputStream(os, cipher);
-						DataOutputStream dos2 = new DataOutputStream(cos);
-						exporter.writeTo(dos2, map, project);
-						dos2.close();
-					} catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | InvalidAlgorithmParameterException e) {
-						throw new RuntimeException("error creating chipered output for " + filename, e);
-					}  
+					OutputStream os = streamProvider.buildStream(filename);
+					os.write(project.version);
+					// if there should be an unencrypted header, write it out now directly to the output stream
+					DataOutputStream dos2 = new DataOutputStream(exporter.buildStream(os, uid));
+					exporter.writeTo(dos2, map, project);
+					dos2.close();
 				} else {
 					project.version = 1;
 					DataOutputStream dos2 = new DataOutputStream(streamProvider.buildStream(filename));
