@@ -14,6 +14,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -752,6 +753,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 				}
 				// if uid is set, go for version 2 and create a crypted output stream
 				if( uid != null ) {
+                    Collections.reverse( project.palMappings);
 					OutputStream os = streamProvider.buildStream(filename);
 					os.write(project.version);
 					// if there should be an unencrypted header, write it out now directly to the output stream
