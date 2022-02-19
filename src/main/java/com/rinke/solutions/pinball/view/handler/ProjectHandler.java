@@ -6,6 +6,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -464,7 +465,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 					if (keyFilename == null) 
 						return;
 					try {
-						List<String> lines = IOUtils.readLines(new FileInputStream(keyFilename));
+						List<String> lines = IOUtils.readLines(new FileInputStream(keyFilename), Charset.defaultCharset());
 						String path = new File(keyFilename).getParent(); 
 						int exported = 0;
 						for (String line : lines) {
@@ -477,6 +478,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 						}
 						messageUtil.warn("Success", exported + " exports generated in " + path);
 					} catch (IOException e) {
+						throw new RuntimeException("cannot read file "+keyFilename, e);
 					}
 					return;
 				} else if (namePrompt.getPrompt().length() == 15) {
