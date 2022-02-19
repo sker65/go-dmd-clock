@@ -2,6 +2,7 @@ package com.rinke.solutions.pinball.view.handler;
 
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -448,28 +449,45 @@ public class ProjectHandler extends AbstractCommandHandler {
 		}
 	}
 	
+	@SuppressWarnings("deprecation")
 	public void onExportSingleRealPinProject() {
 		if(licenseManager.getLicense() != null) {
 			licenseManager.requireOneOf( Capability.REALPIN, Capability.GODMD, Capability.XXL_DISPLAY);
-			String uid = "";
-			NamePrompt namePrompt = (NamePrompt) this.namePrompt;
-			namePrompt.setItemName("Device UID");
-			namePrompt.setPrompt(uid);
-			namePrompt.open();
-			if( namePrompt.isOkay()) {
-				if (namePrompt.getPrompt().length() == 15) {
-					uid = namePrompt.getPrompt();
-					uid.toUpperCase();	
-				} else {
-					messageUtil.warn("Warning", "Invalid UID length");
-					return;
+			String keyFilename = replaceExtensionTo("keys", vm.projectFilename);
+			try {
+				List<String> lines = IOUtils.readLines(new FileInputStream(keyFilename));
+				String path = new File(vm.projectFilename).getParent(); 
+				int exported = 0;
+				for (String uid : lines) {
+					if (uid.length() == 15) {
+						exported++;
+						uid.toUpperCase();	
+						String filename = path + File.separator + uid +".pal";
+						onExportProject(filename, f -> new FileOutputStream(f), true, uid);	
+					}
 				}
-			}
-			else return;
-			String filename = fileChooserUtil.choose(SWT.SAVE, uid, new String[] { "*.pal" }, new String[] { "Export pal" });
-			if (filename != null) {
-				if(!noExportWarning ) messageUtil.warn("Warning", "Please don´t publish projects with copyrighted material / frames");
-				onExportProject(filename, f -> new FileOutputStream(f), true, uid);
+				messageUtil.warn("Success", exported + " exports generated in " + path);
+			} catch (IOException e) {
+				String uid = "";
+				NamePrompt namePrompt = (NamePrompt) this.namePrompt;
+				namePrompt.setItemName("Device UID");
+				namePrompt.setPrompt(uid);
+				namePrompt.open();
+				if( namePrompt.isOkay()) {
+					if (namePrompt.getPrompt().length() == 15) {
+						uid = namePrompt.getPrompt();
+						uid.toUpperCase();	
+					} else {
+						messageUtil.warn("Warning", "Invalid UID length");
+						return;
+					}
+				}
+				else return;
+				String filename = fileChooserUtil.choose(SWT.SAVE, uid, new String[] { "*.pal" }, new String[] { "Export pal" });
+				if (filename != null) {
+					if(!noExportWarning ) messageUtil.warn("Warning", "Please don´t publish projects with copyrighted material / frames");
+					onExportProject(filename, f -> new FileOutputStream(f), true, uid);
+				}
 			}
 		} else {
 			messageUtil.warn("Warning", "Feature only available with valid license file");
