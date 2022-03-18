@@ -439,7 +439,7 @@ public class PaletteHandler extends AbstractCommandHandler implements ViewBindin
 				}
 			}
 			i++;
-		} while ((exists == true) && (i < 256));
+		} while (exists == true);
 		return i-1;
 	}
 
