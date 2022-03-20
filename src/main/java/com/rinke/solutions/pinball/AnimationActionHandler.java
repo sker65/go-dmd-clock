@@ -57,7 +57,8 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 	}
 	
 	protected IProgress getProgress() {
-		return shell!=null ? new Progress(shell) : new Progress(Display.getCurrent().getActiveShell());
+		Shell activeShell = Display.getCurrent().getActiveShell();
+		return shell!=null ? new Progress(shell) : new Progress(activeShell==null ? new Shell(Display.getDefault(),SWT.NO_TRIM):activeShell);
 	}
 
 	/**
