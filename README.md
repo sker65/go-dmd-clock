@@ -14,8 +14,10 @@ and here http://go-dmd.de/2015/03/17/go-dmd-animationen-aufnehmen-mit-visualpinb
 ## Pin2Dmd
 
 A Display replacement for virtual pinball replacing a 3th LCD or for real pinball machines replacing the DMD
-
 Firmware, doc and sources see here: https://github.com/lucky01/PIN2DMD
+
+This project and the file export it generates are exclusively to be used with the pin2dmd or go-dmd project.
+Any use with other projects is forbidden without written permission.
 
 
 
