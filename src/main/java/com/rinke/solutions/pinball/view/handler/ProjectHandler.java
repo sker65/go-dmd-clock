@@ -1,11 +1,14 @@
 package com.rinke.solutions.pinball.view.handler;
 
+import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -26,6 +29,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import java.util.zip.GZIPOutputStream;
 
 import javax.crypto.Cipher;
 import javax.crypto.CipherOutputStream;
@@ -62,6 +66,7 @@ import com.rinke.solutions.pinball.api.BinaryExporterFactory;
 import com.rinke.solutions.pinball.api.LicenseManager;
 import com.rinke.solutions.pinball.api.LicenseManager.Capability;
 import com.rinke.solutions.pinball.io.FileHelper;
+import com.rinke.solutions.pinball.license.PACWriter;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.FrameSeq;
 import com.rinke.solutions.pinball.model.Mask;
@@ -531,6 +536,26 @@ public class ProjectHandler extends AbstractCommandHandler {
 	public interface OutputStreamProvider {
 		OutputStream buildStream(String name) throws IOException;
 	}
+	
+	
+	private byte[] compressAndEncrypt(BinaryExporter ex, String infile, String uid) throws IOException {
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		ByteArrayOutputStream bosZipped = new ByteArrayOutputStream();
+		FileInputStream fis = new FileInputStream(infile);
+		
+		OutputStream cryptOs = ex.buildStream(bos, uid);
+		GZIPOutputStream gos  = new GZIPOutputStream(bosZipped);
+		byte[] buffer = new byte[1024];
+        int len;
+        while ((len = fis.read(buffer)) > 0) {
+            gos.write(buffer, 0, len);
+        }
+        gos.close();
+        fis.close();
+        bosZipped.writeTo(cryptOs);
+        cryptOs.close();
+		return bos.toByteArray();
+	}
 
 	public void onExportProject(String filename, OutputStreamProvider streamProvider, boolean realPin, String uid) {
 		log.info("export project {} file {}", realPin?"real":"vpin", filename);
@@ -699,24 +724,42 @@ public class ProjectHandler extends AbstractCommandHandler {
 			Worker w = new Worker() {
 				@Override
 				public void innerRun() {
-					AniWriter aniWriter = new AniWriter(anis, aniFilename, aniVersionToUse, vm.paletteMap, progress);
-					if( !anis.isEmpty() ) {
-						aniWriter.compressPlanes = false;
-						aniWriter.setHeader("VPIN");
-						aniWriter.run();
-					}
-					if( !cancelRequested ) {
-						notify(90, "writing binary project");
-						try {
-							BinaryExporter exporter = BinaryExporterFactory.getInstance();
+					try {
+						BinaryExporter exporter = BinaryExporterFactory.getInstance();
+						AniWriter aniWriter = new AniWriter(anis, aniFilename, aniVersionToUse, vm.paletteMap, progress);
+						if( !anis.isEmpty() ) {
+							aniWriter.compressPlanes = false;
+							aniWriter.setHeader("VPIN");
+							aniWriter.run();
+						}
+						if( !cancelRequested ) {
+							notify(90, "writing binary project");					
 							DataOutputStream dos2 = new DataOutputStream(streamProvider.buildStream(filename));
 							// for vpins version is 2
 							project.version = 2;
 							exporter.writeTo(dos2, aniWriter.getOffsetMap(), project);
 							dos2.close();
-						} catch (IOException e) {
-							throw new RuntimeException("error writing " + filename, e);
+						
+							// pac the two temp files to a PAC
+							String pacFilename = replaceExtensionTo("pac", filename);
+							PACWriter pac = new PACWriter(new FileOutputStream(pacFilename));
+							pac.writeHeader(1);
+							byte[] palBytes = compressAndEncrypt(exporter, filename, "VPIN");
+							log.debug("writing encrypted PAL chunk, len={}", palBytes.length);
+							pac.writeChunkHeader(1, palBytes.length);
+							pac.write(palBytes);
+							byte[] vniBytes = compressAndEncrypt(exporter, aniFilename, "VPIN");
+							log.debug("writing encrypted VNI chunk, len={}", vniBytes.length);
+							pac.writeChunkHeader(2, vniBytes.length);
+							pac.write(vniBytes);
+							pac.close();
+							
+							// delete tmp files
+							Files.delete(Paths.get(filename));
+							Files.delete(Paths.get(aniFilename));
 						}
+					} catch (IOException e) {
+						throw new RuntimeException("error writing " + filename, e);
 					}
 				}
 			};
