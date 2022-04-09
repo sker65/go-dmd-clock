@@ -509,7 +509,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 	
 	public void onExportVirtualPinProject() {
 //		licManager.requireOneOf(Capability.VPIN, Capability.GODMD);
-		String filename = fileChooserUtil.choose(SWT.SAVE, bareName(vm.projectFilename), new String[] { "*.pal" }, new String[] { "Export pal" });
+		String filename = fileChooserUtil.choose(SWT.SAVE, bareName(vm.projectFilename), new String[] { "*.pac" }, new String[] { "Export pac" });
 		if (filename != null) {
 			if(!noExportWarning ) messageUtil.warn("Warning", "Please don´t publish projects with copyrighted material / frames");
 			onExportProject(filename, f -> new FileOutputStream(f), false, null);
@@ -721,6 +721,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 				anis.add(cani);
 			}
 			String aniFilename = replaceExtensionTo("vni", filename);
+			String palFilename = replaceExtensionTo("pal", filename);
 			Worker w = new Worker() {
 				@Override
 				public void innerRun() {
@@ -734,17 +735,16 @@ public class ProjectHandler extends AbstractCommandHandler {
 						}
 						if( !cancelRequested ) {
 							notify(90, "writing binary project");					
-							DataOutputStream dos2 = new DataOutputStream(streamProvider.buildStream(filename));
+							DataOutputStream dos2 = new DataOutputStream(streamProvider.buildStream(palFilename));
 							// for vpins version is 2
 							project.version = 2;
 							exporter.writeTo(dos2, aniWriter.getOffsetMap(), project);
 							dos2.close();
 						
 							// pac the two temp files to a PAC
-							String pacFilename = replaceExtensionTo("pac", filename);
-							PACWriter pac = new PACWriter(new FileOutputStream(pacFilename));
+							PACWriter pac = new PACWriter(new FileOutputStream(filename));
 							pac.writeHeader(1);
-							byte[] palBytes = compressAndEncrypt(exporter, filename, "VPIN");
+							byte[] palBytes = compressAndEncrypt(exporter, palFilename, "VPIN");
 							log.debug("writing encrypted PAL chunk, len={}", palBytes.length);
 							pac.writeChunkHeader(1, palBytes.length);
 							pac.write(palBytes);
@@ -755,7 +755,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 							pac.close();
 							
 							// delete tmp files
-							Files.delete(Paths.get(filename));
+							Files.delete(Paths.get(palFilename));
 							Files.delete(Paths.get(aniFilename));
 						}
 					} catch (IOException e) {
