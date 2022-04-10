@@ -509,7 +509,8 @@ public class ProjectHandler extends AbstractCommandHandler {
 	
 	public void onExportVirtualPinProject() {
 //		licManager.requireOneOf(Capability.VPIN, Capability.GODMD);
-		String filename = fileChooserUtil.choose(SWT.SAVE, bareName(vm.projectFilename), new String[] { "*.pac" }, new String[] { "Export pac" });
+		String filename = fileChooserUtil.choose(SWT.SAVE, bareName(vm.projectFilename), new String[] { "*.pac" , "*.pal"}, new String[] { "Export pac", "Export pal" });
+		
 		if (filename != null) {
 			if(!noExportWarning ) messageUtil.warn("Warning", "Please don´t publish projects with copyrighted material / frames");
 			onExportProject(filename, f -> new FileOutputStream(f), false, null);
@@ -741,22 +742,24 @@ public class ProjectHandler extends AbstractCommandHandler {
 							exporter.writeTo(dos2, aniWriter.getOffsetMap(), project);
 							dos2.close();
 						
-							// pac the two temp files to a PAC
-							PACWriter pac = new PACWriter(new FileOutputStream(filename));
-							pac.writeHeader(1);
-							byte[] palBytes = compressAndEncrypt(exporter, palFilename, "VPIN");
-							log.debug("writing encrypted PAL chunk, len={}", palBytes.length);
-							pac.writeChunkHeader(1, palBytes.length);
-							pac.write(palBytes);
-							byte[] vniBytes = compressAndEncrypt(exporter, aniFilename, "VPIN");
-							log.debug("writing encrypted VNI chunk, len={}", vniBytes.length);
-							pac.writeChunkHeader(2, vniBytes.length);
-							pac.write(vniBytes);
-							pac.close();
-							
-							// delete tmp files
-							Files.delete(Paths.get(palFilename));
-							Files.delete(Paths.get(aniFilename));
+							if (!filename.toLowerCase().endsWith(".pal")) {
+								// pac the two temp files to a PAC
+								PACWriter pac = new PACWriter(new FileOutputStream(filename));
+								pac.writeHeader(1);
+								byte[] palBytes = compressAndEncrypt(exporter, palFilename, "VPIN");
+								log.debug("writing encrypted PAL chunk, len={}", palBytes.length);
+								pac.writeChunkHeader(1, palBytes.length);
+								pac.write(palBytes);
+								byte[] vniBytes = compressAndEncrypt(exporter, aniFilename, "VPIN");
+								log.debug("writing encrypted VNI chunk, len={}", vniBytes.length);
+								pac.writeChunkHeader(2, vniBytes.length);
+								pac.write(vniBytes);
+								pac.close();
+								
+								// delete tmp files
+								Files.delete(Paths.get(palFilename));
+								Files.delete(Paths.get(aniFilename));
+							}
 						}
 					} catch (IOException e) {
 						throw new RuntimeException("error writing " + filename, e);
