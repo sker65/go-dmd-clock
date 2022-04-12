@@ -1050,7 +1050,7 @@ public class EditorView implements MainView {
 		ToolItem tltmMark = new ToolItem(drawToolBar, SWT.RADIO);
 		tltmMark.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/select.png")));
 		tltmMark.addListener(SWT.Selection, e -> {
-			dispatchCmd(REMOVE_SELECTION);
+			dispatchCmd(SELECT_ALL);
 			dmdWidget.setDrawTool(drawTools.get("select"));
 		});
 
