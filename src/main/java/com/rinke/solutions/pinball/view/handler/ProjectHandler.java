@@ -721,8 +721,21 @@ public class ProjectHandler extends AbstractCommandHandler {
 				}
 				anis.add(cani);
 			}
-			String aniFilename = replaceExtensionTo("vni", filename);
-			String palFilename = replaceExtensionTo("pal", filename);
+			
+			String aniFilename;
+			String palFilename;
+			if (!filename.toLowerCase().endsWith(".pal")) {
+				String aniFile = replaceExtensionTo("vni", filename);
+				String palFile = replaceExtensionTo("pal", filename);
+				palFile = palFile.substring(palFile.lastIndexOf(File.separator));
+				aniFile = aniFile.substring(aniFile.lastIndexOf(File.separator));
+				String tmpDir = System.getProperty("java.io.tmpdir");
+				palFilename = tmpDir + palFile;
+				aniFilename = tmpDir + aniFile;
+			} else {
+				aniFilename = replaceExtensionTo("vni", filename);
+				palFilename = replaceExtensionTo("pal", filename);
+			}
 			Worker w = new Worker() {
 				@Override
 				public void innerRun() {
@@ -750,15 +763,19 @@ public class ProjectHandler extends AbstractCommandHandler {
 								log.debug("writing encrypted PAL chunk, len={}", palBytes.length);
 								pac.writeChunkHeader(1, palBytes.length);
 								pac.write(palBytes);
-								byte[] vniBytes = compressAndEncrypt(exporter, aniFilename, "VPIN");
-								log.debug("writing encrypted VNI chunk, len={}", vniBytes.length);
-								pac.writeChunkHeader(2, vniBytes.length);
-								pac.write(vniBytes);
+								if( !anis.isEmpty() ) {
+									byte[] vniBytes = compressAndEncrypt(exporter, aniFilename, "VPIN");
+									log.debug("writing encrypted VNI chunk, len={}", vniBytes.length);
+									pac.writeChunkHeader(2, vniBytes.length);
+									pac.write(vniBytes);
+								}
 								pac.close();
 								
 								// delete tmp files
 								Files.delete(Paths.get(palFilename));
-								Files.delete(Paths.get(aniFilename));
+								if( !anis.isEmpty() ) {
+									Files.delete(Paths.get(aniFilename));
+								}
 							}
 						}
 					} catch (IOException e) {
