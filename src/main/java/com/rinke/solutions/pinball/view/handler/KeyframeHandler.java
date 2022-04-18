@@ -260,7 +260,11 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 		
 		if (!allFrames) {
 			List<String> res = new ArrayList<>();
-			Frame f = new Frame(vm.previewDMD.getFrame());
+			Frame f;
+			if (vm.previewDMD != null)
+				f = new Frame(vm.previewDMD.getFrame());
+			else
+				f = new Frame(vm.dmd.getFrame());
 			for( PalMapping pm : vm.keyframes.values()) {
 				for (int msk = 0; msk < vm.masks.size(); msk++) {
 					if (vm.masks.get(msk).locked) {
