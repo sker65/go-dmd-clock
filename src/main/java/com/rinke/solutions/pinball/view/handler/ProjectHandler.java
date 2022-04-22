@@ -442,7 +442,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 	public void onExportRealPinProject() {
 		if(licenseManager.getLicense() != null) {
 			licenseManager.requireOneOf( Capability.REALPIN, Capability.GODMD, Capability.XXL_DISPLAY);
-			String filename = fileChooserUtil.choose(SWT.SAVE, bareName(vm.projectFilename), new String[] { "*.pal" }, new String[] { "Export pal" });
+			String filename = fileChooserUtil.choose(SWT.SAVE, bareName(vm.projectFilename), new String[] { "*.pal" , "*.rac" }, new String[] { "Export pal", "Export rac"});
 			if (filename != null) {
 				if(!noExportWarning ) messageUtil.warn("Warning", "Please don´t publish projects with copyrighted material / frames");
 				onExportProject(filename, f -> new FileOutputStream(f), true, null);
@@ -831,26 +831,72 @@ public class ProjectHandler extends AbstractCommandHandler {
 			try {
 				Map<String, Integer> map = new HashMap<String, Integer>();
 				BinaryExporter exporter = BinaryExporterFactory.getInstance();
-				if (!frameSeqMap.isEmpty()) {
-					log.info("exporter instance {} writing FSQ", exporter);
-					DataOutputStream dos = new DataOutputStream(streamProvider.buildStream(replaceExtensionTo("fsq", filename)));
-					map = exporter.writeFrameSeqTo(dos, frameSeqMap, useOldExport?2:3);
-					dos.close();
-				}
-				// if uid is set, go for version 2 and create a crypted output stream
-				if( uid != null ) {
-                    Collections.reverse( project.palMappings);
-					OutputStream os = streamProvider.buildStream(filename);
-					os.write(project.version);
-					// if there should be an unencrypted header, write it out now directly to the output stream
-					DataOutputStream dos2 = new DataOutputStream(exporter.buildStream(os, uid));
-					exporter.writeTo(dos2, map, project);
-					dos2.close();
-				} else {
+				String fsqFilename;
+				String palFilename;
+				if (!filename.toLowerCase().endsWith(".pal")) {
+					String fsqFile = replaceExtensionTo("fsq", filename);
+					String palFile = replaceExtensionTo("pal", filename);
+					palFile = palFile.substring(palFile.lastIndexOf(File.separator));
+					fsqFile = fsqFile.substring(fsqFile.lastIndexOf(File.separator));
+					String tmpDir = System.getProperty("java.io.tmpdir");
+					palFilename = tmpDir + palFile;
+					fsqFilename = tmpDir + fsqFile;
+					if (!frameSeqMap.isEmpty()) {
+						log.info("exporter instance {} writing FSQ", exporter);
+						DataOutputStream dos = new DataOutputStream(streamProvider.buildStream(fsqFilename));
+						map = exporter.writeFrameSeqTo(dos, frameSeqMap, useOldExport?2:3);
+						dos.close();
+					}
 					project.version = 1;
-					DataOutputStream dos2 = new DataOutputStream(streamProvider.buildStream(filename));
+					Collections.reverse(project.palMappings);
+					DataOutputStream dos2 = new DataOutputStream(streamProvider.buildStream(palFilename));
 					exporter.writeTo(dos2, map, project);
 					dos2.close();
+					
+					// pac the two temp files to a PAC
+					PACWriter pac = new PACWriter(new FileOutputStream(filename));
+					pac.writeHeader(1);
+					byte[] palBytes = compressAndEncrypt(exporter, palFilename, "VPIN");
+					log.debug("writing encrypted PAL chunk, len={}", palBytes.length);
+					pac.writeChunkHeader(1, palBytes.length);
+					pac.write(palBytes);
+					if( !frameSeqMap.isEmpty() ) {
+						byte[] fsqBytes = compressAndEncrypt(exporter, fsqFilename, "VPIN");
+						log.debug("writing encrypted FSQ chunk, len={}", fsqBytes.length);
+						pac.writeChunkHeader(2, fsqBytes.length);
+						pac.write(fsqBytes);
+					}
+					pac.close();
+					
+					// delete tmp files
+					Files.delete(Paths.get(palFilename));
+					if( !frameSeqMap.isEmpty() ) {
+						Files.delete(Paths.get(fsqFilename));
+					}
+				} else {
+					fsqFilename = replaceExtensionTo("fsq", filename);
+					palFilename = replaceExtensionTo("pal", filename);
+					if (!frameSeqMap.isEmpty()) {
+						log.info("exporter instance {} writing FSQ", exporter);
+						DataOutputStream dos = new DataOutputStream(streamProvider.buildStream(fsqFilename));
+						map = exporter.writeFrameSeqTo(dos, frameSeqMap, useOldExport?2:3);
+						dos.close();
+					}
+					// if uid is set, go for version 2 and create a crypted output stream
+					if( uid != null ) {
+	                    Collections.reverse( project.palMappings);
+						OutputStream os = streamProvider.buildStream(palFilename);
+						os.write(project.version);
+						// if there should be an unencrypted header, write it out now directly to the output stream
+						DataOutputStream dos2 = new DataOutputStream(exporter.buildStream(os, uid));
+						exporter.writeTo(dos2, map, project);
+						dos2.close();
+					} else {
+						project.version = 1;
+						DataOutputStream dos2 = new DataOutputStream(streamProvider.buildStream(palFilename));
+						exporter.writeTo(dos2, map, project);
+						dos2.close();
+					}
 				}
 				// fileHelper.storeObject(project, filename);
 			} catch (IOException e) {
