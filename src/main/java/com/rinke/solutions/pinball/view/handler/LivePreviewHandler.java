@@ -45,13 +45,13 @@ public class LivePreviewHandler extends AbstractCommandHandler implements ViewBi
 	
 	public void onUploadProject() {
 		Map<String, ByteArrayOutputStream> captureOutput = new HashMap<>();
-		projectHandler.onExportProject("a.dat", f -> {
+		projectHandler.onExportProject("a.pal", f -> {
 			ByteArrayOutputStream stream = new ByteArrayOutputStream();
 			captureOutput.put(f, stream);
 			return stream;
 		}, true, null);
 
-		connector.transferFile("pin2dmd.pal", new ByteArrayInputStream(captureOutput.get("a.dat").toByteArray()));
+			connector.transferFile("pin2dmd.pal", new ByteArrayInputStream(captureOutput.get("a.pal").toByteArray()));
 		if (captureOutput.containsKey("a.fsq")) {
 			connector.transferFile("pin2dmd.fsq", new ByteArrayInputStream(captureOutput.get("a.fsq").toByteArray()));
 		}
