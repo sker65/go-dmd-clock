@@ -29,6 +29,7 @@ public class VPinMameRawRenderer extends Renderer {
 		return actFrame < frames.size() ? frames.get(actFrame).timecode : 0;
 	}
 	
+	int color1plane_map[] = { 0, 3 };
 	int color6planes_map[] = { 0, 1, 2, 2, 2, 2, 3 };
 	int color8planes_map[] = { 0, 1, 2, 2, 2, 2, 2, 2, 3};
 	int color12planes_map[] = { 0, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3 };
@@ -88,6 +89,9 @@ public class VPinMameRawRenderer extends Renderer {
 						v += ( planes.get(planeIdx+i).data[byteIdx] >> bit ) & 1;
 					}
 					switch (planesPerFrame){
+						case 1:
+						v = color1plane_map[v];
+						break;
 						case 4:
 						v = color5planes_map[v];
 						break;
