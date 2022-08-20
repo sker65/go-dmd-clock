@@ -275,7 +275,7 @@ public class DMDWidget extends ResourceManagedCanvas implements ColorChangedList
 	public Image drawImage(Display display,int w, int h) {
         // int colIdx[] = {0,1,4,15};
     	int numberOfSubframes = dmd.getNumberOfPlanes();
-    	boolean useColorIndex = numberOfSubframes <= 15;
+    	boolean useColorIndex = numberOfSubframes < 15;
         Color cols[] = {};
         if( showMask ) cols = new Color[1<<numberOfSubframes];
         if( useColorIndex ) {
