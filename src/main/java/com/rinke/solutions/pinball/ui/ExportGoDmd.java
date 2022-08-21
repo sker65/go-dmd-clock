@@ -129,7 +129,9 @@ public class ExportGoDmd extends Dialog {
 		List<Animation> toExport = new ArrayList<>();
 		toExport.addAll(vm.scenes.values());
 		AniWriter aniWriter = new AniWriter(toExport, text.getText(), version, vm.paletteMap, null);
-		aniWriter.writeLinearPlane = true;
+		if (version >= 3) {
+			aniWriter.writeLinearPlane = true;
+		}
 		aniWriter.run();
 		shlExportForGodmd.close();
 	}
