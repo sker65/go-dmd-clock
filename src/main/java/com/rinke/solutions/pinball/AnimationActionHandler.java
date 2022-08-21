@@ -220,7 +220,7 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 					int noPlanes = lani.getRenderer().getNumberOfPlanes();
 					int planeSize = 0;
 //					if (lani.actFrame != 0)
-					if (lani.getType()!=AnimationType.RAW)
+					if (lani.getType()!=AnimationType.RAW && !lani.getRenderer().getFrames().isEmpty())
 						planeSize = lani.getRenderer().getFrames().get(0).getPlane(0).length;
 					else
 						planeSize = lani.width*lani.height/8;
