@@ -22,11 +22,12 @@ import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Palette;
 
 public abstract class Renderer extends Worker {
-
+	
 	protected int lowThreshold = 50;
 	protected int midThreshold = 120;
 	protected int highThreshold = 200;
 	protected int maxFrame = 0;
+	protected int maxPaletteSize = 64;
 	protected Properties props = new Properties();
 
 	List<Frame> frames = new ArrayList<>();
@@ -84,6 +85,10 @@ public abstract class Renderer extends Worker {
 	
 	public void setLowThreshold(int lowThreshold) {
 		this.lowThreshold = lowThreshold;
+	}
+	
+	public void setMaxPaletteSize(int maxPaletteSize) {
+		this.maxPaletteSize = maxPaletteSize;
 	}
 
 	public void setMidThreshold(int midThreshold) {

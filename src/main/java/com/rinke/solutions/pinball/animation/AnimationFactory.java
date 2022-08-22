@@ -22,7 +22,7 @@ import com.rinke.solutions.pinball.renderer.Renderer;
  */
 public class AnimationFactory {
 	
-    public static Animation buildAnimationFromFile(String filename, AnimationType type) {
+    public static Animation buildAnimationFromFile(String filename, AnimationType type, int maxPaletteSize) {
         File file = new File(filename);
         if( !file.canRead() ) {
             throw new RuntimeException("Could not read '"+filename+"' to load animation");
@@ -40,13 +40,14 @@ public class AnimationFactory {
         		ani= new Animation(type, base, 0, 0, 1, 1, 0);
         		break;
         }
+        ani.setMaxPaletteSize(maxPaletteSize);
         ani.setBasePath(file.getParent() + "/");
         ani.setDesc(base.substring(0, base.indexOf('.')));
         ani.setMutable(type.equals(AnimationType.COMPILED)||type.equals(AnimationType.VIDEO));
         return ani;
     }
-
-	public static List<Animation> createAnimationsFromProperties(String filename) throws IOException {
+    
+    public static List<Animation> createAnimationsFromProperties(String filename) throws IOException {
 		
 		Properties conf = new Properties();
 		conf.load(new FileInputStream(filename));

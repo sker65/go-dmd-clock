@@ -18,7 +18,7 @@ public class CompiledAnimationTest {
 	DmdSize size = DmdSize.Size128x32;
 	@Before
 	public void setup() {
-		Animation ani = AnimationFactory.buildAnimationFromFile("./src/test/resources/drwho-dump.txt.gz", AnimationType.MAME);
+		Animation ani = AnimationFactory.buildAnimationFromFile("./src/test/resources/drwho-dump.txt.gz", AnimationType.MAME, 64);
 		DMD dmd = new DMD(size);
 		dmd.setNumberOfPlanes(4);
 		ani.render(dmd, false);

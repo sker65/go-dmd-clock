@@ -189,7 +189,7 @@ public class AnimatedGIFRenderer extends Renderer {
 				}
 				frames.add(new Frame(f1, f2));*/
 	            Frame f = null;
-	            if( palette.numberOfColors <=  64) {
+	            if( palette.numberOfColors <=  maxPaletteSize) {
 	            	f = ImageUtil.convertToFrameWithPalette(toScan, dmd, palette, false);
 	            } else {
 	            	f = ImageUtil.convertToFrame(toScan, dmd.getWidth(), dmd.getHeight(),8);

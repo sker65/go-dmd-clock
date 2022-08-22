@@ -131,21 +131,21 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 			this.reader = new AniReader();
 			loadedList.addAll(reader.read(filename));
 		} else if (filename.endsWith(".txt.gz")) {
-			loadedList.add(AnimationFactory.buildAnimationFromFile(filename, AnimationType.MAME));
+			loadedList.add(AnimationFactory.buildAnimationFromFile(filename, AnimationType.MAME, vm.numberOfColors));
 		} else if (filename.endsWith(".properties")) {
 			loadedList.addAll(AnimationFactory.createAnimationsFromProperties(filename));
 		} else if (extensionIs(filename, ".pcap", ".pcap.gz")) {
-			loadedList.add(AnimationFactory.buildAnimationFromFile(filename, AnimationType.PCAP));
+			loadedList.add(AnimationFactory.buildAnimationFromFile(filename, AnimationType.PCAP, vm.numberOfColors));
 		} else if (extensionIs(filename, ".rgb", ".rgb.gz")) {
-			loadedList.add(AnimationFactory.buildAnimationFromFile(filename, AnimationType.RGB));
+			loadedList.add(AnimationFactory.buildAnimationFromFile(filename, AnimationType.RGB, vm.numberOfColors));
 		} else if (extensionIs(filename, ".raw", ".raw.gz")) {
-			loadedList.add(AnimationFactory.buildAnimationFromFile(filename, AnimationType.RAW));
+			loadedList.add(AnimationFactory.buildAnimationFromFile(filename, AnimationType.RAW, vm.numberOfColors));
 		} else if (extensionIs(filename, ".dump", ".dump.gz")) {
-			loadedList.add(AnimationFactory.buildAnimationFromFile(filename, AnimationType.PINDUMP));
+			loadedList.add(AnimationFactory.buildAnimationFromFile(filename, AnimationType.PINDUMP, vm.numberOfColors));
 		} else if (extensionIs(filename, ".gif")) {
-			loadedList.add(AnimationFactory.buildAnimationFromFile(filename, AnimationType.GIF));
+			loadedList.add(AnimationFactory.buildAnimationFromFile(filename, AnimationType.GIF, vm.numberOfColors));
 		} else if (extensionIs(filename, ".mp4", ".3gp", ".avi")) {
-			loadedList.add(AnimationFactory.buildAnimationFromFile(filename, AnimationType.VIDEO));
+			loadedList.add(AnimationFactory.buildAnimationFromFile(filename, AnimationType.VIDEO, vm.numberOfColors));
 		}
 		log.info("loaded {} animations from {}", loadedList.size(), filename);
 		} catch( IOException e) {

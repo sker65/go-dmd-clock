@@ -67,6 +67,7 @@ public class Animation {
 	private RGB[] aniColors;
 	
 	private boolean trueColor;
+	private int maxPaletteSize = 64;
 	protected boolean clockWasAdded;
 	public int width;
 	public int height;
@@ -296,7 +297,8 @@ public class Animation {
 	List<Frame> transitions = new ArrayList<>();
 	protected ProgressEventListener progressEventListener;
 	
-	protected Frame renderFrame(String name, DMD dmd, int act) {	
+	protected Frame renderFrame(String name, DMD dmd, int act) {
+		renderer.setMaxPaletteSize(maxPaletteSize);
 		Frame f = renderer.convert(name, dmd, act);
 		int noFrames = renderer.getFrames().size();
 		if( start == 0 && end > noFrames ) {
@@ -325,6 +327,7 @@ public class Animation {
 		if( renderer == null ) init(this.progressEventListener);
 		setDimension(dmd.getWidth(),dmd.getHeight());
 		// just to trigger image read
+		renderer.setMaxPaletteSize(maxPaletteSize);
 		renderer.getMaxFrame(basePath+name, dmd);
 		if( renderer.getPalette() != null ) {
 			aniColors = renderer.getPalette().colors;
@@ -618,6 +621,10 @@ public class Animation {
 
 	public void setTrueColor(boolean trueColor) {
 		 this.trueColor = trueColor;
+	}
+	
+	public void setMaxPaletteSize(int maxPaletteSize) {
+		 this.maxPaletteSize = maxPaletteSize;
 	}
 
 	public EditMode getEditMode() {
