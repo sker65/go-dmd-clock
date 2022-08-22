@@ -15,8 +15,11 @@ import org.eclipse.swt.widgets.Text;
 
 import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.Bean;
+import com.rinke.solutions.pinball.Constants;
 import com.rinke.solutions.pinball.animation.AniWriter;
 import com.rinke.solutions.pinball.animation.Animation;
+import com.rinke.solutions.pinball.animation.CompiledAnimation;
+import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.util.Config;
 import com.rinke.solutions.pinball.view.model.ViewModel;
 
@@ -127,7 +130,22 @@ public class ExportGoDmd extends Dialog {
 		result = Pair.of(text.getText(), versionCombo.getSelectionIndex());
 		int version = versionCombo.getSelectionIndex()+1;
 		List<Animation> toExport = new ArrayList<>();
+		
 		toExport.addAll(vm.scenes.values());
+		toExport.forEach(p->{
+			CompiledAnimation ani = (CompiledAnimation)p;
+			ani.actFrame = 0;
+			for (int i = 0; i <= ani.end; i++) {
+				// reduce to RGB24 to 15bit for go-dmd
+				Frame frame = new Frame(ani.frames.get(i));
+				if( frame.planes.size() == Constants.TRUE_COLOR_BIT_PER_CHANNEL*3 ) { // reduce 8 bit per color to 5 bit per color
+					frame.planes.remove(0); frame.planes.remove(0); frame.planes.remove(0);
+					frame.planes.remove(5); frame.planes.remove(5); frame.planes.remove(5);
+					frame.planes.remove(10); frame.planes.remove(10); frame.planes.remove(10);
+				}
+				ani.frames.set(i, frame);
+			}
+		});
 		AniWriter aniWriter = new AniWriter(toExport, text.getText(), version, vm.paletteMap, null);
 		if (version >= 3) {
 			aniWriter.writeLinearPlane = true;
