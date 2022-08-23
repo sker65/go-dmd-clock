@@ -48,6 +48,7 @@ public class AnimationQuantizer {
 				int idx = getPixel( in, x, y, bytesPerRow);
 				if( idx > pal.numberOfColors ) {
 					System.out.println("foo");
+					idx = pal.numberOfColors;
 				}
 				int rgb = rgbAsInt(pal.colors[idx], bitPerChannel);
 				setPixel( r, rgb, x, y, bytesPerRow);
