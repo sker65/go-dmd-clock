@@ -138,6 +138,9 @@ public class ExportGoDmd extends Dialog {
 			for (int i = 0; i <= ani.end; i++) {
 				// reduce to RGB24 to 15bit for go-dmd
 				Frame frame = new Frame(ani.frames.get(i));
+				if (frame.hasMask()) {
+					frame.mask = null;
+				}
 				if( frame.planes.size() == Constants.TRUE_COLOR_BIT_PER_CHANNEL*3 ) { // reduce 8 bit per color to 5 bit per color
 					frame.planes.remove(0); frame.planes.remove(0); frame.planes.remove(0);
 					frame.planes.remove(5); frame.planes.remove(5); frame.planes.remove(5);
@@ -146,6 +149,7 @@ public class ExportGoDmd extends Dialog {
 				ani.frames.set(i, frame);
 			}
 		});
+		
 		AniWriter aniWriter = new AniWriter(toExport, text.getText(), version, vm.paletteMap, null);
 		if (version >= 3) {
 			aniWriter.writeLinearPlane = true;
