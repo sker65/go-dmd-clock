@@ -27,7 +27,7 @@ public class AnimationQuantizer {
 		CompiledAnimation result = new CompiledAnimation(AnimationType.COMPILED, name, 
 				in.start, in.end,in.skip, 0, 0, in.width, in.height);
 		for( Frame inFrame : in.frames ) {
-			Frame qFrame = convertFrameToRGB(inFrame, pal, in.width, in.height, Constants.MAX_BIT_PER_COLOR_CHANNEL);
+			Frame qFrame = convertFrameToRGB(inFrame, pal, in.width, in.height, Constants.TRUE_COLOR_BIT_PER_CHANNEL);
 			qFrame.delay = inFrame.delay;
 			qFrame.timecode = inFrame.timecode;
 			qFrame.crc32 = inFrame.crc32;
@@ -37,7 +37,7 @@ public class AnimationQuantizer {
 		return result;
 	}
 
-	private Frame convertFrameToRGB(Frame in, Palette pal, int w, int h, int bitPerChannel) {
+	public Frame convertFrameToRGB(Frame in, Palette pal, int w, int h, int bitPerChannel) {
 		int noOfPlanes = bitPerChannel*3;
 		int planeSize = in.planes.get(0).data.length;
 		// if( pal.numberOfColors == 16 ) 

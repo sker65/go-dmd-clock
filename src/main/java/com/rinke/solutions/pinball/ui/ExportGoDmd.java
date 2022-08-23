@@ -19,7 +19,10 @@ import com.rinke.solutions.pinball.Constants;
 import com.rinke.solutions.pinball.animation.AniWriter;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
+import com.rinke.solutions.pinball.animation.Animation.EditMode;
+import com.rinke.solutions.pinball.animation.AnimationQuantizer;
 import com.rinke.solutions.pinball.model.Frame;
+import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.util.Config;
 import com.rinke.solutions.pinball.view.model.ViewModel;
 
@@ -146,6 +149,13 @@ public class ExportGoDmd extends Dialog {
 					frame.planes.remove(5); frame.planes.remove(5); frame.planes.remove(5);
 					frame.planes.remove(10); frame.planes.remove(10); frame.planes.remove(10);
 				}
+				if (frame.planes.size() < Constants.MAX_BIT_PER_COLOR_CHANNEL*3) {
+					Palette pal = vm.paletteMap.get(p.getPalIndex());
+					AnimationQuantizer quantizer = new AnimationQuantizer();
+					Frame qFrame = quantizer.convertFrameToRGB(frame, pal, p.width, p.height, Constants.MAX_BIT_PER_COLOR_CHANNEL);
+					frame = qFrame;
+					ani.setEditMode(EditMode.REPLACE);
+				}
 				ani.frames.set(i, frame);
 			}
 		});
@@ -155,6 +165,7 @@ public class ExportGoDmd extends Dialog {
 			aniWriter.writeLinearPlane = true;
 		}
 		aniWriter.run();
+		vm.scenes.refresh();
 		shlExportForGodmd.close();
 	}
 }
