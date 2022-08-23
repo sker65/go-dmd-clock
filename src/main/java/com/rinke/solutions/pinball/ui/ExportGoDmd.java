@@ -149,7 +149,7 @@ public class ExportGoDmd extends Dialog {
 					frame.planes.remove(5); frame.planes.remove(5); frame.planes.remove(5);
 					frame.planes.remove(10); frame.planes.remove(10); frame.planes.remove(10);
 				}
-				if (frame.planes.size() < Constants.MAX_BIT_PER_COLOR_CHANNEL*3 && p.getPalIndex() > 8) {
+				if (frame.planes.size() < Constants.MAX_BIT_PER_COLOR_CHANNEL*3 && p.getPalIndex() > 8 && version == 1) {
 					Palette pal = vm.paletteMap.get(p.getPalIndex());
 					AnimationQuantizer quantizer = new AnimationQuantizer();
 					Frame qFrame = quantizer.convertFrameToRGB(frame, pal, p.width, p.height, Constants.MAX_BIT_PER_COLOR_CHANNEL);
