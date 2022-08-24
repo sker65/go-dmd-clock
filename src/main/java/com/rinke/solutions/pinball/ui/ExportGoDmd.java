@@ -21,6 +21,7 @@ import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.animation.Animation.EditMode;
 import com.rinke.solutions.pinball.animation.AnimationQuantizer;
+import com.rinke.solutions.pinball.animation.AnimationType;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.util.Config;
@@ -134,21 +135,39 @@ public class ExportGoDmd extends Dialog {
 		int version = versionCombo.getSelectionIndex()+1;
 		List<Animation> toExport = new ArrayList<>();
 		
-		toExport.addAll(vm.scenes.values());
-		toExport.forEach(p->{
-			CompiledAnimation ani = (CompiledAnimation)p;
+		vm.scenes.values().forEach(p->{
+			//copy ani before export modifications
+			Animation exportAni = p.cutScene(0, p.end, p.frames.get(0).planes.size());
+			exportAni.setDesc(p.getDesc());
+			exportAni.setCycles(p.getCycles());
+			exportAni.setHoldCycles(p.getHoldCycles());
+			exportAni.setFsk(p.getFsk());
+			exportAni.setTransitionsPath(p.getTransitionsPath());
+			exportAni.setTransitionName(p.getTransitionName());
+			exportAni.setTransitionFrom(p.getTransitionFrom());
+			exportAni.setTransitionDelay(p.getTransitionDelay());
+			exportAni.setClockFrom(p.getClockFrom());
+			exportAni.setClockInFront(p.isClockInFront());
+			exportAni.setClockSmall(p.isClockSmall());
+			exportAni.setClockWasAdded(p.isClockWasAdded());
+			exportAni.setClockXOffset(p.getClockXOffset());
+			exportAni.setClockYOffset(p.getClockYOffset());
+			
+			CompiledAnimation ani = (CompiledAnimation) exportAni;
 			ani.actFrame = 0;
 			for (int i = 0; i <= ani.end; i++) {
-				// reduce to RGB24 to 15bit for go-dmd
+				// remove mask for go-dmd
 				Frame frame = new Frame(ani.frames.get(i));
 				if (frame.hasMask()) {
 					frame.mask = null;
 				}
+				// reduce to RGB24 to 15bit for go-dmd
 				if( frame.planes.size() == Constants.TRUE_COLOR_BIT_PER_CHANNEL*3 ) { // reduce 8 bit per color to 5 bit per color
 					frame.planes.remove(0); frame.planes.remove(0); frame.planes.remove(0);
 					frame.planes.remove(5); frame.planes.remove(5); frame.planes.remove(5);
 					frame.planes.remove(10); frame.planes.remove(10); frame.planes.remove(10);
 				}
+				// convert to 15bit for go-dmd
 				if (frame.planes.size() < Constants.MAX_BIT_PER_COLOR_CHANNEL*3 && p.getPalIndex() > 8 && version == 1) {
 					Palette pal = vm.paletteMap.get(p.getPalIndex());
 					AnimationQuantizer quantizer = new AnimationQuantizer();
@@ -158,6 +177,7 @@ public class ExportGoDmd extends Dialog {
 				}
 				ani.frames.set(i, frame);
 			}
+			toExport.add(exportAni);
 		});
 		
 		AniWriter aniWriter = new AniWriter(toExport, text.getText(), version, vm.paletteMap, null);
