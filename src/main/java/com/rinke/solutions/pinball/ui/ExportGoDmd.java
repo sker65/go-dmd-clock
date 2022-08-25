@@ -136,48 +136,54 @@ public class ExportGoDmd extends Dialog {
 		List<Animation> toExport = new ArrayList<>();
 		
 		vm.scenes.values().forEach(p->{
-			//copy ani before export modifications
-			Animation exportAni = p.cutScene(0, p.end, p.frames.get(0).planes.size());
-			exportAni.setDesc(p.getDesc());
-			exportAni.setCycles(p.getCycles());
-			exportAni.setHoldCycles(p.getHoldCycles());
-			exportAni.setFsk(p.getFsk());
-			exportAni.setTransitionsPath(p.getTransitionsPath());
-			exportAni.setTransitionName(p.getTransitionName());
-			exportAni.setTransitionFrom(p.getTransitionFrom());
-			exportAni.setTransitionDelay(p.getTransitionDelay());
-			exportAni.setClockFrom(p.getClockFrom());
-			exportAni.setClockInFront(p.isClockInFront());
-			exportAni.setClockSmall(p.isClockSmall());
-			exportAni.setClockWasAdded(p.isClockWasAdded());
-			exportAni.setClockXOffset(p.getClockXOffset());
-			exportAni.setClockYOffset(p.getClockYOffset());
 			
-			CompiledAnimation ani = (CompiledAnimation) exportAni;
-			ani.actFrame = 0;
-			for (int i = 0; i <= ani.end; i++) {
-				// remove mask for go-dmd
-				Frame frame = new Frame(ani.frames.get(i));
-				if (frame.hasMask()) {
-					frame.mask = null;
+			if (p.getActualFrame().planes.size() < Constants.MAX_BIT_PER_COLOR_CHANNEL*3 && p.getPalIndex() <= 8){
+				//add animations which are not modified
+				toExport.add(p);
+			} else {
+				//copy ani before export modifications
+				Animation exportAni = p.cutScene(0, p.end, p.frames.get(0).planes.size());
+				exportAni.setDesc(p.getDesc());
+				exportAni.setCycles(p.getCycles());
+				exportAni.setHoldCycles(p.getHoldCycles());
+				exportAni.setFsk(p.getFsk());
+				exportAni.setTransitionsPath(p.getTransitionsPath());
+				exportAni.setTransitionName(p.getTransitionName());
+				exportAni.setTransitionFrom(p.getTransitionFrom());
+				exportAni.setTransitionDelay(p.getTransitionDelay());
+				exportAni.setClockFrom(p.getClockFrom());
+				exportAni.setClockInFront(p.isClockInFront());
+				exportAni.setClockSmall(p.isClockSmall());
+				exportAni.setClockWasAdded(p.isClockWasAdded());
+				exportAni.setClockXOffset(p.getClockXOffset());
+				exportAni.setClockYOffset(p.getClockYOffset());
+				
+				CompiledAnimation ani = (CompiledAnimation) exportAni;
+				ani.actFrame = 0;
+				for (int i = 0; i <= ani.end; i++) {
+					// remove frame mask
+					Frame frame = new Frame(ani.frames.get(i));
+					if (frame.hasMask()) {
+						frame.mask = null;
+					}
+					// reduce to RGB24 to 15bit RGB555
+					if( frame.planes.size() == Constants.TRUE_COLOR_BIT_PER_CHANNEL*3 ) { // reduce 8 bit per color to 5 bit per color
+						frame.planes.remove(0); frame.planes.remove(0); frame.planes.remove(0);
+						frame.planes.remove(5); frame.planes.remove(5); frame.planes.remove(5);
+						frame.planes.remove(10); frame.planes.remove(10); frame.planes.remove(10);
+					}
+					// convert to 15bit if it uses a custom palette and version 1 for export
+					if (frame.planes.size() < Constants.MAX_BIT_PER_COLOR_CHANNEL*3 && p.getPalIndex() > 8 && version == 1) {
+						Palette pal = vm.paletteMap.get(p.getPalIndex());
+						AnimationQuantizer quantizer = new AnimationQuantizer();
+						Frame qFrame = quantizer.convertFrameToRGB(frame, pal, p.width, p.height, Constants.MAX_BIT_PER_COLOR_CHANNEL);
+						frame = qFrame;
+						ani.setEditMode(EditMode.REPLACE);
+					}
+					ani.frames.set(i, frame);
 				}
-				// reduce to RGB24 to 15bit for go-dmd
-				if( frame.planes.size() == Constants.TRUE_COLOR_BIT_PER_CHANNEL*3 ) { // reduce 8 bit per color to 5 bit per color
-					frame.planes.remove(0); frame.planes.remove(0); frame.planes.remove(0);
-					frame.planes.remove(5); frame.planes.remove(5); frame.planes.remove(5);
-					frame.planes.remove(10); frame.planes.remove(10); frame.planes.remove(10);
-				}
-				// convert to 15bit for go-dmd
-				if (frame.planes.size() < Constants.MAX_BIT_PER_COLOR_CHANNEL*3 && p.getPalIndex() > 8 && version == 1) {
-					Palette pal = vm.paletteMap.get(p.getPalIndex());
-					AnimationQuantizer quantizer = new AnimationQuantizer();
-					Frame qFrame = quantizer.convertFrameToRGB(frame, pal, p.width, p.height, Constants.MAX_BIT_PER_COLOR_CHANNEL);
-					frame = qFrame;
-					ani.setEditMode(EditMode.REPLACE);
-				}
-				ani.frames.set(i, frame);
+				toExport.add(exportAni);
 			}
-			toExport.add(exportAni);
 		});
 		
 		AniWriter aniWriter = new AniWriter(toExport, text.getText(), version, vm.paletteMap, null);
