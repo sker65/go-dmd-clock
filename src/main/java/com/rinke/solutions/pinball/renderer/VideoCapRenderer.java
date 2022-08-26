@@ -65,6 +65,19 @@ public class VideoCapRenderer extends Renderer {
 		}
 		try {
 			grabber.start();
+			if (end == 0) {
+				end = grabber.getLengthInFrames();
+				int ih = grabber.getImageHeight();
+				int iw = grabber.getImageWidth();
+				if (iw != w || ih != h) {
+					AffineTransform tx = new AffineTransform(); 
+					double sx = w / iw;
+					double sy = h / ih;
+					log.info("scaling image by {},{}",sx,sy);
+					tx.scale(sx, sy);
+					op = new AffineTransformOp(tx, AffineTransformOp.TYPE_BILINEAR);
+				}
+			}
 			for (int i = 0; i <end+1; i++) {
 				Object frame;
 				do {
@@ -87,8 +100,8 @@ public class VideoCapRenderer extends Renderer {
 						h, BufferedImage.TYPE_INT_RGB);
 
 				Graphics graphics = dmdImage.createGraphics();
-				graphics.drawImage(image.getSubimage(getInt("clipx",0), getInt("clipy",0), getInt("clipw",size.width), getInt("cliph",size.height)), 0, 0, w,
-						h, null);
+				BufferedImage test = image.getSubimage(getInt("clipx",0), getInt("clipy",0), getInt("clipw",size.width), getInt("cliph",size.height));
+				graphics.drawImage(test, 0, 0, w, h, null);
 				graphics.dispose();
 				
 //				try {

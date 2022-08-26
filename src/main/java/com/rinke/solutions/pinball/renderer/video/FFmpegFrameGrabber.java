@@ -22,6 +22,9 @@ public class FFmpegFrameGrabber {
 	private Method stopMethod;
 	private Method grabMethod;
 	private Method getTimestampMethod;
+	private Method getLengthInFramesMethod;
+	private Method getImageHeightMethod;
+	private Method getImageWidthMethod;
 	private Method releaseMethod;
 
 
@@ -34,6 +37,9 @@ public class FFmpegFrameGrabber {
 			stopMethod = clz.getDeclaredMethod("stop");
 			grabMethod = clz.getDeclaredMethod("grab");
 			getTimestampMethod = clz.getMethod("getTimestamp");
+			getLengthInFramesMethod = clz.getMethod("getLengthInFrames");
+			getImageHeightMethod = clz.getMethod("getImageHeight");
+			getImageWidthMethod = clz.getMethod("getImageWidth");
 			//releaseMethod = clz.getMethod("release");
 		} catch (Exception e) {
 			log.warn("error loading classes",e);
@@ -55,6 +61,33 @@ public class FFmpegFrameGrabber {
 			log.info("start grabber");
 		} catch (Exception e) {
 			log.warn("error calling start",e);
+		}
+	}
+	
+	public int getImageWidth() {
+		try {
+			return (int) getImageWidthMethod.invoke(delegate);
+		} catch (Exception e) {
+			log.warn("error calling getImageWidth",e);
+			return 0;
+		}
+	}
+	
+	public int getImageHeight() {
+		try {
+			return (int) getImageHeightMethod.invoke(delegate);
+		} catch (Exception e) {
+			log.warn("error calling getImageHeight",e);
+			return 0;
+		}
+	}
+	
+	public int getLengthInFrames() {
+		try {
+			return (int) getLengthInFramesMethod.invoke(delegate);
+		} catch (Exception e) {
+			log.warn("error calling getLengthInFrames",e);
+			return 0;
 		}
 	}
 
