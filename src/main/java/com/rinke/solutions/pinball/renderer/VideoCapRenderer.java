@@ -55,29 +55,30 @@ public class VideoCapRenderer extends Renderer {
 		skip = getInt("start", 0);
 		int end = getInt("end",0);
 		AffineTransformOp op = null;
-		if( getProps().containsKey("scalex") || getProps().containsKey("scaley")) {
-			AffineTransform tx = new AffineTransform(); 
-			double sx = getDouble("scalex", 1.0);
-			double sy = getDouble("scaley", 1.0);
-			log.info("scaling image by {},{}",sx,sy);
-			tx.scale(sx, sy);
-			op = new AffineTransformOp(tx, AffineTransformOp.TYPE_BILINEAR);
-		}
 		try {
 			grabber.start();
 			if (end == 0) {
 				end = grabber.getLengthInFrames();
-				int ih = grabber.getImageHeight();
+			}
+			if (getProps().isEmpty()) {
 				int iw = grabber.getImageWidth();
-				if (iw != w || ih != h) {
-					AffineTransform tx = new AffineTransform(); 
-					double sx = w / iw;
-					double sy = h / ih;
+				if (iw > w) {
+					AffineTransform tx = new AffineTransform();
+					double sx =  (double) w / (double) iw;
+					double sy = sx;
 					log.info("scaling image by {},{}",sx,sy);
 					tx.scale(sx, sy);
 					op = new AffineTransformOp(tx, AffineTransformOp.TYPE_BILINEAR);
 				}
-			}
+			} 
+			else if( getProps().containsKey("scalex") || getProps().containsKey("scaley")) {
+				AffineTransform tx = new AffineTransform();
+				double sx = getDouble("scalex", 1.0);
+				double sy = getDouble("scaley", 1.0);
+				log.info("scaling image by {},{}",sx,sy);
+				tx.scale(sx, sy);
+				op = new AffineTransformOp(tx, AffineTransformOp.TYPE_BILINEAR);
+			} 
 			for (int i = 0; i <end+1; i++) {
 				Object frame;
 				do {
@@ -90,18 +91,23 @@ public class VideoCapRenderer extends Renderer {
 				if( i < skip-1 ) continue;
 				
 				BufferedImage image = converter.convert(frame);
-				//int sh = image.getHeight();
-				//int sw = image.getWidth();
 				
 				if( op != null ) image = op.filter(image, null);
-				// extract clipping from props
 				
 				BufferedImage dmdImage = new BufferedImage(w,
 						h, BufferedImage.TYPE_INT_RGB);
 
 				Graphics graphics = dmdImage.createGraphics();
-				BufferedImage test = image.getSubimage(getInt("clipx",0), getInt("clipy",0), getInt("clipw",size.width), getInt("cliph",size.height));
-				graphics.drawImage(test, 0, 0, w, h, null);
+				int sh = image.getHeight();
+
+				if (getProps().isEmpty() && h < sh) {
+					// if no props defined and image height > dmd height use center part of image
+					int clipy = (sh - h) / 2;
+					graphics.drawImage(image.getSubimage(0, clipy, w, h), 0, 0, w, h, null);
+				} else {
+					// extract clipping from props
+					graphics.drawImage(image.getSubimage(getInt("clipx",0), getInt("clipy",0), getInt("clipw",size.width), getInt("cliph",size.height)), 0, 0, w, h, null);
+				}
 				graphics.dispose();
 				
 //				try {
