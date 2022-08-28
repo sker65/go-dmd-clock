@@ -7,6 +7,7 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferByte;
 import java.awt.image.DataBufferInt;
+import java.lang.reflect.Method;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -60,6 +61,7 @@ public class VideoCapRenderer extends Renderer {
 			if (end == 0) {
 				end = grabber.getLengthInFrames();
 			}
+			int delay = (int) (grabber.getLengthInTime() / grabber.getLengthInFrames() / 1000);
 			if (getProps().isEmpty()) {
 				int iw = grabber.getImageWidth();
 				if (iw > w) {
@@ -68,7 +70,7 @@ public class VideoCapRenderer extends Renderer {
 					double sy = sx;
 					log.info("scaling image by {},{}",sx,sy);
 					tx.scale(sx, sy);
-					op = new AffineTransformOp(tx, AffineTransformOp.TYPE_BILINEAR);
+					op = new AffineTransformOp(tx, AffineTransformOp.TYPE_BICUBIC);
 				}
 			} 
 			else if( getProps().containsKey("scalex") || getProps().containsKey("scaley")) {
@@ -124,6 +126,7 @@ public class VideoCapRenderer extends Renderer {
 				// create 
 				Frame res = ImageUtil.convertToFrame(dmdImage, dmd.getWidth(), dmd.getHeight(),8);
 				res.timecode = (int)( grabber.getTimestamp() / 1000 );
+				res.delay = delay;
 				frames.add(res);
 				notify(50, "reading frame "+frames.size());
 			} // stop cap

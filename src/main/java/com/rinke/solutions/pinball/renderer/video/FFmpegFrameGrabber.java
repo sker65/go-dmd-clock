@@ -26,6 +26,7 @@ public class FFmpegFrameGrabber {
 	private Method getImageHeightMethod;
 	private Method getImageWidthMethod;
 	private Method releaseMethod;
+	private Method getLengthInTimeMethod;
 
 
 	public FFmpegFrameGrabber(String name) {
@@ -40,6 +41,7 @@ public class FFmpegFrameGrabber {
 			getLengthInFramesMethod = clz.getMethod("getLengthInFrames");
 			getImageHeightMethod = clz.getMethod("getImageHeight");
 			getImageWidthMethod = clz.getMethod("getImageWidth");
+			getLengthInTimeMethod = clz.getMethod("getLengthInTime");
 			//releaseMethod = clz.getMethod("release");
 		} catch (Exception e) {
 			log.warn("error loading classes",e);
@@ -104,7 +106,16 @@ public class FFmpegFrameGrabber {
 		try {
 			return (long) getTimestampMethod.invoke(delegate);
 		} catch (Exception e) {
-			log.warn("error calling start",e);
+			log.warn("error calling getTimestamp",e);
+			return 0;
+		}
+	}
+	
+	public long getLengthInTime() {
+		try {
+			return (long) getLengthInTimeMethod.invoke(delegate);
+		} catch (Exception e) {
+			log.warn("error calling getLengthInTime",e);
 			return 0;
 		}
 	}
