@@ -207,7 +207,7 @@ public class PaletteTool extends AbstractModel implements ColorModifiedListener 
 	}
 
 	void updateColorIndex(int idx, RGB tmpRgb ) {
-		int v = this.numberOfPlanes < Constants.MAX_BIT_PER_COLOR_CHANNEL*3 ? selectedColor : rgbAsInt(tmpRgb, Constants.MAX_BIT_PER_COLOR_CHANNEL);
+		int v = this.numberOfPlanes < Constants.MAX_BIT_PER_COLOR_CHANNEL*3 ? selectedColor : rgbAsInt(tmpRgb, (this.numberOfPlanes / 3));
 		indexChangedListeners.forEach(l -> l.indexChanged(v));
 	}
 
