@@ -668,6 +668,12 @@ public class ProjectHandler extends AbstractCommandHandler {
 								}
 							}
 							int k = 0;
+							
+							if(noOfFrames >= 128) {
+								messageUtil.warn("Warning", "More than 128 frames in follow scene " + p.frameSeqName + ". Please remove frames or use LCM/LRM instead");
+								noOfFrames = 128;
+							}
+							
 							for (int i = 0; i < noOfFrames; i++) {
 								byte crc[] = {0,0,0,0};
 								crc[0] = vm.scenes.get(p.frameSeqName).frames.get(i).crc32[3];
@@ -699,6 +705,9 @@ public class ProjectHandler extends AbstractCommandHandler {
 			List<Animation> anis = new ArrayList<>();
 			for (FrameSeq p : frameSeqMap.values()) {
 				Animation ani = vm.scenes.get(p.name);
+				if ((ani.getEditMode().name().equals("COLMASK_FOLLOW") || ani.getEditMode().name().equals("REPLACE_FOLLOW")) && ani.end >= 128) {
+					messageUtil.warn("Warning", "More than 128 frames in follow scene " + p.getName() + ". Please remove frames or use LCM/LRM instead");
+				}
 				// copy without extending frames / scaler does not matter
 				CompiledAnimation cani = ani.cutScene(ani.start, ani.end, 0);
 				cani.actFrame = 0;
