@@ -48,6 +48,7 @@ public class ConfigDialog extends Dialog implements View {
 
     private ComboViewer dmdSizeViewer;
     private Spinner spinnerNoColors;
+    private Spinner spinnerPin2DmdVersion;
 	private Group grpDmd;
 	private Button btnOk;
 	private Button btnAutosaveActive;
@@ -107,6 +108,7 @@ public class ConfigDialog extends Dialog implements View {
         btnCreateKeyFrame.setSelection(config.getBoolean(Config.AUTOKEYFRAME, false));
         spinnerNoPlanes.setSelection(config.getInteger(Config.NOOFPLANES, 6));
         spinnerNoColors.setSelection(config.getInteger(Config.NOOFCOLORS, 64));
+        spinnerPin2DmdVersion.setSelection(config.getInteger(Config.PIN2DMD_VERSION, 442));
         btnUseOldExport.setSelection(config.getBoolean(Config.OLDEXPORT, false));
         btnCreatePaletteAfter.setSelection(config.getBoolean(Config.ADDPALWHENCUT, false));
         btnCreateBookmarkAfter.setSelection(config.getBoolean(Config.CREATEBOOKCUT, false));
@@ -202,6 +204,17 @@ public class ConfigDialog extends Dialog implements View {
         spinnerNoColors.setMaximum(64);
         spinnerNoColors.setIncrement(48);;
         
+        Label lblPin2DmdVersion1 = new Label(grpDmd, SWT.RIGHT);
+        lblPin2DmdVersion1.setText("Pin2Dmd ");
+        lblPin2DmdVersion1.setBounds(10, 68, 53, 14);
+        Label lblPin2DmdVersion2 = new Label(grpDmd, SWT.RIGHT);
+        lblPin2DmdVersion2.setText("Version: ");
+        lblPin2DmdVersion2.setBounds(10, 83, 41, 14);
+        
+        spinnerPin2DmdVersion = new Spinner(grpDmd, SWT.BORDER);
+        spinnerPin2DmdVersion.setBounds(69, 74, 127, 23);
+        spinnerPin2DmdVersion.setMaximum(1000);
+
         grpAutosave.setLayoutData(fd_grpAutosave);
         grpAutosave.setText("Save");
         
@@ -342,6 +355,7 @@ public class ConfigDialog extends Dialog implements View {
         config.put(Config.AUTOKEYFRAME, btnCreateKeyFrame.getSelection()); 
         config.put(Config.NOOFPLANES, spinnerNoPlanes.getSelection());
         config.put(Config.NOOFCOLORS, spinnerNoColors.getSelection());
+        config.put(Config.PIN2DMD_VERSION, spinnerPin2DmdVersion.getSelection());
         config.put(Config.OLDEXPORT, btnUseOldExport.getSelection());
         config.put(Config.ADDPALWHENCUT, btnCreatePaletteAfter.getSelection());
         config.put(Config.CREATEBOOKCUT, btnCreateBookmarkAfter.getSelection());

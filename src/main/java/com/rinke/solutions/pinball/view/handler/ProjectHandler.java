@@ -89,7 +89,7 @@ import com.rinke.solutions.pinball.view.View;
 @Bean
 @Slf4j
 public class ProjectHandler extends AbstractCommandHandler {
-
+	
 	@Autowired FileChooserUtil fileChooserUtil;
 	@Autowired FileHelper fileHelper;
 	@Autowired MessageUtil messageUtil;
@@ -105,6 +105,9 @@ public class ProjectHandler extends AbstractCommandHandler {
 	
 	@Value(key=Config.NO_EXPORT_WARNING)
 	boolean noExportWarning;
+	
+	@Value(key=Config.PIN2DMD_VERSION)
+	int pin2dmdVersion = 442;
 	
 	@Value
 	boolean backup;
@@ -896,6 +899,10 @@ public class ProjectHandler extends AbstractCommandHandler {
 	                    Collections.reverse( project.palMappings);
 						OutputStream os = streamProvider.buildStream(palFilename);
 						os.write(project.version);
+						if (pin2dmdVersion >= 442) {
+							os.write(pin2dmdVersion >> 8);
+							os.write(pin2dmdVersion & 0xFF);
+						}
 						// if there should be an unencrypted header, write it out now directly to the output stream
 						DataOutputStream dos2 = new DataOutputStream(exporter.buildStream(os, uid));
 						exporter.writeTo(dos2, map, project);

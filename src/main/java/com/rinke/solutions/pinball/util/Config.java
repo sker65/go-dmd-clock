@@ -33,6 +33,7 @@ public class Config implements BeanFactory.PropertyProvider {
 	public static final String GODMD_EXPORT_PATH = "goDmdExportPath";
 	public static final String NO_QUIT_WARNING = "noQuitWarning";
 	public static final String NO_EXPORT_WARNING = "noExportWarning";
+	public static final String PIN2DMD_VERSION = "pin2dmdVersion";
 
 	public Config() {
 		super();
