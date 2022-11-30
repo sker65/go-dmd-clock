@@ -30,7 +30,7 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 
 	@Autowired MessageUtil messageUtil;
 	
-	private List<EditMode> mutable = Arrays.asList( EditMode.REPLACE, EditMode.REPLACE_FOLLOW, EditMode.COLMASK, 
+	private List<EditMode> mutable = Arrays.asList( EditMode.REPLACE, EditMode.REPLACE_FOLLOW, EditMode.REPLACE_NO_RETRIGGER, EditMode.COLMASK, 
 			EditMode.COLMASK_FOLLOW, EditMode.LAYEREDCOL, EditMode.LAYEREDREPLACE );
 
 	@Autowired DrawCmdHandler drawCmdHandler;

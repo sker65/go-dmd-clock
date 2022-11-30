@@ -81,6 +81,7 @@ public class Animation {
 		LAYEREDCOL("Layered ColorMask", 		true,  true,  true, true, false, false, false, true),
 		REPLACE_FOLLOW("Replace Sequence",		false, true,  true, true, false, false, true,  false),
 		LAYEREDREPLACE("Layered ReplaceMask",	false, true,  true, true, true,  true,  true,  true),
+		REPLACE_NO_RETRIGGER("Replace No Retrigger",false, false, false, false,  false, false, false, false), 
 		;
 
 		// label to display
