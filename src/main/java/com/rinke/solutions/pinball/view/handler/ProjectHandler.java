@@ -664,28 +664,32 @@ public class ProjectHandler extends AbstractCommandHandler {
 					if (p.switchMode.equals(SwitchMode.FOLLOW) || p.switchMode.equals(SwitchMode.FOLLOWREPLACE ) ) { // collect CRCs in mask of first frame.
 						if (realPin && !useOldExport) {
 							int noOfFrames = vm.scenes.get(p.frameSeqName).frames.size();
-							int masksize = vm.scenes.get(p.frameSeqName).frames.get(1).getPlane(0).length;
-							if (vm.scenes.get(p.frameSeqName).frames.get(1).mask == null) { //create masks if not exist
-								for(int frameNo = 0; frameNo < vm.scenes.get(p.frameSeqName).frames.size();frameNo++) {
-									vm.scenes.get(p.frameSeqName).frames.get(frameNo).mask = new Mask(masksize);
+							if (noOfFrames > 1) {
+								int masksize = vm.scenes.get(p.frameSeqName).frames.get(1).getPlane(0).length;
+								if (vm.scenes.get(p.frameSeqName).frames.get(1).mask == null) { //create masks if not exist
+									for(int frameNo = 0; frameNo < vm.scenes.get(p.frameSeqName).frames.size();frameNo++) {
+										vm.scenes.get(p.frameSeqName).frames.get(frameNo).mask = new Mask(masksize);
+									}
 								}
+								int k = 0;
+								
+								if(noOfFrames >= 128) {
+									messageUtil.warn("Warning", "More than 128 frames in sequence scene " + p.frameSeqName + ". Please remove frames or use LCM/LRM instead");
+									noOfFrames = 128;
+								}
+								
+								for (int i = 0; i < noOfFrames; i++) {
+									byte crc[] = {0,0,0,0};
+									crc[0] = vm.scenes.get(p.frameSeqName).frames.get(i).crc32[3];
+									crc[1] = vm.scenes.get(p.frameSeqName).frames.get(i).crc32[2];
+									crc[2] = vm.scenes.get(p.frameSeqName).frames.get(i).crc32[1];
+									crc[3] = vm.scenes.get(p.frameSeqName).frames.get(i).crc32[0];
+									System.arraycopy(crc, 0, vm.scenes.get(p.frameSeqName).frames.get(1).mask.data, k++*4, 4); //copy crc data to second frame because masks get shifted later
+								}
+								vm.scenes.get(p.frameSeqName).frames.get(1).mask.data = Frame.transform(vm.scenes.get(p.frameSeqName).frames.get(1).mask.data); // revert bit order for CRCs
+							} else {
+								messageUtil.warn("Warning", "Only 1 frame in sequence scene " + p.frameSeqName + ". Scene not exported !");
 							}
-							int k = 0;
-							
-							if(noOfFrames >= 128) {
-								messageUtil.warn("Warning", "More than 128 frames in sequence scene " + p.frameSeqName + ". Please remove frames or use LCM/LRM instead");
-								noOfFrames = 128;
-							}
-							
-							for (int i = 0; i < noOfFrames; i++) {
-								byte crc[] = {0,0,0,0};
-								crc[0] = vm.scenes.get(p.frameSeqName).frames.get(i).crc32[3];
-								crc[1] = vm.scenes.get(p.frameSeqName).frames.get(i).crc32[2];
-								crc[2] = vm.scenes.get(p.frameSeqName).frames.get(i).crc32[1];
-								crc[3] = vm.scenes.get(p.frameSeqName).frames.get(i).crc32[0];
-								System.arraycopy(crc, 0, vm.scenes.get(p.frameSeqName).frames.get(1).mask.data, k++*4, 4); //copy crc data to second frame because masks get shifted later
-							}
-							vm.scenes.get(p.frameSeqName).frames.get(1).mask.data = Frame.transform(vm.scenes.get(p.frameSeqName).frames.get(1).mask.data); // revert bit order for CRCs
 						}
 					}
 					
