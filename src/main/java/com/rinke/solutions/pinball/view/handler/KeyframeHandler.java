@@ -202,6 +202,7 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 			case REPLACE_FOLLOW: switchMode = SwitchMode.FOLLOWREPLACE; break;
 			case LAYEREDREPLACE: switchMode = SwitchMode.LAYEREDREPLACE; break;
 			case REPLACE_NO_RETRIGGER: switchMode = SwitchMode.REPLACENORT; break;
+			case COLMASK_LOOP: switchMode = SwitchMode.COLMASKLOOP; break;
 			default: break;
 		}
 		return switchMode;
