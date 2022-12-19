@@ -3,6 +3,8 @@ package com.rinke.solutions.pinball.widget;
 import java.util.ArrayDeque;
 import java.util.Queue;
 
+import com.rinke.solutions.pinball.Constants;
+
 public class FloodFillTool extends DrawTool {
 
 	public FloodFillTool(int actualColor) {
@@ -15,8 +17,11 @@ public class FloodFillTool extends DrawTool {
 			int oldColor = dmd.getPixelWithoutMask(x, y);
 			if (oldColor != actualColor) {
 				dmd.addUndoBuffer();
-				if (toolSize > 2) {
-					replaceColor(oldColor);
+				if (toolSize > 1) {
+					if (dmd.getDrawMask() == Constants.DEFAULT_DRAW_MASK)
+						replaceColor(oldColor);
+					else
+						maskedFill(oldColor, x, y);
 				} else {
 					fill(oldColor, x, y);
 				}
@@ -121,6 +126,31 @@ public class FloodFillTool extends DrawTool {
 		}
 	}
 
+	private void maskedFill(int oldColor, int x, int y) {
+		int loops = 0;
+		Queue<Point> q = new ArrayDeque<>();
+		Point p = new Point(x, y);
+		if (!q.contains(p))
+			q.add(p);
+		int Mask = dmd.getDrawMask() >> 1;
+		if ((dmd.getPixelWithoutMask(x, y) & Mask) == (this.actualColor & Mask))
+			return;
+		while (!q.isEmpty() && loops < (dmd.getWidth()*dmd.getHeight())) {
+			p = q.poll();
+			dmd.setPixel(p.x, p.y, this.actualColor);
+			if ((dmd.getPixelWithoutMask(p.x, p.y) & Mask) != (oldColor & Mask)) {
+				// double check because of col masking, only decend if its
+				// really changing color
+				for (int k = 0; k < dx.length; k++) {
+					Point p1 = new Point(p.x + dx[k], p.y + dy[k]);
+					if ( shouldAdd(p1, q) && (dmd.getPixelWithoutMask(p1.x, p1.y) & Mask) == (oldColor & Mask))
+						q.add(p1);
+				}
+			}
+			loops++;
+		}
+	}
+	
 	private void fillMask(int oldColor, int oldMask, int x, int y) {
 	    int loops = 0;
 		Queue<Point> q = new ArrayDeque<>();
