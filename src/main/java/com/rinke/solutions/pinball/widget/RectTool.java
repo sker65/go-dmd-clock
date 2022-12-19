@@ -36,14 +36,16 @@ public class RectTool extends DrawTool {
 				for(int y = y1; y<=y2; y++) dmd.setPixel(x, y, actualColor);
 			}
 		} else { // gradient draw
+			
+			dir direction;
+			
 			int tmp;
 			if( x2 < x1 ) { if (y2 < y1) direction = dir.bottomup; else direction = dir.rightleft; } else { if (y2 < y1) direction = dir.leftright; else direction = dir.topdown;}
 			if( x2 < x1 ) { tmp = x2; x2=x1; x1=tmp; }
 			if( y2 < y1 ) { tmp = y2; y2=y1; y1=tmp; }
 			int width = x2-x1;
 			int	height = y2-y1;
-			
-			dir direction;
+
 			int fragmentSize;
 			int segmentColor;
 
