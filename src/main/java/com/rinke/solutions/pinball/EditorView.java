@@ -1106,12 +1106,15 @@ public class EditorView implements MainView {
 		Label lblToolSize = new Label(grpDrawing, SWT.NONE);
 		lblToolSize.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
 		lblToolSize.setText("ToolSize:");
+		lblToolSize.setToolTipText("Increase ToolSize for advanced usage of Draw Tools");
+
 			
         toolSizeSpinner = new Spinner(grpDrawing, SWT.BORDER);
         toolSizeSpinner.setToolTipText("select size of the tool");
         toolSizeSpinner.setMinimum(1);
         toolSizeSpinner.setMaximum(10);
         toolSizeSpinner.setEnabled(false);
+        toolSizeSpinner.setToolTipText("Increase ToolSize for advanced usage of Draw Tools");
 //        toolSizeSpinner.addListener(SWT.Selection, e -> this.pixelTool.setToolSize(toolSizeSpinner.getSelection()));
         toolSizeSpinner.addListener(SWT.Selection, e -> {
 			drawTools.values().forEach(d->d.setToolSize(toolSizeSpinner.getSelection()));
