@@ -198,6 +198,50 @@ public class Animation {
 		log.debug("target ani {}",dest);
 		return dest;
 	}
+	
+	public CompiledAnimation appendScene( int start, int end, int actualNumberOfPlanes, CompiledAnimation dest) {
+		// create a copy of the animation
+		DMD tmp = new DMD(width,height);
+		dest.setMutable(true);
+		dest.width = this.width;
+		dest.height = this.height;
+		//dest.setDirty(true);
+		dest.setClockFrom(Short.MAX_VALUE);
+		// rerender and thereby copy all frames
+		CompiledAnimation cani = null;
+		if( this instanceof CompiledAnimation ) {
+			cani = (CompiledAnimation)this;
+		}
+		this.actFrame = start;
+        int tcOffset = 0;
+		if (dest.frames.size() != 0) tcOffset = dest.frames.get(dest.end).timecode + dest.frames.get(dest.end).delay;
+		for (int i = start; i <= end; i++) {
+			Frame frame = this.render(tmp, false);
+            log.debug("source frame {}",frame);
+			Frame targetFrame = new Frame(frame);
+            targetFrame.timecode = tcOffset;
+            targetFrame.delay = cani.frames.get(i).delay;
+            tcOffset = tcOffset + cani.frames.get(i).delay;
+            targetFrame.frameLink = null;
+            if (cani != null) {
+            	if (cani.frames.get(i).frameLink != null)
+            		targetFrame.frameLink = new FrameLink(cani.frames.get(i).frameLink.recordingName,cani.frames.get(i).frameLink.frame);
+            	System.arraycopy(cani.frames.get(i).crc32, 0, targetFrame.crc32, 0, 4);
+            }
+            int marker = targetFrame.planes.size();
+            byte[] emptyPlane = new byte[frame.getPlane(0).length];
+			while( targetFrame.planes.size() < actualNumberOfPlanes ) {
+				targetFrame.planes.add(new Plane((byte)marker++, emptyPlane));
+			}
+			log.debug("target frame {}",targetFrame);
+			dest.frames.add(targetFrame);
+		}
+		dest.end = dest.frames.size()-1;
+		log.debug("copied {} frames",dest.frames.size());
+		log.debug("target ani {}",dest);
+		return dest;
+	}
+
 
 	public String getDesc() {
 		return desc;
