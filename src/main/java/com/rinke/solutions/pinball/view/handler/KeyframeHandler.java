@@ -306,20 +306,19 @@ public class KeyframeHandler extends AbstractCommandHandler implements ViewBindi
 				Frame f = new Frame(vm.selectedRecording.render(i, tmp, true));
 				for( PalMapping pm : vm.keyframes.values()) {
 					for (int msk = 0; msk < vm.masks.size(); msk++) {
-						if (vm.masks.get(msk).locked) {
-							f.setMask(vm.masks.get(msk));
-							List<byte[]> hashes = f.getHashes();
-							for (int idx = 0;idx < hashes.size();idx++) {
-								if(Arrays.equals(pm.crc32, hashes.get(idx))) {
-									res.add(" "+pm.name+String.format(" (M%d)", msk));
-									if (pm.frameIndex == 0){
-										pm.frameIndex = i;
-										pm.animationName = vm.selectedRecording.getDesc();
-										pm.withMask = true;
-										pm.maskNumber = msk;
-									}
-									break;
+						f.setMask(vm.masks.get(msk));
+						List<byte[]> hashes = f.getHashes();
+						for (int idx = 0;idx < hashes.size();idx++) {
+							if(Arrays.equals(pm.crc32, hashes.get(idx))) {
+								vm.masks.get(msk).locked = true;
+								res.add(" "+pm.name+String.format(" (M%d)", msk));
+								if (pm.frameIndex == 0){
+									pm.frameIndex = i;
+									pm.animationName = vm.selectedRecording.getDesc();
+									pm.withMask = true;
+									pm.maskNumber = msk;
 								}
+								break;
 							}
 						}
 					}
