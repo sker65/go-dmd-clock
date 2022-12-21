@@ -1,5 +1,7 @@
 package com.rinke.solutions.pinball.view.handler;
 
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.util.Arrays;
 
 import lombok.extern.slf4j.Slf4j;
@@ -13,10 +15,14 @@ import com.rinke.solutions.beans.Value;
 import com.rinke.solutions.pinball.AnimationHandler;
 import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.DmdSize;
+import com.rinke.solutions.pinball.Worker;
+import com.rinke.solutions.pinball.animation.AniWriter;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.AnimationType;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.animation.PinDumpWriter;
+import com.rinke.solutions.pinball.api.BinaryExporter;
+import com.rinke.solutions.pinball.api.BinaryExporterFactory;
 import com.rinke.solutions.pinball.model.Mask;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.model.Palette;
