@@ -257,6 +257,157 @@ public class DrawCmdHandler extends AbstractCommandHandler implements EventHandl
 		}
 	}
 	
+	static byte[] shiftLeft(byte[] byteArray, int shiftBitCount, int width, int height) {
+		
+		byte[] rowArray = new byte[width / 8];
+		final int shiftMod = shiftBitCount % 8;
+	    final byte carryMask = (byte) ((1 << shiftMod) - 1);
+	    final int offsetBytes = (shiftBitCount / 8);
+	    int sourceIndex;
+	    for (int row = 0; row < height; row ++) {
+	    	System.arraycopy(byteArray, (row * (width/8)), rowArray, 0, rowArray.length);
+		    for (int i = 0; i < rowArray.length; i++) {
+		        sourceIndex = i + offsetBytes;
+		        if (sourceIndex >= rowArray.length) {
+		            rowArray[i] = 0;
+		        } else {
+		            byte src = rowArray[sourceIndex];
+		            byte dst = (byte) (src << shiftMod);
+		            if (sourceIndex + 1 < rowArray.length) {
+		                dst |= rowArray[sourceIndex + 1] >>> (8 - shiftMod) & carryMask;
+		            }
+		            rowArray[i] = dst;
+		        }
+		    }
+	    	System.arraycopy(rowArray, 0, byteArray, (row * (width/8)), rowArray.length);
+		}
+	    return byteArray;
+	}
+	
+	static byte[] shiftRight(byte[] byteArray, int shiftBitCount,  int width, int height) {
+		
+		byte[] rowArray = new byte[width / 8];
+	    final int shiftMod = shiftBitCount % 8;
+	    final byte carryMask = (byte) (0xFF << (8 - shiftMod));
+	    final int offsetBytes = (shiftBitCount / 8);
+	    int sourceIndex;
+
+	    for (int row = 0; row < height; row ++) {
+	    	System.arraycopy(byteArray, (row * (width/8)), rowArray, 0, rowArray.length);
+		    for (int i = rowArray.length - 1; i >= 0; i--) {
+		        sourceIndex = i - offsetBytes;
+		        if (sourceIndex < 0) {
+		            rowArray[i] = 0;
+		        } else {
+		            byte src = rowArray[sourceIndex];
+		            byte dst = (byte) ((0xff & src) >>> shiftMod);
+		            if (sourceIndex - 1 >= 0) {
+		                dst |= rowArray[sourceIndex - 1] << (8 - shiftMod) & carryMask;
+		            }
+		            rowArray[i] = dst;
+		        }
+		    }
+	    	System.arraycopy(rowArray, 0, byteArray, (row * (width/8)), rowArray.length);
+		}
+	    return byteArray;
+	}
+	
+	static byte[] shiftDown(byte[] byteArray, int shiftRowCount, int width, int height) {
+	    final int rowBytes = (width / 8);
+	    byte[] newArray = new byte[byteArray.length];
+		System.arraycopy(byteArray, 0, newArray, (shiftRowCount * rowBytes), (byteArray.length - (shiftRowCount * rowBytes)));
+	    return newArray;
+	}
+
+	static byte[] shiftUp(byte[] byteArray, int shiftRowCount, int width, int height) {
+	    final int rowBytes = (width / 8);
+	    byte[] newArray = new byte[byteArray.length];
+		System.arraycopy(byteArray, (shiftRowCount * rowBytes), newArray, 0, (byteArray.length - (shiftRowCount * rowBytes)));
+	    return newArray;
+	}
+
+
+	static byte reverse(byte b) {
+	   b = (byte)((b & 0xF0) >> 4 | (b & 0x0F) << 4);
+	   b = (byte)((b & 0xCC) >> 2 | (b & 0x33) << 2);
+	   b = (byte)((b & 0xAA) >> 1 | (b & 0x55) << 1);
+	   return b;
+	}
+
+	static byte[] mirror(byte[] byteArray, int width, int height) {
+		
+		byte[] rowArray = new byte[width / 8];
+
+	    for (int row = 0; row < height; row ++) {
+	    	System.arraycopy(byteArray, (row * (width/8)), rowArray, 0, rowArray.length);
+	    	for(int i = 0; i < rowArray.length; i++ ) {
+	    		byteArray[i + (row * (width/8))] = reverse(rowArray[rowArray.length - i - 1]);	
+	    	}
+		}
+	    return byteArray;
+	}
+
+	
+	public void onShiftRight() {
+		if (vm.selectedScene != null) {
+			vm.dmd.addUndoBuffer();
+			CompiledAnimation ani = vm.selectedScene;
+			log.info("shifting frame at {}", ani.actFrame);
+			for (int i = 0; i < vm.dmd.getFrame().planes.size(); i++) {
+				vm.dmd.getFrame().planes.get(i).data = shiftRight(vm.dmd.getFrame().planes.get(i).data, 1, ani.width, ani.height);
+			}
+			vm.setDmdDirty(true);
+		}
+	}
+
+	public void onShiftLeft() {
+		if (vm.selectedScene != null) {
+			vm.dmd.addUndoBuffer();
+			CompiledAnimation ani = vm.selectedScene;
+			log.info("shifting frame at {}", ani.actFrame);
+			for (int i = 0; i < vm.dmd.getFrame().planes.size(); i++) {
+				vm.dmd.getFrame().planes.get(i).data = shiftLeft(vm.dmd.getFrame().planes.get(i).data, 1, ani.width, ani.height);
+			}
+			vm.setDmdDirty(true);
+		}
+	}
+	
+	public void onShiftUp() {
+		if (vm.selectedScene != null) {
+			vm.dmd.addUndoBuffer();
+			CompiledAnimation ani = vm.selectedScene;
+			log.info("shifting frame at {}", ani.actFrame);
+			for (int i = 0; i < vm.dmd.getFrame().planes.size(); i++) {
+				vm.dmd.getFrame().planes.get(i).data = shiftUp(vm.dmd.getFrame().planes.get(i).data, 1, ani.width, ani.height);
+			}
+			vm.setDmdDirty(true);
+		}
+	}
+
+	public void onShiftDown() {
+		if (vm.selectedScene != null) {
+			vm.dmd.addUndoBuffer();
+			CompiledAnimation ani = vm.selectedScene;
+			log.info("shifting frame at {}", ani.actFrame);
+			for (int i = 0; i < vm.dmd.getFrame().planes.size(); i++) {
+				vm.dmd.getFrame().planes.get(i).data = shiftDown(vm.dmd.getFrame().planes.get(i).data, 1, ani.width, ani.height);
+			}
+			vm.setDmdDirty(true);
+		}
+	}
+
+	public void onMirror() {
+		if (vm.selectedScene != null) {
+			vm.dmd.addUndoBuffer();
+			CompiledAnimation ani = vm.selectedScene;
+			log.info("mirror frame at {}", ani.actFrame);
+			for (int i = 0; i < vm.dmd.getFrame().planes.size(); i++) {
+				vm.dmd.getFrame().planes.get(i).data = mirror(vm.dmd.getFrame().planes.get(i).data, ani.width, ani.height);
+			}
+			vm.setDmdDirty(true);
+		}
+	}
+	
 	public void onSmartDrawActiveChanged(boolean old, boolean n) {
 		if (vm.selectedScene != null && vm.selectedScene.getNumberOfPlanes() >= 15) {
 			vm.dmd.setDrawMask (0xFFFFFFFF);

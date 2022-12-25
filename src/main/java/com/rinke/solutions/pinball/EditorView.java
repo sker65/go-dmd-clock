@@ -280,6 +280,11 @@ public class EditorView implements MainView {
 	@GuiBinding(prop=ENABLED) private Button btnDelBookmark;
 	@GuiBinding(prop=ENABLED, propName="drawingEnabled") private Button btnAddFrame;
 	@GuiBinding(prop=ENABLED) private Button btnDelFrame;
+	@GuiBinding(prop=ENABLED, propName="drawingEnabled") private Button btnShiftRight;
+	@GuiBinding(prop=ENABLED, propName="drawingEnabled") private Button btnShiftLeft;
+	@GuiBinding(prop=ENABLED, propName="drawingEnabled") private Button btnShiftUp;
+	@GuiBinding(prop=ENABLED, propName="drawingEnabled") private Button btnShiftDown;
+	@GuiBinding(prop=ENABLED, propName="drawingEnabled") private Button btnMirror;
 	@GuiBinding(prop=ENABLED) private Button btnAdd2Scene;
 	@GuiBinding(prop=ENABLED) private Button btnSetHash;
 
@@ -790,10 +795,10 @@ public class EditorView implements MainView {
 	public void createContents() {
 		
 		 // uncomment this for the sake of window builder
-//			shell = new Shell();
-//			shell.setSize(1400, 1075);
-//			this.vm = new ViewModel();
-//			vm.dmd = new DMD(192, 64);
+		//	shell = new Shell();
+		//	shell.setSize(1400, 1075);
+		//	this.vm = new ViewModel();
+		//	vm.dmd = new DMD(192, 64);
 			
 		shell.setMaximized(true);
 		
@@ -1330,7 +1335,7 @@ public class EditorView implements MainView {
 		Composite composite = new Composite(parent, SWT.NONE);
 		composite.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 1, 1));
 		
-		composite.setLayout(new GridLayout(12, false));
+		composite.setLayout(new GridLayout(18, false));
 
 		startStop = new Button(composite, SWT.NONE);
 		startStop.setToolTipText("Starts automatic playback");
@@ -1390,20 +1395,48 @@ public class EditorView implements MainView {
 
 		btnDelBookmark = new Button(composite, SWT.NONE);
 		btnDelBookmark.setText("Del");
-        new Label(composite, SWT.NONE);
-        new Label(composite, SWT.NONE);
-        new Label(composite, SWT.NONE);
-        new Label(composite, SWT.NONE);
-        new Label(composite, SWT.NONE);
-        new Label(composite, SWT.NONE);
-        new Label(composite, SWT.NONE);
-        new Label(composite, SWT.NONE);
-        new Label(composite, SWT.NONE);
-        new Label(composite, SWT.NONE);
-        new Label(composite, SWT.NONE);
-        new Label(composite, SWT.NONE);
 		btnDelBookmark.addListener(SWT.Selection, e->dispatchCmd(DEL_BOOKMARK));
+
+		Label lblShift = new Label(composite, SWT.NONE);
+		lblShift.setText("   Shift:");
 		
+		btnShiftLeft = new Button(composite, SWT.NONE);
+		btnShiftLeft.setText("<");
+		btnShiftLeft.addListener(SWT.Selection, e->dispatchCmd(SHIFTLEFT));
+
+		btnShiftRight = new Button(composite, SWT.NONE);
+		btnShiftRight.setText(">");
+		btnShiftRight.addListener(SWT.Selection, e->dispatchCmd(SHIFTRIGHT));
+
+		btnShiftUp = new Button(composite, SWT.NONE);
+		btnShiftUp.setText("^");
+		btnShiftUp.addListener(SWT.Selection, e->dispatchCmd(SHIFTUP));
+
+		btnShiftDown = new Button(composite, SWT.NONE);
+		btnShiftDown.setText("v");
+		btnShiftDown.addListener(SWT.Selection, e->dispatchCmd(SHIFTDOWN));
+
+		btnMirror = new Button(composite, SWT.NONE);
+		btnMirror.setText("Mirror");
+		btnMirror.addListener(SWT.Selection, e->dispatchCmd(MIRROR));
+		
+		new Label(composite, SWT.NONE);
+        new Label(composite, SWT.NONE);
+        new Label(composite, SWT.NONE);
+        new Label(composite, SWT.NONE);
+		new Label(composite, SWT.NONE);
+        new Label(composite, SWT.NONE);
+        new Label(composite, SWT.NONE);
+        new Label(composite, SWT.NONE);
+        new Label(composite, SWT.NONE);
+        new Label(composite, SWT.NONE);
+        new Label(composite, SWT.NONE);
+        new Label(composite, SWT.NONE);
+        new Label(composite, SWT.NONE);
+        new Label(composite, SWT.NONE);
+        new Label(composite, SWT.NONE);
+        new Label(composite, SWT.NONE);
+        new Label(composite, SWT.NONE);
 	}
 	
 	public void createHashButtons(Composite parent, int x, int y) {

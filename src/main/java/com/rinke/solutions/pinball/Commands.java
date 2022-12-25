@@ -49,6 +49,11 @@ public class Commands {
 	public static final String REMOVE_FRAME = "removeFrame";
 	public static final String ADD_FRAME = "addFrame";
 	public static final String ADD2SCENE = "add2Scene";
+	public static final String SHIFTRIGHT = "shiftRight";
+	public static final String SHIFTLEFT = "shiftLeft";
+	public static final String SHIFTUP = "shiftUp";
+	public static final String SHIFTDOWN = "shiftDown";
+	public static final String MIRROR = "Mirror";
 	public static final String MARK_END = "markEnd";
 	public static final String MARK_START = "markStart";
 	public static final String NEXT_FRAME = "nextFrame";
