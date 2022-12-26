@@ -61,7 +61,7 @@ public class RectTool extends DrawTool {
 						if (direction == dir.topdown)
 							segmentColor = actualColor - (t * colorOffset);
 						else 
-							segmentColor = actualColor - (toolSize-1) + (t * colorOffset);
+							segmentColor = actualColor -  + ((toolSize-1 - t) * colorOffset);
 						if (segmentColor < 0) segmentColor = 0;
 						for(int y = y1 + (t*fragmentSize); y < (y1 + ((t+1) * fragmentSize)); y++) dmd.setPixel(x, y, (segmentColor));
 					}
@@ -77,7 +77,7 @@ public class RectTool extends DrawTool {
 						if (direction == dir.leftright)
 							segmentColor = actualColor - (t * colorOffset);
 						else 
-							segmentColor = actualColor - (toolSize-1) + (t * colorOffset);
+							segmentColor = actualColor - ((toolSize-1 - t) * colorOffset);
 						if (segmentColor < 0) segmentColor = 0;
 						for(int x = x1 + (t*fragmentSize); x < (x1 + ((t+1) * fragmentSize)); x++) dmd.setPixel(x, y, (segmentColor));
 					}
