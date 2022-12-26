@@ -51,19 +51,24 @@ public class PinDumpWriter extends Worker {
 			os.writeByte(0x01);
 			os.writeByte(a.width);
 			os.writeByte(a.height);
-			os.writeByte(noOfPlanesToExport);
+			if (noOfPlanesToExport == 2)
+				os.writeByte(3);
+			if (noOfPlanesToExport == 4)
+				os.writeByte(15);
 			a.actFrame = 0;
 			while(numberOfFrames-- >0) { // frames of animation
 				notify(((total-numberOfFrames)*100) / total,"exporting frames to " + filename);
-				Frame frame =  a.render(dmd,false);
-				a.actFrame++;
-				tc = a.frames.get(a.actFrame).timecode;
 				// write timestamp
+				tc = a.frames.get(a.actFrame).timecode;
 				os.writeInt(Integer.reverseBytes(tc));
 				// write frame (subframe data)
+				Frame frame =  a.render(dmd,false);
 				int plane = 0;
 				while( plane < frame.planes.size() && plane < noOfPlanesToExport) {
-					os.write( Frame.transform(frame.planes.get(plane++).data));
+					for (int i = 0; i < Math.pow(2, plane); i++) {
+						os.write( Frame.transform(frame.planes.get(plane).data));
+					}
+					plane++;
 				}
 			}
 			os.close();
