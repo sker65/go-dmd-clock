@@ -62,7 +62,8 @@ public class PinDumpWriter extends Worker {
 				tc = a.frames.get(a.actFrame).timecode;
 				os.writeInt(Integer.reverseBytes(tc));
 				// write frame (subframe data)
-				Frame frame =  a.render(dmd,false);
+				Frame frame =  a.render(dmd,true);
+				a.actFrame++;
 				int plane = 0;
 				while( plane < frame.planes.size() && plane < noOfPlanesToExport) {
 					for (int i = 0; i < Math.pow(2, plane); i++) {
