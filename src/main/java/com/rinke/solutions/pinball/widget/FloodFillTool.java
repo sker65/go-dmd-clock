@@ -17,7 +17,7 @@ public class FloodFillTool extends DrawTool {
 			int oldColor = dmd.getPixelWithoutMask(x, y);
 			if (oldColor != actualColor) {
 				dmd.addUndoBuffer();
-				if (toolSize > 1) {
+				if (toolSize > 2) {
 					if (dmd.getDrawMask() == Constants.DEFAULT_DRAW_MASK)
 						replaceColor(oldColor);
 					else
