@@ -17,11 +17,11 @@ public class FloodFillTool extends DrawTool {
 			int oldColor = dmd.getPixelWithoutMask(x, y);
 			if (oldColor != actualColor) {
 				dmd.addUndoBuffer();
+				if (toolSize > 3) {
+					replaceColor(oldColor);
+				} else
 				if (toolSize > 2) {
-					if (dmd.getDrawMask() == Constants.DEFAULT_DRAW_MASK)
-						replaceColor(oldColor);
-					else
-						maskedFill(oldColor, x, y);
+					maskedFill(oldColor, x, y);
 				} else {
 					fill(oldColor, x, y);
 				}
