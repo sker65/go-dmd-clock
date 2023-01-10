@@ -95,6 +95,23 @@ public class CRomLoader {
 					SpriteDescriptionsC[ti] = reader.readByte();
 					SpriteDescriptionsO[ti] = reader.readByte();
 				}
+				byte[] ActiveFrames=new byte[NFrames];
+				reader.read(ActiveFrames);
+				byte[] ColorRotations=new byte[NFrames*3*MAX_COLOR_ROTATIONS];
+				reader.read(ColorRotations);
+				// WARN in java there is no uint -> we use int instead
+				int[] SpriteDetDwords = new int[NSprites * MAX_SPRITE_DETECT_AREAS];
+				for (int ti = 0; ti < NSprites * MAX_SPRITE_DETECT_AREAS; ti++)
+					SpriteDetDwords[ti] = reader.readInt();
+				
+				// in java there is no unsigned int or uint16 so we use normal int array, but read unsigned int
+				int[] SpriteDetDwordPos = new int[NSprites * MAX_SPRITE_DETECT_AREAS];
+				for (int ti = 0; ti < NSprites * MAX_SPRITE_DETECT_AREAS; ti++)
+					SpriteDetDwordPos[ti] = reader.readUnsignedShort();
+				
+				int [] SpriteDetAreas = new int[NSprites * 4 * MAX_SPRITE_DETECT_AREAS];
+				for (int ti = 0; ti < NSprites * 4 * MAX_SPRITE_DETECT_AREAS; ti++)
+					SpriteDetAreas[ti] = reader.readUnsignedShort();
 
 				reader.close();
 			} else {
