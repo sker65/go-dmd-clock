@@ -179,9 +179,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 	
 	void importCROM(String filename) {
 		log.info("importing project from {}", filename);
-		//Project projectToImport = (Project) CRomLoader.loadProject(filename);
-		CompiledAnimation cani = (CompiledAnimation) CRomLoader.loadProject(filename);
-		vm.scenes.put(cani.getDesc(), cani);
+		CRomLoader.loadProject(filename, vm);
 	}
 	
 	String replaceExtensionTo(String newExt, String filename) {
