@@ -60,6 +60,7 @@ import com.rinke.solutions.pinball.Worker;
 import com.rinke.solutions.pinball.animation.AniReader;
 import com.rinke.solutions.pinball.animation.AniWriter;
 import com.rinke.solutions.pinball.animation.Animation;
+import com.rinke.solutions.pinball.animation.CRomLoader;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.api.BinaryExporter;
 import com.rinke.solutions.pinball.api.BinaryExporterFactory;
@@ -136,9 +137,15 @@ public class ProjectHandler extends AbstractCommandHandler {
 	 * imports a secondary project to implement a merge functionality
 	 */
 	public void onImportProject() {
-		String filename = fileChooserUtil.choose(SWT.OPEN, null, new String[] { "*.xml;*.json;" }, new String[] { "Project XML", "Project JSON" });
-		if (filename != null)
-			importProject(filename);
+		String filename = fileChooserUtil.choose(SWT.OPEN, null, new String[] { "*.xml","*.json","*.crz" }, new String[] { "Project XML", "Project JSON", "Project CROM" });
+
+		if (filename != null) {
+			if (filename.toLowerCase().endsWith(".crz")) {
+				importCROM(filename);
+			} else {
+				importProject(filename);
+			}
+		}
 	}
 
 	void importProject(String filename) {
@@ -168,6 +175,13 @@ public class ProjectHandler extends AbstractCommandHandler {
 		for (PalMapping palMapping : projectToImport.palMappings) {
 			vm.keyframes.put(palMapping.name,palMapping);
 		}
+	}
+	
+	void importCROM(String filename) {
+		log.info("importing project from {}", filename);
+		//Project projectToImport = (Project) CRomLoader.loadProject(filename);
+		CompiledAnimation cani = (CompiledAnimation) CRomLoader.loadProject(filename);
+		vm.scenes.put(cani.getDesc(), cani);
 	}
 	
 	String replaceExtensionTo(String newExt, String filename) {
