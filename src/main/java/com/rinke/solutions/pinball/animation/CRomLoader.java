@@ -18,6 +18,7 @@ import java.util.zip.ZipFile;
 
 import com.google.common.io.LittleEndianDataInputStream;
 import com.rinke.solutions.pinball.DMD;
+import com.rinke.solutions.pinball.animation.Animation.EditMode;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.Plane;
@@ -47,12 +48,61 @@ public class CRomLoader {
 		return i==-1?b:b.substring(0, i);
 	}
 	
-	static Frame createRGBFrame( DMD dmd ) {
+	static Frame createRGBFrame(RGB[] src, int width, int height) {
 		Frame res = new Frame();
+		DMD dmd = new DMD(width,height);
+		
 		// for true color create 24 planes
 		for( int i = 0; i<24; i++)
 			res.planes.add(new Plane((byte)i, new byte[dmd.getPlaneSize()]));
+		
+		for( int x = 0; x < width; x++ ) {
+			for( int y = 0; y < height; y++ ) {
+				int r = src[(x+y*width)].red & 0xff;
+				int g = src[(x+y*width)].green & 0xff;
+				int b = src[(x+y*width)].blue & 0xff;
+				int v = (r<<16) + (g<<8) + b;
+				int bit = (x % 8);
+				int mask = (0b10000000 >> bit);
+				int o = (x >> 3);
+				for( int k = 0; k < 24; k++) {
+					if( (v & (1 << k)) != 0 ) 
+						res.planes.get(k).data[y*dmd.getBytesPerRow() + o] |= mask;
+				}
+			}
+		}
+
 		return res;
+	}
+	
+	static Frame createFrame (byte[] src, int width, int height, int bitDepth) {
+		Frame f = new Frame();
+		for (int i = 0; i < bitDepth; i++)
+			f.planes.add(new Plane((byte)i, new byte[width*height/8]));
+		
+		for( int pix = 0; pix < width*height; pix++) {
+			int bit = (pix % 8);
+			int byteIdx = pix / 8;
+			int mask = (0b10000000 >> bit);
+			int v = src[pix] ;
+			for (int i = 0; i < bitDepth; i++) {
+				if( (v & (int)(Math.pow(2,i))) != 0 ) 
+					f.planes.get(i).data[byteIdx] |= mask;
+			}
+		}
+		return f;
+	}
+	
+	static CompiledAnimation createAni(int width, int height, String name) {
+		CompiledAnimation dest = new CompiledAnimation(
+				AnimationType.COMPILED, name,
+				0, 1, 1, 1, 0);
+		dest.setMutable(true);
+		dest.width = width;
+		dest.height = height;
+		dest.setClockFrom(Short.MAX_VALUE);
+		dest.setEditMode(EditMode.REPLACE);
+		return dest;
 	}
 	
 	public static int unsignedByte(byte b) {
@@ -76,7 +126,6 @@ public class CRomLoader {
 					LittleEndianDataInputStream reader = new LittleEndianDataInputStream (stream);
 	
 					// now read everything see
-					// https://github.com/zesinger/dmd-extensions/blob/16ac4b846452f24d5bfe693be3ff510ada973ece/LibDmd/Converter/Serum/Serum.cs
 					byte[] filenameData = new byte[64]; // ROM name
 					reader.read(filenameData);
 					
@@ -96,27 +145,27 @@ public class CRomLoader {
 					int NMovMasks = reader.readInt(); // Number of moving rects=nMR
 					int NSprites = reader.readInt(); // Number of sprites=nS
 
-					int[] HashCodes = new int[NFrames]; // uint[nF] hashcode/checksum
+					int[] HashCodes = new int[NFrames]; // hashcode/checksum
 					for (int ti = 0; ti < NFrames; ti++)
 						HashCodes[ti] = reader.readInt();
 					
-					byte[] ShapeCompMode = new byte[NFrames]; // UINT8[nF] FALSE - full comparison (all 4 colors) TRUE - shape mode (we just compare black 0 against all the 3 other colors as if it was 1 color)
+					byte[] ShapeCompMode = new byte[NFrames]; // FALSE - full comparison (all 4 colors) TRUE - shape mode (we just compare black 0 against all the 3 other colors as if it was 1 color)
 					// HashCode take into account the ShapeCompMode parameter converting any '2' or '3' into a '1'
 					reader.readFully(ShapeCompMode); 
-					byte[] CompMaskID = new byte[NFrames]; // UINT8[nF] Comparison mask ID per frame (255 if no rectangle for this frame)
+					byte[] CompMaskID = new byte[NFrames]; // Comparison mask ID per frame (255 if no rectangle for this frame)
 					reader.readFully(CompMaskID);
-					byte[] MovRctID = new byte[NFrames]; // UINT8[nF] Horizontal moving comparison rectangle ID per frame (255 if no rectangle for this frame)
+					byte[] MovRctID = new byte[NFrames]; // Horizontal moving comparison rectangle ID per frame (255 if no rectangle for this frame)
 					reader.readFully(MovRctID);
 					if (NCompMasks > 0) {
-						byte[] CompMasks = new byte[NCompMasks * FHeight * FWidth]; // UINT8[nM*fW*fH] Mask for comparison
+						byte[] CompMasks = new byte[NCompMasks * FHeight * FWidth]; // Mask for comparison
 						reader.readFully(CompMasks);
 					}
 					if (NMovMasks > 0) {
-						byte[] MovRcts = new byte[NMovMasks * FHeight * FWidth]; // UINT8[nMR*4] Rect for Moving Comparision rectangle [x,y,w,h]. The value (<MAX_DYNA_4COLS_PER_FRAME) points to a sequence of 4 colors in Dyna4Cols. 255 means not a dynamic content. 
+						byte[] MovRcts = new byte[NMovMasks * FHeight * FWidth]; // Rect for Moving Comparision rectangle [x,y,w,h]. The value (<MAX_DYNA_4COLS_PER_FRAME) points to a sequence of 4 colors in Dyna4Cols. 255 means not a dynamic content. 
 						reader.readFully(MovRcts);
 					}
 					
-					java.util.List<Palette> CPal = new ArrayList<>(); // UINT8[3*nC*nF] Palette for each colorized frames
+					java.util.List<Palette> CPal = new ArrayList<>(); // Palette for each colorized frames
 					
 					for(int palidx = 0; palidx < NFrames; palidx++) {
 						RGB[] cols = new RGB[NCColors];
@@ -131,91 +180,120 @@ public class CRomLoader {
 						CPal.add(newPalette);
 					}
 
-					byte[] CFrames = new byte[NFrames * FHeight * FWidth]; // UINT8[nF*fW*fH] Colorized frames color indices
+					byte[] CFrames = new byte[NFrames * FHeight * FWidth]; // Colorized frames color indices
 					reader.readFully(CFrames);
-					byte[] DynaMasks = new byte[NFrames * FHeight * FWidth]; // UINT8[nF*fW*fH] Mask for dynamic content for each frame.  The value (<MAX_DYNA_4COLS_PER_FRAME) points to a sequence of 4 colors in Dyna4Cols. 255 means not a dynamic content.
+					byte[] DynaMasks = new byte[NFrames * FHeight * FWidth]; // Mask for dynamic content for each frame.  The value (<MAX_DYNA_4COLS_PER_FRAME) points to a sequence of 4 colors in Dyna4Cols. 255 means not a dynamic content.
 					reader.readFully(DynaMasks);
-					byte[] Dyna4Cols = new byte[NFrames * MAX_DYNA_4COLS_PER_FRAME * NOColors]; // UINT8[nF*MAX_DYNA_4COLS_PER_FRAME*nO] Color sets used to fill the dynamic content
+					byte[] Dyna4Cols = new byte[NFrames * MAX_DYNA_4COLS_PER_FRAME * NOColors]; // Color sets used to fill the dynamic content
 					reader.readFully(Dyna4Cols);
-					byte[] FrameSprites = new byte[NFrames * MAX_SPRITES_PER_FRAME]; // UINT8[nF*MAX_SPRITES_PER_FRAME] Sprite numbers to look for in this frame max=MAX_SPRITES_PER_FRAME
+					byte[] FrameSprites = new byte[NFrames * MAX_SPRITES_PER_FRAME]; // Sprite numbers to look for in this frame max=MAX_SPRITES_PER_FRAME
 					reader.readFully(FrameSprites);
-					byte[] SpriteDescriptionsO = new byte[NSprites * MAX_SPRITE_SIZE * MAX_SPRITE_SIZE]; // UINT8[nS*MAX_SPRITE_SIZE*MAX_SPRITE_SIZE] 4-or-16-color sprite original drawing (255 means this is a transparent=ignored pixel) for Comparison step
-					byte[] SpriteDescriptionsC = new byte[NSprites * MAX_SPRITE_SIZE * MAX_SPRITE_SIZE]; // UINT8[nS*MAX_SPRITE_SIZE*MAX_SPRITE_SIZE] 64-color sprite for Colorization step
+					byte[] SpriteDescriptionsO = new byte[NSprites * MAX_SPRITE_SIZE * MAX_SPRITE_SIZE]; // 4-or-16-color sprite original drawing (255 means this is a transparent=ignored pixel) for Comparison step
+					byte[] SpriteDescriptionsC = new byte[NSprites * MAX_SPRITE_SIZE * MAX_SPRITE_SIZE]; //  64-color sprite for Colorization step
 					for (int ti = 0; ti < NSprites * MAX_SPRITE_SIZE * MAX_SPRITE_SIZE; ti++) {
 						SpriteDescriptionsC[ti] = reader.readByte();
 						SpriteDescriptionsO[ti] = reader.readByte();
 					}
-					byte[] ActiveFrames=new byte[NFrames]; // UINT8[nF] is the frame active (colorized or duration>16ms) or not
+					byte[] ActiveFrames=new byte[NFrames]; // is the frame active (colorized or duration>16ms) or not
 					reader.readFully(ActiveFrames);
-					byte[] ColorRotations=new byte[NFrames*3*MAX_COLOR_ROTATIONS]; // UINT8[nF*3*MAX_COLOR_ROTATIONS] list of color rotation for each frame:
+					byte[] ColorRotations=new byte[NFrames*3*MAX_COLOR_ROTATIONS]; // list of color rotation for each frame:
 					// 1st byte is color # of the first color to rotate / 2nd byte id the number of colors to rotate / 3rd byte is the length in 10ms between each color switch
 					reader.readFully(ColorRotations);
 					// WARN in java there is no uint -> we use int instead
-					int[] SpriteDetDwords = new int[NSprites * MAX_SPRITE_DETECT_AREAS]; // uint[nS*MAX_SPRITE_DETECT_AREAS] dword to quickly detect 4 consecutive distinctive pixels inside the original drawing of a sprite for optimized detection
+					int[] SpriteDetDwords = new int[NSprites * MAX_SPRITE_DETECT_AREAS]; // dword to quickly detect 4 consecutive distinctive pixels inside the original drawing of a sprite for optimized detection
 					for (int ti = 0; ti < NSprites * MAX_SPRITE_DETECT_AREAS; ti++)
 						SpriteDetDwords[ti] = reader.readInt();
 					
 					// in java there is no unsigned int or uint16 so we use normal int array, but read unsigned int
-					int[] SpriteDetDwordPos = new int[NSprites * MAX_SPRITE_DETECT_AREAS]; // UINT16[nS*MAX_SPRITE_DETECT_AREAS] offset of the above dword in the sprite description
+					int[] SpriteDetDwordPos = new int[NSprites * MAX_SPRITE_DETECT_AREAS]; // offset of the above dword in the sprite description
 					for (int ti = 0; ti < NSprites * MAX_SPRITE_DETECT_AREAS; ti++)
 						SpriteDetDwordPos[ti] = reader.readUnsignedShort();
 					
-					int [] SpriteDetAreas = new int[NSprites * 4 * MAX_SPRITE_DETECT_AREAS]; // UINT16[nS*4*MAX_SPRITE_DETECT_AREAS] rectangles (left, top, width, height) as areas to detect sprites (left=0xffff -> no zone)
+					int [] SpriteDetAreas = new int[NSprites * 4 * MAX_SPRITE_DETECT_AREAS]; // rectangles (left, top, width, height) as areas to detect sprites (left=0xffff -> no zone)
 					for (int ti = 0; ti < NSprites * 4 * MAX_SPRITE_DETECT_AREAS; ti++)
 						SpriteDetAreas[ti] = reader.readUnsignedShort();
 	
 					reader.close();
 					
-					int planeSize = FWidth * FHeight / 8;
-					
-					List<Frame> frames = new ArrayList<>();
-					int frameSize = FWidth*FHeight;
+					CompiledAnimation destRGB = createAni(FWidth, FHeight, bareName(filename) + "RGB");
+					CompiledAnimation dest = createAni(FWidth, FHeight, "0");
 
-					CompiledAnimation dest = new CompiledAnimation(
-							AnimationType.COMPILED, bareName(filename),
-							0, NFrames, 1, 1, 0);
-					dest.setMutable(true);
-					dest.width = FWidth;
-					dest.height = FHeight;
-					dest.setClockFrom(Short.MAX_VALUE);
+					int palIdx = 0;
+					
+					RGB[] actCols = new RGB[NCColors];
+					
+					//vm.paletteMap.clear();
 					
 					for(int ID = 0; ID < NFrames; ID++) {
-						RGB[] rgbFrame = new RGB[frameSize];
-						RGB[] actCols = CPal.get(ID).colors;
+						
+						RGB[] rgbFrame = new RGB[FWidth*FHeight];
+						byte[] frame = new byte[FWidth*FHeight];
 
-						for(int ti = 0; ti < frameSize; ti++) {
-							
-							if (DynaMasks[ti+(ID*frameSize)] == -1) {
-								rgbFrame[ti] = actCols[CFrames[ti+(ID*frameSize)]];
+						if ((Arrays.hashCode(actCols) != Arrays.hashCode(CPal.get(ID).colors)) && (ID != 0)) {
+							dest.end = dest.frames.size()-1;
+							dest.setDesc("scene_"+Integer.toString(ID));
+							vm.scenes.put(dest.getDesc(), dest);
+							dest = createAni(FWidth, FHeight, "scene_"+Integer.toString(ID));
+							dest.setPalIndex(palIdx);
+						}
+						
+						actCols = CPal.get(ID).colors;
+
+						int colVal = 0;
+						int maxColVal = 0;
+						
+						for(int ti = 0; ti < FWidth*FHeight; ti++) {
+							if (DynaMasks[ti+(ID*FWidth*FHeight)] == -1) {
+								colVal = CFrames[ti+(ID*FWidth*FHeight)]; 
 							}
 							else {
-								//frame[ti] = dyna4cols[IDfound * MAX_DYNA_4COLS_PER_FRAME * nocolors + dynacouche * nocolors + frame[ti]];
-								rgbFrame[ti] = actCols[Dyna4Cols[(ID * MAX_DYNA_4COLS_PER_FRAME * NOColors) + DynaMasks[ID * frameSize + ti] * NOColors + CFrames[ti+(ID*frameSize)]] + (NOColors - 1)];
+								colVal = Dyna4Cols[(ID * MAX_DYNA_4COLS_PER_FRAME * NOColors) + DynaMasks[ID * FWidth*FHeight + ti] * NOColors + CFrames[ti+(ID*FWidth*FHeight)]];
+								if (CFrames[ti+(ID*FWidth*FHeight)] == 0) // make dynamic area visible
+									colVal += NOColors - 1;
 							}
+							if (colVal > maxColVal) maxColVal = colVal;
+							rgbFrame[ti] = actCols[colVal];
+							frame[ti] = (byte) (colVal & 0xFF);
 						}
 						
-						DMD dmd = new DMD(FWidth,FHeight);
-						Frame f = createRGBFrame(dmd);
-						
-						for( int x = 0; x < FWidth; x++ ) {
-							for( int y = 0; y < FHeight; y++ ) {
-								int r = rgbFrame[(x+y*FWidth)].red & 0xff;
-								int g = rgbFrame[(x+y*FWidth)].green & 0xff;
-								int b = rgbFrame[(x+y*FWidth)].blue & 0xff;
-								int v = (r<<16) + (g<<8) + b;
-								int bit = (x % 8);
-								int mask = (0b10000000 >> bit);
-								int o = (x >> 3);
-								for( int k = 0; k < 24; k++) {
-									if( (v & (1 << k)) != 0 ) 
-										f.planes.get(k).data[y*dmd.getBytesPerRow() + o] |= mask;
-								}
-							}
-						}
+						Frame f = createFrame(frame,FWidth,FHeight,(int)(Math.log(NCColors) / Math.log(2)));
+						Frame fRGB = createRGBFrame(rgbFrame,FWidth,FHeight);
+
+						// only add palette if not already in the project
+						boolean palExists = false;
+	                    for (Palette pals : vm.paletteMap.values()) {
+	                        if (pals.sameColors(actCols)) {
+	                        	dest.setPalIndex(pals.index);
+	                        	palExists = true;
+	                        	break;
+	                        }
+	                    }
+	                    if (!palExists) {
+	                    	Palette newPalette = new Palette(CPal.get(ID).colors, palIdx + 1, CPal.get(ID).name);
+	                    	palIdx++;
+	                    	vm.paletteMap.put(palIdx, newPalette);
+	                    	dest.setPalIndex(palIdx);
+	                    } 
+
+						fRGB.delay = 15;
 						f.delay = 15;
+						
+						if (maxColVal > NOColors - 1) // only add frame if colorized
+							destRGB.frames.add(fRGB);
+						
 						dest.frames.add(f);
+						
 					}
-					dest.setDesc(bareName(filename));
+					
+					destRGB.end = destRGB.frames.size()-1;
+					destRGB.setDesc(bareName(filename)+"RGB");
+					vm.scenes.put(destRGB.getDesc(), destRGB);
+					
+					Palette newPalette = new Palette(CPal.get(NFrames-1).colors, palIdx+1, CPal.get(NFrames-1).name);
+                	vm.paletteMap.put(palIdx+1, newPalette);
+                	dest.setPalIndex(palIdx+1);
+					dest.end = dest.frames.size()-1;
+					dest.setDesc("scene_"+Integer.toString(NFrames));
 					vm.scenes.put(dest.getDesc(), dest);
 					
 				} else {
