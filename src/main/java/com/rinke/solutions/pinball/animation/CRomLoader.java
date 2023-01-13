@@ -20,6 +20,7 @@ import com.google.common.io.LittleEndianDataInputStream;
 import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.animation.Animation.EditMode;
 import com.rinke.solutions.pinball.model.Frame;
+import com.rinke.solutions.pinball.model.Mask;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.Plane;
 import com.rinke.solutions.pinball.model.Project;
@@ -91,6 +92,19 @@ public class CRomLoader {
 			}
 		}
 		return f;
+	}
+	
+	static byte[] createMask (byte[] src, int ID, int width, int height) {
+		byte[] dest = new byte[width*height/8];
+		for( int pix = 0; pix < width*height; pix++) {
+			int bit = (pix % 8);
+			int byteIdx = pix / 8;
+			int mask = (0b10000000 >> bit);
+			int v = 1;
+			if(src[pix + (ID * width * height)] != -1) v=0;
+			if((v & 1) != 0 ) dest[byteIdx] |= mask;
+		}
+		return dest;
 	}
 	
 	static CompiledAnimation createAni(int width, int height, String name) {
@@ -256,7 +270,11 @@ public class CRomLoader {
 							frame[ti] = (byte) (colVal & 0xFF);
 						}
 						
+						Mask mask = new Mask(FWidth*FHeight/8);
+						mask.data = createMask(DynaMasks,ID,FWidth, FHeight);
+						
 						Frame f = createFrame(frame,FWidth,FHeight,(int)(Math.log(NCColors) / Math.log(2)));
+						f.mask = mask;
 						Frame fRGB = createRGBFrame(rgbFrame,FWidth,FHeight);
 
 						// only add palette if not already in the project
