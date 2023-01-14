@@ -42,6 +42,8 @@ public class CRomLoader {
 	private static int MAX_SPRITES_PER_FRAME = 32; // maximum amount of sprites to look for per frame
 	private static int MAX_COLOR_ROTATIONS = 8; // maximum amount of color rotations per frame
 	private static int MAX_SPRITE_DETECT_AREAS = 4; // maximum number of areas to detect the sprite
+	private static int REPLACEMASK = 1664589825; // hash for full mask
+	private static int COLMASKMASK = 1425784833; // hash for empty mask
 	
 	static String bareName(String filename) {
 		String b = new File(filename).getName();
@@ -115,7 +117,7 @@ public class CRomLoader {
 		dest.width = width;
 		dest.height = height;
 		dest.setClockFrom(Short.MAX_VALUE);
-		dest.setEditMode(EditMode.REPLACE);
+		dest.setEditMode(EditMode.FIXED);
 		return dest;
 	}
 	
@@ -229,14 +231,17 @@ public class CRomLoader {
 	
 					reader.close();
 					
-					CompiledAnimation destRGB = createAni(FWidth, FHeight, bareName(filename) + "RGB");
+					CompiledAnimation destRGB = createAni(FWidth, FHeight, bareName(filename) + "_RGB");
 					CompiledAnimation dest = createAni(FWidth, FHeight, "0");
+					CompiledAnimation dest6planes = createAni(FWidth, FHeight, bareName(filename) + "_6");
 
 					int palIdx = 0;
+					int sceneIdx = 0;
+					int maskhash = 0;
 					
 					RGB[] actCols = new RGB[NCColors];
 					
-					//vm.paletteMap.clear();
+					vm.paletteMap.clear();
 					
 					for(int ID = 0; ID < NFrames; ID++) {
 						
@@ -245,10 +250,13 @@ public class CRomLoader {
 
 						if ((Arrays.hashCode(actCols) != Arrays.hashCode(CPal.get(ID).colors)) && (ID != 0)) {
 							dest.end = dest.frames.size()-1;
-							dest.setDesc("scene_"+Integer.toString(ID));
-							vm.scenes.put(dest.getDesc(), dest);
-							dest = createAni(FWidth, FHeight, "scene_"+Integer.toString(ID));
-							dest.setPalIndex(palIdx);
+							dest.setDesc("scene_"+Integer.toString(sceneIdx));
+							if (dest.frames.size() != 0) {
+								vm.scenes.put(dest.getDesc(), dest);
+								sceneIdx++;
+								dest = createAni(FWidth, FHeight, "scene_"+Integer.toString(sceneIdx));
+								dest.setPalIndex(palIdx);
+							}
 						}
 						
 						actCols = CPal.get(ID).colors;
@@ -272,11 +280,20 @@ public class CRomLoader {
 						
 						Mask mask = new Mask(FWidth*FHeight/8);
 						mask.data = createMask(DynaMasks,ID,FWidth, FHeight);
+						maskhash = Arrays.hashCode(mask.data);
 						
 						Frame f = createFrame(frame,FWidth,FHeight,(int)(Math.log(NCColors) / Math.log(2)));
 						f.mask = mask;
 						Frame fRGB = createRGBFrame(rgbFrame,FWidth,FHeight);
 
+						if (maskhash == REPLACEMASK && dest.getEditMode() == EditMode.FIXED)
+							dest.setEditMode(EditMode.REPLACE);
+						else if (maskhash == COLMASKMASK && dest.getEditMode() == EditMode.FIXED)
+							dest.setEditMode(EditMode.COLMASK);
+						else if (maskhash != REPLACEMASK && maskhash != COLMASKMASK)
+							dest.setEditMode(EditMode.LAYEREDREPLACE);
+
+						
 						// only add palette if not already in the project
 						boolean palExists = false;
 	                    for (Palette pals : vm.paletteMap.values()) {
@@ -287,31 +304,36 @@ public class CRomLoader {
 	                        }
 	                    }
 	                    if (!palExists) {
-	                    	Palette newPalette = new Palette(CPal.get(ID).colors, palIdx + 1, CPal.get(ID).name);
-	                    	palIdx++;
+	                    	Palette newPalette = new Palette(CPal.get(ID).colors, palIdx, CPal.get(ID).name);
 	                    	vm.paletteMap.put(palIdx, newPalette);
 	                    	dest.setPalIndex(palIdx);
+	                    	palIdx++;
 	                    } 
 
 						fRGB.delay = 15;
 						f.delay = 15;
 						
-						if (maxColVal > NOColors - 1) // only add frame if colorized
+						if (maxColVal > NOColors - 1) { // only add frame if colorized
 							destRGB.frames.add(fRGB);
+							dest.frames.add(f);
+						}
 						
-						dest.frames.add(f);
-						
+						dest6planes.frames.add(f);
 					}
 					
 					destRGB.end = destRGB.frames.size()-1;
 					destRGB.setDesc(bareName(filename)+"RGB");
 					vm.scenes.put(destRGB.getDesc(), destRGB);
 					
-					Palette newPalette = new Palette(CPal.get(NFrames-1).colors, palIdx+1, CPal.get(NFrames-1).name);
-                	vm.paletteMap.put(palIdx+1, newPalette);
-                	dest.setPalIndex(palIdx+1);
+					dest6planes.end = dest6planes.frames.size()-1;
+					dest6planes.setDesc(bareName(filename)+"_6");
+					vm.scenes.put(dest6planes.getDesc(), dest6planes);
+					
+					Palette newPalette = new Palette(CPal.get(NFrames-1).colors, palIdx, CPal.get(NFrames-1).name);
+                	vm.paletteMap.put(palIdx, newPalette);
+                	dest.setPalIndex(palIdx);
 					dest.end = dest.frames.size()-1;
-					dest.setDesc("scene_"+Integer.toString(NFrames));
+					dest.setDesc("scene_"+Integer.toString(sceneIdx));
 					vm.scenes.put(dest.getDesc(), dest);
 					
 				} else {
