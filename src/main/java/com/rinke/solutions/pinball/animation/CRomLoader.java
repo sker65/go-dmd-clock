@@ -3,15 +3,12 @@
 
 package com.rinke.solutions.pinball.animation;
 
-import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.List;
 import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -23,7 +20,6 @@ import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.Mask;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.Plane;
-import com.rinke.solutions.pinball.model.Project;
 import com.rinke.solutions.pinball.model.RGB;
 
 import com.rinke.solutions.pinball.view.model.ViewModel;
