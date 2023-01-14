@@ -96,7 +96,7 @@ public class CRomLoader {
 		return f;
 	}
 	
-	static byte[] createMask (byte[] src, int ID, int width, int height) {
+	static byte[] createLMask (byte[] src, int ID, int width, int height) {
 		byte[] dest = new byte[width*height/8];
 		for( int pix = 0; pix < width*height; pix++) {
 			int bit = (pix % 8);
@@ -104,6 +104,19 @@ public class CRomLoader {
 			int mask = (0b10000000 >> bit);
 			int v = 1;
 			if(src[pix + (ID * width * height)] != -1) v=0;
+			if((v & 1) != 0 ) dest[byteIdx] |= mask;
+		}
+		return dest;
+	}
+	
+	static byte[] createDMask (byte[] src, int ID, int width, int height) {
+		byte[] dest = new byte[width*height/8];
+		for( int pix = 0; pix < width*height; pix++) {
+			int bit = (pix % 8);
+			int byteIdx = pix / 8;
+			int mask = (0b10000000 >> bit);
+			int v = 1;
+			if(src[pix + (ID * width * height)] != 0) v=0;
 			if((v & 1) != 0 ) dest[byteIdx] |= mask;
 		}
 		return dest;
@@ -172,12 +185,12 @@ public class CRomLoader {
 					reader.readFully(CompMaskID);
 					byte[] MovRctID = new byte[NFrames]; // Horizontal moving comparison rectangle ID per frame (255 if no rectangle for this frame)
 					reader.readFully(MovRctID);
+					byte[] CompMasks = new byte[NCompMasks * FHeight * FWidth]; // Mask for comparison
 					if (NCompMasks > 0) {
-						byte[] CompMasks = new byte[NCompMasks * FHeight * FWidth]; // Mask for comparison
 						reader.readFully(CompMasks);
 					}
+					byte[] MovRcts = new byte[NMovMasks * FHeight * FWidth]; // Rect for Moving Comparision rectangle [x,y,w,h]. The value (<MAX_DYNA_4COLS_PER_FRAME) points to a sequence of 4 colors in Dyna4Cols. 255 means not a dynamic content. 
 					if (NMovMasks > 0) {
-						byte[] MovRcts = new byte[NMovMasks * FHeight * FWidth]; // Rect for Moving Comparision rectangle [x,y,w,h]. The value (<MAX_DYNA_4COLS_PER_FRAME) points to a sequence of 4 colors in Dyna4Cols. 255 means not a dynamic content. 
 						reader.readFully(MovRcts);
 					}
 					
@@ -278,12 +291,27 @@ public class CRomLoader {
 							frame[ti] = (byte) (colVal & 0xFF);
 						}
 						
-						Mask mask = new Mask(FWidth*FHeight/8);
-						mask.data = createMask(DynaMasks,ID,FWidth, FHeight);
-						maskhash = Arrays.hashCode(mask.data);
+						Mask lmask = new Mask(FWidth*FHeight/8);
+						lmask.data = createLMask(DynaMasks,ID,FWidth, FHeight);
+						maskhash = Arrays.hashCode(lmask.data);
+						
+						if(CompMaskID[ID] != -1) {
+							Mask dmask = new Mask(FWidth*FHeight/8);
+							dmask.data = createDMask(CompMasks,CompMaskID[ID],FWidth, FHeight);
+							
+							boolean dMaskExists = false;
+							for (int i = 0; i < dest.getMasks().size();i++) {
+								if(Arrays.hashCode(dmask.data) == Arrays.hashCode(dest.getMask(i).data)) {
+		                        	dMaskExists = true;
+		                        	break;
+		                        }
+		                    }
+							if (!dMaskExists)
+								dest.getMasks().add(dmask);
+						}
 						
 						Frame f = createFrame(frame,FWidth,FHeight,(int)(Math.log(NCColors) / Math.log(2)));
-						f.mask = mask;
+						f.mask = lmask;
 						Frame fRGB = createRGBFrame(rgbFrame,FWidth,FHeight);
 
 						if (maskhash == REPLACEMASK && dest.getEditMode() == EditMode.FIXED)
@@ -292,7 +320,6 @@ public class CRomLoader {
 							dest.setEditMode(EditMode.COLMASK);
 						else if (maskhash != REPLACEMASK && maskhash != COLMASKMASK)
 							dest.setEditMode(EditMode.LAYEREDREPLACE);
-
 						
 						// only add palette if not already in the project
 						boolean palExists = false;
@@ -322,11 +349,11 @@ public class CRomLoader {
 					}
 					
 					destRGB.end = destRGB.frames.size()-1;
-					destRGB.setDesc(bareName(filename)+"RGB");
+					destRGB.setDesc(bareName(filename)+"_RGB");
 					vm.scenes.put(destRGB.getDesc(), destRGB);
 					
 					dest6planes.end = dest6planes.frames.size()-1;
-					dest6planes.setDesc(bareName(filename)+"_6");
+					dest6planes.setDesc(bareName(filename)+"_6planes");
 					vm.scenes.put(dest6planes.getDesc(), dest6planes);
 					
 					Palette newPalette = new Palette(CPal.get(NFrames-1).colors, palIdx, CPal.get(NFrames-1).name);
