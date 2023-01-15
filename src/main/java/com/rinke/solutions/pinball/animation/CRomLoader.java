@@ -127,6 +127,7 @@ public class CRomLoader {
 		dest.height = height;
 		dest.setClockFrom(Short.MAX_VALUE);
 		dest.setEditMode(EditMode.FIXED);
+		dest.setProjectAnimation(true);
 		return dest;
 	}
 	
@@ -360,9 +361,9 @@ public class CRomLoader {
 					dest6planes.setDesc(bareName(filename)+"_6planes");
 					vm.scenes.put(dest6planes.getDesc(), dest6planes);
 					
-					Palette newPalette = new Palette(CPal.get(NFrames-1).colors, palIdx, CPal.get(NFrames-1).name);
-                	vm.paletteMap.put(palIdx, newPalette);
-                	dest.setPalIndex(palIdx);
+//					Palette newPalette = new Palette(CPal.get(NFrames-1).colors, palIdx, CPal.get(NFrames-1).name);
+//                	vm.paletteMap.put(palIdx, newPalette);
+//                	dest.setPalIndex(palIdx);
 					dest.end = dest.frames.size()-1;
 					dest.setDesc("scene_"+Integer.toString(sceneIdx));
 					vm.scenes.put(dest.getDesc(), dest);
