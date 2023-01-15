@@ -237,12 +237,20 @@ public class CRomLoader {
 					int [] SpriteDetAreas = new int[NSprites * 4 * MAX_SPRITE_DETECT_AREAS]; // rectangles (left, top, width, height) as areas to detect sprites (left=0xffff -> no zone)
 					for (int ti = 0; ti < NSprites * 4 * MAX_SPRITE_DETECT_AREAS; ti++)
 						SpriteDetAreas[ti] = reader.readUnsignedShort();
+					
+					int triggerIDs[] = new int[NFrames];
+					Arrays.fill(triggerIDs, (int)0xFFFFFFFF);
+					if(sizeheader > 11 * 4) {
+						for (int ti = 0; ti < NFrames; ti++)
+							triggerIDs[ti] = reader.readInt();
+					}
+					
 	
 					reader.close();
 					
 					CompiledAnimation destRGB = createAni(FWidth, FHeight, bareName(filename) + "_RGB");
 					CompiledAnimation dest = createAni(FWidth, FHeight, "0");
-					CompiledAnimation dest6planes = createAni(FWidth, FHeight, bareName(filename) + "_6");
+					CompiledAnimation dest6planes = createAni(FWidth, FHeight, bareName(filename) + "_6planes");
 
 					int palIdx = 0;
 					int sceneIdx = 0;
