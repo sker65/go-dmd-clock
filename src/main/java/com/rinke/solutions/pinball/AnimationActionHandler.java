@@ -124,6 +124,23 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 		return loadAni(filename,append,populateProject,listener,false);
 	}
 	
+	private int getNextFreePalIndex() {
+		int i = 0;
+		boolean exists = false;
+		do {
+			exists = false;			
+			for (Palette p : vm.paletteMap.values()) {
+				if (p.index == i) {
+					exists = true;
+					break;
+				}
+			}
+			i++;
+		} while (exists == true);
+		return i-1;
+	}
+
+	
 	public java.util.List<Animation> loadAni(String filename, boolean append, boolean populateProject, ProgressEventListener listener, boolean wantScene) {
 		java.util.List<Animation> loadedList = new ArrayList<>();
 		try {
@@ -179,7 +196,7 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 				ani = lani.cutScene(ani.start, ani.end, noPlanes);
 				ani.setAniColors(lani.getAniColors());
 				ani.setDesc(lani.getDesc());
-				populatePalette(ani, vm.paletteMap);
+				populatePalette(ani, vm.paletteMap, true);
 			}
 			if( ani instanceof CompiledAnimation ) {
 				CompiledAnimation cani = (CompiledAnimation)ani;
@@ -243,7 +260,7 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 			// should be done in background thread
 			ani.init(dmd);
 			
-			populatePalette(ani, vm.paletteMap);
+			populatePalette(ani, vm.paletteMap, false);
 		}
 		vm.setRecentAnimations(filename);
 		vm.setDirty(true);
@@ -266,7 +283,7 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 		anis.put(ani.getDesc(), ani);
 	}
 
-	void populatePalette(Animation ani, Map<Integer,Palette> palettes) {
+	void populatePalette(Animation ani, Map<Integer,Palette> palettes, boolean nextFree) {
 		if (ani.getAniColors() != null) {
 			// sanitize number of color per palette when importing
 			RGB[] aniColors = getSaveSizeRGBArray(ani.getAniColors());
@@ -296,8 +313,10 @@ public class AnimationActionHandler extends AbstractCommandHandler {
 					break;
 				}
 			}
+			
 			if (!colorsMatch) {
 				Palette aniPalette = new Palette(aniColors, palettes.size(), ani.getDesc());
+				if (nextFree)  aniPalette.index = getNextFreePalIndex();
 				palettes.put(aniPalette.index,aniPalette);
 				ani.setPalIndex(aniPalette.index);
 			}
