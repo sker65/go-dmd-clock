@@ -319,9 +319,9 @@ public class CRomLoader {
 						RGB[] cols = new RGB[MycRom.ncColors];
 						for( int i = 0; i < MycRom.ncColors; i++) {
 							cols[i] = new RGB(
-									unsignedByte(MycRom.cPal[(palidx * MycRom.ncColors) + (i * 3)]),
-									unsignedByte(MycRom.cPal[(palidx * MycRom.ncColors) + (i * 3) + 1]),
-									unsignedByte(MycRom.cPal[(palidx * MycRom.ncColors) + (i * 3) + 2])
+									unsignedByte(MycRom.cPal[(palidx * MycRom.ncColors * 3) + (i * 3)]),
+									unsignedByte(MycRom.cPal[(palidx * MycRom.ncColors * 3) + (i * 3) + 1]),
+									unsignedByte(MycRom.cPal[(palidx * MycRom.ncColors * 3) + (i * 3) + 2])
 									);
 						}
 						String name = "new" + UUID.randomUUID().toString().substring(0, 4);
