@@ -112,7 +112,7 @@ public class AnimationActionHandlerTest extends HandlerTest{
 	@Test
 	public void testPopulatePalette() throws Exception {
 		Map<Integer, Palette> palettes = new HashMap<>();
-		uut.populatePalette(getScene("foo"), palettes );
+		uut.populatePalette(getScene("foo"), palettes, false );
 	}
 
 	@Test
