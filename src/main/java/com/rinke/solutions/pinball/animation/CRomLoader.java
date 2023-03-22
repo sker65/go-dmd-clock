@@ -26,6 +26,70 @@ import com.rinke.solutions.pinball.view.model.ViewModel;
 
 import lombok.extern.slf4j.Slf4j;
 
+class cRom
+{
+	// header
+	public byte[]		name; // ROM name (no .zip, no path, example: afm_113b)
+	public int			fWidth;	// Frame width=fW
+	public int			fHeight;	// Frame height=fH
+	public int			nFrames;	// Number of frames=nF
+	public int			noColors;	// Number of colors in palette of original ROM=noC
+	public int			ncColors;	// Number of colors in palette of colorized ROM=nC
+	public int			nCompMasks; // Number of dynamic masks=nM
+	public int			nMovMasks; // Number of moving rects=nMR
+	public int			nSprites; // Number of sprites=nS (max 255)
+	// data
+	// part for comparison
+	public int[]		HashCode;	// UINT32[nF] hashcode/checksum
+	public byte[]		CompMaskID;	// UINT8[nF] Comparison mask ID per frame (255 if no rectangle for this frame)
+	public byte[]		ShapeCompMode;	// UINT8[nF] FALSE - full comparison (all 4 colors) TRUE - shape mode (we just compare black 0 against all the 3 other colors as if it was 1 color)
+								// HashCode take into account the ShapeCompMode parameter converting any '2' or '3' into a '1'
+	public byte[]		MovRctID;	// UINT8[nF] Horizontal moving comparison rectangle ID per frame (255 if no rectangle for this frame)
+	public byte[]		CompMasks;	// UINT8[nM*fW*fH] Mask for comparison
+	public byte[]		MovRcts; // UINT8[nMR*4] Rect for Moving Comparision rectangle [x,y,w,h]. The value (<MAX_DYNA_SETS_PER_FRAME) points to a sequence of 4 colors in Dyna4Cols. 255 means not a dynamic content.
+	// part for colorization
+	public byte[]		cPal;		// UINT8[3*nC*nF] Palette for each colorized frames
+	public byte[]		cFrames;	// UINT8[nF*fW*fH] Colorized frames color indices, if this frame has sprites, it is the colorized frame of the static scene, with no sprite
+	public byte[]		DynaMasks;	// UINT8[nF*fW*fH] Mask for dynamic content for each frame.  The value (<MAX_DYNA_SETS_PER_FRAME) points to a sequence of 4 colors in Dyna4Cols. 255 means not a dynamic content.
+	public byte[]		Dyna4Cols;  // UINT8[nF*MAX_DYNA_SETS_PER_FRAME*noC] Color sets used to fill the dynamic content
+	public byte[]		FrameSprites; // UINT8[nF*MAX_SPRITES_PER_FRAME] Sprite numbers to look for in this frame max=MAX_SPRITES_PER_FRAME 255 if no sprite
+	public short[] 		SpriteDescriptions; // UINT16[nS*MAX_SPRITE_SIZE*MAX_SPRITE_SIZE] Sprite drawing on 2 bytes per pixel:
+									// - the first is the 4-or-16-color sprite original drawing (255 means this is a transparent=ignored pixel) for Comparison step
+								    // - the second is the 64-color sprite for Colorization step
+	public byte[]		ColorRotations; // UINT8[3*MAX_COLOR_ROTATION*nF] 3 bytes per rotation: 1- first color; 2- last color; 3- number of 10ms between two rotations
+	public int[]		SpriteDetAreas; // UINT16[nS*4*MAX_SPRITE_DETECT_AREAS] rectangles (left, top, width, height) as areas to detect sprites (left=0xffff -> no zone)
+	public int[]		SpriteDetDwords; // UINT32[nS*MAX_SPRITE_DETECT_AREAS] dword to quickly detect 4 consecutive distinctive pixels inside the original drawing of a sprite for optimized detection
+	public int[]		SpriteDetDwordPos; // UINT16[nS*MAX_SPRITE_DETECT_AREAS] offset of the above dword in the sprite description
+	public int[]		TriggerID; // UINT32[nF] does this frame triggers any event ID, 0xFFFFFFFF if not
+};
+
+class cRP
+{
+	// Header
+	public byte[]		name; // ROM name (no .zip, no path, example: afm_113b)
+	public byte[]		oFrames;	// UINT8[nF*fW*fH] Original frames (TXT converted to byte '2'->2)
+	public byte			activeColSet; // 4-or-16-color sets active
+	public byte			ColSets; // the 4-or-16-color sets
+	public byte			acColSet; // current 4-or-16-color set
+	public byte			preColSet; // first 4-or-16-color set displayed in the dialogbox
+	public byte			nameColSet; // caption of the colsets
+	public int			DrawColMode; // 0- 1 col mode, 1- 4 color set mode, 2- gradient mode
+	public byte			Draw_Mode;	// in colorization mode: 0- point, 1- line, 2- rect, 3- circle, 4- fill
+	public int			Mask_Sel_Mode; // in comparison mode: 0- point, 1- rectangle, 2- magic wand
+	public byte			Fill_Mode; // FALSE- empty, TRUE- filled
+	public byte			Mask_Names; // the names of the synamic masks
+	public int			nSections; // number of sections in the frames
+	public int			Section_Firsts; // first frame of each section
+	public byte[]		Section_Names; // Names of the sections
+	public byte[]		Sprite_Names; // Names of the sprites
+	public int			Sprite_Col_From_Frame; // Which frame is used for the palette of the sprite colors
+	public byte			Sprite_Edit_Colors; // Which color are used to edit this sprite
+	public int[]		FrameDuration; // UINT32[nF] duration of the frame
+	public byte[]		SaveDir; // char[260] save directory
+	public int			SpriteRect; // UINT16[255*4] rectangle where to find the sprite in the frame Sprite_Col_From_Frame
+	public byte			SpriteRectMirror; // BOOL[255*2] has the initial rectangle been mirrored horizontally or/and vertically
+};
+
 @Slf4j
 public class CRomLoader {
 
@@ -40,6 +104,10 @@ public class CRomLoader {
 	private static int MAX_SPRITE_DETECT_AREAS = 4; // maximum number of areas to detect the sprite
 	private static int REPLACEMASK = 1664589825; // hash for full mask
 	private static int COLMASKMASK = 1425784833; // hash for empty mask
+	
+
+	private static cRom MycRom = new cRom();
+	private static cRP MycRP = new cRP();
 	
 	static String bareName(String filename) {
 		String b = new File(filename).getName();
@@ -135,6 +203,95 @@ public class CRomLoader {
 	    return b & 0xFF;
 	}
 
+	public static void loadcRom(LittleEndianDataInputStream reader) {
+		
+		try { 
+			
+			MycRom.name = new byte[64]; // ROM name
+			reader.read(MycRom.name);
+			
+			int sizeheader = reader.readInt();
+			log.debug("header size {}", sizeheader);
+			MycRom.fWidth = reader.readInt(); // frame width
+			MycRom.fHeight = reader.readInt(); // frame height
+			MycRom.nFrames= reader.readInt(); // number of frames
+			MycRom.noColors = reader.readInt(); // Number of colors in palette of original ROM=nO
+			log.debug("w,h: {},{}, frames: {}, colors: {}", MycRom.fWidth,MycRom.fHeight,MycRom.nFrames,MycRom.noColors);
+			FrameFormat From;
+			if (MycRom.noColors == 16)
+				From = FrameFormat.Gray4;
+			else
+				From = FrameFormat.Gray2;
+			MycRom.ncColors = reader.readInt(); // Number of colors in palette of colorized ROM=nC
+			MycRom.nCompMasks = reader.readInt(); // Number of dynamic masks=nM
+			MycRom.nMovMasks = reader.readInt(); // Number of moving rects=nMR
+			MycRom.nSprites = reader.readInt(); // Number of sprites=nS
+	
+			MycRom.HashCode = new int[MycRom.nFrames]; // hashcode/checksum
+			for (int ti = 0; ti < MycRom.nFrames; ti++)
+				MycRom.HashCode[ti] = reader.readInt();
+			
+			MycRom.ShapeCompMode = new byte[MycRom.nFrames]; // FALSE - full comparison (all 4 colors) TRUE - shape mode (we just compare black 0 against all the 3 other colors as if it was 1 color)
+			// HashCode take into account the ShapeCompMode parameter converting any '2' or '3' into a '1'
+			reader.readFully(MycRom.ShapeCompMode); 
+			MycRom.CompMaskID = new byte[MycRom.nFrames]; // Comparison mask ID per frame (255 if no rectangle for this frame)
+			reader.readFully(MycRom.CompMaskID);
+			MycRom.MovRctID = new byte[MycRom.nFrames]; // Horizontal moving comparison rectangle ID per frame (255 if no rectangle for this frame)
+			reader.readFully(MycRom.MovRctID);
+			MycRom.CompMasks = new byte[MycRom.nCompMasks * MycRom.fHeight * MycRom.fWidth]; // Mask for comparison
+			if (MycRom.nCompMasks > 0) {
+				reader.readFully(MycRom.CompMasks);
+			}
+			MycRom.MovRcts = new byte[MycRom.nMovMasks * MycRom.fHeight * MycRom.fWidth]; // Rect for Moving Comparision rectangle [x,y,w,h]. The value (<MAX_DYNA_4COLS_PER_FRAME) points to a sequence of 4 colors in Dyna4Cols. 255 means not a dynamic content. 
+			if (MycRom.nMovMasks > 0) {
+				reader.readFully(MycRom.MovRcts);
+			}
+			MycRom.cPal = new byte[MycRom.nFrames * MycRom.ncColors * 3]; // palette data for each frame
+			reader.readFully(MycRom.cPal);
+			MycRom.cFrames = new byte[MycRom.nFrames * MycRom.fHeight * MycRom.fWidth]; // Colorized frames color indices
+			reader.readFully(MycRom.cFrames);
+			MycRom.DynaMasks = new byte[MycRom.nFrames * MycRom.fHeight * MycRom.fWidth]; // Mask for dynamic content for each frame.  The value (<MAX_DYNA_4COLS_PER_FRAME) points to a sequence of 4 colors in Dyna4Cols. 255 means not a dynamic content.
+			reader.readFully(MycRom.DynaMasks);
+			MycRom.Dyna4Cols = new byte[MycRom.nFrames * MAX_DYNA_4COLS_PER_FRAME * MycRom.noColors]; // Color sets used to fill the dynamic content
+			reader.readFully(MycRom.Dyna4Cols);
+			MycRom.FrameSprites = new byte[MycRom.nFrames * MAX_SPRITES_PER_FRAME]; // Sprite numbers to look for in this frame max=MAX_SPRITES_PER_FRAME
+			reader.readFully(MycRom.FrameSprites);
+			MycRom.SpriteDescriptions = new short[MycRom.nSprites * MAX_SPRITE_SIZE * MAX_SPRITE_SIZE]; // 4-or-16-color sprite original drawing (255 means this is a transparent=ignored pixel) for Comparison step
+			for (int ti = 0; ti < MycRom.nSprites * MAX_SPRITE_SIZE * MAX_SPRITE_SIZE; ti++) {
+				MycRom.SpriteDescriptions[ti] = reader.readShort();
+			}
+			byte[] ActiveFrames=new byte[MycRom.nFrames]; // is the frame active (colorized or duration>16ms) or not
+			reader.readFully(ActiveFrames);
+			MycRom.ColorRotations=new byte[MycRom.nFrames*3*MAX_COLOR_ROTATIONS]; // list of color rotation for each frame:
+			// 1st byte is color # of the first color to rotate / 2nd byte id the number of colors to rotate / 3rd byte is the length in 10ms between each color switch
+			reader.readFully(MycRom.ColorRotations);
+			// WARN in java there is no uint -> we use int instead
+			int[] SpriteDetDwords = new int[MycRom.nSprites * MAX_SPRITE_DETECT_AREAS]; // dword to quickly detect 4 consecutive distinctive pixels inside the original drawing of a sprite for optimized detection
+			for (int ti = 0; ti < MycRom.nSprites * MAX_SPRITE_DETECT_AREAS; ti++)
+				SpriteDetDwords[ti] = reader.readInt();
+			
+			// in java there is no unsigned int or uint16 so we use normal int array, but read unsigned int
+			MycRom.SpriteDetDwordPos = new int[MycRom.nSprites * MAX_SPRITE_DETECT_AREAS]; // offset of the above dword in the sprite description
+			for (int ti = 0; ti < MycRom.nSprites * MAX_SPRITE_DETECT_AREAS; ti++)
+				MycRom.SpriteDetDwordPos[ti] = reader.readUnsignedShort();
+			
+			MycRom.SpriteDetAreas = new int[MycRom.nSprites * 4 * MAX_SPRITE_DETECT_AREAS]; // rectangles (left, top, width, height) as areas to detect sprites (left=0xffff -> no zone)
+			for (int ti = 0; ti < MycRom.nSprites * 4 * MAX_SPRITE_DETECT_AREAS; ti++)
+				MycRom.SpriteDetAreas[ti] = reader.readUnsignedShort();
+			
+			MycRom.TriggerID = new int[MycRom.nFrames];
+			Arrays.fill(MycRom.TriggerID, (int)0xFFFFFFFF);
+			if(sizeheader > 11 * 4) {
+				for (int ti = 0; ti < MycRom.nFrames; ti++)
+					MycRom.TriggerID[ti] = reader.readInt();
+			}
+			
+		} catch( IOException e2) {
+    	    log.error("error reading cRom");
+    	    throw new RuntimeException("error reading cRom");
+    	}
+	}
+	
 	public static void loadProject(String filename, ViewModel vm) {
 		try { 
 
@@ -145,126 +302,49 @@ public class CRomLoader {
 	
 			while (entries.hasMoreElements()) {
 				ZipEntry entry = entries.nextElement();
-				FrameFormat From;
 				if (entry.getName().endsWith(".cRom")) {
 					log.debug("found cRom file {}", entry.getName());
 					InputStream stream = zipFile.getInputStream(entry);
 					LittleEndianDataInputStream reader = new LittleEndianDataInputStream (stream);
 	
 					// now read everything see
-					byte[] filenameData = new byte[64]; // ROM name
-					reader.read(filenameData);
 					
-					int sizeheader = reader.readInt();
-					log.debug("header size {}", sizeheader);
-					int FWidth = reader.readInt(); // frame width
-					int FHeight = reader.readInt(); // frame height
-					int NFrames = reader.readInt(); // number of frames
-					int NOColors = reader.readInt(); // Number of colors in palette of original ROM=nO
-					log.debug("w,h: {},{}, frames: {}, colors: {}", FWidth,FHeight,NFrames,NOColors);
-					if (NOColors == 16)
-						From = FrameFormat.Gray4;
-					else
-						From = FrameFormat.Gray2;
-					int NCColors = reader.readInt(); // Number of colors in palette of colorized ROM=nC
-					int NCompMasks = reader.readInt(); // Number of dynamic masks=nM
-					int NMovMasks = reader.readInt(); // Number of moving rects=nMR
-					int NSprites = reader.readInt(); // Number of sprites=nS
-
-					int[] HashCodes = new int[NFrames]; // hashcode/checksum
-					for (int ti = 0; ti < NFrames; ti++)
-						HashCodes[ti] = reader.readInt();
-					
-					byte[] ShapeCompMode = new byte[NFrames]; // FALSE - full comparison (all 4 colors) TRUE - shape mode (we just compare black 0 against all the 3 other colors as if it was 1 color)
-					// HashCode take into account the ShapeCompMode parameter converting any '2' or '3' into a '1'
-					reader.readFully(ShapeCompMode); 
-					byte[] CompMaskID = new byte[NFrames]; // Comparison mask ID per frame (255 if no rectangle for this frame)
-					reader.readFully(CompMaskID);
-					byte[] MovRctID = new byte[NFrames]; // Horizontal moving comparison rectangle ID per frame (255 if no rectangle for this frame)
-					reader.readFully(MovRctID);
-					byte[] CompMasks = new byte[NCompMasks * FHeight * FWidth]; // Mask for comparison
-					if (NCompMasks > 0) {
-						reader.readFully(CompMasks);
-					}
-					byte[] MovRcts = new byte[NMovMasks * FHeight * FWidth]; // Rect for Moving Comparision rectangle [x,y,w,h]. The value (<MAX_DYNA_4COLS_PER_FRAME) points to a sequence of 4 colors in Dyna4Cols. 255 means not a dynamic content. 
-					if (NMovMasks > 0) {
-						reader.readFully(MovRcts);
-					}
+					loadcRom(reader);
+	
+					reader.close();
 					
 					java.util.List<Palette> CPal = new ArrayList<>(); // Palette for each colorized frames
 					
-					for(int palidx = 0; palidx < NFrames; palidx++) {
-						RGB[] cols = new RGB[NCColors];
-						for( int i = 0; i < NCColors; i++) {
+					for(int palidx = 0; palidx < MycRom.nFrames; palidx++) {
+						RGB[] cols = new RGB[MycRom.ncColors];
+						for( int i = 0; i < MycRom.ncColors; i++) {
 							cols[i] = new RGB(
-									unsignedByte(reader.readByte()),
-									unsignedByte(reader.readByte()),
-									unsignedByte(reader.readByte()));
+									unsignedByte(MycRom.cPal[(palidx * MycRom.ncColors) + (i * 3)]),
+									unsignedByte(MycRom.cPal[(palidx * MycRom.ncColors) + (i * 3) + 1]),
+									unsignedByte(MycRom.cPal[(palidx * MycRom.ncColors) + (i * 3) + 2])
+									);
 						}
 						String name = "new" + UUID.randomUUID().toString().substring(0, 4);
 						Palette newPalette = new Palette(cols, palidx, name);
 						CPal.add(newPalette);
 					}
 
-					byte[] CFrames = new byte[NFrames * FHeight * FWidth]; // Colorized frames color indices
-					reader.readFully(CFrames);
-					byte[] DynaMasks = new byte[NFrames * FHeight * FWidth]; // Mask for dynamic content for each frame.  The value (<MAX_DYNA_4COLS_PER_FRAME) points to a sequence of 4 colors in Dyna4Cols. 255 means not a dynamic content.
-					reader.readFully(DynaMasks);
-					byte[] Dyna4Cols = new byte[NFrames * MAX_DYNA_4COLS_PER_FRAME * NOColors]; // Color sets used to fill the dynamic content
-					reader.readFully(Dyna4Cols);
-					byte[] FrameSprites = new byte[NFrames * MAX_SPRITES_PER_FRAME]; // Sprite numbers to look for in this frame max=MAX_SPRITES_PER_FRAME
-					reader.readFully(FrameSprites);
-					byte[] SpriteDescriptionsO = new byte[NSprites * MAX_SPRITE_SIZE * MAX_SPRITE_SIZE]; // 4-or-16-color sprite original drawing (255 means this is a transparent=ignored pixel) for Comparison step
-					byte[] SpriteDescriptionsC = new byte[NSprites * MAX_SPRITE_SIZE * MAX_SPRITE_SIZE]; //  64-color sprite for Colorization step
-					for (int ti = 0; ti < NSprites * MAX_SPRITE_SIZE * MAX_SPRITE_SIZE; ti++) {
-						SpriteDescriptionsC[ti] = reader.readByte();
-						SpriteDescriptionsO[ti] = reader.readByte();
-					}
-					byte[] ActiveFrames=new byte[NFrames]; // is the frame active (colorized or duration>16ms) or not
-					reader.readFully(ActiveFrames);
-					byte[] ColorRotations=new byte[NFrames*3*MAX_COLOR_ROTATIONS]; // list of color rotation for each frame:
-					// 1st byte is color # of the first color to rotate / 2nd byte id the number of colors to rotate / 3rd byte is the length in 10ms between each color switch
-					reader.readFully(ColorRotations);
-					// WARN in java there is no uint -> we use int instead
-					int[] SpriteDetDwords = new int[NSprites * MAX_SPRITE_DETECT_AREAS]; // dword to quickly detect 4 consecutive distinctive pixels inside the original drawing of a sprite for optimized detection
-					for (int ti = 0; ti < NSprites * MAX_SPRITE_DETECT_AREAS; ti++)
-						SpriteDetDwords[ti] = reader.readInt();
-					
-					// in java there is no unsigned int or uint16 so we use normal int array, but read unsigned int
-					int[] SpriteDetDwordPos = new int[NSprites * MAX_SPRITE_DETECT_AREAS]; // offset of the above dword in the sprite description
-					for (int ti = 0; ti < NSprites * MAX_SPRITE_DETECT_AREAS; ti++)
-						SpriteDetDwordPos[ti] = reader.readUnsignedShort();
-					
-					int [] SpriteDetAreas = new int[NSprites * 4 * MAX_SPRITE_DETECT_AREAS]; // rectangles (left, top, width, height) as areas to detect sprites (left=0xffff -> no zone)
-					for (int ti = 0; ti < NSprites * 4 * MAX_SPRITE_DETECT_AREAS; ti++)
-						SpriteDetAreas[ti] = reader.readUnsignedShort();
-					
-					int triggerIDs[] = new int[NFrames];
-					Arrays.fill(triggerIDs, (int)0xFFFFFFFF);
-					if(sizeheader > 11 * 4) {
-						for (int ti = 0; ti < NFrames; ti++)
-							triggerIDs[ti] = reader.readInt();
-					}
-					
-	
-					reader.close();
-					
-					CompiledAnimation destRGB = createAni(FWidth, FHeight, bareName(filename) + "_RGB");
-					CompiledAnimation dest = createAni(FWidth, FHeight, "0");
-					CompiledAnimation dest6planes = createAni(FWidth, FHeight, bareName(filename) + "_6planes");
+					CompiledAnimation destRGB = createAni(MycRom.fWidth, MycRom.fHeight, bareName(filename) + "_RGB");
+					CompiledAnimation dest = createAni(MycRom.fWidth, MycRom.fHeight, "0");
+					CompiledAnimation dest6planes = createAni(MycRom.fWidth, MycRom.fHeight, bareName(filename) + "_6planes");
 
 					int palIdx = 0;
 					int sceneIdx = 0;
 					int maskhash = 0;
 					
-					RGB[] actCols = new RGB[NCColors];
+					RGB[] actCols = new RGB[MycRom.ncColors];
 					
 					vm.paletteMap.clear();
 					
-					for(int ID = 0; ID < NFrames; ID++) {
+					for(int ID = 0; ID < MycRom.nFrames; ID++) {
 						
-						RGB[] rgbFrame = new RGB[FWidth*FHeight];
-						byte[] frame = new byte[FWidth*FHeight];
+						RGB[] rgbFrame = new RGB[MycRom.fWidth*MycRom.fHeight];
+						byte[] frame = new byte[MycRom.fWidth*MycRom.fHeight];
 
 						if ((Arrays.hashCode(actCols) != Arrays.hashCode(CPal.get(ID).colors)) && (ID != 0)) {
 							dest.end = dest.frames.size()-1;
@@ -272,7 +352,7 @@ public class CRomLoader {
 							if (dest.frames.size() != 0) {
 								vm.scenes.put(dest.getDesc(), dest);
 								sceneIdx++;
-								dest = createAni(FWidth, FHeight, "scene_"+Integer.toString(sceneIdx));
+								dest = createAni(MycRom.fWidth, MycRom.fHeight, "scene_"+Integer.toString(sceneIdx));
 								dest.setPalIndex(palIdx);
 							}
 						}
@@ -282,27 +362,27 @@ public class CRomLoader {
 						int colVal = 0;
 						int maxColVal = 0;
 						
-						for(int ti = 0; ti < FWidth*FHeight; ti++) {
-							if (DynaMasks[ti+(ID*FWidth*FHeight)] == -1) {
-								colVal = CFrames[ti+(ID*FWidth*FHeight)]; 
+						for(int ti = 0; ti < MycRom.fWidth*MycRom.fHeight; ti++) {
+							if (MycRom.DynaMasks[ti+(ID*MycRom.fWidth*MycRom.fHeight)] == -1) {
+								colVal = MycRom.cFrames[ti+(ID*MycRom.fWidth*MycRom.fHeight)]; 
 							}
 							else {
-								colVal = Dyna4Cols[(ID * MAX_DYNA_4COLS_PER_FRAME * NOColors) + DynaMasks[ID * FWidth*FHeight + ti] * NOColors + CFrames[ti+(ID*FWidth*FHeight)]];
-								if (CFrames[ti+(ID*FWidth*FHeight)] == 0) // make dynamic area visible
-									colVal += NOColors - 1;
+								colVal = MycRom.Dyna4Cols[(ID * MAX_DYNA_4COLS_PER_FRAME * MycRom.noColors) + MycRom.DynaMasks[ID * MycRom.fWidth*MycRom.fHeight + ti] * MycRom.noColors + MycRom.cFrames[ti+(ID*MycRom.fWidth*MycRom.fHeight)]];
+								if (MycRom.cFrames[ti+(ID*MycRom.fWidth*MycRom.fHeight)] == 0) // make dynamic area visible
+									colVal += MycRom.noColors - 1;
 							}
 							if (colVal > maxColVal) maxColVal = colVal;
 							rgbFrame[ti] = actCols[colVal];
 							frame[ti] = (byte) (colVal & 0xFF);
 						}
 						
-						Mask lmask = new Mask(FWidth*FHeight/8);
-						lmask.data = createLMask(DynaMasks,ID,FWidth, FHeight);
+						Mask lmask = new Mask(MycRom.fWidth*MycRom.fHeight/8);
+						lmask.data = createLMask(MycRom.DynaMasks,ID,MycRom.fWidth, MycRom.fHeight);
 						maskhash = Arrays.hashCode(lmask.data);
 						
-						if(CompMaskID[ID] != -1) {
-							Mask dmask = new Mask(FWidth*FHeight/8);
-							dmask.data = createDMask(CompMasks,CompMaskID[ID],FWidth, FHeight);
+						if(MycRom.CompMaskID[ID] != -1) {
+							Mask dmask = new Mask(MycRom.fWidth*MycRom.fHeight/8);
+							dmask.data = createDMask(MycRom.CompMasks,MycRom.CompMaskID[ID],MycRom.fWidth, MycRom.fHeight);
 							
 							boolean dMaskExists = false;
 							for (int i = 0; i < dest.getMasks().size();i++) {
@@ -315,9 +395,9 @@ public class CRomLoader {
 								dest.getMasks().add(dmask);
 						}
 						
-						Frame f = createFrame(frame,FWidth,FHeight,(int)(Math.log(NCColors) / Math.log(2)));
+						Frame f = createFrame(frame,MycRom.fWidth,MycRom.fHeight,(int)(Math.log(MycRom.ncColors) / Math.log(2)));
 						f.mask = lmask;
-						Frame fRGB = createRGBFrame(rgbFrame,FWidth,FHeight);
+						Frame fRGB = createRGBFrame(rgbFrame,MycRom.fWidth,MycRom.fHeight);
 
 						if (maskhash == REPLACEMASK && dest.getEditMode() == EditMode.FIXED)
 							dest.setEditMode(EditMode.REPLACE);
@@ -345,7 +425,7 @@ public class CRomLoader {
 						fRGB.delay = 15;
 						f.delay = 15;
 						
-						if (maxColVal > NOColors - 1) { // only add frame if colorized
+						if (maxColVal > MycRom.noColors - 1) { // only add frame if colorized
 							destRGB.frames.add(fRGB);
 							dest.frames.add(f);
 						}
@@ -361,9 +441,6 @@ public class CRomLoader {
 					dest6planes.setDesc(bareName(filename)+"_6planes");
 					vm.scenes.put(dest6planes.getDesc(), dest6planes);
 					
-//					Palette newPalette = new Palette(CPal.get(NFrames-1).colors, palIdx, CPal.get(NFrames-1).name);
-//                	vm.paletteMap.put(palIdx, newPalette);
-//                	dest.setPalIndex(palIdx);
 					dest.end = dest.frames.size()-1;
 					dest.setDesc("scene_"+Integer.toString(sceneIdx));
 					vm.scenes.put(dest.getDesc(), dest);
