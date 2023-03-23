@@ -137,10 +137,10 @@ public class ProjectHandler extends AbstractCommandHandler {
 	 * imports a secondary project to implement a merge functionality
 	 */
 	public void onImportProject() {
-		String filename = fileChooserUtil.choose(SWT.OPEN, null, new String[] { "*.xml","*.json","*.crz" }, new String[] { "Project XML", "Project JSON", "Project CROM" });
+		String filename = fileChooserUtil.choose(SWT.OPEN, null, new String[] { "*.xml","*.json","*.crz","*.crom" }, new String[] { "Project XML", "Project JSON", "Project CRZ", "Project CROM" });
 
 		if (filename != null) {
-			if (filename.toLowerCase().endsWith(".crz")) {
+			if (filename.toLowerCase().endsWith(".crz")||filename.toLowerCase().endsWith(".crom")) {
 				importCROM(filename);
 			} else {
 				importProject(filename);

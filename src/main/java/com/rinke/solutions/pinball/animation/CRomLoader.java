@@ -4,6 +4,7 @@
 package com.rinke.solutions.pinball.animation;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -68,26 +69,26 @@ class cRP
 	// Header
 	public byte[]		name; // ROM name (no .zip, no path, example: afm_113b)
 	public byte[]		oFrames;	// UINT8[nF*fW*fH] Original frames (TXT converted to byte '2'->2)
-	public byte			activeColSet; // 4-or-16-color sets active
-	public byte			ColSets; // the 4-or-16-color sets
+	public int[]		activeColSet; // 4-or-16-color sets active
+	public byte[]		ColSets; // the 4-or-16-color sets
 	public byte			acColSet; // current 4-or-16-color set
 	public byte			preColSet; // first 4-or-16-color set displayed in the dialogbox
-	public byte			nameColSet; // caption of the colsets
+	public byte[]		nameColSet; // caption of the colsets
 	public int			DrawColMode; // 0- 1 col mode, 1- 4 color set mode, 2- gradient mode
 	public byte			Draw_Mode;	// in colorization mode: 0- point, 1- line, 2- rect, 3- circle, 4- fill
 	public int			Mask_Sel_Mode; // in comparison mode: 0- point, 1- rectangle, 2- magic wand
-	public byte			Fill_Mode; // FALSE- empty, TRUE- filled
-	public byte			Mask_Names; // the names of the synamic masks
+	public int			Fill_Mode; // FALSE- empty, TRUE- filled
+	public byte[]		Mask_Names; // the names of the synamic masks
 	public int			nSections; // number of sections in the frames
-	public int			Section_Firsts; // first frame of each section
+	public int[]		Section_Firsts; // first frame of each section
 	public byte[]		Section_Names; // Names of the sections
 	public byte[]		Sprite_Names; // Names of the sprites
-	public int			Sprite_Col_From_Frame; // Which frame is used for the palette of the sprite colors
-	public byte			Sprite_Edit_Colors; // Which color are used to edit this sprite
+	public int[]		Sprite_Col_From_Frame; // Which frame is used for the palette of the sprite colors
+	public byte[]		Sprite_Edit_Colors; // Which color are used to edit this sprite
 	public int[]		FrameDuration; // UINT32[nF] duration of the frame
 	public byte[]		SaveDir; // char[260] save directory
-	public int			SpriteRect; // UINT16[255*4] rectangle where to find the sprite in the frame Sprite_Col_From_Frame
-	public byte			SpriteRectMirror; // BOOL[255*2] has the initial rectangle been mirrored horizontally or/and vertically
+	public short[]		SpriteRect; // UINT16[255*4] rectangle where to find the sprite in the frame Sprite_Col_From_Frame
+	public int[]		SpriteRectMirror; // BOOL[255*2] has the initial rectangle been mirrored horizontally or/and vertically
 };
 
 @Slf4j
@@ -104,6 +105,11 @@ public class CRomLoader {
 	private static int MAX_SPRITE_DETECT_AREAS = 4; // maximum number of areas to detect the sprite
 	private static int REPLACEMASK = 1664589825; // hash for full mask
 	private static int COLMASKMASK = 1425784833; // hash for empty mask
+	private static int MAX_COL_SETS = 64;// max number of 4-color sets to remember
+	private static int MAX_MASKS = 64; // max number of comparison masks for comparison
+	private static int SIZE_MASK_NAME = 32; // size of dyna mask names
+	private static int MAX_SECTIONS = 512; // maximum number of frame sections
+	private static int SIZE_SECTION_NAMES = 32; // size of section names
 	
 
 	private static cRom MycRom = new cRom();
@@ -292,167 +298,237 @@ public class CRomLoader {
     	}
 	}
 	
-	public static void loadProject(String filename, ViewModel vm) {
+public static void loadcRP(LittleEndianDataInputStream reader) {
+		
 		try { 
+			
+			MycRP.name = new byte[64]; // ROM name
+			reader.read(MycRP.name);
+			MycRP.oFrames=new byte[MycRom.nFrames * MycRom.fWidth * MycRom.fHeight];
+			reader.readFully(MycRP.oFrames);
+			MycRP.activeColSet = new int[MAX_COL_SETS];
+			for (int ti = 0; ti < MAX_COL_SETS; ti++)
+				MycRP.activeColSet[ti] = reader.readInt();
+			MycRP.ColSets = new byte[MAX_COL_SETS * 16];
+			reader.readFully(MycRP.ColSets);
+			MycRP.acColSet = reader.readByte();
+			MycRP.preColSet = reader.readByte();
+			MycRP.nameColSet = new byte[MAX_COL_SETS * 64];
+			reader.readFully(MycRP.nameColSet);
+			MycRP.DrawColMode = reader.readInt();
+			if (MycRP.DrawColMode == 2) MycRP.DrawColMode = 0;
+			MycRP.Draw_Mode = reader.readByte();
+			MycRP.Mask_Sel_Mode = reader.readInt();
+			MycRP.Fill_Mode = reader.readInt();
+			MycRP.Mask_Names = new byte[MAX_MASKS * SIZE_MASK_NAME];
+			reader.readFully(MycRP.Mask_Names);
+			MycRP.nSections = reader.readInt();
+			MycRP.Section_Firsts = new int[MAX_SECTIONS];
+			for (int ti = 0; ti < MAX_SECTIONS; ti++)
+				MycRP.Section_Firsts[ti] = reader.readInt();
+			MycRP.Section_Names = new byte[MAX_SECTIONS * SIZE_SECTION_NAMES];
+			reader.readFully(MycRP.Section_Names);
+			MycRP.Sprite_Names = new byte[255 * SIZE_SECTION_NAMES];
+			reader.readFully(MycRP.Sprite_Names);
+			MycRP.Sprite_Col_From_Frame = new int[255];
+			for (int ti = 0; ti < 255; ti++)
+				MycRP.Sprite_Col_From_Frame[ti] = reader.readInt();
+			MycRP.FrameDuration=new int[MycRom.nFrames];
+			for (int ti = 0; ti < MycRom.nFrames; ti++)
+				MycRP.FrameDuration[ti] = reader.readInt();
+			MycRP.Sprite_Edit_Colors = new byte[16*255];
+			reader.readFully(MycRP.Sprite_Edit_Colors);
+			MycRP.SaveDir = new byte[260];
+			reader.readFully(MycRP.SaveDir);
+			MycRP.SpriteRect = new short[4 * 255];
+			for (int ti = 0; ti < (4 * 255); ti++)
+				MycRP.SpriteRect[ti] = reader.readShort();
+			MycRP.SpriteRectMirror = new int[2 * 255];
+			for (int ti = 0; ti < (2 * 255); ti++)
+				MycRP.SpriteRectMirror[ti] = reader.readInt();
+			
 
-			ZipFile zipFile = new ZipFile(filename);
+		} catch( IOException e2) {
+    	    log.error("error reading cRom");
+    	    throw new RuntimeException("error reading cRom");
+    	}
+	}
 	
+	public static void loadProject(String filename, ViewModel vm) {
+
+		InputStream cRomStream = null;
+		InputStream cRPStream = null;
+		try { 
+			
 			log.debug("opening file {}", filename);
-			Enumeration<? extends ZipEntry> entries = zipFile.entries();
+			if (filename.toLowerCase().endsWith(".crz")) {
+				ZipFile zipFile = new ZipFile(filename);
+				Enumeration<? extends ZipEntry> entries = zipFile.entries();
 	
-			while (entries.hasMoreElements()) {
-				ZipEntry entry = entries.nextElement();
-				if (entry.getName().endsWith(".cRom")) {
-					log.debug("found cRom file {}", entry.getName());
-					InputStream stream = zipFile.getInputStream(entry);
-					LittleEndianDataInputStream reader = new LittleEndianDataInputStream (stream);
-	
-					// now read everything see
-					
-					loadcRom(reader);
-	
-					reader.close();
-					
-					java.util.List<Palette> CPal = new ArrayList<>(); // Palette for each colorized frames
-					
-					for(int palidx = 0; palidx < MycRom.nFrames; palidx++) {
-						RGB[] cols = new RGB[MycRom.ncColors];
-						for( int i = 0; i < MycRom.ncColors; i++) {
-							cols[i] = new RGB(
-									unsignedByte(MycRom.cPal[(palidx * MycRom.ncColors * 3) + (i * 3)]),
-									unsignedByte(MycRom.cPal[(palidx * MycRom.ncColors * 3) + (i * 3) + 1]),
-									unsignedByte(MycRom.cPal[(palidx * MycRom.ncColors * 3) + (i * 3) + 2])
-									);
-						}
-						String name = "new" + UUID.randomUUID().toString().substring(0, 4);
-						Palette newPalette = new Palette(cols, palidx, name);
-						CPal.add(newPalette);
+				while (entries.hasMoreElements()) {
+					ZipEntry entry = entries.nextElement();
+					if (entry.getName().endsWith(".cRom")) {
+						log.debug("found cRom file {} in cRZ", entry.getName());
+						cRomStream = zipFile.getInputStream(entry);
+						break;
 					}
+				}
+			} else if(filename.toLowerCase().endsWith(".crom")) {
+				File cRomFile = new File(filename);
+				cRomStream = new FileInputStream(cRomFile);
+				String cRPfilename = filename.substring(0, filename.indexOf('.')) + ".crp";
+				File cRPFile = new File(cRPfilename);
+				cRPStream = new FileInputStream(cRPFile);
+			} else {
+				return;
+			}
+			
+			LittleEndianDataInputStream cRomReader = new LittleEndianDataInputStream (cRomStream);
+			loadcRom(cRomReader);
+			cRomReader.close();
+			
+			LittleEndianDataInputStream cRPReader = new LittleEndianDataInputStream (cRPStream);
+			loadcRP(cRPReader);
+			cRPReader.close();
+			
+			
+		} catch( IOException e2) {
+		    log.error("error on load "+filename,e2);
+		    throw new RuntimeException("error on load "+filename, e2);
+		}
 
-					CompiledAnimation destRGB = createAni(MycRom.fWidth, MycRom.fHeight, bareName(filename) + "_RGB");
-					CompiledAnimation dest = createAni(MycRom.fWidth, MycRom.fHeight, "0");
-					CompiledAnimation dest6planes = createAni(MycRom.fWidth, MycRom.fHeight, bareName(filename) + "_6planes");
+		
+		java.util.List<Palette> CPal = new ArrayList<>(); // Palette for each colorized frames
+		
+		for(int palidx = 0; palidx < MycRom.nFrames; palidx++) {
+			RGB[] cols = new RGB[MycRom.ncColors];
+			for( int i = 0; i < MycRom.ncColors; i++) {
+				cols[i] = new RGB(
+						unsignedByte(MycRom.cPal[(palidx * MycRom.ncColors * 3) + (i * 3)]),
+						unsignedByte(MycRom.cPal[(palidx * MycRom.ncColors * 3) + (i * 3) + 1]),
+						unsignedByte(MycRom.cPal[(palidx * MycRom.ncColors * 3) + (i * 3) + 2])
+						);
+			}
+			String name = "new" + UUID.randomUUID().toString().substring(0, 4);
+			Palette newPalette = new Palette(cols, palidx, name);
+			CPal.add(newPalette);
+		}
 
-					int palIdx = 0;
-					int sceneIdx = 0;
-					int maskhash = 0;
-					
-					RGB[] actCols = new RGB[MycRom.ncColors];
-					
-					vm.paletteMap.clear();
-					
-					for(int ID = 0; ID < MycRom.nFrames; ID++) {
-						
-						RGB[] rgbFrame = new RGB[MycRom.fWidth*MycRom.fHeight];
-						byte[] frame = new byte[MycRom.fWidth*MycRom.fHeight];
+		CompiledAnimation destRGB = createAni(MycRom.fWidth, MycRom.fHeight, bareName(filename) + "_RGB");
+		CompiledAnimation dest = createAni(MycRom.fWidth, MycRom.fHeight, "0");
+		CompiledAnimation dest6planes = createAni(MycRom.fWidth, MycRom.fHeight, bareName(filename) + "_6planes");
 
-						if ((Arrays.hashCode(actCols) != Arrays.hashCode(CPal.get(ID).colors)) && (ID != 0)) {
-							dest.end = dest.frames.size()-1;
-							dest.setDesc("scene_"+Integer.toString(sceneIdx));
-							if (dest.frames.size() != 0) {
-								vm.scenes.put(dest.getDesc(), dest);
-								sceneIdx++;
-								dest = createAni(MycRom.fWidth, MycRom.fHeight, "scene_"+Integer.toString(sceneIdx));
-								dest.setPalIndex(palIdx);
-							}
-						}
-						
-						actCols = CPal.get(ID).colors;
+		int palIdx = 0;
+		int sceneIdx = 0;
+		int maskhash = 0;
+		
+		RGB[] actCols = new RGB[MycRom.ncColors];
+		
+		vm.paletteMap.clear();
+		
+		for(int ID = 0; ID < MycRom.nFrames; ID++) {
+			
+			RGB[] rgbFrame = new RGB[MycRom.fWidth*MycRom.fHeight];
+			byte[] frame = new byte[MycRom.fWidth*MycRom.fHeight];
 
-						int colVal = 0;
-						int maxColVal = 0;
-						
-						for(int ti = 0; ti < MycRom.fWidth*MycRom.fHeight; ti++) {
-							if (MycRom.DynaMasks[ti+(ID*MycRom.fWidth*MycRom.fHeight)] == -1) {
-								colVal = MycRom.cFrames[ti+(ID*MycRom.fWidth*MycRom.fHeight)]; 
-							}
-							else {
-								colVal = MycRom.Dyna4Cols[(ID * MAX_DYNA_4COLS_PER_FRAME * MycRom.noColors) + MycRom.DynaMasks[ID * MycRom.fWidth*MycRom.fHeight + ti] * MycRom.noColors + MycRom.cFrames[ti+(ID*MycRom.fWidth*MycRom.fHeight)]];
-								if (MycRom.cFrames[ti+(ID*MycRom.fWidth*MycRom.fHeight)] == 0) // make dynamic area visible
-									colVal += MycRom.noColors - 1;
-							}
-							if (colVal > maxColVal) maxColVal = colVal;
-							rgbFrame[ti] = actCols[colVal];
-							frame[ti] = (byte) (colVal & 0xFF);
-						}
-						
-						Mask lmask = new Mask(MycRom.fWidth*MycRom.fHeight/8);
-						lmask.data = createLMask(MycRom.DynaMasks,ID,MycRom.fWidth, MycRom.fHeight);
-						maskhash = Arrays.hashCode(lmask.data);
-						
-						if(MycRom.CompMaskID[ID] != -1) {
-							Mask dmask = new Mask(MycRom.fWidth*MycRom.fHeight/8);
-							dmask.data = createDMask(MycRom.CompMasks,MycRom.CompMaskID[ID],MycRom.fWidth, MycRom.fHeight);
-							
-							boolean dMaskExists = false;
-							for (int i = 0; i < dest.getMasks().size();i++) {
-								if(Arrays.hashCode(dmask.data) == Arrays.hashCode(dest.getMask(i).data)) {
-		                        	dMaskExists = true;
-		                        	break;
-		                        }
-		                    }
-							if (!dMaskExists)
-								dest.getMasks().add(dmask);
-						}
-						
-						Frame f = createFrame(frame,MycRom.fWidth,MycRom.fHeight,(int)(Math.log(MycRom.ncColors) / Math.log(2)));
-						f.mask = lmask;
-						Frame fRGB = createRGBFrame(rgbFrame,MycRom.fWidth,MycRom.fHeight);
-
-						if (maskhash == REPLACEMASK && dest.getEditMode() == EditMode.FIXED)
-							dest.setEditMode(EditMode.REPLACE);
-						else if (maskhash == COLMASKMASK && dest.getEditMode() == EditMode.FIXED)
-							dest.setEditMode(EditMode.COLMASK);
-						else if (maskhash != REPLACEMASK && maskhash != COLMASKMASK)
-							dest.setEditMode(EditMode.LAYEREDREPLACE);
-						
-						// only add palette if not already in the project
-						boolean palExists = false;
-	                    for (Palette pals : vm.paletteMap.values()) {
-	                        if (pals.sameColors(actCols)) {
-	                        	dest.setPalIndex(pals.index);
-	                        	palExists = true;
-	                        	break;
-	                        }
-	                    }
-	                    if (!palExists) {
-	                    	Palette newPalette = new Palette(CPal.get(ID).colors, palIdx, CPal.get(ID).name);
-	                    	vm.paletteMap.put(palIdx, newPalette);
-	                    	dest.setPalIndex(palIdx);
-	                    	palIdx++;
-	                    } 
-
-						fRGB.delay = 15;
-						f.delay = 15;
-						
-						if (maxColVal > MycRom.noColors - 1) { // only add frame if colorized
-							destRGB.frames.add(fRGB);
-							dest.frames.add(f);
-						}
-						
-						dest6planes.frames.add(f);
-					}
-					
-					destRGB.end = destRGB.frames.size()-1;
-					destRGB.setDesc(bareName(filename)+"_RGB");
-					vm.scenes.put(destRGB.getDesc(), destRGB);
-					
-					dest6planes.end = dest6planes.frames.size()-1;
-					dest6planes.setDesc(bareName(filename)+"_6planes");
-					vm.scenes.put(dest6planes.getDesc(), dest6planes);
-					
-					dest.end = dest.frames.size()-1;
-					dest.setDesc("scene_"+Integer.toString(sceneIdx));
+			if ((Arrays.hashCode(actCols) != Arrays.hashCode(CPal.get(ID).colors)) && (ID != 0)) {
+				dest.end = dest.frames.size()-1;
+				dest.setDesc("scene_"+Integer.toString(sceneIdx));
+				if (dest.frames.size() != 0) {
 					vm.scenes.put(dest.getDesc(), dest);
-					
-				} else {
-					log.error("zip does not contain cRom file");
+					sceneIdx++;
+					dest = createAni(MycRom.fWidth, MycRom.fHeight, "scene_"+Integer.toString(sceneIdx));
+					dest.setPalIndex(palIdx);
 				}
 			}
-			zipFile.close();
-		} catch( IOException e2) {
-    	    log.error("error on load "+filename,e2);
-    	    throw new RuntimeException("error on load "+filename, e2);
-    	}
+			
+			actCols = CPal.get(ID).colors;
+
+			int colVal = 0;
+			int maxColVal = 0;
+			
+			for(int ti = 0; ti < MycRom.fWidth*MycRom.fHeight; ti++) {
+				if (MycRom.DynaMasks[ti+(ID*MycRom.fWidth*MycRom.fHeight)] == -1) {
+					colVal = MycRom.cFrames[ti+(ID*MycRom.fWidth*MycRom.fHeight)]; 
+				}
+				else {
+					colVal = MycRom.Dyna4Cols[(ID * MAX_DYNA_4COLS_PER_FRAME * MycRom.noColors) + MycRom.DynaMasks[ID * MycRom.fWidth*MycRom.fHeight + ti] * MycRom.noColors + MycRom.cFrames[ti+(ID*MycRom.fWidth*MycRom.fHeight)]];
+					if (MycRom.cFrames[ti+(ID*MycRom.fWidth*MycRom.fHeight)] == 0) // make dynamic area visible
+						colVal += MycRom.noColors - 1;
+				}
+				if (colVal > maxColVal) maxColVal = colVal;
+				rgbFrame[ti] = actCols[colVal];
+				frame[ti] = (byte) (colVal & 0xFF);
+			}
+			
+			Mask lmask = new Mask(MycRom.fWidth*MycRom.fHeight/8);
+			lmask.data = createLMask(MycRom.DynaMasks,ID,MycRom.fWidth, MycRom.fHeight);
+			maskhash = Arrays.hashCode(lmask.data);
+			
+			if(MycRom.CompMaskID[ID] != -1) {
+				Mask dmask = new Mask(MycRom.fWidth*MycRom.fHeight/8);
+				dmask.data = createDMask(MycRom.CompMasks,MycRom.CompMaskID[ID],MycRom.fWidth, MycRom.fHeight);
+				
+				boolean dMaskExists = false;
+				for (int i = 0; i < dest.getMasks().size();i++) {
+					if(Arrays.hashCode(dmask.data) == Arrays.hashCode(dest.getMask(i).data)) {
+                    	dMaskExists = true;
+                    	break;
+                    }
+                }
+				if (!dMaskExists)
+					dest.getMasks().add(dmask);
+			}
+			
+			Frame f = createFrame(frame,MycRom.fWidth,MycRom.fHeight,(int)(Math.log(MycRom.ncColors) / Math.log(2)));
+			f.mask = lmask;
+			Frame fRGB = createRGBFrame(rgbFrame,MycRom.fWidth,MycRom.fHeight);
+
+			if (maskhash == REPLACEMASK && dest.getEditMode() == EditMode.FIXED)
+				dest.setEditMode(EditMode.REPLACE);
+			else if (maskhash == COLMASKMASK && dest.getEditMode() == EditMode.FIXED)
+				dest.setEditMode(EditMode.COLMASK);
+			else if (maskhash != REPLACEMASK && maskhash != COLMASKMASK)
+				dest.setEditMode(EditMode.LAYEREDREPLACE);
+			
+			// only add palette if not already in the project
+			boolean palExists = false;
+            for (Palette pals : vm.paletteMap.values()) {
+                if (pals.sameColors(actCols)) {
+                	dest.setPalIndex(pals.index);
+                	palExists = true;
+                	break;
+                }
+            }
+            if (!palExists) {
+            	Palette newPalette = new Palette(CPal.get(ID).colors, palIdx, CPal.get(ID).name);
+            	vm.paletteMap.put(palIdx, newPalette);
+            	dest.setPalIndex(palIdx);
+            	palIdx++;
+            } 
+
+			fRGB.delay = 15;
+			f.delay = 15;
+			
+			if (maxColVal > MycRom.noColors - 1) { // only add frame if colorized
+				destRGB.frames.add(fRGB);
+				dest.frames.add(f);
+			}
+			
+			dest6planes.frames.add(f);
+		}
+		
+		destRGB.end = destRGB.frames.size()-1;
+		destRGB.setDesc(bareName(filename)+"_RGB");
+		vm.scenes.put(destRGB.getDesc(), destRGB);
+		
+		dest6planes.end = dest6planes.frames.size()-1;
+		dest6planes.setDesc(bareName(filename)+"_6planes");
+		vm.scenes.put(dest6planes.getDesc(), dest6planes);
+		
+		dest.end = dest.frames.size()-1;
+		dest.setDesc("scene_"+Integer.toString(sceneIdx));
+		vm.scenes.put(dest.getDesc(), dest);
+			
 	}
 }
