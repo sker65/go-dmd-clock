@@ -3,8 +3,10 @@
 
 package com.rinke.solutions.pinball.animation;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -24,6 +26,7 @@ import com.rinke.solutions.pinball.model.Plane;
 import com.rinke.solutions.pinball.model.RGB;
 
 import com.rinke.solutions.pinball.view.model.ViewModel;
+import java.util.zip.GZIPOutputStream;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -112,8 +115,8 @@ public class CRomLoader {
 	private static int SIZE_SECTION_NAMES = 32; // size of section names
 	
 
-	private static cRom MycRom = new cRom();
-	private static cRP MycRP = new cRP();
+	private static cRom MycRom = null;
+	private static cRP MycRP = null;
 	
 	static String bareName(String filename) {
 		String b = new File(filename).getName();
@@ -349,8 +352,8 @@ public static void loadcRP(LittleEndianDataInputStream reader) {
 			
 
 		} catch( IOException e2) {
-    	    log.error("error reading cRom");
-    	    throw new RuntimeException("error reading cRom");
+    	    log.error("error reading cRP");
+    	    throw new RuntimeException("error reading cRP");
     	}
 	}
 	
@@ -373,9 +376,12 @@ public static void loadcRP(LittleEndianDataInputStream reader) {
 						break;
 					}
 				}
+				MycRom = new cRom();
 			} else if(filename.toLowerCase().endsWith(".crom")) {
+				MycRom = new cRom();
 				File cRomFile = new File(filename);
 				cRomStream = new FileInputStream(cRomFile);
+				MycRP = new cRP();
 				String cRPfilename = filename.substring(0, filename.indexOf('.')) + ".crp";
 				File cRPFile = new File(cRPfilename);
 				cRPStream = new FileInputStream(cRPFile);
@@ -387,9 +393,49 @@ public static void loadcRP(LittleEndianDataInputStream reader) {
 			loadcRom(cRomReader);
 			cRomReader.close();
 			
-			LittleEndianDataInputStream cRPReader = new LittleEndianDataInputStream (cRPStream);
-			loadcRP(cRPReader);
-			cRPReader.close();
+			if (MycRP != null) {
+				LittleEndianDataInputStream cRPReader = new LittleEndianDataInputStream (cRPStream);
+				loadcRP(cRPReader);
+				cRPReader.close();
+				// now create dump file from cRP
+				GZIPOutputStream gos = null;
+
+		        File myGzipFile = new File(filename.substring(0, filename.indexOf('.')) + ".txt.gz");
+		        gos = new GZIPOutputStream(new FileOutputStream(myGzipFile));
+		        
+		        long tick = System.currentTimeMillis();
+		        InputStream is = null;
+		        byte[] buffer = new byte[1024];
+		        int len;
+		        for (int kk = 0; kk < MycRom.nFrames; kk++) {
+		        	String tickStr = String.format("0x%08x", tick);
+			        is = new ByteArrayInputStream(tickStr.getBytes());
+			        buffer = new byte[1024];
+			        while ((len = is.read(buffer)) != -1) {
+    		            gos.write(buffer, 0, len);
+    		        }
+			        gos.write(0x0D);
+	                gos.write(0x0A);
+		        	for (int jj = 0; jj < MycRom.fHeight; jj++) {
+		                for (int ii = 0; ii < MycRom.fWidth; ii++)
+		                {
+		                	byte col = MycRP.oFrames[(kk * MycRom.fWidth * MycRom.fHeight) + jj * MycRom.fWidth + ii];
+		                	String str = String.format("%01x", col);
+		    		        is = new ByteArrayInputStream(str.getBytes());
+		    		        buffer = new byte[1024];
+		    		        while ((len = is.read(buffer)) != -1) {
+		    		            gos.write(buffer, 0, len);
+		    		        }
+		                }
+		                gos.write(0x0D);
+		                gos.write(0x0A);
+		            }
+		            tick = tick + MycRP.FrameDuration[kk];
+	                gos.write(0x0D);
+	                gos.write(0x0A);
+		        }
+		        gos.close();
+			}
 			
 			
 		} catch( IOException e2) {
@@ -453,8 +499,13 @@ public static void loadcRP(LittleEndianDataInputStream reader) {
 				}
 				else {
 					colVal = MycRom.Dyna4Cols[(ID * MAX_DYNA_4COLS_PER_FRAME * MycRom.noColors) + MycRom.DynaMasks[ID * MycRom.fWidth*MycRom.fHeight + ti] * MycRom.noColors + MycRom.cFrames[ti+(ID*MycRom.fWidth*MycRom.fHeight)]];
-					if (MycRom.cFrames[ti+(ID*MycRom.fWidth*MycRom.fHeight)] == 0) // make dynamic area visible
-						colVal += MycRom.noColors - 1;
+					if (MycRom.cFrames[ti+(ID*MycRom.fWidth*MycRom.fHeight)] == 0) { // make dynamic area visible
+						if (MycRP == null) {
+							colVal += MycRom.noColors - 1;
+						} else {
+							colVal += MycRP.oFrames[ti+(ID*MycRom.fWidth*MycRom.fHeight)];
+						}
+					}
 				}
 				if (colVal > maxColVal) maxColVal = colVal;
 				rgbFrame[ti] = actCols[colVal];
@@ -506,9 +557,14 @@ public static void loadcRP(LittleEndianDataInputStream reader) {
             	dest.setPalIndex(palIdx);
             	palIdx++;
             } 
-
-			fRGB.delay = 15;
-			f.delay = 15;
+            
+            if (MycRP == null) {
+            	fRGB.delay = 15;
+            	f.delay = 15;
+			} else {
+				fRGB.delay = MycRP.FrameDuration[ID];
+            	f.delay = MycRP.FrameDuration[ID];;
+			}
 			
 			if (maxColVal > MycRom.noColors - 1) { // only add frame if colorized
 				destRGB.frames.add(fRGB);
