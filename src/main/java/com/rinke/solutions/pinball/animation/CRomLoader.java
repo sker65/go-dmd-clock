@@ -16,10 +16,14 @@ import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import org.apache.commons.io.FilenameUtils;
+
 import com.google.common.io.LittleEndianDataInputStream;
 import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.animation.Animation.EditMode;
+import com.rinke.solutions.pinball.animation.CompiledAnimation.RecordingLink;
 import com.rinke.solutions.pinball.model.Frame;
+import com.rinke.solutions.pinball.model.FrameLink;
 import com.rinke.solutions.pinball.model.Mask;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.Plane;
@@ -435,6 +439,10 @@ public static void loadcRP(LittleEndianDataInputStream reader) {
 	                gos.write(0x0A);
 		        }
 		        gos.close();
+		        String basefile = FilenameUtils.getBaseName(filename.substring(0, filename.indexOf('.')) + ".txt.gz") + "." + FilenameUtils.getExtension(filename.substring(0, filename.indexOf('.')) + ".txt.gz");
+		        vm.inputFiles.add(basefile);
+		        Animation ani = AnimationFactory.buildAnimationFromFile(filename.substring(0, filename.indexOf('.')) + ".txt.gz", AnimationType.MAME, vm.numberOfColors);
+		        vm.recordings.put(ani.getDesc(), ani);
 			}
 			
 			
@@ -481,6 +489,9 @@ public static void loadcRP(LittleEndianDataInputStream reader) {
 				dest.end = dest.frames.size()-1;
 				dest.setDesc("scene_"+Integer.toString(sceneIdx));
 				if (dest.frames.size() != 0) {
+					if (MycRP != null) {
+						dest.setRecordingLink(new RecordingLink(dest.frames.get(0).frameLink.recordingName , dest.frames.get(0).frameLink.frame));
+					}
 					vm.scenes.put(dest.getDesc(), dest);
 					sceneIdx++;
 					dest = createAni(MycRom.fWidth, MycRom.fHeight, "scene_"+Integer.toString(sceneIdx));
@@ -563,7 +574,8 @@ public static void loadcRP(LittleEndianDataInputStream reader) {
             	f.delay = 15;
 			} else {
 				fRGB.delay = MycRP.FrameDuration[ID];
-            	f.delay = MycRP.FrameDuration[ID];;
+            	f.delay = MycRP.FrameDuration[ID];
+            	f.frameLink = new FrameLink(FilenameUtils.getBaseName(filename),ID);
 			}
 			
 			if (maxColVal > MycRom.noColors - 1) { // only add frame if colorized
@@ -574,6 +586,16 @@ public static void loadcRP(LittleEndianDataInputStream reader) {
 			dest6planes.frames.add(f);
 		}
 		
+		
+		if (dest.frames.size() != 0) {
+			dest.end = dest.frames.size()-1;
+			dest.setDesc("scene_"+Integer.toString(sceneIdx));
+			if (MycRP != null) {
+				dest.setRecordingLink(new RecordingLink(dest.frames.get(0).frameLink.recordingName , dest.frames.get(0).frameLink.frame));
+			}
+			vm.scenes.put(dest.getDesc(), dest);
+		}
+
 		destRGB.end = destRGB.frames.size()-1;
 		destRGB.setDesc(bareName(filename)+"_RGB");
 		vm.scenes.put(destRGB.getDesc(), destRGB);
@@ -581,10 +603,6 @@ public static void loadcRP(LittleEndianDataInputStream reader) {
 		dest6planes.end = dest6planes.frames.size()-1;
 		dest6planes.setDesc(bareName(filename)+"_6planes");
 		vm.scenes.put(dest6planes.getDesc(), dest6planes);
-		
-		dest.end = dest.frames.size()-1;
-		dest.setDesc("scene_"+Integer.toString(sceneIdx));
-		vm.scenes.put(dest.getDesc(), dest);
 			
 	}
 }
