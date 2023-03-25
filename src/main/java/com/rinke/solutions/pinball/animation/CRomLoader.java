@@ -30,6 +30,9 @@ import com.rinke.solutions.pinball.model.Plane;
 import com.rinke.solutions.pinball.model.RGB;
 
 import com.rinke.solutions.pinball.view.model.ViewModel;
+
+import javassist.bytecode.ByteArray;
+
 import java.util.zip.GZIPOutputStream;
 
 import lombok.extern.slf4j.Slf4j;
@@ -88,7 +91,7 @@ class cRP
 	public byte[]		Mask_Names; // the names of the synamic masks
 	public int			nSections; // number of sections in the frames
 	public int[]		Section_Firsts; // first frame of each section
-	public byte[]		Section_Names; // Names of the sections
+	public byte[][]		Section_Names; // Names of the sections
 	public byte[]		Sprite_Names; // Names of the sprites
 	public int[]		Sprite_Col_From_Frame; // Which frame is used for the palette of the sprite colors
 	public byte[]		Sprite_Edit_Colors; // Which color are used to edit this sprite
@@ -333,8 +336,9 @@ public static void loadcRP(LittleEndianDataInputStream reader) {
 			MycRP.Section_Firsts = new int[MAX_SECTIONS];
 			for (int ti = 0; ti < MAX_SECTIONS; ti++)
 				MycRP.Section_Firsts[ti] = reader.readInt();
-			MycRP.Section_Names = new byte[MAX_SECTIONS * SIZE_SECTION_NAMES];
-			reader.readFully(MycRP.Section_Names);
+			MycRP.Section_Names = new byte[MAX_SECTIONS] [SIZE_SECTION_NAMES];
+			for (int ti = 0; ti < MAX_SECTIONS; ti++)
+				reader.readFully(MycRP.Section_Names[ti]);
 			MycRP.Sprite_Names = new byte[255 * SIZE_SECTION_NAMES];
 			reader.readFully(MycRP.Sprite_Names);
 			MycRP.Sprite_Col_From_Frame = new int[255];
@@ -479,15 +483,30 @@ public static void loadcRP(LittleEndianDataInputStream reader) {
 		RGB[] actCols = new RGB[MycRom.ncColors];
 		
 		vm.paletteMap.clear();
+
+		String sectName = null;
 		
 		for(int ID = 0; ID < MycRom.nFrames; ID++) {
 			
 			RGB[] rgbFrame = new RGB[MycRom.fWidth*MycRom.fHeight];
 			byte[] frame = new byte[MycRom.fWidth*MycRom.fHeight];
+			
+			if (MycRP != null) {
+				for(int sects = 0; sects < MycRP.nSections; sects++) {
+					if (MycRP.Section_Firsts[sects] == ID) {
+						sectName = new String(MycRP.Section_Names[sects]).split("\0")[0];
+						break;
+					}
+				}
+			}
 
 			if ((Arrays.hashCode(actCols) != Arrays.hashCode(CPal.get(ID).colors)) && (ID != 0)) {
 				dest.end = dest.frames.size()-1;
-				dest.setDesc("scene_"+Integer.toString(sceneIdx));
+				if (sectName == null) {
+					dest.setDesc("scene_"+Integer.toString(sceneIdx));
+				} else {
+					dest.setDesc(sectName + "_" + Integer.toString(sceneIdx));
+				}
 				if (dest.frames.size() != 0) {
 					if (MycRP != null) {
 						dest.setRecordingLink(new RecordingLink(dest.frames.get(0).frameLink.recordingName , dest.frames.get(0).frameLink.frame));
