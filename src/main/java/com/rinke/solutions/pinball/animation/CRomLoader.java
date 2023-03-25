@@ -509,13 +509,10 @@ public static void loadcRP(LittleEndianDataInputStream reader) {
 					colVal = MycRom.cFrames[ti+(ID*MycRom.fWidth*MycRom.fHeight)]; 
 				}
 				else {
-					colVal = MycRom.Dyna4Cols[(ID * MAX_DYNA_4COLS_PER_FRAME * MycRom.noColors) + MycRom.DynaMasks[ID * MycRom.fWidth*MycRom.fHeight + ti] * MycRom.noColors + MycRom.cFrames[ti+(ID*MycRom.fWidth*MycRom.fHeight)]];
-					if (MycRom.cFrames[ti+(ID*MycRom.fWidth*MycRom.fHeight)] == 0) { // make dynamic area visible
-						if (MycRP == null) {
-							colVal += MycRom.noColors - 1;
-						} else {
-							colVal += MycRP.oFrames[ti+(ID*MycRom.fWidth*MycRom.fHeight)];
-						}
+					if (MycRP == null) {
+						colVal = MycRom.Dyna4Cols[ID * MAX_DYNA_4COLS_PER_FRAME * MycRom.noColors + MycRom.DynaMasks[ID * MycRom.fWidth*MycRom.fHeight + ti] * MycRom.noColors + (MycRom.noColors - 1)];
+					} else {
+						colVal = MycRom.Dyna4Cols[ID * MAX_DYNA_4COLS_PER_FRAME * MycRom.noColors + MycRom.DynaMasks[ID * MycRom.fWidth*MycRom.fHeight + ti] * MycRom.noColors + MycRP.oFrames[ti+(ID*MycRom.fWidth*MycRom.fHeight)]];
 					}
 				}
 				if (colVal > maxColVal) maxColVal = colVal;
