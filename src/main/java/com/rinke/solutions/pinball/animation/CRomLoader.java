@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -25,6 +26,8 @@ import com.rinke.solutions.pinball.animation.CompiledAnimation.RecordingLink;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.FrameLink;
 import com.rinke.solutions.pinball.model.Mask;
+import com.rinke.solutions.pinball.model.PalMapping;
+import com.rinke.solutions.pinball.model.PalMapping.SwitchMode;
 import com.rinke.solutions.pinball.model.Palette;
 import com.rinke.solutions.pinball.model.Plane;
 import com.rinke.solutions.pinball.model.RGB;
@@ -218,6 +221,17 @@ public class CRomLoader {
 	public static int unsignedByte(byte b) {
 	    return b & 0xFF;
 	}
+	
+	public static String getPrintableHash(byte[] p) {
+		StringBuffer hexString = new StringBuffer();
+		for (int j = 0; j < p.length; j++)
+			hexString.append(String.format("%02X", p[j]));
+		return hexString.toString();
+	}
+	
+	public static String getEmptyHash() {
+		return (MycRom.fWidth == 128 && MycRom.fHeight == 32) ? "B2AA7578" : "6C1CE17E";
+	}
 
 	public static void loadcRom(LittleEndianDataInputStream reader) {
 		
@@ -369,6 +383,9 @@ public static void loadcRP(LittleEndianDataInputStream reader) {
 
 		InputStream cRomStream = null;
 		InputStream cRPStream = null;
+		
+		Animation recordingAni = null;
+		
 		try { 
 			
 			log.debug("opening file {}", filename);
@@ -445,8 +462,9 @@ public static void loadcRP(LittleEndianDataInputStream reader) {
 		        gos.close();
 		        String basefile = FilenameUtils.getBaseName(filename.substring(0, filename.indexOf('.')) + ".txt.gz") + "." + FilenameUtils.getExtension(filename.substring(0, filename.indexOf('.')) + ".txt.gz");
 		        vm.inputFiles.add(basefile);
-		        Animation ani = AnimationFactory.buildAnimationFromFile(filename.substring(0, filename.indexOf('.')) + ".txt.gz", AnimationType.MAME, vm.numberOfColors);
-		        vm.recordings.put(ani.getDesc(), ani);
+		        recordingAni = AnimationFactory.buildAnimationFromFile(filename.substring(0, filename.indexOf('.')) + ".txt.gz", AnimationType.MAME, vm.numberOfColors);
+		        vm.recordings.put(recordingAni.getDesc(), recordingAni);
+		        vm.setSelectedRecording(recordingAni);
 			}
 			
 			
@@ -455,30 +473,12 @@ public static void loadcRP(LittleEndianDataInputStream reader) {
 		    throw new RuntimeException("error on load "+filename, e2);
 		}
 
-		
-		java.util.List<Palette> CPal = new ArrayList<>(); // Palette for each colorized frames
-		
-		for(int palidx = 0; palidx < MycRom.nFrames; palidx++) {
-			RGB[] cols = new RGB[MycRom.ncColors];
-			for( int i = 0; i < MycRom.ncColors; i++) {
-				cols[i] = new RGB(
-						unsignedByte(MycRom.cPal[(palidx * MycRom.ncColors * 3) + (i * 3)]),
-						unsignedByte(MycRom.cPal[(palidx * MycRom.ncColors * 3) + (i * 3) + 1]),
-						unsignedByte(MycRom.cPal[(palidx * MycRom.ncColors * 3) + (i * 3) + 2])
-						);
-			}
-			String name = "new" + UUID.randomUUID().toString().substring(0, 4);
-			Palette newPalette = new Palette(cols, palidx, name);
-			CPal.add(newPalette);
-		}
-
 		CompiledAnimation destRGB = createAni(MycRom.fWidth, MycRom.fHeight, bareName(filename) + "_RGB");
 		CompiledAnimation dest = createAni(MycRom.fWidth, MycRom.fHeight, "0");
 		CompiledAnimation dest6planes = createAni(MycRom.fWidth, MycRom.fHeight, bareName(filename) + "_6planes");
 
 		int palIdx = 0;
 		int sceneIdx = 0;
-		int maskhash = 0;
 		
 		RGB[] actCols = new RGB[MycRom.ncColors];
 		
@@ -499,8 +499,19 @@ public static void loadcRP(LittleEndianDataInputStream reader) {
 					}
 				}
 			}
+			
+			RGB[] cols = new RGB[MycRom.ncColors];
+			for( int i = 0; i < MycRom.ncColors; i++) {
+				cols[i] = new RGB(
+						unsignedByte(MycRom.cPal[(ID * MycRom.ncColors * 3) + (i * 3)]),
+						unsignedByte(MycRom.cPal[(ID * MycRom.ncColors * 3) + (i * 3) + 1]),
+						unsignedByte(MycRom.cPal[(ID * MycRom.ncColors * 3) + (i * 3) + 2])
+						);
+			}
+			String name = "new" + UUID.randomUUID().toString().substring(0, 4);
+			Palette cPalette = new Palette(cols, ID, name);
 
-			if ((Arrays.hashCode(actCols) != Arrays.hashCode(CPal.get(ID).colors)) && (ID != 0)) {
+			if ((Arrays.hashCode(actCols) != Arrays.hashCode(cPalette.colors)) && (ID != 0)) {
 				dest.end = dest.frames.size()-1;
 				if (sectName == null) {
 					dest.setDesc("scene_"+Integer.toString(sceneIdx));
@@ -512,13 +523,27 @@ public static void loadcRP(LittleEndianDataInputStream reader) {
 						dest.setRecordingLink(new RecordingLink(dest.frames.get(0).frameLink.recordingName , dest.frames.get(0).frameLink.frame));
 					}
 					vm.scenes.put(dest.getDesc(), dest);
+					if (MycRP != null) {
+						for (int i = 0; i < dest.frames.size(); i++) {
+							PalMapping palMapping = new PalMapping(dest.getPalIndex(), dest.getDesc());
+							palMapping.setDigest(dest.frames.get(i).crc32);
+							palMapping.switchMode = SwitchMode.LAYEREDREPLACE;
+							palMapping.frameIndex = ID - dest.frames.size() + i;
+	//						palMapping.withMask = true;
+	//						palMapping.maskNumber = vm.selectedMaskNumber;
+							palMapping.frameSeqName = dest.getDesc();
+							palMapping.name = dest.getDesc() + "_" +Integer.toString(i);
+							vm.keyframes.put(dest.getDesc() + "_" + Integer.toString(i), palMapping);
+							//String duplicateName = checkForDuplicateKeyFrames(palMapping);
+						}
+					}
 					sceneIdx++;
 					dest = createAni(MycRom.fWidth, MycRom.fHeight, "scene_"+Integer.toString(sceneIdx));
 					dest.setPalIndex(palIdx);
 				}
 			}
 			
-			actCols = CPal.get(ID).colors;
+			actCols = cPalette.colors;
 
 			int colVal = 0;
 			int maxColVal = 0;
@@ -541,10 +566,11 @@ public static void loadcRP(LittleEndianDataInputStream reader) {
 			
 			Mask lmask = new Mask(MycRom.fWidth*MycRom.fHeight/8);
 			lmask.data = createLMask(MycRom.DynaMasks,ID,MycRom.fWidth, MycRom.fHeight);
-			maskhash = Arrays.hashCode(lmask.data);
+			
+			Mask dmask = new Mask(MycRom.fWidth*MycRom.fHeight/8);
 			
 			if(MycRom.CompMaskID[ID] != -1) {
-				Mask dmask = new Mask(MycRom.fWidth*MycRom.fHeight/8);
+
 				dmask.data = createDMask(MycRom.CompMasks,MycRom.CompMaskID[ID],MycRom.fWidth, MycRom.fHeight);
 				
 				boolean dMaskExists = false;
@@ -554,20 +580,57 @@ public static void loadcRP(LittleEndianDataInputStream reader) {
                     	break;
                     }
                 }
-				if (!dMaskExists)
+				if (!dMaskExists) {
 					dest.getMasks().add(dmask);
+					dest.lockMask(dest.getMasks().size()-1);
+				}
+				
+				dMaskExists = false;
+				for (int i = 0; i < vm.masks.size();i++) {
+					if(Arrays.hashCode(dmask.data) == Arrays.hashCode(vm.masks.get(i).data)) {
+                    	dMaskExists = true;
+                    	break;
+                    }
+                }
+				
+				if (!dMaskExists) {
+					int i = 0;
+					for (i = 0; i < vm.masks.size();i++) {
+						if(Arrays.hashCode(vm.masks.get(i).data) == 1664589825) {
+	                    	break;
+	                    }
+	                }
+					if (i == vm.masks.size()) {
+						vm.masks.add(i, dmask);
+						vm.masks.get(i).locked = true;
+					} else {
+						System.arraycopy(dmask.data, 0, vm.masks.get(i).data, 0, dmask.data.length);
+						vm.masks.get(i).locked = true;
+					}
+				}
+
 			}
 			
 			Frame f = createFrame(frame,MycRom.fWidth,MycRom.fHeight,(int)(Math.log(MycRom.ncColors) / Math.log(2)));
 			f.mask = lmask;
+			if (recordingAni != null) {
+				DMD tmp = new DMD(MycRom.fWidth, MycRom.fHeight);
+				Frame recframe = recordingAni.render(ID, tmp, true);
+				recframe.setMask(dmask);
+				List<byte[]> hashes = recframe.getHashes();
+				int idx = hashes.size();
+				while (idx > 0) {
+					idx--;
+					String hash = getPrintableHash(hashes.get(idx));
+					if (!hash.startsWith(getEmptyHash()))
+						break;
+				}
+				f.setHash(hashes.get(idx));
+			}
+			
 			Frame fRGB = createRGBFrame(rgbFrame,MycRom.fWidth,MycRom.fHeight);
 
-			if (maskhash == REPLACEMASK && dest.getEditMode() == EditMode.FIXED)
-				dest.setEditMode(EditMode.REPLACE);
-			else if (maskhash == COLMASKMASK && dest.getEditMode() == EditMode.FIXED)
-				dest.setEditMode(EditMode.COLMASK);
-			else if (maskhash != REPLACEMASK && maskhash != COLMASKMASK)
-				dest.setEditMode(EditMode.LAYEREDREPLACE);
+			dest.setEditMode(EditMode.LAYEREDREPLACE);
 			
 			// only add palette if not already in the project
 			boolean palExists = false;
@@ -579,7 +642,7 @@ public static void loadcRP(LittleEndianDataInputStream reader) {
                 }
             }
             if (!palExists) {
-            	Palette newPalette = new Palette(CPal.get(ID).colors, palIdx, CPal.get(ID).name);
+            	Palette newPalette = new Palette(cPalette.colors, palIdx, cPalette.name);
             	vm.paletteMap.put(palIdx, newPalette);
             	dest.setPalIndex(palIdx);
             	palIdx++;
@@ -598,7 +661,6 @@ public static void loadcRP(LittleEndianDataInputStream reader) {
 				destRGB.frames.add(fRGB);
 				dest.frames.add(f);
 			}
-			
 			dest6planes.frames.add(f);
 		}
 		
