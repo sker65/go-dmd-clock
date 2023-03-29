@@ -9,7 +9,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
@@ -33,8 +32,6 @@ import com.rinke.solutions.pinball.model.Plane;
 import com.rinke.solutions.pinball.model.RGB;
 
 import com.rinke.solutions.pinball.view.model.ViewModel;
-
-import javassist.bytecode.ByteArray;
 
 import java.util.zip.GZIPOutputStream;
 
@@ -481,6 +478,16 @@ public static void loadcRP(LittleEndianDataInputStream reader) {
 		int sceneIdx = 0;
 		
 		RGB[] actCols = new RGB[MycRom.ncColors];
+
+		vm.masks.clear();
+		
+		for (int i = 0; i < MycRom.nCompMasks; i++) {
+			Mask dmask = new Mask(MycRom.fWidth*MycRom.fHeight/8);
+			dmask.data = createDMask(MycRom.CompMasks,i,MycRom.fWidth, MycRom.fHeight);
+			vm.masks.add(i, dmask);
+			vm.masks.get(i).locked = true;
+			vm.setMaxNumberOfMasks(i);
+		}
 		
 		vm.paletteMap.clear();
 
@@ -531,10 +538,13 @@ public static void loadcRP(LittleEndianDataInputStream reader) {
 							palMapping.switchMode = SwitchMode.LAYEREDREPLACE;
 							palMapping.frameIndex = ID - dest.frames.size() + i;
 							palMapping.setDigest(dest.frames.get(i).crc32);
-	//						palMapping.withMask = true;
-	//						palMapping.maskNumber = vm.selectedMaskNumber;
+							if (MycRom.CompMaskID[ID - dest.frames.size() + i] != -1) {
+								palMapping.withMask = true;
+								palMapping.maskNumber = MycRom.CompMaskID[(ID - dest.frames.size() + i)];
+							}
 							palMapping.frameSeqName = dest.getDesc();
 							palMapping.name = dest.getDesc() + "_" +Integer.toString(i);
+
 							boolean duplicate = false;
 							for (PalMapping p : vm.keyframes.values()) {
 								if (Arrays.equals(p.crc32, palMapping.crc32)) {
@@ -546,7 +556,6 @@ public static void loadcRP(LittleEndianDataInputStream reader) {
 							if (!dest.frames.get(i).crc32.equals(new byte[]{0,0,0,0}) && !duplicate) {
 								vm.keyframes.put(dest.getDesc() + "_" + Integer.toString(i), palMapping);
 							}
-							//String duplicateName = checkForDuplicateKeyFrames(palMapping);
 						}
 					}
 					sceneIdx++;
@@ -595,30 +604,6 @@ public static void loadcRP(LittleEndianDataInputStream reader) {
 				if (!dMaskExists) {
 					dest.getMasks().add(dmask);
 					dest.lockMask(dest.getMasks().size()-1);
-				}
-				
-				dMaskExists = false;
-				for (int i = 0; i < vm.masks.size();i++) {
-					if(Arrays.hashCode(dmask.data) == Arrays.hashCode(vm.masks.get(i).data)) {
-                    	dMaskExists = true;
-                    	break;
-                    }
-                }
-				
-				if (!dMaskExists) {
-					int i = 0;
-					for (i = 0; i < vm.masks.size();i++) {
-						if(Arrays.hashCode(vm.masks.get(i).data) == 1664589825) {
-	                    	break;
-	                    }
-	                }
-					if (i == vm.masks.size()) {
-						vm.masks.add(i, dmask);
-						vm.masks.get(i).locked = true;
-					} else {
-						System.arraycopy(dmask.data, 0, vm.masks.get(i).data, 0, dmask.data.length);
-						vm.masks.get(i).locked = true;
-					}
 				}
 
 			}
