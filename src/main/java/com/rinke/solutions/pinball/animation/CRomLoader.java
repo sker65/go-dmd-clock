@@ -488,6 +488,8 @@ public static void loadcRP(LittleEndianDataInputStream reader) {
 		
 		for(int ID = 0; ID < MycRom.nFrames; ID++) {
 			
+			// log.debug("processing frame {}", ID);
+			
 			RGB[] rgbFrame = new RGB[MycRom.fWidth*MycRom.fHeight];
 			byte[] frame = new byte[MycRom.fWidth*MycRom.fHeight];
 			
@@ -526,14 +528,23 @@ public static void loadcRP(LittleEndianDataInputStream reader) {
 					if (MycRP != null) {
 						for (int i = 0; i < dest.frames.size(); i++) {
 							PalMapping palMapping = new PalMapping(dest.getPalIndex(), dest.getDesc());
-							palMapping.setDigest(dest.frames.get(i).crc32);
 							palMapping.switchMode = SwitchMode.LAYEREDREPLACE;
 							palMapping.frameIndex = ID - dest.frames.size() + i;
+							palMapping.setDigest(dest.frames.get(i).crc32);
 	//						palMapping.withMask = true;
 	//						palMapping.maskNumber = vm.selectedMaskNumber;
 							palMapping.frameSeqName = dest.getDesc();
 							palMapping.name = dest.getDesc() + "_" +Integer.toString(i);
-							vm.keyframes.put(dest.getDesc() + "_" + Integer.toString(i), palMapping);
+							boolean duplicate = false;
+							for (PalMapping p : vm.keyframes.values()) {
+								if (Arrays.equals(p.crc32, palMapping.crc32)) {
+									duplicate = true;
+								}
+							}
+							
+							if (!dest.frames.get(i).crc32.equals(new byte[]{0,0,0,0}) && !duplicate) {
+								vm.keyframes.put(dest.getDesc() + "_" + Integer.toString(i), palMapping);
+							}
 							//String duplicateName = checkForDuplicateKeyFrames(palMapping);
 						}
 					}
@@ -625,7 +636,11 @@ public static void loadcRP(LittleEndianDataInputStream reader) {
 					if (!hash.startsWith(getEmptyHash()))
 						break;
 				}
-				f.setHash(hashes.get(idx));
+				String hash = getPrintableHash(hashes.get(idx));
+				if (!hash.startsWith(getEmptyHash()))
+					f.setHash(hashes.get(idx));
+				else 
+					f.crc32 = new byte[] {0,0,0,0};
 			}
 			
 			Frame fRGB = createRGBFrame(rgbFrame,MycRom.fWidth,MycRom.fHeight);
@@ -659,7 +674,17 @@ public static void loadcRP(LittleEndianDataInputStream reader) {
 			
 			if (maxColVal > MycRom.noColors - 1) { // only add frame if colorized
 				destRGB.frames.add(fRGB);
-				dest.frames.add(f);
+				int i = 0;
+				for (i = 0; i < dest.frames.size(); i++) {
+					if (f.crc32[0] == dest.frames.get(i).crc32[0] && f.crc32[1] == dest.frames.get(i).crc32[1] && f.crc32[2] == dest.frames.get(i).crc32[2] && f.crc32[3] == dest.frames.get(i).crc32[3])
+						break;
+				}
+				if (i == dest.frames.size()) {
+					dest.frames.add(f);
+				} else {
+					f.crc32 = new byte[] {0,0,0,0};
+					dest.frames.add(f);
+				}
 			}
 			dest6planes.frames.add(f);
 		}
