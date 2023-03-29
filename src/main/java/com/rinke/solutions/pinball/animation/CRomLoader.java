@@ -485,7 +485,8 @@ public static void loadcRP(LittleEndianDataInputStream reader) {
 			Mask dmask = new Mask(MycRom.fWidth*MycRom.fHeight/8);
 			dmask.data = createDMask(MycRom.CompMasks,i,MycRom.fWidth, MycRom.fHeight);
 			vm.masks.add(i, dmask);
-			vm.masks.get(i).locked = true;
+			if (MycRP != null)
+				vm.masks.get(i).locked = true;
 			vm.setMaxNumberOfMasks(i);
 		}
 		
