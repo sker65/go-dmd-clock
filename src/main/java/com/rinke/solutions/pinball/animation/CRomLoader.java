@@ -539,6 +539,7 @@ public static void loadcRP(LittleEndianDataInputStream reader) {
 							for (PalMapping p : vm.keyframes.values()) {
 								if (Arrays.equals(p.crc32, palMapping.crc32)) {
 									duplicate = true;
+									break;
 								}
 							}
 							
