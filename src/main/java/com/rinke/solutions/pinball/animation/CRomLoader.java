@@ -392,7 +392,7 @@ public static void loadcRP(LittleEndianDataInputStream reader) {
 	
 				while (entries.hasMoreElements()) {
 					ZipEntry entry = entries.nextElement();
-					if (entry.getName().endsWith(".cRom")) {
+					if (entry.getName().toLowerCase().endsWith(".crom")) {
 						log.debug("found cRom file {} in cRZ", entry.getName());
 						cRomStream = zipFile.getInputStream(entry);
 						break;
@@ -575,10 +575,12 @@ public static void loadcRP(LittleEndianDataInputStream reader) {
 					colVal = MycRom.cFrames[ti+(ID*MycRom.fWidth*MycRom.fHeight)]; 
 				}
 				else {
-					if (MycRP == null) {
-						colVal = MycRom.Dyna4Cols[ID * MAX_DYNA_4COLS_PER_FRAME * MycRom.noColors + MycRom.DynaMasks[ID * MycRom.fWidth*MycRom.fHeight + ti] * MycRom.noColors + (MycRom.noColors - 1)];
-					} else {
-						colVal = MycRom.Dyna4Cols[ID * MAX_DYNA_4COLS_PER_FRAME * MycRom.noColors + MycRom.DynaMasks[ID * MycRom.fWidth*MycRom.fHeight + ti] * MycRom.noColors + MycRP.oFrames[ti+(ID*MycRom.fWidth*MycRom.fHeight)]];
+					colVal = MycRom.Dyna4Cols[ID * MAX_DYNA_4COLS_PER_FRAME * MycRom.noColors + MycRom.DynaMasks[ID * MycRom.fWidth*MycRom.fHeight + ti] * MycRom.noColors + (MycRom.noColors - 1)];
+					if (MycRP != null) {
+						if (colVal > (MycRom.noColors - 1))
+							colVal = colVal - ((MycRom.noColors - 1) - MycRP.oFrames[ti+(ID*MycRom.fWidth*MycRom.fHeight)]);
+						else
+							colVal = MycRP.oFrames[ti+(ID*MycRom.fWidth*MycRom.fHeight)];
 					}
 				}
 				if (colVal > maxColVal) maxColVal = colVal;
