@@ -88,7 +88,7 @@ class cRP
 	public byte			Draw_Mode;	// in colorization mode: 0- point, 1- line, 2- rect, 3- circle, 4- fill
 	public int			Mask_Sel_Mode; // in comparison mode: 0- point, 1- rectangle, 2- magic wand
 	public int			Fill_Mode; // FALSE- empty, TRUE- filled
-	public byte[]		Mask_Names; // the names of the synamic masks
+	public byte[]		Mask_Names; // the names of the dynamic masks
 	public int			nSections; // number of sections in the frames
 	public int[]		Section_Firsts; // first frame of each section
 	public byte[][]		Section_Names; // Names of the sections
@@ -425,7 +425,7 @@ public static void loadcRP(LittleEndianDataInputStream reader) {
 		        File myGzipFile = new File(filename.substring(0, filename.indexOf('.')) + ".txt.gz");
 		        gos = new GZIPOutputStream(new FileOutputStream(myGzipFile));
 		        
-		        long tick = System.currentTimeMillis();
+		        int tick = (int)System.currentTimeMillis();
 		        InputStream is = null;
 		        byte[] buffer = new byte[1024];
 		        int len;
