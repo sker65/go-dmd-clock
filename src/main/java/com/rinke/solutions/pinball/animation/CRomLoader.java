@@ -408,7 +408,7 @@ public static void loadcRP(LittleEndianDataInputStream reader) {
 				File cRomFile = new File(filename);
 				cRomStream = new FileInputStream(cRomFile);
 				MycRP = new cRP();
-				String cRPfilename = filename.substring(0, filename.indexOf('.')) + ".crp";
+				String cRPfilename = filename.substring(0, filename.lastIndexOf('.')) + ".crp";
 				File cRPFile = new File(cRPfilename);
 				cRPStream = new FileInputStream(cRPFile);
 			} else {
