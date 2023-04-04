@@ -11,17 +11,23 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.google.common.io.LittleEndianDataInputStream;
 import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.animation.Animation.EditMode;
 import com.rinke.solutions.pinball.animation.CompiledAnimation.RecordingLink;
+import com.rinke.solutions.pinball.model.Bookmark;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.FrameLink;
 import com.rinke.solutions.pinball.model.Mask;
@@ -469,6 +475,16 @@ public static void loadcRP(LittleEndianDataInputStream reader) {
 	        recordingAni = AnimationFactory.buildAnimationFromFile(filename.substring(0, filename.indexOf('.')) + ".txt.gz", AnimationType.MAME, vm.numberOfColors);
 	        vm.recordings.put(recordingAni.getDesc(), recordingAni);
 	        vm.setSelectedRecording(recordingAni);
+	        if (MycRP != null) {
+        		vm.bookmarksMap = new HashMap<String, Set<Bookmark>>();
+    			Set<Bookmark> set = new TreeSet<Bookmark>();
+    			vm.bookmarksMap.put(recordingAni.getDesc(),set);
+	        	for(int sects = 0; sects < MycRP.nSections; sects++) {
+        			String bookmarkName = new String(MycRP.Section_Names[sects]).split("\0")[0];
+    	    		set.add(new Bookmark(bookmarkName, MycRP.Section_Firsts[sects]));
+	    		}
+	    		vm.bookmarks.replaceAll(set);
+	        }
 
 		} catch( IOException e2) {
 		    log.error("error on load "+filename,e2);
@@ -671,7 +687,7 @@ public static void loadcRP(LittleEndianDataInputStream reader) {
 				destRGB.frames.add(fRGB);
 				int i = 0;
 				for (i = 0; i < dest.frames.size(); i++) {
-					if (f.crc32[0] == dest.frames.get(i).crc32[0] && f.crc32[1] == dest.frames.get(i).crc32[1] && f.crc32[2] == dest.frames.get(i).crc32[2] && f.crc32[3] == dest.frames.get(i).crc32[3])
+					if (Arrays.equals(f.crc32,dest.frames.get(i).crc32))
 						break;
 				}
 				if (i == dest.frames.size()) {
@@ -688,9 +704,7 @@ public static void loadcRP(LittleEndianDataInputStream reader) {
 		if (dest.frames.size() != 0) {
 			dest.end = dest.frames.size()-1;
 			dest.setDesc("scene_"+Integer.toString(sceneIdx));
-			if (MycRP != null) {
-				dest.setRecordingLink(new RecordingLink(dest.frames.get(0).frameLink.recordingName , dest.frames.get(0).frameLink.frame));
-			}
+			dest.setRecordingLink(new RecordingLink(dest.frames.get(0).frameLink.recordingName , dest.frames.get(0).frameLink.frame));
 			vm.scenes.put(dest.getDesc(), dest);
 		}
 
