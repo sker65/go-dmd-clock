@@ -419,52 +419,57 @@ public static void loadcRP(LittleEndianDataInputStream reader) {
 				LittleEndianDataInputStream cRPReader = new LittleEndianDataInputStream (cRPStream);
 				loadcRP(cRPReader);
 				cRPReader.close();
-				// now create dump file from cRP
-				GZIPOutputStream gos = null;
+			}
+			// now create dump file from cRP
+			GZIPOutputStream gos = null;
 
-		        File myGzipFile = new File(filename.substring(0, filename.indexOf('.')) + ".txt.gz");
-		        gos = new GZIPOutputStream(new FileOutputStream(myGzipFile));
-		        
-		        int tick = (int)System.currentTimeMillis();
-		        InputStream is = null;
-		        byte[] buffer = new byte[1024];
-		        int len;
-		        for (int kk = 0; kk < MycRom.nFrames; kk++) {
-		        	String tickStr = String.format("0x%08x", tick);
-			        is = new ByteArrayInputStream(tickStr.getBytes());
-			        buffer = new byte[1024];
-			        while ((len = is.read(buffer)) != -1) {
-    		            gos.write(buffer, 0, len);
-    		        }
-			        gos.write(0x0D);
-	                gos.write(0x0A);
-		        	for (int jj = 0; jj < MycRom.fHeight; jj++) {
-		                for (int ii = 0; ii < MycRom.fWidth; ii++)
-		                {
-		                	byte col = MycRP.oFrames[(kk * MycRom.fWidth * MycRom.fHeight) + jj * MycRom.fWidth + ii];
-		                	String str = String.format("%01x", col);
-		    		        is = new ByteArrayInputStream(str.getBytes());
-		    		        buffer = new byte[1024];
-		    		        while ((len = is.read(buffer)) != -1) {
-		    		            gos.write(buffer, 0, len);
-		    		        }
-		                }
-		                gos.write(0x0D);
-		                gos.write(0x0A);
-		            }
-		            tick = tick + MycRP.FrameDuration[kk];
+	        File myGzipFile = new File(filename.substring(0, filename.indexOf('.')) + ".txt.gz");
+	        gos = new GZIPOutputStream(new FileOutputStream(myGzipFile));
+	        
+	        int tick = (int)System.currentTimeMillis();
+	        InputStream is = null;
+	        byte[] buffer = new byte[1024];
+	        int len;
+	        int nFrames = 1;
+	        if (MycRP != null)
+	        	nFrames = MycRom.nFrames;
+	        for (int kk = 0; kk < nFrames; kk++) {
+	        	String tickStr = String.format("0x%08x", tick);
+		        is = new ByteArrayInputStream(tickStr.getBytes());
+		        buffer = new byte[1024];
+		        while ((len = is.read(buffer)) != -1) {
+		            gos.write(buffer, 0, len);
+		        }
+		        gos.write(0x0D);
+                gos.write(0x0A);
+	        	for (int jj = 0; jj < MycRom.fHeight; jj++) {
+	                for (int ii = 0; ii < MycRom.fWidth; ii++)
+	                {
+	                	byte col = 0x00;
+	                	if (MycRP != null)
+	                		col = MycRP.oFrames[(kk * MycRom.fWidth * MycRom.fHeight) + jj * MycRom.fWidth + ii];
+	                	String str = String.format("%01x", col);
+	    		        is = new ByteArrayInputStream(str.getBytes());
+	    		        buffer = new byte[1024];
+	    		        while ((len = is.read(buffer)) != -1) {
+	    		            gos.write(buffer, 0, len);
+	    		        }
+	                }
 	                gos.write(0x0D);
 	                gos.write(0x0A);
-		        }
-		        gos.close();
-		        String basefile = FilenameUtils.getBaseName(filename.substring(0, filename.indexOf('.')) + ".txt.gz") + "." + FilenameUtils.getExtension(filename.substring(0, filename.indexOf('.')) + ".txt.gz");
-		        vm.inputFiles.add(basefile);
-		        recordingAni = AnimationFactory.buildAnimationFromFile(filename.substring(0, filename.indexOf('.')) + ".txt.gz", AnimationType.MAME, vm.numberOfColors);
-		        vm.recordings.put(recordingAni.getDesc(), recordingAni);
-		        vm.setSelectedRecording(recordingAni);
-			}
-			
-			
+	            }
+	        	if (MycRP != null)
+	        		tick = tick + MycRP.FrameDuration[kk];
+                gos.write(0x0D);
+                gos.write(0x0A);
+	        }
+	        gos.close();
+	        String basefile = FilenameUtils.getBaseName(filename.substring(0, filename.indexOf('.')) + ".txt.gz") + "." + FilenameUtils.getExtension(filename.substring(0, filename.indexOf('.')) + ".txt.gz");
+	        vm.inputFiles.add(basefile);
+	        recordingAni = AnimationFactory.buildAnimationFromFile(filename.substring(0, filename.indexOf('.')) + ".txt.gz", AnimationType.MAME, vm.numberOfColors);
+	        vm.recordings.put(recordingAni.getDesc(), recordingAni);
+	        vm.setSelectedRecording(recordingAni);
+
 		} catch( IOException e2) {
 		    log.error("error on load "+filename,e2);
 		    throw new RuntimeException("error on load "+filename, e2);
@@ -485,7 +490,7 @@ public static void loadcRP(LittleEndianDataInputStream reader) {
 			Mask dmask = new Mask(MycRom.fWidth*MycRom.fHeight/8);
 			dmask.data = createDMask(MycRom.CompMasks,i,MycRom.fWidth, MycRom.fHeight);
 			vm.masks.add(i, dmask);
-			if (MycRP != null)
+			if (MycRP != null && Arrays.hashCode(dmask.data) != REPLACEMASK && Arrays.hashCode(dmask.data) != COLMASKMASK)
 				vm.masks.get(i).locked = true;
 			vm.setMaxNumberOfMasks(i);
 		}
@@ -529,9 +534,7 @@ public static void loadcRP(LittleEndianDataInputStream reader) {
 					dest.setDesc(sectName + "_" + Integer.toString(sceneIdx));
 				}
 				if (dest.frames.size() != 0) {
-					if (MycRP != null) {
-						dest.setRecordingLink(new RecordingLink(dest.frames.get(0).frameLink.recordingName , dest.frames.get(0).frameLink.frame));
-					}
+					dest.setRecordingLink(new RecordingLink(dest.frames.get(0).frameLink.recordingName , dest.frames.get(0).frameLink.frame));
 					vm.scenes.put(dest.getDesc(), dest);
 					if (MycRP != null) {
 						for (int i = 0; i < dest.frames.size(); i++) {
@@ -547,14 +550,16 @@ public static void loadcRP(LittleEndianDataInputStream reader) {
 							palMapping.name = dest.getDesc() + "_" +Integer.toString(i);
 
 							boolean duplicate = false;
-							for (PalMapping p : vm.keyframes.values()) {
-								if (Arrays.equals(p.crc32, palMapping.crc32)) {
-									duplicate = true;
-									break;
+							if (!Arrays.equals(palMapping.crc32,new byte[]{0,0,0,0})) {
+								for (PalMapping p : vm.keyframes.values()) {
+									if (Arrays.equals(p.crc32, palMapping.crc32)) {
+										duplicate = true;
+										break;
+									}
 								}
 							}
 							
-							if (!dest.frames.get(i).crc32.equals(new byte[]{0,0,0,0}) && !duplicate) {
+							if (!Arrays.equals(dest.frames.get(i).crc32,new byte[]{0,0,0,0}) && !duplicate) {
 								vm.keyframes.put(dest.getDesc() + "_" + Integer.toString(i), palMapping);
 							}
 						}
@@ -655,6 +660,7 @@ public static void loadcRP(LittleEndianDataInputStream reader) {
             if (MycRP == null) {
             	fRGB.delay = 15;
             	f.delay = 15;
+            	f.frameLink = new FrameLink(FilenameUtils.getBaseName(filename),0);
 			} else {
 				fRGB.delay = MycRP.FrameDuration[ID];
             	f.delay = MycRP.FrameDuration[ID];
