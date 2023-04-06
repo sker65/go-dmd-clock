@@ -18,6 +18,7 @@ import com.rinke.solutions.pinball.animation.Animation.EditMode;
 import com.rinke.solutions.pinball.animation.CompiledAnimation;
 import com.rinke.solutions.pinball.animation.CompiledAnimation.RecordingLink;
 import com.rinke.solutions.pinball.model.Bookmark;
+import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.FrameLink;
 import com.rinke.solutions.pinball.model.PalMapping;
 import com.rinke.solutions.pinball.ui.EditLinkView;
@@ -311,4 +312,44 @@ public class ScenesCmdHandler extends AbstractListCmdHandler implements ViewBind
 			vm.setDmdDirty(true);
 		}
 	}
+	
+	void scaleDownFrame (Frame frame) {
+		for (int k = 0; k < frame.planes.size(); k++) { 
+			byte[] data = new byte[512];
+			int idx = 0;
+			for (int l = 0; l < frame.planes.get(k).data.length; l+=2) {
+				data[idx] = (byte)((frame.planes.get(k).data[l+1] & 0x01) | (frame.planes.get(k).data[l+1] & 0x04) >> 1 | (frame.planes.get(k).data[l+1] & 0x10) >> 2 | (frame.planes.get(k).data[l+1] & 0x40) >> 3 | (frame.planes.get(k).data[l] & 0x01) << 4 | (frame.planes.get(k).data[l] & 0x04) << 3 | (frame.planes.get(k).data[l] & 0x10) << 2 | (frame.planes.get(k).data[l] & 0x40) << 1);
+				idx++;
+				if ((l+2) % 32 == 0)
+					l += 32;
+			}
+			frame.planes.get(k).data = data;
+		}
+		if (frame.mask != null && frame.mask.data.length == 2048) {
+			byte[] mask = new byte[512];
+			int idx = 0;
+			for (int l = 0; l < frame.mask.data.length; l+=2) {
+				mask[idx] = (byte)((frame.mask.data[l+1] & 0x01) | (frame.mask.data[l+1] & 0x04) >> 1 | (frame.mask.data[l+1] & 0x10) >> 2 | (frame.mask.data[l+1] & 0x40) >> 3 | (frame.mask.data[l] & 0x01) << 4 | (frame.mask.data[l] & 0x04) << 3 | (frame.mask.data[l] & 0x10) << 2 | (frame.mask.data[l] & 0x40) << 1);
+				idx++;
+				if ((l+2) % 32 == 0)
+					l += 32;
+			}
+			frame.mask.data = mask;
+		}
+	}
+	
+	public void onConvertAllScenesToSD() {
+		for(CompiledAnimation src : vm.scenes.values()) {
+			if(src.frames.get(0).getPlane(0).length == 2048) {
+				for (int i = 0; i < src.frames.size(); i++) {
+					scaleDownFrame(src.frames.get(i));
+				}
+				src.width = 128;
+				src.height = 32;
+			}
+		}
+		vm.scenes.refresh();
+		vm.setDirty(true);
+	}
+
 }
