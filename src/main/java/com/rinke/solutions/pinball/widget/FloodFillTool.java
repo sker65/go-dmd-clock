@@ -10,6 +10,28 @@ public class FloodFillTool extends DrawTool {
 	public FloodFillTool(int actualColor) {
 		super(actualColor);
 	}
+	
+	@Override
+	public boolean mouseMove(int x, int y) {
+		if( pressedButton > 0 ) {
+			int oldColor = dmd.getPixelWithoutMask(x, y);
+			if (dmd.getDrawMask() != 1) {
+				if (oldColor != actualColor) {
+					dmd.addUndoBuffer();
+					fill(oldColor, x, y);
+					return true;
+				}
+			} else {
+				int oldMask = dmd.getMaskPixel(x, y);
+				if (oldMask != actualColor) {
+					dmd.addUndoBuffer();
+					fillMask(oldColor, oldMask, x, y);
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 
 	@Override
 	public boolean mouseUp(int x, int y) {
