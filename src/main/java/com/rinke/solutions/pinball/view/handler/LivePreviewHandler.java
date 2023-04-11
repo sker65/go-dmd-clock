@@ -50,7 +50,8 @@ public class LivePreviewHandler extends AbstractCommandHandler implements ViewBi
 			captureOutput.put(f, stream);
 			return stream;
 		}, true, null);
-
+		
+			connector.switchToMode(DeviceMode.PinMame.ordinal());
 			connector.transferFile("pin2dmd.pal", new ByteArrayInputStream(captureOutput.get("a.pal").toByteArray()));
 		if (captureOutput.containsKey("a.fsq")) {
 			connector.transferFile("pin2dmd.fsq", new ByteArrayInputStream(captureOutput.get("a.fsq").toByteArray()));
