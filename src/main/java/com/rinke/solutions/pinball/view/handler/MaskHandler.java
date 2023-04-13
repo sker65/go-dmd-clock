@@ -78,7 +78,7 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 		//animationHandler.forceRerender();
 		vm.setDmdDirty(true);
 		hashCmdHandler.updateHashes(vm.dmd.getFrame());
-		if (n) {
+		if (n || vm.detectionMaskActive || vm.layerMaskActive) {
 			vm.setPaletteToolPlanes(1);
 		} else {
 			vm.setPaletteToolPlanes(vm.dmd.getNumberOfPlanes());
