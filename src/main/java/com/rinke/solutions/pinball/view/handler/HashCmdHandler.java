@@ -29,8 +29,9 @@ public class HashCmdHandler extends AbstractCommandHandler implements ViewBindin
 				vm.selectedKeyFrame.hashIndex = idx;
 			}
 			// switch palettes in preview
-			int palIdx = vm.numberOfPlanes==4 || vm.previewDMD != null ? idx : (idx&1)*4;
-			Palette palette = vm.previewPalettes.get(palIdx);
+			/*int palIdx = vm.numberOfPlanes==4 || vm.previewDMD != null ? idx : (idx&1)*4;
+			Palette palette = vm.previewPalettes.get(palIdx);*/
+			Palette palette = vm.previewPalettes.get(idx);
 			log.info("switch to preview palette: {}", palette);
 			vm.setPreviewDmdPalette(palette);
 			vm.setSelectedHashIndex(idx);
