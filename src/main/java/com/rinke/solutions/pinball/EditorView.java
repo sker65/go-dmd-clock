@@ -89,6 +89,7 @@ import com.rinke.solutions.pinball.widget.PaletteTool;
 import com.rinke.solutions.pinball.widget.RectTool;
 import com.rinke.solutions.pinball.widget.SelectTool;
 import com.rinke.solutions.pinball.widget.SetPixelTool;
+import org.eclipse.swt.custom.ScrolledComposite;
 
 @Slf4j
 public class EditorView implements MainView {
@@ -829,6 +830,7 @@ public class EditorView implements MainView {
 		drawPalGroup.setLayoutData(gd_drawPalGroup);
 		drawPalGroup.setLayout(new GridLayout(1,false));
 		createPalettesGroup(drawPalGroup);
+		//createScrollingPaletteGroup(drawPalGroup);
 		createDrawingGroup(drawPalGroup);
 
 		Composite previewGroup = new Composite(shell,0);
@@ -989,6 +991,56 @@ public class EditorView implements MainView {
 			previewDmd.redraw();
 		}
 	}
+	 
+	 private void createScrollingPaletteGroup(Composite parent) {
+			ScrolledComposite scrolledComposite = new ScrolledComposite(parent, SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
+			GridData gd_scrolledComposite = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+			gd_scrolledComposite.heightHint = 70;
+			gd_scrolledComposite.widthHint = 481;
+			scrolledComposite.setLayout(new GridLayout());
+			scrolledComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+			scrolledComposite.setExpandHorizontal(true);
+			scrolledComposite.setExpandVertical(true);
+			scrolledComposite.setAlwaysShowScrollBars(true);
+			
+			Composite grid = new Composite(scrolledComposite, SWT.NONE);
+			grid.setLayout(new GridLayout(1, false));
+			scrolledComposite.setContent(grid);
+			
+			Composite grpPal1 = new Composite(grid, SWT.NONE);
+			grpPal1.setLayout(new GridLayout(1, false));
+			GridData gd_grpPal1 = new GridData(SWT.LEFT, SWT.TOP, false, false, 3, 1);
+			gd_grpPal1.widthHint = 333;
+			gd_grpPal1.heightHint = 22;
+			grpPal1.setLayoutData(gd_grpPal1);
+			
+	        Composite grpPal2 = new Composite(grid, SWT.NONE);
+	        grpPal2.setLayout(new GridLayout(1, false));
+	        GridData gd_grpPal2 = new GridData(SWT.LEFT, SWT.TOP, false, false, 3, 1);
+	        gd_grpPal2.widthHint = 333;
+	        gd_grpPal2.heightHint = 22;
+	        grpPal2.setLayoutData(gd_grpPal2);
+
+	        Composite grpPal3 = new Composite(grid, SWT.NONE);
+	        grpPal3.setLayout(new GridLayout(1, false));
+	        GridData gd_grpPal3 = new GridData(SWT.LEFT, SWT.TOP, false, false, 3, 1);
+	        gd_grpPal3.widthHint = 333;
+	        gd_grpPal3.heightHint = 22;
+	        grpPal3.setLayoutData(gd_grpPal3);
+	        
+	        Composite grpPal4 = new Composite(grid, SWT.NONE);
+	        grpPal4.setLayout(new GridLayout(1, false));
+	        GridData gd_grpPal4 = new GridData(SWT.LEFT, SWT.TOP, false, false, 3, 1);
+	        gd_grpPal4.widthHint = 333;
+	        gd_grpPal4.heightHint = 22;
+	        grpPal4.setLayoutData(gd_grpPal4);
+
+			scrolledComposite.setContent( grid );
+
+	        paletteTool = new PaletteTool(shell, grpPal1, grpPal2, grpPal3, grpPal4, SWT.FLAT | SWT.RIGHT, vm.selectedPalette);
+
+	}
+			
 
 	private void createDrawingGroup(Composite parent) {
 		
@@ -1180,6 +1232,7 @@ public class EditorView implements MainView {
 		Group grpPalettes = new Group(parent, SWT.NONE);
 		GridData gd_grpPalettes = new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1);
 		gd_grpPalettes.heightHint = 142;
+		//gd_grpPalettes.heightHint = 32;
 		gd_grpPalettes.widthHint = 481;
 		grpPalettes.setLayoutData(gd_grpPalettes);
 		GridLayout gl_grpPalettes = new GridLayout(5, false);
