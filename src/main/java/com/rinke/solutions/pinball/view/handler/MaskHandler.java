@@ -53,6 +53,7 @@ public class MaskHandler extends AbstractCommandHandler implements ViewBindingHa
 		}
 		vm.setDetectionMaskEnabled(!n);
 		vm.setMaskSpinnerEnabled(!n);
+		vm.setHashButtonsEnabled(!n);
 		updateMaskChange(n, false);
 		vm.setShowMask(n);
 	}
