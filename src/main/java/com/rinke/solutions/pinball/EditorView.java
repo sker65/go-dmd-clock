@@ -1062,6 +1062,7 @@ public class EditorView implements MainView {
 		drawTools.put("filledCircle", new CircleTool(paletteTool.getSelectedColor(), true));
 		palettePickerTool = new PalettePickerTool(0);
 		drawTools.put("picker",palettePickerTool);
+		
 		selectTool = new SelectTool(paletteTool.getSelectedColor());
 		selectTool.setDMD(vm.dmd);
 		
@@ -1110,7 +1111,7 @@ public class EditorView implements MainView {
 			dispatchCmd(SELECT_ALL);
 			dmdWidget.setDrawTool(drawTools.get("select"));
 		});
-
+		
 		ToolItem tltmPicker = new ToolItem(drawToolBar, SWT.RADIO);
 		tltmPicker.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/color-picker.png")));
 		tltmPicker.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("picker")));
@@ -1174,7 +1175,9 @@ public class EditorView implements MainView {
         toolSizeSpinner.setToolTipText("Increase ToolSize for advanced usage of Draw Tools");
 //        toolSizeSpinner.addListener(SWT.Selection, e -> this.pixelTool.setToolSize(toolSizeSpinner.getSelection()));
         toolSizeSpinner.addListener(SWT.Selection, e -> {
-			drawTools.values().forEach(d->d.setToolSize(toolSizeSpinner.getSelection()));
+			//drawTools.values().forEach(d->d.setToolSize(toolSizeSpinner.getSelection()));
+    		DrawTool dt = dmdWidget.getDrawTool();
+			if( dt != null) dt.setToolSize(toolSizeSpinner.getSelection());
         });
 //        toolSizeSpinner.addListener(SWT.Selection, e -> dispatchCmd("//", toolSizeSpinner.getSelection()));
 
