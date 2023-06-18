@@ -92,4 +92,8 @@ public abstract class DrawTool extends Observable implements ColorIndexChangedLi
 		
 	}
 
+	public int getToolSize() {
+		return toolSize;
+	}
+
 }
