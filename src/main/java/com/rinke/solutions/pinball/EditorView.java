@@ -1040,7 +1040,12 @@ public class EditorView implements MainView {
 	        paletteTool = new PaletteTool(shell, grpPal1, grpPal2, grpPal3, grpPal4, SWT.FLAT | SWT.RIGHT, vm.selectedPalette);
 
 	}
-			
+	
+	private void setDrawToolAndSize(String drawToolName) {
+		DrawTool dt = drawTools.get("drawToolName");
+		dmdWidget.setDrawTool(dt);
+		toolSizeSpinner.setSelection(dt.getToolSize());
+	}
 
 	private void createDrawingGroup(Composite parent) {
 		
@@ -1083,38 +1088,38 @@ public class EditorView implements MainView {
 						
 		ToolItem tltmPen = new ToolItem(drawToolBar, SWT.RADIO);
 		tltmPen.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/pencil.png")));
-		tltmPen.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("pencil")));
+		tltmPen.addListener(SWT.Selection, e -> setDrawToolAndSize("pencil"));
 								
 		ToolItem tltmFill = new ToolItem(drawToolBar, SWT.RADIO);
 		tltmFill.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/color-fill.png")));
-		tltmFill.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("fill")));
+		tltmFill.addListener(SWT.Selection, e -> setDrawToolAndSize("fill"));
 										
 		ToolItem tltmRect = new ToolItem(drawToolBar, SWT.RADIO);
 		tltmRect.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/rect.png")));
-		tltmRect.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("rect")));
+		tltmRect.addListener(SWT.Selection, e -> setDrawToolAndSize("rect"));
 												
 		ToolItem tltmLine = new ToolItem(drawToolBar, SWT.RADIO);
 		tltmLine.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/line.png")));
-		tltmLine.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("line")));
+		tltmLine.addListener(SWT.Selection, e -> setDrawToolAndSize("line"));
 
 		ToolItem tltmCircle = new ToolItem(drawToolBar, SWT.RADIO);
 		tltmCircle.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/oval.png")));
-		tltmCircle.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("circle")));
+		tltmCircle.addListener(SWT.Selection, e -> setDrawToolAndSize("circle"));
 
 		ToolItem tltmFilledCircle = new ToolItem(drawToolBar, SWT.RADIO);
 		tltmFilledCircle.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/oval2.png")));
-		tltmFilledCircle.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("filledCircle")));
+		tltmFilledCircle.addListener(SWT.Selection, e -> setDrawToolAndSize("filledCircle"));
 
 		ToolItem tltmMark = new ToolItem(drawToolBar, SWT.RADIO);
 		tltmMark.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/select.png")));
 		tltmMark.addListener(SWT.Selection, e -> {
 			dispatchCmd(SELECT_ALL);
-			dmdWidget.setDrawTool(drawTools.get("select"));
+			setDrawToolAndSize("select");
 		});
 		
 		ToolItem tltmPicker = new ToolItem(drawToolBar, SWT.RADIO);
 		tltmPicker.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/color-picker.png")));
-		tltmPicker.addListener(SWT.Selection, e -> dmdWidget.setDrawTool(drawTools.get("picker")));
+		tltmPicker.addListener(SWT.Selection, e -> setDrawToolAndSize("picker"));
 		
 		//ToolItem tltmColorize = new ToolItem(drawToolBar, SWT.RADIO);
 		//tltmColorize.setImage(resManager.createImage(ImageDescriptor.createFromFile(PinDmdEditor.class, "/icons/colorize.png")));
