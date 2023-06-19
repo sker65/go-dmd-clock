@@ -1042,7 +1042,7 @@ public class EditorView implements MainView {
 	}
 	
 	private void setDrawToolAndSize(String drawToolName) {
-		DrawTool dt = drawTools.get("drawToolName");
+		DrawTool dt = drawTools.get(drawToolName);
 		dmdWidget.setDrawTool(dt);
 		toolSizeSpinner.setSelection(dt.getToolSize());
 	}
