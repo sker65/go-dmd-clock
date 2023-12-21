@@ -53,6 +53,7 @@ class cRom
 	public int			nCompMasks; // Number of dynamic masks=nM
 	public int			nMovMasks; // Number of moving rects=nMR
 	public int			nSprites; // Number of sprites=nS (max 255)
+	public int			nBackgrounds; // Number of Backgrounds
 	// data
 	// part for comparison
 	public int[]		HashCode;	// UINT32[nF] hashcode/checksum
@@ -76,6 +77,10 @@ class cRom
 	public int[]		SpriteDetDwords; // UINT32[nS*MAX_SPRITE_DETECT_AREAS] dword to quickly detect 4 consecutive distinctive pixels inside the original drawing of a sprite for optimized detection
 	public int[]		SpriteDetDwordPos; // UINT16[nS*MAX_SPRITE_DETECT_AREAS] offset of the above dword in the sprite description
 	public int[]		TriggerID; // UINT32[nF] does this frame triggers any event ID, 0xFFFFFFFF if not
+	public int[] 		FrameSpriteBB;
+	public byte[] 		Backgroundframes;
+	public int[] 		BackgroundIDs;
+	public int[] 		BackgroundBB;
 };
 
 class cRP
@@ -257,6 +262,11 @@ public class CRomLoader {
 			MycRom.nCompMasks = reader.readInt(); // Number of dynamic masks=nM
 			MycRom.nMovMasks = reader.readInt(); // Number of moving rects=nMR
 			MycRom.nSprites = reader.readInt(); // Number of sprites=nS
+			if(sizeheader >= 13 * 4) {
+				MycRom.nBackgrounds = reader.readUnsignedShort(); // Number of Backgrounds
+			} else {
+				MycRom.nBackgrounds = 0;
+			}
 	
 			MycRom.HashCode = new int[MycRom.nFrames]; // hashcode/checksum
 			for (int ti = 0; ti < MycRom.nFrames; ti++)
@@ -293,29 +303,67 @@ public class CRomLoader {
 			}
 			byte[] ActiveFrames=new byte[MycRom.nFrames]; // is the frame active (colorized or duration>16ms) or not
 			reader.readFully(ActiveFrames);
-			MycRom.ColorRotations=new byte[MycRom.nFrames*3*MAX_COLOR_ROTATIONS]; // list of color rotation for each frame:
-			// 1st byte is color # of the first color to rotate / 2nd byte id the number of colors to rotate / 3rd byte is the length in 10ms between each color switch
-			reader.readFully(MycRom.ColorRotations);
+			if(sizeheader >= 9 * 4) {
+				MycRom.ColorRotations=new byte[MycRom.nFrames*3*MAX_COLOR_ROTATIONS]; // list of color rotation for each frame:
+				//1st byte is color # of the first color to rotate / 2nd byte id the number of colors to rotate / 3rd byte is the length in 10ms between each color switch
+				reader.readFully(MycRom.ColorRotations);
+			}
 			// WARN in java there is no uint -> we use int instead
 			int[] SpriteDetDwords = new int[MycRom.nSprites * MAX_SPRITE_DETECT_AREAS]; // dword to quickly detect 4 consecutive distinctive pixels inside the original drawing of a sprite for optimized detection
-			for (int ti = 0; ti < MycRom.nSprites * MAX_SPRITE_DETECT_AREAS; ti++)
-				SpriteDetDwords[ti] = reader.readInt();
+			if(sizeheader >= 10 * 4) {
+				for (int ti = 0; ti < MycRom.nSprites * MAX_SPRITE_DETECT_AREAS; ti++)
+					SpriteDetDwords[ti] = reader.readInt();
 			
-			// in java there is no unsigned int or uint16 so we use normal int array, but read unsigned int
-			MycRom.SpriteDetDwordPos = new int[MycRom.nSprites * MAX_SPRITE_DETECT_AREAS]; // offset of the above dword in the sprite description
-			for (int ti = 0; ti < MycRom.nSprites * MAX_SPRITE_DETECT_AREAS; ti++)
-				MycRom.SpriteDetDwordPos[ti] = reader.readUnsignedShort();
+				// in java there is no unsigned int or uint16 so we use normal int array, but read unsigned int
+				MycRom.SpriteDetDwordPos = new int[MycRom.nSprites * MAX_SPRITE_DETECT_AREAS]; // offset of the above dword in the sprite description
+				for (int ti = 0; ti < MycRom.nSprites * MAX_SPRITE_DETECT_AREAS; ti++)
+					MycRom.SpriteDetDwordPos[ti] = reader.readUnsignedShort();
 			
-			MycRom.SpriteDetAreas = new int[MycRom.nSprites * 4 * MAX_SPRITE_DETECT_AREAS]; // rectangles (left, top, width, height) as areas to detect sprites (left=0xffff -> no zone)
-			for (int ti = 0; ti < MycRom.nSprites * 4 * MAX_SPRITE_DETECT_AREAS; ti++)
-				MycRom.SpriteDetAreas[ti] = reader.readUnsignedShort();
-			
-			MycRom.TriggerID = new int[MycRom.nFrames];
-			Arrays.fill(MycRom.TriggerID, (int)0xFFFFFFFF);
-			if(sizeheader > 11 * 4) {
-				for (int ti = 0; ti < MycRom.nFrames; ti++)
-					MycRom.TriggerID[ti] = reader.readInt();
+				MycRom.SpriteDetAreas = new int[MycRom.nSprites * 4 * MAX_SPRITE_DETECT_AREAS]; // rectangles (left, top, width, height) as areas to detect sprites (left=0xffff -> no zone)
+				for (int ti = 0; ti < MycRom.nSprites * 4 * MAX_SPRITE_DETECT_AREAS; ti++)
+					MycRom.SpriteDetAreas[ti] = reader.readUnsignedShort();
 			}
+
+			MycRom.TriggerID = new int[MycRom.nFrames];
+			if(sizeheader >= 11 * 4) {
+				for (int ti = 0; ti < MycRom.nFrames; ti++)
+					MycRom.TriggerID[ti] = reader.readInt();	
+			} else {
+				Arrays.fill(MycRom.TriggerID, (int)0xFFFFFFFF);
+			}
+			
+			MycRom.FrameSpriteBB = new int[MycRom.nFrames * MAX_SPRITES_PER_FRAME * 4]; // Sprite numbers to look for in this frame max=MAX_SPRITES_PER_FRAME
+		    if (sizeheader >= 12 * 4) {
+		    	for (int ti = 0; ti < MycRom.nFrames * MAX_SPRITES_PER_FRAME * 4; ti++)
+		    		MycRom.FrameSpriteBB[ti] = reader.readUnsignedShort();
+		    }
+		    else
+		    {
+		        for (int tj = 0; tj < MycRom.nFrames; tj++)
+		        {
+		            for (int ti = 0; ti < MAX_SPRITES_PER_FRAME; ti++)
+		            {
+		            	MycRom.FrameSpriteBB[tj * MAX_SPRITES_PER_FRAME * 4 + ti * 4] = 0;
+		            	MycRom.FrameSpriteBB[tj * MAX_SPRITES_PER_FRAME * 4 + ti * 4 + 1] = 0;
+		            	MycRom.FrameSpriteBB[tj * MAX_SPRITES_PER_FRAME * 4 + ti * 4 + 2] = MycRom.fWidth - 1;
+		            	MycRom.FrameSpriteBB[tj * MAX_SPRITES_PER_FRAME * 4 + ti * 4 + 3] = MycRom.fHeight - 1;
+		            }
+		        }
+		    }
+
+			MycRom.BackgroundBB = new int [MycRom.nFrames];
+		    if (sizeheader >= 13 * 4)
+		    {
+				MycRom.Backgroundframes = new byte [MycRom.nBackgrounds * MycRom.fWidth * MycRom.fHeight];
+		    	reader.readFully(MycRom.Backgroundframes);
+				MycRom.BackgroundIDs = new int [MycRom.nFrames];
+		    	for (int ti = 0; ti < MycRom.nFrames; ti++)
+		    		MycRom.BackgroundIDs[ti] = reader.readUnsignedShort();
+		    	for (int ti = 0; ti < MycRom.nFrames; ti++)
+		    		MycRom.BackgroundBB[ti] = reader.readUnsignedShort();
+		    } else {
+		    	Arrays.fill(MycRom.BackgroundBB, (int)0xFFFFFFFF);
+		    }
 			
 		} catch( IOException e2) {
     	    log.error("error reading cRom");
