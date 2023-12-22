@@ -651,7 +651,7 @@ public static void loadcRP(LittleEndianDataInputStream reader) {
 					}
 				}
 				if (colVal > maxColVal) maxColVal = colVal;
-				rgbFrame[ti] = actCols[colVal];
+				rgbFrame[ti] = actCols[colVal > 63?63:colVal];
 				frame[ti] = (byte) (colVal & 0xFF);
 			}
 			
