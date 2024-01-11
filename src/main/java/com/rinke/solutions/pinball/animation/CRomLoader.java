@@ -643,12 +643,13 @@ public static void loadcRP(LittleEndianDataInputStream reader) {
 				}
 				else {
 					colVal = MycRom.Dyna4Cols[ID * MAX_DYNA_4COLS_PER_FRAME * MycRom.noColors + MycRom.DynaMasks[ID * MycRom.fWidth*MycRom.fHeight + ti] * MycRom.noColors + (MycRom.noColors - 1)];
-					if (MycRP != null) {
+					// use source frames for colVal calculation
+					/*if (MycRP != null) {
 						if (colVal > (MycRom.noColors - 1))
 							colVal = colVal - ((MycRom.noColors - 1) - MycRP.oFrames[ti+(ID*MycRom.fWidth*MycRom.fHeight)]);
 						else
 							colVal = MycRP.oFrames[ti+(ID*MycRom.fWidth*MycRom.fHeight)];
-					}
+					}*/
 				}
 				if (colVal > maxColVal) maxColVal = colVal;
 				rgbFrame[ti] = actCols[colVal > 63?63:colVal];
