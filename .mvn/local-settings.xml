@@ -1,0 +1,24 @@
+<settings xmlns="http://maven.apache.org/SETTINGS/1.2.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.2.0 http://maven.apache.org/xsd/settings-1.2.0.xsd">
+    <mirrors>
+        <mirror>
+            <id>maven-eclipse-repo-http-unblocker</id>
+            <mirrorOf>maven-eclipse-repo</mirrorOf>
+            <name></name>
+            <url>http://maven-eclipse.github.io/maven</url>
+        </mirror>
+	<mirror>
+            <id>godmd-repo-http-unblocker</id>
+            <mirrorOf>godmd-repo</mirrorOf>
+            <name></name>
+            <url>http://go-dmd.de/maven</url>
+        </mirror>
+	<mirror>
+            <id>sker65-repo-http-unblocker</id>
+            <mirrorOf>sker65-repo</mirrorOf>
+            <name></name>
+            <url>https://raw.githubusercontent.com/sker65/mvn-repo/master</url>
+        </mirror>
+    </mirrors>
+</settings>
