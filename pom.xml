@@ -109,8 +109,8 @@
 					<groupId>org.eclipse.swt</groupId>
 					<artifactId>org.eclipse.swt.cocoa.macosx.x86_64</artifactId>
 					<version>4.20</version>
-					<!-- scope>system</scope>
-                    <systemPath>${basedir}/lib/swt.jar</systemPath -->
+<!-- 					<scope>system</scope> -->
+<!--                     <systemPath>${basedir}/lib/swt.jar</systemPath> -->
 				</dependency>
 			</dependencies>
 			<build>
@@ -415,8 +415,8 @@
 			<groupId>org.eclipse</groupId>
 			<artifactId>jface</artifactId>
 			<version>3.22.0</version>
-			<!-- scope>system</scope>
-			<systemPath>${basedir}/lib/org.eclipse.jface-3.22.0.jar</systemPath -->
+<!-- 			<scope>system</scope> -->
+<!-- 			<systemPath>${basedir}/lib/org.eclipse.jface-3.22.0.jar</systemPath> -->
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.core</groupId>
@@ -426,8 +426,15 @@
 		<dependency>
 			<groupId>org.eclipse.core</groupId>
 			<artifactId>org.eclipse.core.runtime</artifactId>
-			<version>3.7.0</version>
+			<version>3.27.0</version>
+<!-- 			<scope>system</scope> -->
+<!--             <systemPath>${basedir}/lib/org.eclipse.core.runtime-3.27.0.jar</systemPath> -->
 		</dependency>
+		<dependency>
+            <groupId>org.eclipse.platform</groupId>
+            <artifactId>org.eclipse.equinox.common</artifactId>
+            <version>3.14.0</version>
+        </dependency>
 		<!-- deps for databinding -->
 		<dependency>
 			<groupId>org.eclipse.core</groupId>
