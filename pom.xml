@@ -108,7 +108,9 @@
 				<dependency>
 					<groupId>org.eclipse.swt</groupId>
 					<artifactId>org.eclipse.swt.cocoa.macosx.x86_64</artifactId>
-					<version>4.6</version>
+					<version>4.20</version>
+					<!-- scope>system</scope>
+                    <systemPath>${basedir}/lib/swt.jar</systemPath -->
 				</dependency>
 			</dependencies>
 			<build>
@@ -412,7 +414,9 @@
 		<dependency>
 			<groupId>org.eclipse</groupId>
 			<artifactId>jface</artifactId>
-			<version>3.7.0</version>
+			<version>3.22.0</version>
+			<!-- scope>system</scope>
+			<systemPath>${basedir}/lib/org.eclipse.jface-3.22.0.jar</systemPath -->
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.core</groupId>
