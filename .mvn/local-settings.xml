@@ -3,6 +3,18 @@
           xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.2.0 http://maven.apache.org/xsd/settings-1.2.0.xsd">
     <mirrors>
         <mirror>
+            <id>egiz-repo-repo-http-unblocker</id>
+            <mirrorOf>egiz-repo</mirrorOf>
+            <name></name>
+            <url>https://apps.egiz.gv.at/maven/</url>
+        </mirror>
+        <mirror>
+            <id>maven2-eclipse-repo-http-unblocker</id>
+            <mirrorOf>maven2-eclipse-repo</mirrorOf>
+            <name></name>
+            <url>https://repo1.maven.org/maven2</url>
+        </mirror>
+        <mirror>
             <id>maven-eclipse-repo-http-unblocker</id>
             <mirrorOf>maven-eclipse-repo</mirrorOf>
             <name></name>
