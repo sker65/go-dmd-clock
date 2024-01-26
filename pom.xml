@@ -169,7 +169,7 @@
 			</build>
 		</profile>
 		<profile>
-			<id>mac-arm64</id>
+			<id>mac_arm64</id>
 			<dependencies>
 				<dependency>
 					<groupId>org.eclipse.platform</groupId>

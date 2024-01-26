@@ -23,6 +23,13 @@ ant
 zip -r Pin2Dmd-Editor-${version}.zip Pin2Dmd-Editor.app
 cd ..
 mv dist/Pin2Dmd-Editor-${version}.zip build
+mvn -Djavacpp.platform=macosx-arm64 -DskipTests -Pmac_arm64 clean package assembly:single
+cd dist
+rm -rf Pin2Dmd-Editor.app/
+ant
+zip -r Pin2Dmd-Editor-Arm64-${version}.zip Pin2Dmd-Editor.app
+cd ..
+mv dist/Pin2Dmd-Editor Arm64-${version}.zip build
 echo "Successfull build"
 
 # -Djavacpp.platform=macosx-x86_64 -> for mac64 
