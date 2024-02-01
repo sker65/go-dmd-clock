@@ -67,7 +67,8 @@ import com.rinke.solutions.pinball.api.BinaryExporterFactory;
 import com.rinke.solutions.pinball.api.LicenseManager;
 import com.rinke.solutions.pinball.api.LicenseManager.Capability;
 import com.rinke.solutions.pinball.io.FileHelper;
-import com.rinke.solutions.pinball.license.PACWriter;
+import com.rinke.solutions.pinball.license.ExportWriter;
+//import com.rinke.solutions.pinball.license.PACWriter;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.FrameSeq;
 import com.rinke.solutions.pinball.model.Mask;
@@ -555,6 +556,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 	
 	
 	private byte[] compressAndEncrypt(BinaryExporter ex, String infile, String uid) throws IOException {
+		
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		ByteArrayOutputStream bosZipped = new ByteArrayOutputStream();
 		FileInputStream fis = new FileInputStream(infile);
@@ -785,7 +787,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 						
 							if (!filename.toLowerCase().endsWith(".pal")) {
 								// pac the two temp files to a PAC
-								PACWriter pac = new PACWriter(new FileOutputStream(filename));
+								/*PACWriter pac = new PACWriter(new FileOutputStream(filename));
 								pac.writeHeader(1);
 								byte[] palBytes = compressAndEncrypt(exporter, palFilename, "VPIN");
 								log.debug("writing encrypted PAL chunk, len={}", palBytes.length);
@@ -796,8 +798,11 @@ public class ProjectHandler extends AbstractCommandHandler {
 									log.debug("writing encrypted VNI chunk, len={}", vniBytes.length);
 									pac.writeChunkHeader(2, vniBytes.length);
 									pac.write(vniBytes);
-								}
-								pac.close();
+								}*/
+								ExportWriter ex = new ExportWriter(filename);
+								ex.open(1);
+								ex.write(palFilename, "VPIN");
+								ex.close();
 								
 								// delete tmp files
 								Files.delete(Paths.get(palFilename));
@@ -882,7 +887,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 					dos2.close();
 					
 					// pac the two temp files to a PAC
-					PACWriter pac = new PACWriter(new FileOutputStream(filename));
+					/*PACWriter pac = new PACWriter(new FileOutputStream(filename));
 					pac.writeHeader(1);
 					byte[] palBytes = compressAndEncrypt(exporter, palFilename, "VPIN");
 					log.debug("writing encrypted PAL chunk, len={}", palBytes.length);
@@ -894,7 +899,12 @@ public class ProjectHandler extends AbstractCommandHandler {
 						pac.writeChunkHeader(2, fsqBytes.length);
 						pac.write(fsqBytes);
 					}
-					pac.close();
+					pac.close();*/
+					
+					ExportWriter ex = new ExportWriter(filename);
+					ex.open(1);
+					ex.write(palFilename, "VPIN");
+					ex.close();
 					
 					// delete tmp files
 					Files.delete(Paths.get(palFilename));
@@ -913,7 +923,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 					// if uid is set, go for version 2 and create a crypted output stream
 					if( uid != null ) {
 	                    Collections.reverse( project.palMappings);
-						OutputStream os = streamProvider.buildStream(palFilename);
+						/*OutputStream os = streamProvider.buildStream(palFilename);
 						os.write(project.version);
 						if (pin2dmdVersion >= 442) {
 							os.write(pin2dmdVersion >> 8);
@@ -922,7 +932,14 @@ public class ProjectHandler extends AbstractCommandHandler {
 						// if there should be an unencrypted header, write it out now directly to the output stream
 						DataOutputStream dos2 = new DataOutputStream(exporter.buildStream(os, uid));
 						exporter.writeTo(dos2, map, project);
-						dos2.close();
+						dos2.close();*/
+						String tmpDir = System.getProperty("java.io.tmpdir");
+						palFilename = tmpDir + "tmp.pal";
+	                    ExportWriter ex = new ExportWriter(filename);
+						ex.open(pin2dmdVersion);
+						ex.write(palFilename, uid);
+						ex.close();
+	                    
 					} else {
 						project.version = 1;
 						DataOutputStream dos2 = new DataOutputStream(streamProvider.buildStream(palFilename));
