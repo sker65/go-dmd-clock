@@ -19,5 +19,6 @@ public interface FileChooser {
 
 	String[] getFileNames();
 
+	int getFilterIndex();
 
 }

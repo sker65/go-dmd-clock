@@ -44,4 +44,9 @@ public class FileDialogDelegate implements FileChooser {
 		return delegate.getFileNames();
 	}
 
+	@Override
+	public int getFilterIndex() {
+		return delegate.getFilterIndex();
+	}
+
 }
