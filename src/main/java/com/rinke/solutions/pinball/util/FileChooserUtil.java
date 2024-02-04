@@ -7,6 +7,7 @@ import java.util.List;
 import lombok.Setter;
 
 import org.apache.commons.io.FilenameUtils;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Shell;
 
 import com.rinke.solutions.beans.Autowired;
@@ -50,11 +51,13 @@ public class FileChooserUtil {
 				if (buf.charAt(buf.length() - 1) != File.separatorChar)
 					buf.append(File.separatorChar);
 				buf.append(names[i]);
-				String extension = FilenameUtils.getExtension(names[i]);
-				if( extension != null && extension.isEmpty()) {
+				if (type == SWT.SAVE) {
+					String extension = FilenameUtils.getExtension(names[i]);
 					String extensionToAdd = exts[fileChooser.getFilterIndex()];
-					buf.append(".");
-					buf.append(extensionToAdd.substring(2));
+					if( extension != null && !extension.equals(extensionToAdd.substring(2))) {
+						buf.append(".");
+						buf.append(extensionToAdd.substring(2));
+					}
 				}
 				files.add(buf.toString());
 			}
