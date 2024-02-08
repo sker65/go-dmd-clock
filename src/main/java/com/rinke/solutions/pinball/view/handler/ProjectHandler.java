@@ -7,15 +7,10 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -26,17 +21,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
-import java.util.zip.GZIPOutputStream;
-
-import javax.crypto.Cipher;
-import javax.crypto.CipherOutputStream;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
 
 import static java.nio.file.StandardCopyOption.*;
 
@@ -68,7 +53,6 @@ import com.rinke.solutions.pinball.api.LicenseManager;
 import com.rinke.solutions.pinball.api.LicenseManager.Capability;
 import com.rinke.solutions.pinball.io.FileHelper;
 import com.rinke.solutions.pinball.license.ExportWriter;
-//import com.rinke.solutions.pinball.license.PACWriter;
 import com.rinke.solutions.pinball.model.Frame;
 import com.rinke.solutions.pinball.model.FrameSeq;
 import com.rinke.solutions.pinball.model.Mask;
@@ -555,26 +539,6 @@ public class ProjectHandler extends AbstractCommandHandler {
 	}
 	
 	
-	private byte[] compressAndEncrypt(BinaryExporter ex, String infile, String uid) throws IOException {
-		
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		ByteArrayOutputStream bosZipped = new ByteArrayOutputStream();
-		FileInputStream fis = new FileInputStream(infile);
-		
-		OutputStream cryptOs = ex.buildStream(bos, uid);
-		GZIPOutputStream gos  = new GZIPOutputStream(bosZipped);
-		byte[] buffer = new byte[1024];
-        int len;
-        while ((len = fis.read(buffer)) > 0) {
-            gos.write(buffer, 0, len);
-        }
-        gos.close();
-        fis.close();
-        bosZipped.writeTo(cryptOs);
-        cryptOs.close();
-		return bos.toByteArray();
-	}
-
 	public void onExportProject(String filename, OutputStreamProvider streamProvider, boolean realPin, String uid) {
 		log.info("export project {} file {}", realPin?"real":"vpin", filename);
 		if( realPin) licenseManager.requireOneOf(Capability.VPIN, Capability.REALPIN, Capability.GODMD, Capability.XXL_DISPLAY);
@@ -752,64 +716,27 @@ public class ProjectHandler extends AbstractCommandHandler {
 				anis.add(cani);
 			}
 			
-			String aniFilename;
-			String palFilename;
-			if (!filename.toLowerCase().endsWith(".pal")) {
-				String aniFile = replaceExtensionTo("vni", filename);
-				String palFile = replaceExtensionTo("pal", filename);
-				palFile = palFile.substring(palFile.lastIndexOf(File.separator));
-				aniFile = aniFile.substring(aniFile.lastIndexOf(File.separator));
-				String tmpDir = System.getProperty("java.io.tmpdir");
-				palFilename = tmpDir + palFile;
-				aniFilename = tmpDir + aniFile;
-			} else {
-				aniFilename = replaceExtensionTo("vni", filename);
-				palFilename = replaceExtensionTo("pal", filename);
-			}
 			Worker w = new Worker() {
 				@Override
 				public void innerRun() {
 					try {
 						BinaryExporter exporter = BinaryExporterFactory.getInstance();
-						AniWriter aniWriter = new AniWriter(anis, aniFilename, aniVersionToUse, vm.paletteMap, progress);
+						AniWriter aniWriter = new AniWriter(anis, null, aniVersionToUse, vm.paletteMap, progress);
 						if( !anis.isEmpty() ) {
 							aniWriter.compressPlanes = false;
 							aniWriter.setHeader("VPIN");
 							aniWriter.run();
 						}
 						if( !cancelRequested ) {
-							notify(90, "writing binary project");					
-							DataOutputStream dos2 = new DataOutputStream(streamProvider.buildStream(palFilename));
+							notify(90, "writing binary project");
+							ByteArrayOutputStream baos2 = new ByteArrayOutputStream();
+							DataOutputStream dos2 = new DataOutputStream(baos2);
 							// for vpins version is 2
 							project.version = 2;
 							exporter.writeTo(dos2, aniWriter.getOffsetMap(), project);
 							dos2.close();
-						
-							if (!filename.toLowerCase().endsWith(".pal")) {
-								// pac the two temp files to a PAC
-								/*PACWriter pac = new PACWriter(new FileOutputStream(filename));
-								pac.writeHeader(1);
-								byte[] palBytes = compressAndEncrypt(exporter, palFilename, "VPIN");
-								log.debug("writing encrypted PAL chunk, len={}", palBytes.length);
-								pac.writeChunkHeader(1, palBytes.length);
-								pac.write(palBytes);
-								if( !anis.isEmpty() ) {
-									byte[] vniBytes = compressAndEncrypt(exporter, aniFilename, "VPIN");
-									log.debug("writing encrypted VNI chunk, len={}", vniBytes.length);
-									pac.writeChunkHeader(2, vniBytes.length);
-									pac.write(vniBytes);
-								}*/
-								ExportWriter ex = new ExportWriter(filename);
-								ex.open(1);
-								ex.write(palFilename, "VPIN");
-								ex.close();
-								
-								// delete tmp files
-								Files.delete(Paths.get(palFilename));
-								if( !anis.isEmpty() ) {
-									Files.delete(Paths.get(aniFilename));
-								}
-							}
+							byte[] projectBuffer = baos2.toByteArray();
+							ExportWriter ex = new ExportWriter(filename, projectBuffer, AniWriter.buffer, 1, "VPIN");
 						}
 					} catch (IOException e) {
 						throw new RuntimeException("error writing " + filename, e);
@@ -864,90 +791,24 @@ public class ProjectHandler extends AbstractCommandHandler {
 			try {
 				Map<String, Integer> map = new HashMap<String, Integer>();
 				BinaryExporter exporter = BinaryExporterFactory.getInstance();
-				String fsqFilename;
-				String palFilename;
-				if (!filename.toLowerCase().endsWith(".pal")) {
-					String fsqFile = replaceExtensionTo("fsq", filename);
-					String palFile = replaceExtensionTo("pal", filename);
-					palFile = palFile.substring(palFile.lastIndexOf(File.separator));
-					fsqFile = fsqFile.substring(fsqFile.lastIndexOf(File.separator));
-					String tmpDir = System.getProperty("java.io.tmpdir");
-					palFilename = tmpDir + palFile;
-					fsqFilename = tmpDir + fsqFile;
-					if (!frameSeqMap.isEmpty()) {
-						log.info("exporter instance {} writing FSQ", exporter);
-						DataOutputStream dos = new DataOutputStream(streamProvider.buildStream(fsqFilename));
-						map = exporter.writeFrameSeqTo(dos, frameSeqMap, useOldExport?2:3);
-						dos.close();
-					}
-					project.version = 1;
-					Collections.reverse(project.palMappings);
-					DataOutputStream dos2 = new DataOutputStream(streamProvider.buildStream(palFilename));
-					exporter.writeTo(dos2, map, project);
-					dos2.close();
-					
-					// pac the two temp files to a PAC
-					/*PACWriter pac = new PACWriter(new FileOutputStream(filename));
-					pac.writeHeader(1);
-					byte[] palBytes = compressAndEncrypt(exporter, palFilename, "VPIN");
-					log.debug("writing encrypted PAL chunk, len={}", palBytes.length);
-					pac.writeChunkHeader(1, palBytes.length);
-					pac.write(palBytes);
-					if( !frameSeqMap.isEmpty() ) {
-						byte[] fsqBytes = compressAndEncrypt(exporter, fsqFilename, "VPIN");
-						log.debug("writing encrypted FSQ chunk, len={}", fsqBytes.length);
-						pac.writeChunkHeader(2, fsqBytes.length);
-						pac.write(fsqBytes);
-					}
-					pac.close();*/
-					
-					ExportWriter ex = new ExportWriter(filename);
-					ex.open(1);
-					ex.write(palFilename, "VPIN");
-					ex.close();
-					
-					// delete tmp files
-					Files.delete(Paths.get(palFilename));
-					if( !frameSeqMap.isEmpty() ) {
-						Files.delete(Paths.get(fsqFilename));
-					}
-				} else {
-					fsqFilename = replaceExtensionTo("fsq", filename);
-					palFilename = replaceExtensionTo("pal", filename);
-					if (!frameSeqMap.isEmpty()) {
-						log.info("exporter instance {} writing FSQ", exporter);
-						DataOutputStream dos = new DataOutputStream(streamProvider.buildStream(fsqFilename));
-						map = exporter.writeFrameSeqTo(dos, frameSeqMap, useOldExport?2:3);
-						dos.close();
-					}
-					// if uid is set, go for version 2 and create a crypted output stream
-					if( uid != null ) {
-	                    Collections.reverse( project.palMappings);
-						/*OutputStream os = streamProvider.buildStream(palFilename);
-						os.write(project.version);
-						if (pin2dmdVersion >= 442) {
-							os.write(pin2dmdVersion >> 8);
-							os.write(pin2dmdVersion & 0xFF);
-						}
-						// if there should be an unencrypted header, write it out now directly to the output stream
-						DataOutputStream dos2 = new DataOutputStream(exporter.buildStream(os, uid));
-						exporter.writeTo(dos2, map, project);
-						dos2.close();*/
-						String tmpDir = System.getProperty("java.io.tmpdir");
-						palFilename = tmpDir + "tmp.pal";
-	                    ExportWriter ex = new ExportWriter(filename);
-						ex.open(pin2dmdVersion);
-						ex.write(palFilename, uid);
-						ex.close();
-	                    
-					} else {
-						project.version = 1;
-						DataOutputStream dos2 = new DataOutputStream(streamProvider.buildStream(palFilename));
-						exporter.writeTo(dos2, map, project);
-						dos2.close();
-					}
+				byte[] animBuffer = null;
+				if (!frameSeqMap.isEmpty()) {
+					log.info("exporter instance {} writing FSQ", exporter);
+					ByteArrayOutputStream baos = new ByteArrayOutputStream(); 
+					DataOutputStream dos = new DataOutputStream(baos);
+					map = exporter.writeFrameSeqTo(dos, frameSeqMap, useOldExport?2:3);
+					dos.close();
+					animBuffer = baos.toByteArray();
 				}
-				// fileHelper.storeObject(project, filename);
+				project.version = 1;
+				Collections.reverse(project.palMappings);
+				ByteArrayOutputStream baos2 = new ByteArrayOutputStream();
+				DataOutputStream dos2 = new DataOutputStream(baos2);
+				exporter.writeTo(dos2, map, project);
+				dos2.close();
+				byte[] projectBuffer = baos2.toByteArray();
+				ExportWriter ex = new ExportWriter(filename, projectBuffer, animBuffer, 1, "VPIN");
+					
 			} catch (IOException e) {
 				throw new RuntimeException("error writing " + filename, e);
 			}
