@@ -34,7 +34,7 @@ public class AniWriter extends Worker {
 	private List<Animation> anis;
 	private Map<String,Integer> offsetMap = new HashMap<>();
 	private String header = ANIM;
-	public static byte[] buffer;
+	private static byte[] buffer;
 	public boolean writeLinearPlane = false;
 	public boolean compressPlanes = true;
 	
@@ -43,6 +43,7 @@ public class AniWriter extends Worker {
 		this.filename = filename;
 		this.version = version;
 		this.palettes = palettes;
+		this.buffer = new byte[1];
 		setProgressEvt(progressEvt);
 	}
 
@@ -344,6 +345,10 @@ public class AniWriter extends Worker {
 
 	public Map<String, Integer> getOffsetMap() {
 		return offsetMap;
+	}
+	
+	public byte[] getBuffer() {
+		return buffer;
 	}
 
 	public void setHeader(String header) {

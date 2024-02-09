@@ -31,7 +31,6 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.MessageBox;
 
 import com.rinke.solutions.beans.Autowired;
 import com.rinke.solutions.beans.Bean;
@@ -42,7 +41,6 @@ import com.rinke.solutions.pinball.DMD;
 import com.rinke.solutions.pinball.Dispatcher;
 import com.rinke.solutions.pinball.DmdSize;
 import com.rinke.solutions.pinball.Worker;
-import com.rinke.solutions.pinball.animation.AniReader;
 import com.rinke.solutions.pinball.animation.AniWriter;
 import com.rinke.solutions.pinball.animation.Animation;
 import com.rinke.solutions.pinball.animation.CRomLoader;
@@ -445,7 +443,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 			String filename = fileChooserUtil.choose(SWT.SAVE, bareName(vm.projectFilename), new String[] { "*.pal" , "*.rac" }, new String[] { "Export pal", "Export rac"});
 			if (filename != null) {
 				if(!noExportWarning ) messageUtil.warn("Warning", "Please don´t publish projects with copyrighted material / frames");
-				onExportProject(filename, f -> new FileOutputStream(f), true, null);
+				onExportProject(filename, f -> new FileOutputStream(f), true, "");
 				if( !filename.endsWith("pin2dmd.pal")) {
 					if(!noExportWarning ) messageUtil.warn("Hint", "Remember to rename your export file to pin2dmd.pal if you want to use it" + " in a real pinballs sdcard of pin2dmd.");
 				}
@@ -513,7 +511,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 		
 		if (filename != null) {
 			if(!noExportWarning ) messageUtil.warn("Warning", "Please don´t publish projects with copyrighted material / frames");
-			onExportProject(filename, f -> new FileOutputStream(f), false, null);
+			onExportProject(filename, f -> new FileOutputStream(f), false, "VPIN");
 		}
 	}
 	
@@ -736,7 +734,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 							exporter.writeTo(dos2, aniWriter.getOffsetMap(), project);
 							dos2.close();
 							byte[] projectBuffer = baos2.toByteArray();
-							ExportWriter ex = new ExportWriter(filename, projectBuffer, AniWriter.buffer, 1, "VPIN");
+							ExportWriter ex = new ExportWriter(filename, projectBuffer, aniWriter.getBuffer(), pin2dmdVersion, uid);
 						}
 					} catch (IOException e) {
 						throw new RuntimeException("error writing " + filename, e);
@@ -791,7 +789,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 			try {
 				Map<String, Integer> map = new HashMap<String, Integer>();
 				BinaryExporter exporter = BinaryExporterFactory.getInstance();
-				byte[] animBuffer = null;
+				byte[] animBuffer = new byte[1];
 				if (!frameSeqMap.isEmpty()) {
 					log.info("exporter instance {} writing FSQ", exporter);
 					ByteArrayOutputStream baos = new ByteArrayOutputStream(); 
