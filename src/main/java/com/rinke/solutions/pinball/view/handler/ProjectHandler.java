@@ -734,7 +734,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 							exporter.writeTo(dos2, aniWriter.getOffsetMap(), project);
 							dos2.close();
 							byte[] projectBuffer = baos2.toByteArray();
-							ExportWriter ex = new ExportWriter(filename, projectBuffer, aniWriter.getBuffer(), pin2dmdVersion, uid);
+							ExportWriter ex = new ExportWriter(filename, projectBuffer, aniWriter.getBuffer(), pin2dmdVersion, "VPIN");
 						}
 					} catch (IOException e) {
 						throw new RuntimeException("error writing " + filename, e);
@@ -805,7 +805,8 @@ public class ProjectHandler extends AbstractCommandHandler {
 				exporter.writeTo(dos2, map, project);
 				dos2.close();
 				byte[] projectBuffer = baos2.toByteArray();
-				ExportWriter ex = new ExportWriter(filename, projectBuffer, animBuffer, 1, "VPIN");
+				ExportWriter ex = new ExportWriter(filename, projectBuffer, animBuffer, pin2dmdVersion, uid);
+				
 					
 			} catch (IOException e) {
 				throw new RuntimeException("error writing " + filename, e);
