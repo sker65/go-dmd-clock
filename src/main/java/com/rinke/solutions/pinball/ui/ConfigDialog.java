@@ -108,7 +108,7 @@ public class ConfigDialog extends Dialog implements View {
         btnCreateKeyFrame.setSelection(config.getBoolean(Config.AUTOKEYFRAME, false));
         spinnerNoPlanes.setSelection(config.getInteger(Config.NOOFPLANES, 6));
         spinnerNoColors.setSelection(config.getInteger(Config.NOOFCOLORS, 64));
-        spinnerPin2DmdVersion.setSelection(config.getInteger(Config.PIN2DMD_VERSION, 442));
+        spinnerPin2DmdVersion.setSelection(config.getInteger(Config.PIN2DMD_VERSION, 452));
         btnUseOldExport.setSelection(config.getBoolean(Config.OLDEXPORT, false));
         btnCreatePaletteAfter.setSelection(config.getBoolean(Config.ADDPALWHENCUT, false));
         btnCreateBookmarkAfter.setSelection(config.getBoolean(Config.CREATEBOOKCUT, false));

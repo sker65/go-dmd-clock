@@ -91,7 +91,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 	boolean noExportWarning;
 	
 	@Value(key=Config.PIN2DMD_VERSION)
-	int pin2dmdVersion = 442;
+	int pin2dmdVersion = 452;
 	
 	@Value
 	boolean backup;
@@ -734,7 +734,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 							exporter.writeTo(dos2, aniWriter.getOffsetMap(), project);
 							dos2.close();
 							byte[] projectBuffer = baos2.toByteArray();
-							ExportWriter ex = new ExportWriter(filename, projectBuffer, aniWriter.getBuffer(), pin2dmdVersion, "VPIN");
+							ExportWriter ex = new ExportWriter(filename, projectBuffer, aniWriter.getBuffer(), pin2dmdVersion, uid);
 						}
 					} catch (IOException e) {
 						throw new RuntimeException("error writing " + filename, e);
