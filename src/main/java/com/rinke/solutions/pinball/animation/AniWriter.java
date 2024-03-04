@@ -5,6 +5,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.HashMap;
 import java.util.List;
@@ -33,6 +34,7 @@ public class AniWriter extends Worker {
 	private List<Animation> anis;
 	private Map<String,Integer> offsetMap = new HashMap<>();
 	private String header = ANIM;
+	private static byte[] buffer;
 	public boolean writeLinearPlane = false;
 	public boolean compressPlanes = true;
 	
@@ -41,6 +43,7 @@ public class AniWriter extends Worker {
 		this.filename = filename;
 		this.version = version;
 		this.palettes = palettes;
+		this.buffer = new byte[1];
 		setProgressEvt(progressEvt);
 	}
 
@@ -61,11 +64,22 @@ public class AniWriter extends Worker {
 		int planesCompressed = 0;
 		int planesRaw = 0;
 		DataOutputStream os = null;
+		buffer = null;
 		try {
-			log.info("writing animations to {}",filename);
-			notify(0,"writing animations to " + filename);
-			FileOutputStream fos = new FileOutputStream(filename);
-			os = new DataOutputStream(fos);
+			FileOutputStream fos = null;
+			ByteArrayOutputStream baos = null;
+			if (filename != null)
+			{
+				fos = new FileOutputStream(filename);
+				log.info("writing animations to {}",filename);
+				notify(0,"writing animations to " + filename);
+				os = new DataOutputStream(fos);
+			} else {
+				baos = new ByteArrayOutputStream();
+				log.info("writing animations to buffer");
+				notify(0,"writing animations to buffer");
+				os = new DataOutputStream(baos);
+			}
 			os.writeBytes(header); // magic header
 			os.writeShort(version); // version
 			log.info("writing version {}",version);
@@ -227,8 +241,15 @@ public class AniWriter extends Worker {
 				aniIndex++;
 				notify(aniIndex*aniProgressInc, "animation "+a.getDesc()+" written");
 			}
-			if( version >= 2 ) rewriteIndex(aniOffset, os, fos, startOfIndex);
-			os.close();
+			if (filename != null) {
+				if( version >= 2 ) rewriteIndex(aniOffset, os, fos, startOfIndex);
+				os.close();
+			} else {
+				os.close();
+				buffer = baos.toByteArray();
+				if( version >= 2 ) rewriteIndex(aniOffset, buffer, startOfIndex);
+			}
+				
 			if( atLeastOneCompressed ) log.info("frame compression {}/{} = {}", planesRaw,planesCompressed, (float)planesCompressed/(float)planesRaw);
 			log.info("done");
 		} catch (IOException e) {
@@ -305,6 +326,16 @@ public class AniWriter extends Worker {
 			os.writeInt(aniOffset[i]);
 		}
 	}
+	
+	private void rewriteIndex(int[] aniOffset, byte[] buffer, int startOfIndex) throws IOException {
+		for (int i = 0; i < aniOffset.length; i++) {
+			byte[] bytes = ByteBuffer.allocate(4).putInt(aniOffset[i]).array();
+			buffer[startOfIndex + (i * 4)] = bytes[0];
+			buffer[startOfIndex + (i * 4) + 1] = bytes[1];
+			buffer[startOfIndex + (i * 4) + 2] = bytes[2];
+			buffer[startOfIndex + (i * 4) + 3] = bytes[3];
+		}
+	}
 
 	private int writeIndexPlaceholder(int count, DataOutputStream os) throws IOException {
 		int startOfIndex = os.size();
@@ -314,6 +345,10 @@ public class AniWriter extends Worker {
 
 	public Map<String, Integer> getOffsetMap() {
 		return offsetMap;
+	}
+	
+	public byte[] getBuffer() {
+		return buffer;
 	}
 
 	public void setHeader(String header) {
