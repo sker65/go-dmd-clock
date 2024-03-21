@@ -507,7 +507,7 @@ public class ProjectHandler extends AbstractCommandHandler {
 	
 	public void onExportVirtualPinProject() {
 //		licManager.requireOneOf(Capability.VPIN, Capability.GODMD);
-		String filename = fileChooserUtil.choose(SWT.SAVE, bareName(vm.projectFilename), new String[] { "*.pac" , "*.pal"}, new String[] { "Export pac", "Export pal" });
+		String filename = fileChooserUtil.choose(SWT.SAVE, bareName(vm.projectFilename), new String[] { "*.pal" , "*.pac"}, new String[] { "Export pal" , "Export pac" });
 		
 		if (filename != null) {
 			if(!noExportWarning ) messageUtil.warn("Warning", "Please don´t publish projects with copyrighted material / frames");
