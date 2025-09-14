@@ -6,3 +6,4 @@ target
 /build
 /.settings
 /bin
+.DS_Store
