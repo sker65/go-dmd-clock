@@ -432,14 +432,18 @@
 		<dependency>
 			<groupId>org.bytedeco</groupId>
 			<artifactId>opencv-platform</artifactId>
-			<version>4.5.1-1.5.5</version>
+			<!-- version>4.5.1-1.5.5</version -->
+			<!-- necessary for macos-arm64 support -->
+			<version>4.7.0-1.5.9</version>
 		</dependency>
 
 		<!-- Optional dependencies to load the Python module -->
 		<dependency>
 			<groupId>org.bytedeco</groupId>
 			<artifactId>numpy-platform</artifactId>
-			<version>1.20.1-1.5.5</version>
+			<!-- version>1.20.1-1.5.5</version -->
+			<!-- necessary for macos-arm64 support -->
+			<version>2.1.3-1.5.11</version>
 		</dependency>
 		<dependency>
 			<groupId>org.reflections</groupId>
